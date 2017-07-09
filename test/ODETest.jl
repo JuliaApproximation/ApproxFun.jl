@@ -168,6 +168,7 @@ B=ldirichlet();
 Bn=lneumann();
 
 f=Fun(x->[exp(x),cos(x)],d)
+
 A=[B 0;
    Bn 0;
    0 B;

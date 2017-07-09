@@ -617,7 +617,7 @@ Base.promote_rule{N<:Number}(::Type{UniformScaling{N}},::Type{Operator}) =
     Operator{N}
 Base.promote_rule{S,N<:Number,VN}(::Type{Fun{S,N,VN}},::Type{Operator}) = Operator{N}
 Base.promote_rule{N<:Number,O<:Operator}(::Type{N},::Type{O}) =
-    Operator{promote_type(float(N),eltype(O))}  # float because numbers are promoted to Fun
+    Operator{promote_type(N,eltype(O))}  # float because numbers are promoted to Fun
 Base.promote_rule{N<:Number,O<:Operator}(::Type{UniformScaling{N}},::Type{O}) =
     Operator{promote_type(N,eltype(O))}
 Base.promote_rule{S,N<:Number,O<:Operator,VN}(::Type{Fun{S,N,VN}},::Type{O}) =

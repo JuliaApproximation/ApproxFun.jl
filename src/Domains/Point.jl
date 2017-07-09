@@ -8,6 +8,9 @@ end
 Point(x) = Point{typeof(x)}(x)
 Point(::AnyDomain) = Point(NaN)
 
+convert(::Type{Point},::AnyDomain) = Point(NaN)
+convert(::Type{Point{T}},::AnyDomain) where T = Point{T}(NaN)
+
 doc"""
     Point(x)
 

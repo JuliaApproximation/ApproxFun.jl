@@ -47,11 +47,11 @@ end
 # zero needs to be different since it can take a space to
 # a ConstantSpace, in creating functionals
 Base.convert{T}(::Type{Operator{T}},x::Number) =
-    x==0 ? ZeroOperator(T,UnsetSpace()) : Multiplication(T(x))
+    x==0 ? ZeroOperator(T) : Multiplication(T(x))
 Base.convert{T}(::Type{Operator{T}},L::UniformScaling) =
     ConstantOperator(T,L.λ)
 
-Base.convert(::Type{Operator},n::Number) = ConstantOperator(n)
+Base.convert(::Type{Operator},n::Number) = Operator{typeof(n)}(n)
 Base.convert(::Type{Operator},L::UniformScaling) = ConstantOperator(L.λ)
 
 ## Algebra
@@ -101,8 +101,8 @@ ZeroOperator{T}(::Type{T},d::Space,v::Space) = ZeroOperator{T,typeof(d),typeof(v
 ZeroOperator{T}(::Type{T},S::Space) = ZeroOperator(T,S,ZeroSpace(S))
 ZeroOperator(d::Space,v::Space) = ZeroOperator(Float64,d,v)
 ZeroOperator(S::Space) = ZeroOperator(S,ZeroSpace(S))
-ZeroOperator() = ZeroOperator(UnsetSpace(),ZeroSpace())
-ZeroOperator{T}(::Type{T}) = ZeroOperator(T,UnsetSpace(),ZeroSpace())
+ZeroOperator() = ZeroOperator(UnsetSpace(),UnsetSpace())
+ZeroOperator{T}(::Type{T}) = ZeroOperator(T,UnsetSpace(),UnsetSpace())
 
 
 Base.convert{T}(::Type{Operator{T}},Z::ZeroOperator) =
