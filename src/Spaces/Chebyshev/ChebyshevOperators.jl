@@ -125,7 +125,8 @@ function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},M,OT,T},
 end
 
 function Dirichlet(S::Chebyshev,order)
-    order == 0 && return ConcreteDirichlet(S,ArraySpace(ConstantSpace(rangetype(S)),2),0)
+    order == 0 && return ConcreteDirichlet(S,ArraySpace([ConstantSpace(Point(first(domain(S)))),
+                                                         ConstantSpace(Point(last(domain(S))))]),0)
     default_Dirichlet(S,order)
 end
 

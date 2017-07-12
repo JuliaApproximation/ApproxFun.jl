@@ -146,8 +146,7 @@ function blockbandinds(A::Operator)
         end
     end
 
-
-    return (-∞,∞)
+    return (1-length(blocklengths(rangespace(A))),length(blocklengths(domainspace(A)))-1)
 end
 
 # assume dense blocks

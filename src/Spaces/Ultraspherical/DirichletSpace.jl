@@ -32,19 +32,19 @@ canonicalspace(S::ChebyshevDirichlet) = Chebyshev(domain(S))
 setdomain{l,r}(S::ChebyshevDirichlet{l,r},d::Domain) = ChebyshevDirichlet{l,r}(d)
 
 
-# These are used to make sure Chebyshev comes first
+# These are used to make sure ChebyshevDirichlet comes first
 
-Base.isless(a::Chebyshev,b::ChebyshevDirichlet)=true
-<(a::Chebyshev,b::ChebyshevDirichlet)=true
-<=(a::Chebyshev,b::ChebyshevDirichlet)=true
->(a::Chebyshev,b::ChebyshevDirichlet)=false
->=(a::Chebyshev,b::ChebyshevDirichlet)=false
+Base.isless(a::Chebyshev,b::ChebyshevDirichlet) = false
+<(a::Chebyshev,b::ChebyshevDirichlet) = false
+<=(a::Chebyshev,b::ChebyshevDirichlet) = false
+>(a::Chebyshev,b::ChebyshevDirichlet) = true
+>=(a::Chebyshev,b::ChebyshevDirichlet) = true
 
-Base.isless(a::ChebyshevDirichlet,b::Chebyshev)=false
-<(a::ChebyshevDirichlet,b::Chebyshev)=false
-<=(a::ChebyshevDirichlet,b::Chebyshev)=false
->(a::ChebyshevDirichlet,b::Chebyshev)=true
->=(a::ChebyshevDirichlet,b::Chebyshev)=true
+Base.isless(a::ChebyshevDirichlet,b::Chebyshev) = true
+<(a::ChebyshevDirichlet,b::Chebyshev) = true
+<=(a::ChebyshevDirichlet,b::Chebyshev) = true
+>(a::ChebyshevDirichlet,b::Chebyshev) = false
+>=(a::ChebyshevDirichlet,b::Chebyshev) = false
 
 ## coefficients
 

@@ -1,5 +1,5 @@
 using ApproxFun, Base.Test, Base.Test
-    import ApproxFun: testbandedblockbandedoperator, testblockbandedoperator
+    import ApproxFun: testbandedblockbandedoperator, testblockbandedoperator, testraggedbelowoperator
 
 ## Check operators
 S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
@@ -43,8 +43,6 @@ testblockbandedoperator(B)
 testbandedblockbandedoperator(Laplacian(d)+0.0I)
 
 A=[Dirichlet(d);Laplacian(d)+0.0I]
-testblockbandedoperator(A)
-
 @time u=A\[g,0.]
 
 
@@ -74,11 +72,17 @@ L=Dx^4⊗I + 2*Dx^2⊗Dy^2 + I⊗Dy^4
 
 testbandedblockbandedoperator(L)
 
+
+B = Dirichlet(dx) ⊗ eye(dy)
+testraggedbelowoperator(Dirichlet(dx) ⊗ eye(dy))
+
 A=[Dirichlet(dx) ⊗ eye(dy);
         eye(dx)  ⊗ Dirichlet(dy);
         Neumann(dx) ⊗ eye(dy);
         eye(dx) ⊗ Neumann(dy);
          L]
+
+testraggedbelowoperator(A)
 
 @time u=\(A,[[1,1],[1,1],[0,0],[0,0],0];tolerance=1E-5)
 @test u(0.1,0.2) ≈ 1.0

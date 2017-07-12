@@ -14,7 +14,7 @@ struct QuotientSpace{S,O<:Operator,DD,T,RT} <: Space{DD,T}
     Σ::Diagonal{T}
     VT::Matrix{T}
     work::Vector{T}
-    iwork::Vector{Int}
+    iwork::Vector{BlasInt}
     rwork::Vector{RT}
     info::Ref{BlasInt}
     function QuotientSpace{S,O,DD,T,RT}(space::S, bcs::O) where {S,O,DD,T,RT}
@@ -27,7 +27,7 @@ struct QuotientSpace{S,O<:Operator,DD,T,RT} <: Space{DD,T}
         Σ = Diagonal(zeros(T, n))
         VT = zeros(T, n, n)
         work = Vector{T}(max((3n+7)*n,68))
-        iwork = Vector{Int}(8*n)
+        iwork = Vector{BlasInt}(8*n)
         rwork = Vector{RT}((5*n+7)*n)
         info = Ref{BlasInt}()
         new{S,O,DD,T,RT}(space, bcs, A, x, b, U, Σ, VT, work, iwork, rwork, info)
