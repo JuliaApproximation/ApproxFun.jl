@@ -66,7 +66,12 @@ end
 
 function colstart(A::KroneckerOperator,k::Integer)
     K=block(A.domaintensorizer,k)
-    blockstart(A.rangetensorizer,max(Block(1),K-blockbandwidth(A,2)))
+    M = blockbandwidth(A,2)
+    if isfinite(M)
+        blockstart(A.rangetensorizer,max(Block(1),K-M))
+    else
+        blockstart(A.rangetensorizer,Block(1))
+    end
 end
 
 function colstop(A::KroneckerOperator,k::Integer)

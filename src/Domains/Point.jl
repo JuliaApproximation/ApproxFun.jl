@@ -1,6 +1,15 @@
 struct Point{T} <: Domain{T}
     x::T
+
+    Point{T}(x::T) where {T} = new(x)
+    Point{T}(x::AnyDomain) where {T} = new(T(NaN))
 end
+
+Point(x) = Point{typeof(x)}(x)
+Point(::AnyDomain) = Point(NaN)
+
+convert(::Type{Point},::AnyDomain) = Point(NaN)
+convert(::Type{Point{T}},::AnyDomain) where T = Point{T}(NaN)
 
 doc"""
     Point(x)
@@ -10,7 +19,7 @@ represents a single point at `x`.
 Point(::)
 
 
-==(a::Point,b::Point) = a.x==b.x
+==(a::Point,b::Point) = (isambiguous(a) && isambiguous(b)) || a.x == b.x
 
 for op in (:*,:+,:-)
     @eval begin
@@ -36,7 +45,9 @@ end
 
 
 isambiguous(d::Point) = isnan(d.x)
-Base.convert{PT<:Point}(::Type{PT},::AnyDomain) = PT(NaN)
+
+
+
 
 Base.norm(p::Point) = norm(p.x)
 

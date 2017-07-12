@@ -34,14 +34,12 @@ end
 Evaluation(sp::Space,x,order) = Evaluation(rangetype(sp),sp,x,order)
 
 Evaluation(d::Space,x::Union{Number,typeof(first),typeof(last)}) = Evaluation(d,x,0)
-Evaluation{T}(::Type{T},d::Space,n...) = error("Override Evaluation for $(typeof(d))")
-Evaluation{T}(::Type{T},d,n...) = Evaluation(T,Space(d),n...)
+Evaluation(::Type{T},d::Space,n...) where {T} = error("Override Evaluation for $(typeof(d))")
+Evaluation(::Type{T},d,n...) where {T} = Evaluation(T,Space(d),n...)
 Evaluation(d,n...) = Evaluation(Space(d),n...)
 Evaluation(x::Union{Number,typeof(first),typeof(last)}) = Evaluation(UnsetSpace(),x,0)
 Evaluation(x::Union{Number,typeof(first),typeof(last)},k::Integer) =
     Evaluation(UnsetSpace(),x,k)
-Evaluation{T<:Number}(d::Vector{T},x::Union{Number,typeof(first),typeof(last)},o::Integer) =
-    Evaluation(Interval(d),x,o)
 
 rangespace(E::ConcreteEvaluation{<:AmbiguousSpace}) = ConstantSpace()
 rangespace(E::ConcreteEvaluation) = ConstantSpace(Point(E.x))
@@ -64,8 +62,12 @@ getindex(D::ConcreteEvaluation,k::Integer) =
 #special first/last overrides
 for OP in (:first,:last)
     @eval begin
-        rangespace(E::ConcreteEvaluation{<:AmbiguousSpace,typeof($OP)}) = ConstantSpace()
-        rangespace(E::ConcreteEvaluation{S,typeof($OP)}) where {S} = ConstantSpace(Point($OP(domain(E))))
+        rangespace(E::ConcreteEvaluation{<:AmbiguousSpace,typeof($OP)}) = UnsetSpace()
+        function rangespace(E::ConcreteEvaluation{S,typeof($OP)}) where {S}
+            d = domain(domainspace(E))
+            isambiguous(d) && return ConstantSpace()
+            return ConstantSpace(Point($OP(d)))
+        end
         function getindex(D::ConcreteEvaluation{S,typeof($OP)},k::Integer) where {S}
             T=eltype(D)
 

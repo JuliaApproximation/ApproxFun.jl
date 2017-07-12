@@ -124,14 +124,18 @@ function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},M,OT,T},
     end
 end
 
-Dirichlet(S::Chebyshev) = ConcreteDirichlet(S,ArraySpace(ConstantSpace(rangetype(S)),2),0)
+function Dirichlet(S::Chebyshev,order)
+    order == 0 && return ConcreteDirichlet(S,ArraySpace([ConstantSpace(Point(first(domain(S)))),
+                                                         ConstantSpace(Point(last(domain(S))))]),0)
+    default_Dirichlet(S,order)
+end
 
 
 function getindex(op::ConcreteDirichlet{<:Chebyshev},
                                              k::Integer,j::Integer)
     if op.order == 0
-        k == 1 && iseven(j) && return -one(T)
-        return one(T)
+        k == 1 && iseven(j) && return -one(eltype(op))
+        return one(eltype(op))
     else
         error("Only zero Dirichlet conditions implemented")
     end
@@ -238,7 +242,7 @@ rangespace{DD<:Segment,RR}(D::ConcreteDerivative{Chebyshev{DD,RR}}) =
 bandinds{DD<:Segment,RR}(D::ConcreteDerivative{Chebyshev{DD,RR}}) = D.order,D.order
 Base.stride{DD<:Segment,RR}(D::ConcreteDerivative{Chebyshev{DD,RR}}) = D.order
 
-function getindex{DD<:Segment,RR,K,T}(D::ConcreteDerivative{Chebyshev{DD,RR},K,T},k::Integer,j::Integer)
+function getindex(D::ConcreteDerivative{Chebyshev{DD,RR},K,T},k::Integer,j::Integer) where {DD<:Segment,RR,K,T}
     m=D.order
     d=domain(D)
 

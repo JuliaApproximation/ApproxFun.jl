@@ -89,7 +89,7 @@ Base.angle(d::Segment) = angle(d.b-d.a)
 complexlength(d::Segment) = d.b-d.a
 
 
-==(d::Segment,m::Segment) = d.a == m.a && d.b == m.b
+==(d::Segment,m::Segment) = (isambiguous(d) && isambiguous(m)) || (d.a == m.a && d.b == m.b)
 function Base.isapprox(d::Segment,m::Segment)
     tol=10E-12
     norm(d.a-m.a)<tol&&norm(d.b-m.b)<tol

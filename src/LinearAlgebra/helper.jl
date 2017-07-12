@@ -46,10 +46,14 @@ real{N,T<:Complex}(::Type{Vec{N,T}}) = Vec{N,real(T)}
 
 eps(x...) = Base.eps(x...)
 eps(x) = Base.eps(x)
-eps{T<:Real}(::Type{Complex{T}}) = eps(real(T))
-eps{T<:Real}(z::Complex{T}) = eps(abs(z))
-eps{T<:Real}(::Type{Dual{Complex{T}}}) = eps(real(T))
-eps{T<:Real}(z::Dual{Complex{T}}) = eps(abs(z))
+
+eps(::Type{T}) where {T<:Integer} = zero(T)
+
+eps(::Type{Complex{T}}) where {T<:Real} = eps(real(T))
+eps(z::Complex{T}) where {T<:Real} = eps(abs(z))
+eps(::Type{Dual{Complex{T}}}) where {T<:Real} = eps(real(T))
+eps(z::Dual{Complex{T}}) where {T<:Real} = eps(abs(z))
+
 eps{T<:Number}(::Type{Vector{T}}) = eps(T)
 eps{k,T<:Number}(::Type{Vec{k,T}}) = eps(T)
 

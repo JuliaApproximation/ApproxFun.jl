@@ -131,6 +131,15 @@ coefficients(f::AbstractVector,sp::ConstantSpace{Segment{Vec{2,TT}}},
 coefficients(f::AbstractVector,sp::ConstantSpace,ts::Space) = f[1]*ones(ts).coefficients
 
 
+########
+# Evaluation
+########
+
+#########
+# Multiplication
+#########
+
+
 # this is identity operator, but we don't use MultiplicationWrapper to avoid
 # ambiguity errors
 

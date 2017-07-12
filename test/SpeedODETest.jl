@@ -8,8 +8,7 @@ x=Fun(identity,d)
 u=[Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
 u=[Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
 @time u=[Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
-println("Cos/Sin: should be ~0.017")
-
+println("Cos/Sin: should be ~0.016920 seconds (3.19 k allocations: 12.593 MiB)")
 
 d=Interval(-1000.,5.)
 x=Fun(identity,d)
@@ -20,7 +19,7 @@ println("Airy: 0.014356 seconds (1.08 k allocations: 8.015 MB)")
 
 M=cache([Dirichlet(d);Derivative(d)^2-x];padding=true)
 @time ApproxFun.resizedata!(M,12500,:)
-println("Airy construct op: 0.005417 seconds (81 allocations: 5.279 MB)")
+println("Airy construct op: 0.003200 seconds (131 allocations: 3.723 MiB)")
 
 
 
@@ -34,7 +33,7 @@ rhs=ones(n+2)
 u=A_ldiv_B_coefficients([B;L],rhs)
 u=A_ldiv_B_coefficients([B;L],rhs)
 @time u=A_ldiv_B_coefficients([B;L],rhs)
-println("Poly: should be ~0.025")
+println("Poly: should be ~0.020926 seconds (3.00 k allocations: 9.416 MiB)")
 
 
 S=Chebyshev()

@@ -347,3 +347,51 @@ u=D*f
 @test u(0.1) ≈ [exp(0.1) -sin(0.1)]
 u=D*Array(f)
 @test u(0.1) ≈ [exp(0.1) -sin(0.1)]
+
+
+
+
+
+## Floquet
+
+T = π;a=0.15
+t = Fun(identity,0..T)
+d=domain(t)
+D=Derivative(d)
+B=ldirichlet(d)
+
+
+B_row = [D             -I  0I            0I]
+f=Fun(exp,d)
+@test norm((B_row*[f;f;f;f])[1]) ≤ 1000eps()
+@test B_row isa ApproxFun.MatrixInterlaceOperator
+
+@test size([B_row;B_row].ops) == (2,4)
+
+@test norm(([B_row;B_row]*[f;f;f;f])[1]) ≤ 1000eps()
+
+n=4
+Dg = Operator(diagm(fill(ldirichlet(d),n)))
+@test Dg isa ApproxFun.MatrixInterlaceOperator
+@test size([Dg; B_row].ops) == (5,4)
+@test ([Dg; B_row]*[f;f;f;f])(0.1) ≈ [ones(4);0]
+
+@test hcat(Dg).ops == Dg.ops
+
+
+B_row2 = [(2+a*cos(2t))   D  -I            0I]
+@test ([B_row;B_row2]*[f;f;f;f])(0.1) ≈ [0.,(2+a*cos(2*0.1))*f(0.1) + f'(0.1) - f(0.1)]
+
+A=[ Operator(diagm(fill(ldirichlet(d),n)));
+    D             -I  0I            0I;
+   (2+a*cos(2t))   D  -I            0I;
+   0I             0I   D            -I;
+   -I             0I  (2+a*cos(2t))  D]
+
+
+Φ = A\eye(2n,n);
+
+@test Φ(π) ≈ [-0.170879 -0.148885 -0.836059 0.265569;
+         0.732284 -0.170879 -0.612945 -0.836059;
+         -0.836059 0.265569 -0.170879 -0.148885;
+         -0.612945 -0.836059 0.732284 -0.170879] atol=1E-3
