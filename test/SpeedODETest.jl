@@ -60,6 +60,17 @@ u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
 @time u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
 println("Sin: should be ~0.008663 seconds (660 allocations: 2.987 MB)")
 
+## Bessel
+
+x=Fun(identity,1..2000)
+d=domain(x)
+B=Dirichlet()
+ν=1000.0
+L=x^2*𝒟^2 + x*𝒟 + (x^2 - ν^2)   # our differential operator
+u=[B;L]\[[besselj(ν,first(d)),besselj(ν,last(d))],0]
+@time u=[B;L]\[[besselj(ν,first(d)),besselj(ν,last(d))],0]
+println("Bessel: should be ~0.008441 seconds (6.14 k allocations: 4.765 MiB)")
+
 
 ## Piecewise
 x=Fun(identity,Domain(-20..15) \ [-10.,-5.,0.,1.])

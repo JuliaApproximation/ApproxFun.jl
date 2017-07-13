@@ -414,7 +414,7 @@ identity_fun(S::PiecewiseSpace) = Fun(map(identity_fun,S.spaces),PiecewiseSpace)
 function interlace{T,V<:AbstractVector}(::Type{T},v::AbstractVector{V},it::BlockInterlacer)
     ret=Array{T}(0)
     N=mapreduce(length,max,v)
-    cnts = map(length,v)
+    cnts = Vector(map(length,v))  # convert to Vector to ensure mutable
 
     for (n,m) in it
         if maximum(cnts) == 0

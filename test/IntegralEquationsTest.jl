@@ -48,6 +48,7 @@ L=I+Σ[exp(x)*w]
 bandinds(L)
 usol=sin(2x)
 f=L*usol
+
 @time u=L\f
 @test norm(u-usol) <= 10eps()
 

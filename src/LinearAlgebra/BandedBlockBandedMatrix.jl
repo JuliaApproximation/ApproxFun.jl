@@ -197,13 +197,13 @@ getindex(A::BandedBlockBandedMatrix,kr::UnitRange{Int},jr::UnitRange{Int}) =
 
 
 BLAS.axpy!{T,U,V,T2,U2,V2}(α,A::BandedBlockBandedBlock{T,U,V},B::BandedBlockBandedBlock{T2,U2,V2}) =
-    BandedMatrices.banded_axpy!(α,A,B)
+    BandedMatrices.banded_banded_axpy!(α,A,B)
 
 BLAS.axpy!{T,U,V,T2,U2,V2}(α,A::BandedBlockBandedSubBlock{T,U,V},B::BandedBlockBandedBlock{T2,U2,V2}) =
-    BandedMatrices.banded_axpy!(α,A,B)
+    BandedMatrices.banded_banded_axpy!(α,A,B)
 
 BLAS.axpy!{T,U,V,T2,U2,V2}(α,A::BandedBlockBandedSubBlock{T,U,V},B::BandedBlockBandedSubBlock{T2,U2,V2}) =
-    BandedMatrices.banded_axpy!(α,A,B)
+    BandedMatrices.banded_banded_axpy!(α,A,B)
 
 
 BLAS.axpy!{T,U,V}(α,A::BandedBlockBandedBlock{T,U,V},B::SubBandedBlockSubBlock) =
