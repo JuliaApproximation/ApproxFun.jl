@@ -450,7 +450,7 @@ const StridedMatrix2{T,A<:Union{DenseArray,Base.StridedReshapedArray,BlockBanded
 
 
 isblockbanded(::SubBandedBlockRange) = true
-isblockbanded{T,BBM<:AbstractBlockBandedMatrix}(::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}},false}) = true
+isblockbanded(::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}},false}) where {T,BBM<:AbstractBlockBandedMatrix} = true
 
 subblocksize(A::AbstractBlockBandedMatrix,K::Block,J::Block)::Tuple{Int,Int} =
     (A.rows[K.K],A.cols[J.K])
@@ -474,10 +474,10 @@ function Base.indices(S::Union{SubBandedBlockSubBlock,SubBandedBlockRange})
     (Base.OneTo(sz[1]),
      Base.OneTo(sz[2]))
  end
- Base.indices{T,BB<:AbstractBlockBandedMatrix}(S::SubArray{T,2,BB,Tuple{Block,Block},false}) =
+ Base.indices(S::SubArray{T,2,BB,Tuple{Block,Block},false}) where {T,BB<:AbstractBlockBandedMatrix} =
      (Base.OneTo(Int(parent(S).rows[parentindexes(S)[1].K])),
       Base.OneTo(Int(parent(S).cols[parentindexes(S)[2].K])))
-Base.indices{T,BB<:AbstractBlockBandedMatrix}(S::SubArray{T,2,BB,Tuple{SubBlock{UnitRange{Int}},SubBlock{UnitRange{Int}}},false}) =
+Base.indices(S::SubArray{T,2,BB,Tuple{SubBlock{UnitRange{Int}},SubBlock{UnitRange{Int}}},false}) where {T,BB<:AbstractBlockBandedMatrix}=
   (Base.OneTo(length(parentindexes(S)[1].sub)::Int),
    Base.OneTo(length(parentindexes(S)[2].sub)::Int))
 
@@ -495,20 +495,20 @@ function blockview{T,U,V}(S::SubArray{T,2,BlockBandedMatrix{T,U,V},Tuple{Block,B
 end
 
 # returns a view of the data
-dataview{T,U,V}(S::SubArray{T,2,BlockBandedMatrix{T,U,V},Tuple{Block,Block},false}) =
+dataview(S::SubArray{T,2,BlockBandedMatrix{T,U,V},Tuple{Block,Block},false}) where {T,U,V} =
     blockview(S)
-dataview{T,U,V,II}(S::SubArray{T,2,BlockBandedMatrix{T,U,V},Tuple{SubBlock{II},Block},false}) =
+dataview(S::SubArray{T,2,BlockBandedMatrix{T,U,V},Tuple{SubBlock{II},Block},false}) where {T,U,V,II} =
     view(blockview(parentblock(S)),parentindexes(S)[1].sub,:)
-dataview{T,U,V,JJ}(S::SubArray{T,2,BlockBandedMatrix{T,U,V},Tuple{Block,SubBlock{JJ}},false}) =
+dataview(S::SubArray{T,2,BlockBandedMatrix{T,U,V},Tuple{Block,SubBlock{JJ}},false}) where {T,U,V,JJ} =
     view(blockview(parentblock(S)),:,parentindexes(S)[2].sub)
-dataview{T,U,V,II,JJ}(S::SubArray{T,2,BlockBandedMatrix{T,U,V},Tuple{SubBlock{II},SubBlock{JJ}},false}) =
+dataview(S::SubArray{T,2,BlockBandedMatrix{T,U,V},Tuple{SubBlock{II},SubBlock{JJ}},false}) where {T,U,V,II,JJ} =
     view(blockview(parentblock(S)),parentindexes(S)[1].sub,parentindexes(S)[2].sub)
 
 
-blockbandinds{T,BBM<:AbstractBlockBandedMatrix}(S::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}}}) =
+blockbandinds(S::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,BBM<:AbstractBlockBandedMatrix} =
     blockbandinds(parent(S))
 
-getindex{N}(S::SubBandedBlockSubBlock, I::Vararg{Int,N}) =
+getindex(S::SubBandedBlockSubBlock, I::Vararg{Int,N}) where {N} =
     dataview(S)[I...]
 
 function getindex(S::SubBandedBlockRange, k::Int, j::Int)

@@ -59,7 +59,7 @@ end
 
 function ProductFun(f::F,S::AbstractProductSpace,M::Integer,N::Integer;tol=100eps())
     xy = checkpoints(S)
-    T = promote_type(eltype(f(first(xy)...)),eltype(S))
+    T = promote_type(eltype(f(first(xy)...)),rangetype(S))
     ptsx,ptsy=points(S,M,N)
     vals=T[f(ptsx[k,j],ptsy[k,j]) for k=1:size(ptsx,1), j=1:size(ptsx,2)]
     ProductFun(transform!(S,vals),S;tol=tol,chopping=true)
@@ -186,7 +186,6 @@ values{S,V,SS,T}(f::ProductFun{S,V,SS,T}) = itransform!(space(f),coefficients(f)
 vecpoints{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},k) = points(f.space[k],size(f,k))
 
 space(f::ProductFun) = f.space
-space(f::ProductFun,k) = space(space(f),k)
 columnspace(f::ProductFun,k) = columnspace(space(f),k)
 
 domain(f::ProductFun) = domain(f.space)
@@ -197,7 +196,8 @@ canonicaldomain(f::ProductFun) = canonicaldomain(space(f))
 
 function canonicalevaluate{S,V,SS,T}(f::ProductFun{S,V,SS,T},x::Number,::Colon)
     cd = canonicaldomain(f)
-    Fun(setdomain(space(f,2),cd[2]),T[setdomain(fc,cd[1])(x) for fc in f.coefficients])
+    Fun(setdomain(factor(space(f),2),factor(cd,2)),
+                    T[setdomain(fc,factor(cd,1))(x) for fc in f.coefficients])
 end
 canonicalevaluate(f::ProductFun,x::Number,y::Number) = canonicalevaluate(f,x,:)(y)
 canonicalevaluate{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},x::Colon,y::Number) =

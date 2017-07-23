@@ -288,8 +288,8 @@ end
 
 (f::LowRankFun)(x,y)=evaluate(f,x,y)
 
-domain(f::LowRankFun,k::Integer)=k==1? domain(first(f.A)) : domain(first(f.B))
-space(f::LowRankFun,k::Integer)=k==1? space(first(f.A)) : space(first(f.B))
+domain(f::LowRankFun,k::Integer) = k==1? domain(first(f.A)) : domain(first(f.B))
+space(f::LowRankFun,k::Integer) = k==1? space(first(f.A)) : space(first(f.B))
 space(f::LowRankFun)=f.space
 
 Base.transpose{S,M,SS,T}(f::LowRankFun{S,M,SS,T})=LowRankFun(f.B,f.A,transpose(space(f)))

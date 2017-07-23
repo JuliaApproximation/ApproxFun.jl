@@ -1,13 +1,14 @@
 
 points(S::Jacobi,n) = fromcanonical.(S,gaussjacobi(n,S.a,S.b)[1])
 
-struct JacobiTransformPlan{DD,RR,T,TT}
-    space::Jacobi{TT,DD,RR}
+struct JacobiTransformPlan{DD,RR,T}
+    space::Jacobi{DD,RR}
     points::Vector{T}
     weights::Vector{T}
 end
 
-plan_transform(S::Jacobi,v::AbstractVector) = JacobiTransformPlan(S,gaussjacobi(length(v),S.a,S.b)...)
+plan_transform(S::Jacobi,v::AbstractVector) =
+    JacobiTransformPlan(S,gaussjacobi(length(v),S.a,S.b)...)
 function *(plan::JacobiTransformPlan,vals)
 #    @assert S==plan.space
     S = plan.space
@@ -35,7 +36,7 @@ end
 
 
 struct JacobiITransformPlan{DD,RR,T}
-    space::Jacobi{Float64,DD,RR}
+    space::Jacobi{DD,RR}
     points::Vector{T}
 end
 

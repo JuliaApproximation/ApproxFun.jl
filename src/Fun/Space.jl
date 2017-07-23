@@ -25,8 +25,8 @@ const RealUnivariateSpace = RealSpace{D,R} where {D<:UnivariateDomain,R<:Real}
 
 
 
-Base.eltype{T}(::Space{T}) = error("Don't use")
-Base.eltype{D,R}(::Type{Space{D,R}}) = error("Don't use")
+Base.eltype{T}(S::Space{T}) = error("Eltype has been changed to domaintype, rangetype or prectype")
+Base.eltype{D,R}(::Type{Space{D,R}}) = error("Eltype has been changed to domaintype, rangetype or prectype")
 
 domaintype{D,R}(::Space{D,R}) = D
 domaintype{D,R}(::Type{Space{D,R}}) = D

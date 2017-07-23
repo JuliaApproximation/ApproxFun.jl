@@ -108,7 +108,7 @@ getindex{J<:Jacobi}(T::ConcreteDerivative{J},k::Integer,j::Integer) =
 
 
 
-function Derivative{T,DDD<:Segment,RR}(S::WeightedJacobi{T,DDD,RR})
+function Derivative{DDD<:Segment,RR}(S::WeightedJacobi{DDD,RR})
     if S.β>0 && S.β>0 && S.β==S.space.b && S.α==S.space.a
         ConcreteDerivative(S,1)
     else
@@ -116,12 +116,12 @@ function Derivative{T,DDD<:Segment,RR}(S::WeightedJacobi{T,DDD,RR})
     end
 end
 
-bandinds{T,DDD<:Segment,RR}(D::ConcreteDerivative{WeightedJacobi{T,DDD,RR}}) = -1,0
-rangespace{T,DDD<:Segment,RR}(D::ConcreteDerivative{WeightedJacobi{T,DDD,RR}}) =
+bandinds{DDD<:Segment,RR}(D::ConcreteDerivative{WeightedJacobi{DDD,RR}}) = -1,0
+rangespace{DDD<:Segment,RR}(D::ConcreteDerivative{WeightedJacobi{DDD,RR}}) =
     WeightedJacobi(domainspace(D).β-1,domainspace(D).α-1,domain(D))
 
 
-getindex{T,DDD<:Segment,RR}(D::ConcreteDerivative{WeightedJacobi{T,DDD,RR}},k::Integer,j::Integer) =
+getindex{DDD<:Segment,RR}(D::ConcreteDerivative{WeightedJacobi{DDD,RR}},k::Integer,j::Integer) =
     j==k-1? eltype(D)(-4(k-1)./complexlength(domain(D))) : zero(eltype(D))
 
 
@@ -576,7 +576,7 @@ end
 
 
 for FUNC in (:maxspace_rule,:union_rule,:hasconversion)
-    @eval function $FUNC{T,DD<:Segment}(A::WeightedJacobi{T,DD},B::Jacobi)
+    @eval function $FUNC{DD<:Segment}(A::WeightedJacobi{DD},B::Jacobi)
         if A.β==A.α+1 && A.space.b>0
             $FUNC(Jacobi(A.space.b-1,A.space.a,domain(A)),B)
         elseif A.α==A.β+1 && A.space.a>0
