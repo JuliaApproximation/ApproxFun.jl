@@ -1,5 +1,5 @@
 
-export TensorSpace,⊗,ProductSpace
+export TensorSpace, ⊗, ProductSpace, factor, factors, nfactors
 
 #  SV is a tuple of d spaces
 abstract type AbstractProductSpace{SV,DD,RR} <: Space{DD,RR} end
@@ -8,7 +8,7 @@ abstract type AbstractProductSpace{SV,DD,RR} <: Space{DD,RR} end
 spacetype{SV}(::AbstractProductSpace{SV},k) = SV.parameters[k]
 
 
-# Tensorizer
+##### Tensorizer
 # This gives the map from coefficients to the
 # tensor entry of a tensor product of d spaces
 # findfirst is overriden to get efficient inverse
@@ -331,7 +331,7 @@ Base.size(sp::TensorSpace{Tuple{S1,S2}}) where {S1<:Space{D,R},S2} where {D,R<:A
 Base.size(sp::TensorSpace{Tuple{S1,S2}}) where {S1,S2<:Space{D,R}} where {D,R<:AbstractArray} =
     size(sp.spaces[2])
 
-
+# TODO: Generalize to higher dimensions
 getindex(sp::TensorSpace{Tuple{S1,S2}},k::Integer) where {S1<:Space{D,R},S2} where {D,R<:AbstractArray} =
     sp.spaces[1][k] ⊗ sp.spaces[2]
 
@@ -340,7 +340,7 @@ getindex(sp::TensorSpace{Tuple{S1,S2}},k::Integer) where {S1,S2<:Space{D,R}} whe
 
 
 # every column is in the same space for a TensorSpace
-#TODO: remove
+# TODO: remove
 columnspace(S::TensorSpace,::) = S.spaces[1]
 
 
@@ -353,13 +353,14 @@ ProductSpace(spacesx::Vector,spacey) =
     ProductSpace{eltype(spacesx),typeof(spacey),typeof(mapreduce(domain,*,sp)),
                 mapreduce(s->eltype(domain(s)),promote_type,sp)}(spacesx,spacey)
 
-#TODO: This is a weird definition
+# TODO: This is a weird definition
 ⊗{S<:Space}(A::Vector{S},B::Space) = ProductSpace(A,B)
 domain(f::ProductSpace) = domain(f.spacesx[1])*domain(f.spacesy)
 
 
 nfactors(d::AbstractProductSpace) = length(d.spaces)
-factor(d::AbstractProductSpace,k) = d.spaces[k]
+factors(d::AbstractProductSpace) = d.spaces
+factor(d::AbstractProductSpace,k) = factors(d)[k]
 
 
 isambiguous(A::TensorSpace) = isambiguous(A.spaces[1]) || isambiguous(A.spaces[2])
@@ -607,7 +608,7 @@ evaluate(f::AbstractVector,S::AbstractProductSpace,x,y) = ProductFun(totensor(S,
 
 
 
-coefficientmatrix{S<:AbstractProductSpace}(f::Fun{S}) = totensor(space(f),f.coefficients)
+coefficientmatrix(f::Fun{<:AbstractProductSpace}) = totensor(space(f),f.coefficients)
 
 
 

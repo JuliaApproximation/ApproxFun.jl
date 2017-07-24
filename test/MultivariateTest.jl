@@ -272,3 +272,19 @@ f = Fun((x,y)->exp((x-0.1)*cos(y-0.2)),Taylor()^2)
 
 f = Fun((x,y) -> exp(-x*cos(y)))
 @test Number(DefiniteIntegral()*f) ≈ sum(f)
+
+
+
+## Piecewise Tensor
+
+
+a = Fun(0..1) + Fun(2..3)
+f = a ⊗ a
+@test f(0.1,0.2) ≈ 0.1*0.2
+@test f(1.1,0.2) == 0
+@test f(2.1,0.2) == 2.1*0.2
+
+@test component(space(f),1,1) == Chebyshev(0..1)^2
+@test component(space(f),1,2) == Chebyshev(0..1)*Chebyshev(2..3)
+@test component(space(f),2,1) == Chebyshev(2..3)*Chebyshev(0..1)
+@test component(space(f),2,2) == Chebyshev(2..3)^2

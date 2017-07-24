@@ -1,6 +1,6 @@
 ## A domain representing a union of subdomains
 
-export UnionDomain, components, component
+export UnionDomain, components, component, ncomponents
 
 
 """
@@ -12,6 +12,7 @@ struct UnionDomain{DD,T} <: Domain{T}
     domains::DD
 end
 
+UnionDomain(d::Tuple{}) = error("Cannot create UnionDomain with no components")
 UnionDomain(d::Tuple) =
     UnionDomain{typeof(d),mapreduce(eltype,promote_type,d)}(d)
 UnionDomain(d::AbstractVector) = UnionDomain(tuple(d...))

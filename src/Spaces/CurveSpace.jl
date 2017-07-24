@@ -15,7 +15,7 @@ Base.convert(::Type{Curve},f::Fun)=isa(domain(f),IntervalDomain)?IntervalCurve(f
 
 
 
-identity_fun{C<:Curve,TT}(d::Space{TT,C})=Fun(setdomain(space(domain(d).curve),domain(d)),
+identity_fun(d::Space{<:Curve}) = Fun(setdomain(space(domain(d).curve),domain(d)),
                                                 domain(d).curve.coefficients)
 
 # Bernstein polynomials are given by:

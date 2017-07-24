@@ -532,3 +532,23 @@ end
 
 union_rule(P::PiecewiseSpace,C::ConstantSpace{AnyDomain}) =
     PiecewiseSpace(map(sp->union(sp,C),P.spaces))
+
+
+
+
+## Multivariate
+
+ncomponents(sp::TensorSpace) = mapreduce(s -> ncomponents(s), *, factors(sp))
+
+component(sp::TensorSpace{Tuple{S1,S2}},k::Integer) where {S1<:DirectSumSpace,S2<:DirectSumSpace} =
+    error("Not defined. Used component(sp,k,j).")
+
+component(sp::TensorSpace{Tuple{S1,S2}},k::Integer) where {S1<:DirectSumSpace,S2} =
+    component(factor(sp,1),k) ⊗ factor(sp,2)
+
+component(sp::TensorSpace{Tuple{S1,S2}},k::Integer) where {S1,S2<:DirectSumSpace} =
+    factor(sp,1) ⊗ component(factor(sp,2),k)
+
+
+component(sp::TensorSpace{Tuple{S1,S2}},k::Integer,j::Integer) where {S1<:DirectSumSpace,S2<:DirectSumSpace} =
+    component(factor(sp,1),k) ⊗ component(factor(sp,2),j)
