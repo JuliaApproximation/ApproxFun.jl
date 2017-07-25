@@ -126,6 +126,7 @@ end
 # use standard +, -
 *(A::ArrayFun,f::ArrayFun) = Fun(Array(A)*Array(f))
 
+norm(A::VectorFun,p::Number) = norm(norm.(Array(A)),p)
 
 
 

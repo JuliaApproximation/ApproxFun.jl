@@ -1,5 +1,6 @@
 using ApproxFun,Base.Test
-    import ApproxFun:interlace,Multiplication,ConstantSpace,PointSpace,ArraySpace,testblockbandedoperator
+    import ApproxFun: interlace, Multiplication, ConstantSpace, PointSpace,
+                        ArraySpace, testblockbandedoperator
 
 
 x = Fun()
@@ -40,6 +41,10 @@ f = Fun(x->[exp(x),cos(x)])
 @test (1+f)(0.1) ≈ f(0.1)+1
 
 @test_broken f.'*[1,2] ≈ f(0.1).'*[1,2]
+
+@test norm(f) ≈ sqrt(sinh(2)+1+cos(1)sin(1))
+@test norm(f,2) ≈ sqrt(sinh(2)+1+cos(1)sin(1))
+@test norm(f,1) ≈ sqrt(sinh(2))+sqrt(1+cos(1)sin(1))
 
 ## Matrix*Vector{Fun}
 
@@ -122,9 +127,8 @@ f = Fun(θ->[sin(θ),sin(2θ)],Fourier())
 @test (a*f)(0.1) ≈ a*f(0.1)
 @test Fun(a)*f ≈ a*f
 @test Fun(a*Array(f)) ≈ a*f
-
-
-
+@test norm(f) ≈ sqrt(2π)
+@test norm(f,2) ≈ sqrt(2π)
 
 ## Matrix{Fun}*Matrix{Fun}
 # note that 2x2 and 3x3 mult are special cases

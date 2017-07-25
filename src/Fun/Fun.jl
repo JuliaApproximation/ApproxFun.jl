@@ -371,7 +371,7 @@ for (OP,SUM) in ((:(Base.norm),:(Base.sum)),(:linenorm,:linesum))
     @eval begin
         $OP(f::Fun) = $OP(f,2)
 
-        function $OP(f::Fun,p::Number)
+        function $OP(f::Fun{S},p::Number) where S<:Space{D,R} where {D,R<:Number}
             if p < 1
                 return error("p should be 1 ≤ p ≤ ∞")
             elseif 1 ≤ p < Inf
@@ -381,9 +381,9 @@ for (OP,SUM) in ((:(Base.norm),:(Base.sum)),(:linenorm,:linesum))
             end
         end
 
-        function $OP(f::Fun,p::Int)
+        function $OP(f::Fun{S},p::Int) where S<:Space{D,R} where {D,R<:Number}
             if 1 ≤ p < Inf
-                return iseven(p) ? abs($SUM(abs2(f)^div(p,2)))^(1/p) : abs($SUM(abs2(f)^(p/2)))^(1/p)
+                return iseven(p) ? abs($SUM(abs2(f)^(p÷2)))^(1/p) : abs($SUM(abs2(f)^(p/2)))^(1/p)
             else
                 return error("p should be 1 ≤ p ≤ ∞")
             end

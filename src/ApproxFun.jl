@@ -4,7 +4,7 @@ module ApproxFun
     using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers, BandedMatrices, IntervalSets, Compat
     import StaticArrays, ToeplitzMatrices, Calculus
 
-import Base.LinAlg: BlasInt, BlasFloat
+import Base.LinAlg: BlasInt, BlasFloat, norm
 
 import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, !=, eltype, start, next, done,
                 >=, /, ^, \, ∪, transpose, size, to_indexes, reindex, tail, broadcast, broadcast!
