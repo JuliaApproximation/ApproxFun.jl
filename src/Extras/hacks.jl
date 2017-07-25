@@ -59,8 +59,9 @@ end
 
 function dotu{T<:Union{Fun,MultivariateFun,Number},F<:Union{Fun,MultivariateFun,Number}}(c::Vector{T},f::Vector{F})
     @assert length(c)==length(f)
-    ret = zero(Base.promote_op(*,T,F))
-    for k = 1:length(c)
+    isempty(c) && return zero(Base.promote_op(*,T,F))
+    ret = c[1]*f[1]
+    for k = 2:length(c)
         ret += c[k]*f[k]
     end
     ret
