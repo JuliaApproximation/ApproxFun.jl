@@ -59,6 +59,4 @@ norm.(f) == Fun(x ->[norm(exp(x)),norm(sin(x))])
 norm.(F) == [norm(Fun(exp)),norm(Fun(sin))] # isa Vector{Float64}
 
 @test norm.(f,[1,2]) == norm.(F,[1,2]) == [norm(f[1],1),norm(f[2],2)] # isa Vector{Float64}
-
-
-norm.(f,Fun([1,2])) == Fun(x->[norm(f[1](x),1),norm(f[2](x),2)])
+@test norm.(f,Fun([1,2])) == Fun(x->[norm(f[1](x),1),norm(f[2](x),2)])
