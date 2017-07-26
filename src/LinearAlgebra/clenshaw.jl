@@ -1,4 +1,4 @@
-export clenshaw
+export clenshaw, @clenshaw
 
 
 ##
@@ -21,6 +21,20 @@ function ClenshawPlan{T}(::Type{T},sp,N::Int,n::Int)
     B = T[recB(T,sp,k) for k=0:N-1]
     C = T[recC(T,sp,k) for k=1:N]
     ClenshawPlan(sp,Array{T}(n),Array{T}(n),Array{T}(n),A,B,C)
+end
+
+macro clenshaw(x, c...)
+    a, b = :(zero(t)), :(zero(t))
+    as = []
+    N = length(c)
+    for k = N:-1:2
+        ak = Symbol("a",k)
+        push!(as, :($ak = $a))
+        a = :(muladd(t,$a,$(esc(c[k]))-$b))
+        b = :($ak)
+    end
+    ex = Expr(:block,as...,:(muladd(t/2,$a,$(esc(c[1]))-$b)))
+    Expr(:block, :(t = $(esc(2))*$(esc(x))), ex)
 end
 
 clenshaw(x,c) = clenshaw_halved(2*x, c)
