@@ -52,6 +52,7 @@ println("Domain tests")
 
 
 println("Fun tests")
+@time include("ClenshawTest.jl")
 @time include("ChebyshevTest.jl")
 @time include("FourierTest.jl")
 @time include("ComplexTest.jl")
