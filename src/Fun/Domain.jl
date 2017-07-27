@@ -2,6 +2,7 @@
 
 export Domain,IntervalDomain,PeriodicDomain,tocanonical,fromcanonical,fromcanonicalD,∂
 export chebyshevpoints,fourierpoints,isambiguous,arclength
+export components, component, ncomponents
 
 
 # T is the numeric type used to represent the domain
@@ -31,6 +32,13 @@ Base.length(s::Domain) = 1
 getindex(s::Domain,::CartesianIndex{0}) = s
 getindex(s::Domain,k) = k == 1 ? s : throw(BoundsError())
 Base.endof(s::Domain) = 1
+
+ncomponents(s::Domain) = 1
+components(s::Domain) = [s]
+function components(s::Domain,k)
+    k ≠ 1 && throw(BoundsError())
+    s
+end
 
 
 #supports broadcasting, overloaded for ArraySpace

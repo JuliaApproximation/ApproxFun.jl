@@ -1,6 +1,6 @@
 ## A domain representing a union of subdomains
 
-export UnionDomain, components, component, ncomponents
+export UnionDomain
 
 
 """

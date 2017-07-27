@@ -378,8 +378,9 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
     ConcFunc = parse("Concrete"*string(Func))
 
     @eval begin
-        $Func{LT,D<:Segment,R}(S::JacobiWeight{Ultraspherical{LT,D,R},D}) = $ConcFunc(S)
-        $Func{D<:Segment,R}(S::JacobiWeight{Chebyshev{D,R},D}) = $ConcFunc(S)
+        $Func(S::JacobiWeight) = $ConcFunc(S)
+
+        getindex(Σ::$ConcFunc,k::Integer) = eltype(Σ)($Sum(Fun(domainspace(Σ),[zeros(eltype(Σ),k-1);1])))
 
         function getindex{LT,D<:Segment,R,T}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D,R},D,R},T},k::Integer)
             λ = order(domainspace(Σ).space)

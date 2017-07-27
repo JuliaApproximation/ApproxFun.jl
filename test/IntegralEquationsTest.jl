@@ -168,3 +168,14 @@ B=DefiniteLineIntegral(S)
 srand(0)
 f=Fun(S,rand(20))
 @test B*f ≈ linesum(component(f,1)) + linesum(component(f,2)) + linesum(component(f,3))
+
+
+
+# definite integral
+
+dom = Domain(0..1) ∪ Domain(2..3)
+⨍ = DefiniteLineIntegral(union(JacobiWeight.(-0.5,-0.5,ChebyshevDirichlet{1,1}.(components(dom)))...))
+
+x = Fun(dom)
+f = exp(x)/(sqrt(x*abs(1-x))*sqrt(abs(2-x)*abs(3-x)))
+@test sum(f) ≈ Number(⨍*f)

@@ -268,3 +268,12 @@ for (bcs,ret) in ((Dirichlet(Chebyshev()),[1 -1 0 0 0;1 1 0 0 0]),
 
     norm((bcs*C)[1:size(bcs, 1),1:5] - ret) < 1000eps()
 end
+
+
+
+## Check union of ChebyshevDirichlet
+
+
+dom = Domain(0..1) ∪ Domain(2..3)
+@test components(union(JacobiWeight.(-0.5,-0.5,ChebyshevDirichlet{1,1}.(components(dom)))...)) ==
+    (JacobiWeight.(-0.5,-0.5,ChebyshevDirichlet{1,1}.(components(dom)))...)
