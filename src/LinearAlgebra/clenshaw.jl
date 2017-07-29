@@ -24,13 +24,33 @@ function ClenshawPlan{T}(::Type{T},sp,N::Int,n::Int)
 end
 
 macro clenshaw(x, c...)
-    bk1,bk2 = :(zero(t)),:(zero(t))
+    a, b = :(zero(t)), :(zero(t))
+    as = []
     N = length(c)
     for k = N:-1:2
-        bk2, bk1 = bk1, :(muladd(t,$bk1,$(esc(c[k]))-$bk2))
+        ak = Symbol("a",k)
+        push!(as, :($ak = $a))
+        a = :(muladd(t,$a,$(esc(c[k]))-$b))
+        b = :($ak)
     end
-    ex = :(muladd(t/2,$bk1,$(esc(c[1]))-$bk2))
+    ex = Expr(:block,as...,:(muladd(t/2,$a,$(esc(c[1]))-$b)))
     Expr(:block, :(t = $(esc(2))*$(esc(x))), ex)
+end
+
+clenshaw(x,c) = clenshaw_halved(2*x, c)
+
+@generated function clenshaw_halved(x, c::StaticArrays.SVector{N,R}) where {N, R}
+    a, b = :(zero(R)), :(zero(R))
+    as = []
+    for k = N:-1:2
+        ak = Symbol("a",k)
+        push!(as, :($ak = $a))
+        a = :(muladd(x,$a,c[$k]-$b))
+        b = :($ak)
+    end
+    Expr(:block,
+    as...,
+    :(muladd(x/2,$a,c[1]-$b)))
 end
 
 for TYP in (:AbstractVector,:AbstractMatrix)

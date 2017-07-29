@@ -34,7 +34,7 @@ julia> f = Fun(x->cospi(5x),-1..1);
 
 julia> g = abs(f);
 
-julia> space(f)   
+julia> space(f)
 Chebyshev(【-1.0,1.0】)
 
 julia> space(g)
@@ -79,6 +79,23 @@ julia> 1+2*0.1+3*0.1^2
 1.23
 ```
 
+In higher dimensions, ApproxFun will sum products of the 1D basis functions. So if $T_i(x)$ is the $i$th basis function, then a 2D function can be approximated as the following:
+$$f(x, \, y) = \sum_{i, j} c_{i,j} \, T_i(x) \, T_j(y).$$
+
+The products will be ordered lexicographically by the degree of the polynomial, i.e. in the order $\{T_0(x) \, T_0(y), \, T_0(x) \, T_1(y),  \, T_1(x) \, T_0(y),  \, T_0(x) \, T_2(y),  \, T_1(x) \, T_1(y),  \, T_2(x) \, T_0(y),  \, ... \}$. For example, if we are in the two dimensional CosSpace space and we have coefficients $\{c_1, c_2, c_3\}$, then
+$$ f(x, y) = c_1 \cos(0 x) \cos(0 y) + c_2 \cos(0 x) \cos(1 y) + c_3 \cos(1 x) \cos(0 y). $$
+
+This is illustrated in the following code:
+```jldoctest
+julia> f = Fun(CosSpace()^2, [1,2,3])
+Fun(CosSpace(【0.0,6.283185307179586❫)⊗CosSpace(【0.0,6.283185307179586❫),[1.0,2.0,3.0])
+
+julia> f(1,2)
+1.7886132445101346
+
+julia> 1cos(0*1)*cos(0*2) + 2cos(0*1)*cos(1*2) + 3cos(1*1)*cos(0*2)
+1.7886132445101346
+```
 
 
 ## Using ApproxFun for “manual” interpolation

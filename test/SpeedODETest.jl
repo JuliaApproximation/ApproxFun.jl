@@ -72,6 +72,12 @@ u=[B;L]\[[besselj(ν,first(d)),besselj(ν,last(d))],0]
 println("Bessel: should be ~0.008441 seconds (6.14 k allocations: 4.765 MiB)")
 
 
+x=Fun()
+exp(10000*im*x)
+@time exp(10000*im*x)
+println("Complex exp: Time should be 0.03")
+
+
 ## Piecewise
 x=Fun(identity,Domain(-20..15) \ [-10.,-5.,0.,1.])
 sp=space(x)
