@@ -22,8 +22,8 @@ x = Fun()
 @test exp.( x .+ [1,2,3]) isa Vector
 @test exp.(x .+ [1,2]) ≈ [exp(x+1),exp(x+2)]
 
-@test exp.( x .+ [x;x]) isa Fun
-@test exp.( x .+ [x;x]) ≈ [exp(2x);exp(2x)]
+@test maximum.( x .+ [x;x]) isa Fun
+@test maximum.( x .+ [x;x]) ≈ 2x
 
 @test exp.([x,x] .+ 2 .+ [x;x]) isa Vector
 @test exp.( [x,x] .+ 2 .+ [x;x]) ≈ [exp(2x+2),exp(2x+2)]
@@ -55,7 +55,7 @@ f = Fun()
 
 f = Fun(x ->[exp(x),sin(x)])
 F = [Fun(exp),Fun(sin)]
-norm.(f) == Fun(x ->[norm(exp(x)),norm(sin(x))])
-norm.(F) == [norm(Fun(exp)),norm(Fun(sin))] # isa Vector{Float64}
+@test norm.(f) ≈ Fun(x ->norm([exp(x),sin(x)]))
+@test norm.(F) == [norm(Fun(exp)),norm(Fun(sin))] # isa Vector{Float64}
 
 @test norm.(f,[1,2]) == norm.(F,[1,2]) == [norm(f[1],1),norm(f[2],2)] # isa Vector{Float64}
