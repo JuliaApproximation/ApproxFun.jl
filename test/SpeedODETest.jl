@@ -62,6 +62,12 @@ u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
 println("Sin: should be ~0.008663 seconds (660 allocations: 2.987 MB)")
 
 
+x=Fun()
+exp(10000*im*x)
+@time exp(10000*im*x)
+println("Complex exp: Time should be 0.03")
+
+
 ## Piecewise
 x=Fun(identity,Domain(-20..15) \ [-10.,-5.,0.,1.])
 sp=space(x)
