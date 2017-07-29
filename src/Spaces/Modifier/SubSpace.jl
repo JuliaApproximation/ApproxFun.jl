@@ -137,6 +137,22 @@ function conversion_rule(a::SubSpace,b::Space)
     end
 end
 
+function union_rule(a::SubSpace,b::SubSpace)
+     if a == b
+        a
+    else
+        NoSpace()
+    end
+end
+# return the space that has banded Conversion to the other
+function union_rule(a::SubSpace,b::Space)
+    if a.space==b
+        b  # we can write droping coefficients as a banded operator
+    else
+        NoSpace()
+    end
+end
+
 
 function subspace_coefficients(v::AbstractVector,sp::SubSpace,dropsp::SubSpace)
     if sp == dropsp

@@ -385,8 +385,8 @@ end
 # op(K,f) acts as operating in the y variable.
 
 for op = (:*,:/)
-    @eval ($op)(f::Fun,K::LowRankFun) = LowRankFun(($op)(f,K.A),K.B)
-    @eval ($op)(K::LowRankFun,f::Fun) = LowRankFun(K.A,($op)(K.B,f))
+    @eval ($op)(f::Fun,K::LowRankFun) = LowRankFun(($op).(f,K.A),K.B)
+    @eval ($op)(K::LowRankFun,f::Fun) = LowRankFun(K.A,($op).(K.B,f))
 end
 
 +(f::LowRankFun,g::LowRankFun) = LowRankFun([f.A;g.A],[f.B;g.B])

@@ -11,6 +11,9 @@ Point(::AnyDomain) = Point(NaN)
 convert(::Type{Point},::AnyDomain) = Point(NaN)
 convert(::Type{Point{T}},::AnyDomain) where T = Point{T}(NaN)
 
+convert(::Type{Number},d::Point) = d.x
+convert(::Type{N},d::Point) where N<:Number = N(d.x)
+
 doc"""
     Point(x)
 
@@ -80,4 +83,4 @@ points(a::Point,n) = eltype(a)[a.x]
 checkpoints(a::Point) = eltype(a)[a.x]
 
 
-Base.convert(::Type{Domain},a::Number) = Domain(a)
+Base.convert(::Type{Domain},a::Number) = Point(a)

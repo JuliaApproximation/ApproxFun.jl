@@ -538,7 +538,7 @@ Base.Broadcast._broadcast_getindex_eltype(::Type{Fun}, A) = typeof(A)
 function Base.Broadcast.broadcast_c(f, ::Type{Fun}, A, Bs...)
     args = (Fun(A),Fun.(Bs)...)  # convert all to funs
     d = mapreduce(domain,∪,args)  # find joint domain, note that AnyDomain is olsot
-    Fun(x -> f.(map(fun -> fun(x),args)...), d)
+    Fun(x -> f(map(fun -> fun(x),args)...), d)
 end
 
 # TODO: Why two overrides?

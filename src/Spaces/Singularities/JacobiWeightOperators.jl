@@ -378,11 +378,11 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
     ConcFunc = parse("Concrete"*string(Func))
 
     @eval begin
-        $Func(S::JacobiWeight) = $ConcFunc(S)
+        $Func(S::JacobiWeight{SS,D}) where {SS,D<:Segment} = $ConcFunc(S)
 
         getindex(Σ::$ConcFunc,k::Integer) = eltype(Σ)($Sum(Fun(domainspace(Σ),[zeros(eltype(Σ),k-1);1])))
 
-        function getindex{LT,D<:Segment,R,T}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D,R},D,R},T},k::Integer)
+        function getindex(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D,R},D,R},T},k::Integer) where {LT,D<:Segment,R,T}
             λ = order(domainspace(Σ).space)
             dsp = domainspace(Σ)
             d = domain(Σ)
@@ -408,7 +408,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             end
         end
 
-        function bandinds{LT,D<:Segment,R}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D,R},D,R}})
+        function bandinds(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D,R},D,R}}) where {LT,D<:Segment,R}
             λ = order(domainspace(Σ).space)
             β,α = domainspace(Σ).β,domainspace(Σ).α
             if β==α && isapproxinteger(β-0.5-λ) && λ ≤ ceil(Int,β)

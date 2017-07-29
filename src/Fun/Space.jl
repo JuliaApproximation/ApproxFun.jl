@@ -526,6 +526,8 @@ ConstantSpace(d::Domain) = ConstantSpace{typeof(d),real(prectype(d))}(d)
 ConstantSpace() = ConstantSpace(AnyDomain())
 ConstantSpace(::Type{N}) where {N<:Number} = ConstantSpace{AnyDomain,real(N)}(AnyDomain())
 
+convert(::Type{Space},z::Number) = ConstantSpace(Domain(z))  # Spaces
+
 isconstspace(::ConstantSpace) = true
 
 for pl in (:plan_transform,:plan_transform!,:plan_itransform,:plan_itransform!)

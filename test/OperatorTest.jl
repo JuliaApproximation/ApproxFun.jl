@@ -248,6 +248,7 @@ testblockbandedoperator(A)
 S=Chebyshev()
 for C in (eye(S)[3:end,:], eye(S)[3:end,1:end])
     @test ApproxFun.domaindimension(domainspace(C)) == 1
+    @test union(S,domainspace(C)) == S
 
     B=Dirichlet(S)
 
@@ -268,6 +269,7 @@ for C in (eye(S)[3:end,:], eye(S)[3:end,1:end])
 
     @test u ≈ f
 end
+
 
 ## Test Zero operator has correct bandinds
 

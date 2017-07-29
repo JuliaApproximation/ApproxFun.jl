@@ -259,3 +259,9 @@ testbandedoperator(C)
 ## Diagonal Derivative
 D = Derivative(Laurent())
 @test isdiag(D)
+
+
+## Test bug in multiplication
+
+y = Fun(Circle())
+@test (y^2) ≈ Fun(z->z^2,domain(y))

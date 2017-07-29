@@ -24,7 +24,7 @@ dimension(::Type{DT}) where {DT<:Domain} = dimension(supertype(DT))
 # add indexing for all spaces, not just DirectSumSpace
 # mimicking scalar vs vector
 
-# TODO: 0.5 iterator
+# TODO: 0.5 iteratorgo
 Base.start(s::Domain) = false
 Base.next(s::Domain,st) = (s,true)
 Base.done(s::Domain,st) = st
@@ -32,13 +32,6 @@ Base.length(s::Domain) = 1
 getindex(s::Domain,::CartesianIndex{0}) = s
 getindex(s::Domain,k) = k == 1 ? s : throw(BoundsError())
 Base.endof(s::Domain) = 1
-
-ncomponents(s::Domain) = 1
-components(s::Domain) = [s]
-function components(s::Domain,k)
-    k ≠ 1 && throw(BoundsError())
-    s
-end
 
 
 #supports broadcasting, overloaded for ArraySpace
@@ -125,7 +118,13 @@ function Base.in(x,d::IntervalDomain)
         -100eps(T)/sc ≤ iy ≤ 100eps(T)/sc
 end
 
-components(d::Domain) = [d]
+ncomponents(s::Domain) = 1
+components(s::Domain) = [s]
+function components(s::Domain,k)
+    k ≠ 1 && throw(BoundsError())
+    s
+end
+
 issubcomponent(a::Domain,b::Domain) = a in components(b)
 
 ###### Periodic domains

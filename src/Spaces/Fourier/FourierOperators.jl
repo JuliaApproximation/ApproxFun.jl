@@ -268,6 +268,8 @@ function Multiplication{T,D,R}(a::Fun{Fourier{D,R},T},sp::Fourier{D,R})
     MultiplicationWrapper(a,InterlaceOperator(O,space(a),sp))
 end
 
+coefficienttimes{DD,RR}(f::Fun{Fourier{DD,RR}},g::Fun{Fourier{DD,RR}}) = Multiplication(f,space(g))*g
+
 
 ## Definite integral
 

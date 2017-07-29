@@ -189,3 +189,5 @@ A_ldiv_B_coefficients{CO,MT,T<:Complex,V<:Real}(QR::QROperator{CO,MT,T},b::Abstr
 
 \(A::QROperator,b::Fun;kwds...) =
     Fun(domainspace(A),A_ldiv_B_coefficients(A,coefficients(b,rangespace(A));kwds...))
+
+\(A::QROperator,B::MatrixFun;kwds...) = \(A,Array(B);kwds...)
