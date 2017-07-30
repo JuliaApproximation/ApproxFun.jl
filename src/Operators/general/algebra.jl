@@ -426,12 +426,12 @@ for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
 
         # The following returns a banded Matrix with all rows
         # for large k its upper triangular
-        BA=$STyp(P.ops[end][krl[end,1]:krl[end,2],jr])
+        BA=$STyp{T}(P.ops[end][krl[end,1]:krl[end,2],jr])
         for m=(length(P.ops)-1):-1:1
-            BA=$STyp(P.ops[m][krl[m,1]:krl[m,2],krl[m+1,1]:krl[m+1,2]])*BA
+            BA=$STyp{T}(P.ops[m][krl[m,1]:krl[m,2],krl[m+1,1]:krl[m+1,2]])*BA
         end
 
-        $STyp(BA)
+        $STyp{T}(BA)
     end
 end
 
