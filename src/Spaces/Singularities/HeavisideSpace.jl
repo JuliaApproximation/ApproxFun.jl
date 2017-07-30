@@ -12,9 +12,9 @@ SplineSpace{m}(d::AbstractVector) where {m} = SplineSpace{m}(PiecewiseSegment(so
 const HeavisideSpace{T,R} = SplineSpace{0,T,R}
 dimension{λ}(h::SplineSpace{λ}) = length(h.domain.points)+λ-1
 
-Base.convert(::Type{HeavisideSpace},d::PiecewiseSegment) = HeavisideSpace{eltype(d)}(d)
+convert(::Type{HeavisideSpace},d::PiecewiseSegment) = HeavisideSpace{eltype(d)}(d)
 
-Base.convert(::Type{HeavisideSpace},d::AbstractVector) =
+convert(::Type{HeavisideSpace},d::AbstractVector) =
     HeavisideSpace(PiecewiseSegment(sort(d)))
 
 spacescompatible{λ}(a::SplineSpace{λ},b::SplineSpace{λ}) = domainscompatible(a,b)

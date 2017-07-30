@@ -28,16 +28,16 @@ macro calculus_functional(Op)
         $Op(dsp) = $ConcOp(dsp)
         $Op(d::Domain) = $Op(Space(d))
 
-        promotedomainspace(::$Op,sp::Space) = $Op(sp)
+        ApproxFun.promotedomainspace(::$Op,sp::Space) = $Op(sp)
 
 
         Base.convert{T}(::Type{Operator{T}},Σ::$ConcOp) =
             (T==eltype(Σ)?Σ:$ConcOp{typeof(Σ.domainspace),T}(Σ.domainspace))::Operator{T}
 
-        domain(Σ::$ConcOp) = domain(Σ.domainspace)
-        domainspace(Σ::$ConcOp) = Σ.domainspace
+        ApproxFun.domain(Σ::$ConcOp) = domain(Σ.domainspace)
+        ApproxFun.domainspace(Σ::$ConcOp) = Σ.domainspace
 
-        getindex(::$ConcOp{UnsetSpace},kr::Range) =
+        Base.getindex(::$ConcOp{UnsetSpace},kr::Range) =
             error("Spaces cannot be inferred for operator")
 
         $WrappOp(op::Operator) =

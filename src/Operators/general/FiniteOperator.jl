@@ -16,14 +16,14 @@ FiniteOperator(M::AbstractMatrix{<:Number},ds::Space,rs::Space) =
 FiniteOperator(M::AbstractMatrix{<:Number}) =
     FiniteOperator(M,EuclideanSpace(size(M,2)),EuclideanSpace(size(M,1)))
 
-Base.convert(::Type{Operator{T}},F::FiniteOperator) where {T} =
+convert(::Type{Operator{T}},F::FiniteOperator) where {T} =
     FiniteOperator(convert(AbstractMatrix{T},F.matrix),F.domainspace,F.rangespace)::Operator{T}
 
 
 Base.promote_rule{OT<:Operator,MT<:AbstractMatrix}(::Type{OT},::Type{MT}) = Operator{promote_type(eltype(OT),eltype(MT))}
 
-Base.convert(::Type{Operator{T}},M::AbstractMatrix{<:Number}) where {T} = FiniteOperator(AbstractMatrix{T}(M))
-Base.convert(::Type{Operator},M::AbstractMatrix{<:Number}) = Operator{eltype(M)}(M)
+convert(::Type{Operator{T}},M::AbstractMatrix{<:Number}) where {T} = FiniteOperator(AbstractMatrix{T}(M))
+convert(::Type{Operator},M::AbstractMatrix{<:Number}) = Operator{eltype(M)}(M)
 
 domainspace(F::FiniteOperator) = F.domainspace
 rangespace(F::FiniteOperator) = F.rangespace
@@ -48,7 +48,7 @@ function getindex(F::FiniteOperator,k::Integer)
     end
 end
 
-function Base.convert{AT<:BandedMatrix,T}(::Type{BandedMatrix},S::SubOperator{T,FiniteOperator{AT,T}})
+function convert{AT<:BandedMatrix,T}(::Type{BandedMatrix},S::SubOperator{T,FiniteOperator{AT,T}})
     kr,jr=parentindexes(S)
     if last(kr[1]) ≤ size(S.matrix,1) &&
         last(jr[2]) ≤ size(S.matrix,2)

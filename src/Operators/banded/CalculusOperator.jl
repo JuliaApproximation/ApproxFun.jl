@@ -74,19 +74,19 @@ macro calculus_operator(Op)
         end
 
         ## Routines
-        domain(D::$ConcOp) = domain(D.space)
-        domainspace(D::$ConcOp) = D.space
+        ApproxFun.domain(D::$ConcOp) = domain(D.space)
+        ApproxFun.domainspace(D::$ConcOp) = D.space
 
-        getindex{OT,T}(::$ConcOp{UnsetSpace,OT,T},k::Integer,j::Integer) =
+        Base.getindex{OT,T}(::$ConcOp{UnsetSpace,OT,T},k::Integer,j::Integer) =
             error("Spaces cannot be inferred for operator")
-        rangespace{T}(D::$ConcOp{UnsetSpace,T}) = UnsetSpace()
+        ApproxFun.rangespace{T}(D::$ConcOp{UnsetSpace,T}) = UnsetSpace()
 
         #promoting domain space is allowed to change range space
         # for integration, we fall back on existing conversion for now
-        promotedomainspace(D::$Op,sp::UnsetSpace) = D
+        ApproxFun.promotedomainspace(D::$Op,sp::UnsetSpace) = D
 
 
-        function promotedomainspace(D::$Op,sp::Space)
+        function ApproxFun.promotedomainspace(D::$Op,sp::Space)
             if isambiguous(domain(sp))
                 $Op(typeof(sp)(domain(D)),D.order)
             else

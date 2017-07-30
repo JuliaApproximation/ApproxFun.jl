@@ -51,7 +51,7 @@ function promoterangespace(K::KroneckerOperator,rs::TensorSpace)
 end
 
 
-function Base.convert{T<:Number}(::Type{Operator{T}},K::KroneckerOperator)
+function convert{T<:Number}(::Type{Operator{T}},K::KroneckerOperator)
     if T == eltype(K)
         K
     else
@@ -347,10 +347,10 @@ function default_bandedblockbandedmatrix(S)
     bandedblockbanded_convert!(ret,S,parent(S),rt,dt)
 end
 
-Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator) = default_bandedblockbandedmatrix(S)
+convert(::Type{BandedBlockBandedMatrix},S::SubOperator) = default_bandedblockbandedmatrix(S)
 
 
-function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
+function convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
                                                 S::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}})
     kr,jr = parentindexes(S)
     (isempty(kr) || isempty(jr)) && return bbbzeros(S)
@@ -390,7 +390,7 @@ const Trivial2DTensorizer = CachedIterator{Tuple{Int64,Int64},
 # This routine is an efficient version of KroneckerOperator for the case of
 # tensor product of trivial blocks
 
-function Base.convert{SS,V,DS,RS,T}(::Type{BandedBlockBandedMatrix},
+function convert{SS,V,DS,RS,T}(::Type{BandedBlockBandedMatrix},
                                     S::SubOperator{T,KroneckerOperator{SS,V,DS,RS,
                                                    Trivial2DTensorizer,Trivial2DTensorizer,T},
                                                    Tuple{UnitRange{Block},UnitRange{Block}}})

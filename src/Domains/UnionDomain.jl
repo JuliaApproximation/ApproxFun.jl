@@ -29,9 +29,9 @@ UnionDomain(d1::Domain,d2::Domain) = UnionDomain((d1,d2))
 canonicaldomain(d::UnionDomain) = d  # we could map all to canonical, but then there would be overlap
 
 isambiguous(d::UnionDomain) = isempty(d.domains)
-Base.convert{DD,T}(::Type{UnionDomain{DD,T}},::AnyDomain) =
+convert{DD,T}(::Type{UnionDomain{DD,T}},::AnyDomain) =
     UnionDomain{DD,T}(map(D->D(AnyDomain()),DD.parameters))
-Base.convert{IT<:UnionDomain}(::Type{IT},::AnyDomain) = UnionDomain(tuple())
+convert{IT<:UnionDomain}(::Type{IT},::AnyDomain) = UnionDomain(tuple())
 
 
 

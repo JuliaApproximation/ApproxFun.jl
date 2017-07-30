@@ -20,7 +20,7 @@ PeriodicInterval(a::Int,b::Int) = PeriodicInterval(Float64(a),Float64(b)) #conve
 PeriodicInterval(a,b) = PeriodicInterval{promote_type(typeof(a),typeof(b))}(a,b)
 PeriodicInterval(a::Tuple,b::Tuple) = Interval(Vec(a...),Vec(b...))
 
-function Base.convert(::Type{PeriodicInterval},d::ClosedInterval)
+function convert(::Type{PeriodicInterval},d::ClosedInterval)
 	a,b = d.left,d.right
     @assert isfinite(a) && isfinite(b)
     PeriodicInterval(a,b)
@@ -30,12 +30,12 @@ Segment(d::PeriodicInterval) = Segment(d.a,d.b)
 Interval(d::PeriodicInterval) = Interval(d.a,d.b)
 PeriodicInterval(d::Segment) = PeriodicInterval(d.a,d.b)
 
-Base.convert{T<:Number}(::Type{PeriodicInterval{T}}, d::PeriodicInterval) = PeriodicInterval{T}(d.a,d.b)
+convert{T<:Number}(::Type{PeriodicInterval{T}}, d::PeriodicInterval) = PeriodicInterval{T}(d.a,d.b)
 
 isambiguous(d::PeriodicInterval) = all(isnan(d.a)) && all(isnan(d.b))
-Base.convert{T<:Number}(::Type{PeriodicInterval{T}},::AnyDomain) = PeriodicInterval{T}(NaN,NaN)
-Base.convert{d,T}(::Type{PeriodicInterval{Vec{d,T}}},::AnyDomain) = PeriodicInterval(Vec(fill(NaN,d)...),Vec(fill(NaN,d)...))
-Base.convert{T}(::Type{PeriodicInterval{T}},::AnyDomain) = PeriodicInterval(nan(T),nan(T))
+convert{T<:Number}(::Type{PeriodicInterval{T}},::AnyDomain) = PeriodicInterval{T}(NaN,NaN)
+convert{d,T}(::Type{PeriodicInterval{Vec{d,T}}},::AnyDomain) = PeriodicInterval(Vec(fill(NaN,d)...),Vec(fill(NaN,d)...))
+convert{T}(::Type{PeriodicInterval{T}},::AnyDomain) = PeriodicInterval(nan(T),nan(T))
 
 
 ## Information

@@ -15,7 +15,7 @@ SpaceOperator(o::Operator,s::Space,rs::Space) =
     SpaceOperator{typeof(o),typeof(s),typeof(rs),eltype(o)}(o,s,rs)
 SpaceOperator(o,s) = SpaceOperator(o,s,s)
 
-function Base.convert{T}(::Type{Operator{T}},S::SpaceOperator)
+function convert{T}(::Type{Operator{T}},S::SpaceOperator)
     if T==eltype(S)
         S
     else

@@ -49,14 +49,14 @@ represents the set `{x : a ≤ x ≤ b}`.
 """
 Interval
 
-Base.convert{T<:Number}(::Type{Segment{T}}, d::Segment) = Segment{T}(d.a,d.b)
-Base.convert(::Type{Segment},d::ClosedInterval) = Segment(d.left,d.right)
+convert{T<:Number}(::Type{Segment{T}}, d::Segment) = Segment{T}(d.a,d.b)
+convert(::Type{Segment},d::ClosedInterval) = Segment(d.left,d.right)
 
 AnySegment{T}(::Type{T}) = Segment{T}(NaN,NaN)
 AnySegment() = AnySegment(Float64)
 isambiguous(d::Segment) = all(isnan(d.a)) && all(isnan(d.b))
-Base.convert{T<:Number}(::Type{Segment{T}},::AnyDomain) = AnySegment(T)
-Base.convert(::Type{Segment},::AnyDomain) = AnySegment()
+convert{T<:Number}(::Type{Segment{T}},::AnyDomain) = AnySegment(T)
+convert(::Type{Segment},::AnyDomain) = AnySegment()
 
 
 ## Information

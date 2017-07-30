@@ -12,7 +12,7 @@ ToeplitzOperator{T<:Number,Q<:Number}(V::Vector{T},W::Vector{Q}) =
 ToeplitzOperator(V::AbstractVector,W::AbstractVector) =
     ToeplitzOperator(collect(V),collect(W))
 
-Base.convert{TT}(::Type{Operator{TT}},T::ToeplitzOperator) =
+convert{TT}(::Type{Operator{TT}},T::ToeplitzOperator) =
     ToeplitzOperator(convert(Vector{TT},T.negative),convert(Vector{TT},T.nonnegative))
 
 function SymToeplitzOperator(V::Vector)
@@ -51,7 +51,7 @@ function toeplitz_getindex{T}(cfs::AbstractVector{T},k::Integer,j::Integer)
     end
 end
 
-function Base.convert{T}(::Type{BandedMatrix},S::SubOperator{T,ToeplitzOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}})
+function convert{T}(::Type{BandedMatrix},S::SubOperator{T,ToeplitzOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
 
     kr,jr=parentindexes(S)
@@ -101,7 +101,7 @@ HankelOperator(f::Fun)=HankelOperator(f.coefficients)
 
 
 
-@eval Base.convert{TT}(::Type{Operator{TT}},T::HankelOperator)=HankelOperator(convert(Vector{TT},T.coefficients))
+@eval convert{TT}(::Type{Operator{TT}},T::HankelOperator)=HankelOperator(convert(Vector{TT},T.coefficients))
 
 function hankel_getindex(v::AbstractVector,k::Integer,j::Integer)
    if k+j-1 ≤ length(v)
@@ -115,7 +115,7 @@ getindex(T::HankelOperator,k::Integer,j::Integer) =
     hankel_getindex(T.coefficients,k,j)
 
 
-function Base.convert{T}(::Type{BandedMatrix},S::SubOperator{T,HankelOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}})
+function convert{T}(::Type{BandedMatrix},S::SubOperator{T,HankelOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
 
     kr,jr=parentindexes(S)

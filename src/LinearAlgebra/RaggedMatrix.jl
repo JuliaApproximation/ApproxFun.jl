@@ -28,7 +28,7 @@ end
 RaggedMatrix(dat::Vector,cols::Vector{Int},m::Int) =
     RaggedMatrix{eltype(dat)}(dat,cols,m)
 
-RaggedMatrix{T}(::Type{T},m::Int,colns::AbstractVector{Int}) =
+RaggedMatrix(::Type{T},m::Int,colns::AbstractVector{Int}) where {T} =
     RaggedMatrix(Vector{T}(sum(colns)),Int[1;1+cumsum(colns)],m)
 
 RaggedMatrix(m::Int,collengths::AbstractVector{Int}) = RaggedMatrix(Float64,m,collengths)
@@ -66,33 +66,44 @@ function Base.setindex!(A::RaggedMatrix,v,k::Int,j::Int)
     v
 end
 
+convert(::Type{RaggedMatrix{T}},R::RaggedMatrix{T}) where T = R
 
-function Base.convert(::Type{Matrix},A::RaggedMatrix)
-    ret = zeros(eltype(A),size(A,1),size(A,2))
+convert(::Type{RaggedMatrix{T}},R::RaggedMatrix) where T =
+    RaggedMatrix{T}(Vector{T}(R.data), R.cols, R.m)
+
+
+function convert(::Type{Matrix{T}},A::RaggedMatrix) where T
+    ret = zeros(T,size(A,1),size(A,2))
     for j=1:size(A,2)
         ret[1:colstop(A,j),j] = view(A,1:colstop(A,j),j)
     end
     ret
 end
 
+convert(::Type{Matrix},A::RaggedMatrix) = Matrix{eltype(A)}(A)
+
 Base.full(A::RaggedMatrix) = convert(Matrix,A)
 
-function Base.convert(::Type{RaggedMatrix},B::BandedMatrix)
+function convert(::Type{RaggedMatrix{T}},B::BandedMatrix) where T
     l = bandwidth(B,1)
-    ret = rzeros(eltype(B),size(B,1),Int[colstop(B,j) for j=1:size(B,2)])
+    ret = rzeros(T,size(B,1),Int[colstop(B,j) for j=1:size(B,2)])
     for j=1:size(B,2),k=colrange(B,j)
         ret[k,j] = B[k,j]
     end
     ret
 end
 
-function Base.convert(::Type{RaggedMatrix},B::AbstractMatrix)
-    ret = rzeros(eltype(B),size(B,1),Int[colstop(B,j) for j=1:size(B,2)])
+convert(::Type{RaggedMatrix},B::BandedMatrix) = RaggedMatrix{eltype(B)}(B)
+
+function convert(::Type{RaggedMatrix{T}},B::AbstractMatrix) where T
+    ret = rzeros(T,size(B,1),Int[colstop(B,j) for j=1:size(B,2)])
     for j=1:size(B,2),k=colrange(B,j)
         ret[k,j] = B[k,j]
     end
     ret
 end
+
+convert(::Type{RaggedMatrix},B::AbstractMatrix) = RaggedMatrix{eltype(B)}(B)
 
 Base.similar{T}(B::RaggedMatrix,::Type{T}) = RaggedMatrix(Vector{T}(length(B.data)),copy(B.cols),B.m)
 

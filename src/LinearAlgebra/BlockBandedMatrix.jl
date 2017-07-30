@@ -11,10 +11,10 @@ end
 
 block(B::Block) = B
 
-Base.convert(::Type{Integer},B::Block) = B.K
-Base.convert{T<:Integer}(::Type{T},B::Block) = convert(T,B.K)::T
-Base.convert(::Type{Block},K::Block) = K
-Base.convert(::Type{Block},K::Integer) = Block(K)
+convert(::Type{Integer},B::Block) = B.K
+convert{T<:Integer}(::Type{T},B::Block) = convert(T,B.K)::T
+convert(::Type{Block},K::Block) = K
+convert(::Type{Block},K::Integer) = Block(K)
 
 Base.promote_rule(::Type{Block},::Type{Int}) = Block
 
@@ -317,8 +317,10 @@ end
 rowstop(A::AbstractBlockBandedMatrix,k::Int) = sum(A.cols[1:min(A.rowblocks[k]+A.u,length(A.cols))])
 rowstart(A::AbstractBlockBandedMatrix,k::Int) = sum(A.cols[1:A.rowblocks[k]-A.l-1])+1
 
-Base.convert(::Type{Matrix},A::AbstractBlockMatrix) =
-    BLAS.axpy!(one(eltype(A)),A,zeros(eltype(A),size(A,1),size(A,2)))
+convert(::Type{Matrix{T}},A::AbstractBlockMatrix) where T =
+    BLAS.axpy!(one(T),A,zeros(T,size(A,1),size(A,2)))
+
+convert(::Type{Matrix},A::AbstractBlockMatrix) = Matrix{eltype(A)}(A)
 
 Base.full(S::AbstractBlockMatrix) = convert(Matrix, S)
 
@@ -421,22 +423,39 @@ for FUNC in (:zeros,:rand,:ones)
         BlockBandedMatrix($FUNC(T,bbm_numentries(rows,cols,l,u)),l,u,rows,cols)
 end
 
+
+convert(::Type{BlockBandedMatrix{T,RI,CI}},Y::BlockBandedMatrix{T,RI,CI}) where {T,RI,CI} = Y
+convert(::Type{BlockBandedMatrix{T}},Y::BlockBandedMatrix{T}) where T = Y
+
 #TODO: override and use Base.copy!
-function Base.convert(::Type{BlockBandedMatrix},Y::AbstractBlockMatrix)
-    ret = bbzeros(eltype(Y),Y.l,Y.u,Y.rows,Y.cols)
-    BLAS.axpy!(one(eltype(Y)),Y,ret)
+function convert(::Type{BlockBandedMatrix{T}},Y::AbstractBlockMatrix) where T
+    ret = bbzeros(T,Y.l,Y.u,Y.rows,Y.cols)
+    BLAS.axpy!(one(T),Y,ret)
     ret
 end
 
-function Base.convert(::Type{BlockBandedMatrix},Y::AbstractMatrix)
+
+function convert(::Type{BlockBandedMatrix{T}},Y::AbstractMatrix) where T
     if !isblockbanded(Y)
         error("Cannot convert $(typeof(Y)) is not block banded")
     end
-    ret = bbzeros(eltype(Y),blockbandwidth(Y,1),blockbandwidth(Y,2),rowblocklengths(Y),colblocklengths(Y))
-    BLAS.axpy!(one(eltype(Y)),Y,ret)
+    ret = bbzeros(T,blockbandwidth(Y,1),blockbandwidth(Y,2),
+                  rowblocklengths(Y),colblocklengths(Y))
+    BLAS.axpy!(one(T),Y,ret)
     ret
 end
 
+convert(::Type{BlockBandedMatrix{T}},B::Matrix) where T =
+    BlockBandedMatrix(Vector{T}(vec(B)),0,0,[size(B,1)],[size(B,2)])
+
+convert(::Type{BlockBandedMatrix{T}},B::BandedMatrix) where T =
+    if isdiag(B)
+        BlockBandedMatrix(Vector{T}(copy(vec(B.data))),0,0,ones(Int,size(B,1)),ones(Int,size(B,2)))
+    else
+        BlockBandedMatrix(Matrix{T}(B))
+    end
+
+convert(::Type{BlockBandedMatrix},Y::AbstractMatrix) = BlockBandedMatrix{eltype(Y)}(Y)
 
 zeroblock(X::BlockBandedMatrix,K::Block,J::Block) = zeros(eltype(X),X.rows[K.K],X.cols[J.K])
 
@@ -572,17 +591,6 @@ function *{T<:Number,V<:Number}(A::BlockBandedMatrix{T},
     A_mul_B!(BlockBandedMatrix(promote_type(T,V),A.l+B.l,A.u+B.u,A.rows,B.cols),
              A,B)
 end
-
-
-Base.convert(::Type{BlockBandedMatrix},B::Matrix) =
-    BlockBandedMatrix(vec(B),0,0,[size(B,1)],[size(B,2)])
-
-Base.convert(::Type{BlockBandedMatrix},B::BandedMatrix) =
-    if isdiag(B)
-        BlockBandedMatrix(copy(vec(B.data)),0,0,ones(Int,size(B,1)),ones(Int,size(B,2)))
-    else
-        BlockBandedMatrix(Matrix(B))
-    end
 
 
 ## back substitution

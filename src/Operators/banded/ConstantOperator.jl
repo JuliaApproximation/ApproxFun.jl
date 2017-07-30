@@ -36,7 +36,7 @@ getindex(C::ConstantOperator,k::Integer,j::Integer) =
 
 ==(C1::ConstantOperator,C2::ConstantOperator) = C1.λ==C2.λ
 
-function Base.convert{T}(::Type{Operator{T}},C::ConstantOperator)
+function convert{T}(::Type{Operator{T}},C::ConstantOperator)
     if T == eltype(C)
         C
     else
@@ -46,13 +46,13 @@ end
 
 # zero needs to be different since it can take a space to
 # a ConstantSpace, in creating functionals
-Base.convert{T}(::Type{Operator{T}},x::Number) =
+convert{T}(::Type{Operator{T}},x::Number) =
     x==0 ? ZeroOperator(T) : Multiplication(T(x))
-Base.convert{T}(::Type{Operator{T}},L::UniformScaling) =
+convert{T}(::Type{Operator{T}},L::UniformScaling) =
     ConstantOperator(T,L.λ)
 
-Base.convert(::Type{Operator},n::Number) = Operator{typeof(n)}(n)
-Base.convert(::Type{Operator},L::UniformScaling) = ConstantOperator(L.λ)
+convert(::Type{Operator},n::Number) = Operator{typeof(n)}(n)
+convert(::Type{Operator},L::UniformScaling) = ConstantOperator(L.λ)
 
 ## Algebra
 
@@ -74,7 +74,7 @@ BasisFunctional(k) = BasisFunctional{Float64}(k)
 bandinds(B::BasisFunctional) = 0,B.k-1
 domainspace(B::BasisFunctional) = ℓ⁰
 
-Base.convert{T}(::Type{Operator{T}},B::BasisFunctional) = BasisFunctional{T}(B.k)
+convert{T}(::Type{Operator{T}},B::BasisFunctional) = BasisFunctional{T}(B.k)
 
 Base.getindex{T}(op::BasisFunctional{T},k::Integer) = (k==op.k)?one(T):zero(T)
 Base.getindex{T}(op::BasisFunctional{T},k::Range) = convert(Vector{T},k.==op.k)
@@ -105,7 +105,7 @@ ZeroOperator() = ZeroOperator(UnsetSpace(),UnsetSpace())
 ZeroOperator{T}(::Type{T}) = ZeroOperator(T,UnsetSpace(),UnsetSpace())
 
 
-Base.convert{T}(::Type{Operator{T}},Z::ZeroOperator) =
+convert{T}(::Type{Operator{T}},Z::ZeroOperator) =
     ZeroOperator(T,Z.domainspace,Z.rangespace)
 
 
@@ -141,9 +141,9 @@ iszeroop(::ZeroOperator) = true
 iszeroop(A::ConstantOperator) = A.λ==0.0
 iszeroop(A) = false
 
-Base.convert{T<:Number}(::Type{T},::ZeroOperator) = zero(T)
-Base.convert{T<:Number}(::Type{T},C::ConstantOperator) = convert(T,C.λ)
-Base.convert{T<:Number}(::Type{T},S::SpaceOperator) = convert(T,S.op)
+convert{T<:Number}(::Type{T},::ZeroOperator) = zero(T)
+convert{T<:Number}(::Type{T},C::ConstantOperator) = convert(T,C.λ)
+convert{T<:Number}(::Type{T},S::SpaceOperator) = convert(T,S.op)
 
 
 
@@ -151,5 +151,5 @@ Base.convert{T<:Number}(::Type{T},S::SpaceOperator) = convert(T,S.op)
 ## Special case for ZeroOperator
 for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzeros),
                     (:BlockBandedMatrix,:bbzeros))
-    @eval Base.convert{T,ZO<:ZeroOperator}(::Type{$TYP},S::SubOperator{T,ZO}) = $ZER(S)
+    @eval convert{T,ZO<:ZeroOperator}(::Type{$TYP},S::SubOperator{T,ZO}) = $ZER(S)
 end

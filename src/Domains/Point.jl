@@ -83,4 +83,4 @@ points(a::Point,n) = eltype(a)[a.x]
 checkpoints(a::Point) = eltype(a)[a.x]
 
 
-Base.convert(::Type{Domain},a::Number) = Point(a)
+convert(::Type{Domain},a::Number) = Point(a)

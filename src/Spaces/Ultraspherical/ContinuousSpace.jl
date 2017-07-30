@@ -281,7 +281,7 @@ function getindex{CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR}(B::ConcreteDiri
 end
 
 
-function Base.convert{T,CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR,CSP,TT}(::Type{BlockBandedMatrix},
+function convert{T,CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR,CSP,TT}(::Type{BlockBandedMatrix},
                             S::SubOperator{T,ConcreteDirichlet{TensorSpace{Tuple{CD,CD},DD,RR},
                                                                 CSP,TT},
                                             Tuple{UnitRange{Int},UnitRange{Int}}})

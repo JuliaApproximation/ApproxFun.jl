@@ -38,26 +38,35 @@ for FUNC in (:zeros,:rand,:ones)
     end
 end
 
-function Base.convert(::Type{BandedBlockBandedMatrix},Y::AbstractMatrix)
+convert(::Type{BandedBlockBandedMatrix{T,RI,CI}},Y::BandedBlockBandedMatrix{T,RI,CI}) where {T,RI,CI} = Y
+convert(::Type{BandedBlockBandedMatrix{T}},Y::BandedBlockBandedMatrix{T}) where T = Y
+
+
+function convert(::Type{BandedBlockBandedMatrix{T}},Y::AbstractMatrix) where T
     if !isbandedblockbanded(Y)
         error("$(typeof(Y)) is not banded block banded")
     end
-    ret = bbbzeros(eltype(Y),blockbandwidth(Y,1),blockbandwidth(Y,2),
+    ret = bbbzeros(T,blockbandwidth(Y,1),blockbandwidth(Y,2),
                         subblockbandwidth(Y,1),subblockbandwidth(Y,2),
                         rowblocklengths(Y),colblocklengths(Y))
-    BLAS.axpy!(one(eltype(Y)),Y,ret)
+    BLAS.axpy!(one(T),Y,ret)
 end
 
+convert(::Type{BandedBlockBandedMatrix},Y::AbstractMatrix) =
+    BandedBlockBandedMatrix{eltype(Y)}(Y)
 
-function BandedMatrix(B::BandedBlockBandedMatrix)
+
+function convert(::Type{BandedMatrix{T}},B::BandedBlockBandedMatrix) where T
     if length(B.rows) == length(B.cols) == 1
-        BandedMatrix(view(B,Block(1),Block(1)))
+        BandedMatrix{T}(view(B,Block(1),Block(1)))
     elseif all(x->x==1,B.rows) && all(x->x==1,B.cols)
-        BandedMatrix(B.data,length(B.rows),B.l,B.u)
+        BandedMatrix{T}(B.data,length(B.rows),B.l,B.u)
     else
         error("$B is not a banded matrix")
     end
 end
+
+convert(::Type{BandedMatrix},B::BandedBlockBandedMatrix) = BandedMatrix{eltype(B)}(B)
 
 isbandedblockbanded(::) = false
 isbandedblockbanded(::BandedBlockBandedMatrix) = true
@@ -221,7 +230,7 @@ Base.BLAS.axpy!(α,A::SubBandedBlockRange,Y::SubBandedBlockBandedRange) = block_
 
 ## Convert routines
 
-function Base.convert{T,U,V}(::Type{BandedMatrix{T}},S::BandedBlockBandedBlock{T,U,V})
+function convert{T,U,V}(::Type{BandedMatrix{T}},S::BandedBlockBandedBlock{T,U,V})
     A = parent(S)
     K = parentindexes(S)[1]
     col = S.offset1 # first col of current block
@@ -307,7 +316,7 @@ end
 
 
 
-Base.convert(::Type{BandedBlockBandedMatrix},B::BandedMatrix) =
+convert(::Type{BandedBlockBandedMatrix},B::BandedMatrix) =
     if isdiag(B)
         BandedBlockBandedMatrix(copy(B.data),0,0,0,0,ones(Int,size(B,1)),ones(Int,size(B,2)))
     else

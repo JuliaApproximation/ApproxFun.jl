@@ -26,10 +26,10 @@ ArraySpace(S::Space,n::Integer) = ArraySpace(S,(n,))
 ArraySpace(S::Space,n,m) = ArraySpace(fill(S,(n,m)))
 ArraySpace(d::Domain,n...) = ArraySpace(Space(d),n...)
 
-Base.convert(::Type{Space},sp::AbstractArray{<:Space}) = ArraySpace(sp)
-Base.convert(::Type{Array},sp::ArraySpace) = sp.spaces
-Base.convert(::Type{Vector},sp::VectorSpace) = sp.spaces
-Base.convert(::Type{Matrix},sp::MatrixSpace) = sp.spaces
+convert(::Type{Space},sp::AbstractArray{<:Space}) = ArraySpace(sp)
+convert(::Type{Array},sp::ArraySpace) = sp.spaces
+convert(::Type{Vector},sp::VectorSpace) = sp.spaces
+convert(::Type{Matrix},sp::MatrixSpace) = sp.spaces
 
 
 BlockInterlacer(sp::ArraySpace) = BlockInterlacer(blocklengths.(tuple(sp.spaces...)))

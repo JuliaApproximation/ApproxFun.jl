@@ -48,7 +48,7 @@ function PlusOperator(ops::Vector)
     PlusOperator(ops,(b1,b2))
 end
 
-function Base.convert{T}(::Type{Operator{T}},P::PlusOperator)
+function convert{T}(::Type{Operator{T}},P::PlusOperator)
     if T==eltype(P)
         P
     else
@@ -108,9 +108,9 @@ end
 
 for TYP in (:RaggedMatrix,:Matrix,:BandedMatrix,
             :BlockBandedMatrix,:BandedBlockBandedMatrix)
-    @eval Base.convert{T,PP<:PlusOperator}(::Type{$TYP},P::SubOperator{T,PP,Tuple{UnitRange{Block},UnitRange{Block}}}) =
+    @eval convert{T,PP<:PlusOperator}(::Type{$TYP},P::SubOperator{T,PP,Tuple{UnitRange{Block},UnitRange{Block}}}) =
         convert_axpy!($TYP,P)   # use axpy! to copy
-    @eval Base.convert{T,PP<:PlusOperator}(::Type{$TYP},P::SubOperator{T,PP}) =
+    @eval convert{T,PP<:PlusOperator}(::Type{$TYP},P::SubOperator{T,PP}) =
         convert_axpy!($TYP,P)   # use axpy! to copy
 end
 
@@ -173,7 +173,7 @@ ConstantTimesOperator(c::Number,op::ConstantTimesOperator) =
 @wrapperstructure ConstantTimesOperator
 @wrapperspaces ConstantTimesOperator
 
-Base.convert{T<:Number}(::Type{T},C::ConstantTimesOperator) = T(C.λ)*convert(T,C.op)
+convert{T<:Number}(::Type{T},C::ConstantTimesOperator) = T(C.λ)*convert(T,C.op)
 
 choosedomainspace(C::ConstantTimesOperator,sp::Space) = choosedomainspace(C.op,sp)
 
@@ -183,7 +183,7 @@ for OP in (:promotedomainspace,:promoterangespace),SP in (:UnsetSpace,:Space)
 end
 
 
-function Base.convert{T}(::Type{Operator{T}},C::ConstantTimesOperator)
+function convert{T}(::Type{Operator{T}},C::ConstantTimesOperator)
     if T==eltype(C)
         C
     else
@@ -200,10 +200,10 @@ for (TYP,ZERS) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
                    (:RaggedMatrix,:rzeros),(:BlockBandedMatrix,:bbzeros))
     @eval begin
         # avoid ambiugity
-        Base.convert{T,OP<:ConstantTimesOperator}(::Type{$TYP},
+        convert{T,OP<:ConstantTimesOperator}(::Type{$TYP},
                                                   S::SubOperator{T,OP,Tuple{UnitRange{Block},UnitRange{Block}}}) =
             convert_axpy!($TYP,S)
-        Base.convert{T,OP<:ConstantTimesOperator}(::Type{$TYP},S::SubOperator{T,OP}) =
+        convert{T,OP<:ConstantTimesOperator}(::Type{$TYP},S::SubOperator{T,OP}) =
             convert_axpy!($TYP,S)
     end
 end
@@ -281,7 +281,7 @@ TimesOperator(A::Operator,B::Operator) =
 
 ==(A::TimesOperator,B::TimesOperator)=A.ops==B.ops
 
-function Base.convert{T}(::Type{Operator{T}},P::TimesOperator)
+function convert{T}(::Type{Operator{T}},P::TimesOperator)
     if T==eltype(P)
         P
     else
@@ -378,7 +378,7 @@ for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
                     (:BandedBlockBandedMatrix,:bbbzeros),
                     (:BlockBandedMatrix,:bbzeros),
                     (:RaggedMatrix,:rzeros))
-    @eval function Base.convert{T,TO<:TimesOperator}(::Type{$STyp},
+    @eval function convert{T,TO<:TimesOperator}(::Type{$STyp},
                         S::SubOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
         P=parent(S)
         kr,jr=parentindexes(S)
@@ -438,7 +438,7 @@ end
 
 for (STyp,Zer) in ((:BandedBlockBandedMatrix,:bbbzeros),
                     (:BlockBandedMatrix,:bbzeros))
-    @eval function Base.convert{T,TO<:TimesOperator}(::Type{$STyp},
+    @eval function convert{T,TO<:TimesOperator}(::Type{$STyp},
                         S::SubOperator{T,TO,Tuple{UnitRange{Block},UnitRange{Block}}})
         P=parent(S)
         KR,JR=parentindexes(S)

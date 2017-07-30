@@ -63,7 +63,7 @@ SubOperator(A,inds,dims) = SubOperator(A,inds,dims,(dims[1]-1,dims[2]-1))
 SubOperator(A,inds) = SubOperator(A,inds,map(length,inds))
 
 
-Base.convert{T}(::Type{Operator{T}},SO::SubOperator) =
+convert{T}(::Type{Operator{T}},SO::SubOperator) =
     SubOperator(Operator{T}(SO.parent),SO.indexes,SO.dims,SO.bandwidths)::Operator{T}
 
 function view(A::Operator,kr::AbstractCount,jr::AbstractCount)
@@ -284,7 +284,7 @@ end
 
 for TYP in (:RaggedMatrix,:Matrix)
     def_TYP = parse("default_" * string(TYP))
-    @eval function Base.convert(::Type{$TYP},S::SubOperator)
+    @eval function convert(::Type{$TYP},S::SubOperator)
         if isinf(size(S,1)) || isinf(size(S,2))
             error("Cannot convert $S to a $TYP")
         end
@@ -302,7 +302,7 @@ for TYP in (:RaggedMatrix,:Matrix)
 end
 
 # fast converts to banded matrices would be based on indices, not blocks
-function Base.convert{T,B}(::Type{BandedMatrix},S::SubOperator{T,B,Tuple{UnitRange{Block},UnitRange{Block}}})
+function convert{T,B}(::Type{BandedMatrix},S::SubOperator{T,B,Tuple{UnitRange{Block},UnitRange{Block}}})
     A = parent(S)
     ds = domainspace(A)
     rs = rangespace(A)

@@ -15,7 +15,11 @@ B=[Bm;Bp];
 D2=Derivative(d,2);
 X=Multiplication(Fun(x->x,d));
 
+testbandedoperator(D2-X)
+testraggedbelowoperator([B;D2-X])
+
 @time u=[B;D2-X]\[airyai(d.a),airyai(d.b),0.];
+@test Number.(Array(B*u)) ≈ [airyai(d.a),airyai(d.b)]
 
 @test ≈(u(0.),airyai(0.);atol=10ncoefficients(u)*eps())
 

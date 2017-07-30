@@ -7,7 +7,7 @@ struct ReOperator{O,T} <: Operator{T}
 end
 
 ReOperator(op)=ReOperator{typeof(op),Float64}(op)
-Base.convert{T}(::Type{Operator{T}},R::ReOperator) = ReOperator{typeof(R.op),T}(R.op)
+convert{T}(::Type{Operator{T}},R::ReOperator) = ReOperator{typeof(R.op),T}(R.op)
 
 @wrapperstructure ReOperator
 @wrapperspaces ReOperator

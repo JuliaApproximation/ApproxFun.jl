@@ -56,7 +56,7 @@ jacobian(d::DualFun)=d.J
 
 
 Base.promote_rule{DF<:DualFun,T<:Number}(::Type{DF},::Type{T})=DualFun
-Base.convert(::Type{DualFun},b::Number)=DualFun(b,0)
+convert(::Type{DualFun},b::Number)=DualFun(b,0)
 
 
 

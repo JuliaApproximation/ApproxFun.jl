@@ -39,8 +39,8 @@ Circle() = Circle(1.0)
 
 isambiguous{T<:Number}(d::Circle{T}) = isnan(d.center) && isnan(d.radius)
 isambiguous{T<:Vec}(d::Circle{T}) = all(isnan,d.center) && isnan(d.radius)
-Base.convert{T<:Number,V<:Real}(::Type{Circle{T,V}},::AnyDomain) = Circle{T,V}(NaN,NaN)
-Base.convert{IT<:Circle}(::Type{IT},::AnyDomain) = Circle(NaN,NaN)
+convert{T<:Number,V<:Real}(::Type{Circle{T,V}},::AnyDomain) = Circle{T,V}(NaN,NaN)
+convert{IT<:Circle}(::Type{IT},::AnyDomain) = Circle(NaN,NaN)
 
 
 function tocanonical{T<:Number}(d::Circle{T},ζ)

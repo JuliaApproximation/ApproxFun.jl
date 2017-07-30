@@ -48,7 +48,7 @@ end
 
 Recurrence(sp) = Recurrence{typeof(sp),rangetype(sp)}(sp)
 
-Base.convert{T,S}(::Type{Operator{T}},J::Recurrence{S}) = Recurrence{S,T}(J.space)
+convert{T,S}(::Type{Operator{T}},J::Recurrence{S}) = Recurrence{S,T}(J.space)
 
 domainspace(R::Recurrence) = R.space
 rangespace(R::Recurrence) = R.space
@@ -83,7 +83,7 @@ end
 JacobiZ(sp::PolynomialSpace,z) =
     (T = promote_type(prectype(sp),typeof(z)); JacobiZ{typeof(sp),T}(sp,T(z)))
 
-Base.convert{T,S}(::Type{Operator{T}},J::JacobiZ{S}) = JacobiZ{S,T}(J.space,J.z)
+convert{T,S}(::Type{Operator{T}},J::JacobiZ{S}) = JacobiZ{S,T}(J.space,J.z)
 
 domainspace(::JacobiZ) = ℓ⁰
 rangespace(::JacobiZ) = ℓ⁰
@@ -173,7 +173,7 @@ end
 
 
 
-function Base.convert{PS<:PolynomialSpace,T,C<:PolynomialSpace}(::Type{BandedMatrix},
+function convert{PS<:PolynomialSpace,T,C<:PolynomialSpace}(::Type{BandedMatrix},
                                                                 S::SubOperator{T,ConcreteMultiplication{C,PS,T},
                                                                                Tuple{UnitRange{Int},UnitRange{Int}}})
     M=parent(S)

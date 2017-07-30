@@ -165,7 +165,7 @@ Base.last(d::PeriodicDomain) = fromcanonical(d,2π)
 struct AnyPeriodicDomain <: PeriodicDomain{UnsetNumber} end
 isambiguous(::AnyPeriodicDomain)=true
 
-Base.convert{D<:PeriodicDomain}(::Type{D},::AnyDomain)=AnyPeriodicDomain()
+convert{D<:PeriodicDomain}(::Type{D},::AnyDomain)=AnyPeriodicDomain()
 
 ## conveninece routines
 

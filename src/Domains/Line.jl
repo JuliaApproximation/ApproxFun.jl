@@ -50,8 +50,8 @@ Line() = Line(false)
 
 
 isambiguous(d::Line)=isnan(d.center)
-Base.convert{a,T<:Number}(::Type{Line{a,T}},::AnyDomain)=Line{a,T}(NaN)
-Base.convert{IT<:Line}(::Type{IT},::AnyDomain)=Line(NaN,NaN)
+convert{a,T<:Number}(::Type{Line{a,T}},::AnyDomain)=Line{a,T}(NaN)
+convert{IT<:Line}(::Type{IT},::AnyDomain)=Line(NaN,NaN)
 
 ## Map interval
 
@@ -164,7 +164,7 @@ struct PeriodicLine{angle,T} <: PeriodicDomain{Float64}
     (::Type{PeriodicLine{angle,T}}){angle,T}() = new{angle,T}(0.,1.)
 end
 
-Base.convert{a}(::Type{PeriodicLine{a}},c,L) = PeriodicLine{a,typeof(c)}(c,L)
+convert{a}(::Type{PeriodicLine{a}},c,L) = PeriodicLine{a,typeof(c)}(c,L)
 
 
 PeriodicLine(c,a) = PeriodicLine{a/π,eltype(c)}(c,1.)
@@ -172,8 +172,8 @@ PeriodicLine() = PeriodicLine{false,Float64}(0.,1.)
 PeriodicLine(b::Bool) = PeriodicLine{b,Float64}()
 
 isambiguous(d::PeriodicLine) = isnan(d.center) && isnan(d.angle)
-Base.convert{T<:Number,TT}(::Type{PeriodicLine{T,TT}},::AnyDomain) = PeriodicLine{T,TT}(NaN,NaN)
-Base.convert{IT<:PeriodicLine}(::Type{IT},::AnyDomain) = PeriodicLine(NaN,NaN)
+convert{T<:Number,TT}(::Type{PeriodicLine{T,TT}},::AnyDomain) = PeriodicLine{T,TT}(NaN,NaN)
+convert{IT<:PeriodicLine}(::Type{IT},::AnyDomain) = PeriodicLine(NaN,NaN)
 
 Base.angle{a}(d::PeriodicLine{a})=a*π
 
@@ -224,7 +224,7 @@ complexlength(d::Union{Line,PeriodicLine})=Inf
 ## vectorized
 
 for typ in (:Line,:PeriodicLine)
-    @eval function Base.convert(::Type{$typ},d::ClosedInterval)
+    @eval function convert(::Type{$typ},d::ClosedInterval)
         a,b=d.left,d.right
         @assert abs(a) == abs(b) == Inf
 

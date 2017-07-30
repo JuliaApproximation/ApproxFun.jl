@@ -39,7 +39,7 @@ LowRankOperator(B::AbstractVector,S...) = LowRankOperator(convert(Vector{Operato
 LowRankOperator(A::Fun,B::Operator) = LowRankOperator([A],[B])
 
 
-Base.convert{S,T}(::Type{Operator{T}},L::LowRankOperator{S}) =
+convert{S,T}(::Type{Operator{T}},L::LowRankOperator{S}) =
     LowRankOperator{S,T}(convert(Vector{VFun{S,T}},L.U),
                          convert(Vector{Operator{T}},L.V))
 

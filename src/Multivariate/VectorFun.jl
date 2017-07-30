@@ -4,7 +4,7 @@ const VectorFun = Fun{S} where {S<:Space{D,R}} where {D,R<:AbstractVector}
 const ScalarFun = Fun{S} where {S<:Space{D,R}} where {D,R<:Number}
 
 
-Base.convert(::Type{Array},f::ArrayFun) = reshape(vec(f),size(space(f))...)
+convert(::Type{Array},f::ArrayFun) = reshape(vec(f),size(space(f))...)
 
 Base.map(f,A::ArrayFun) = Base.collect_similar(A, Base.Generator(f,A))
 

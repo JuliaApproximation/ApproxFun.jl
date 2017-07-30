@@ -67,7 +67,7 @@ evaluate(f::AbstractVector,::ConstantSpace,x...)=f[1]
 evaluate(f::AbstractVector,::ZeroSpace,x...)=zero(eltype(f))
 
 
-Base.convert{CS<:ConstantSpace,T<:Number}(::Type{T},f::Fun{CS}) =
+convert{CS<:ConstantSpace,T<:Number}(::Type{T},f::Fun{CS}) =
     convert(T,f.coefficients[1])
 
 # promoting numbers to Fun
@@ -198,7 +198,7 @@ end
 union_rule(a::TensorSpace,b::ConstantSpace{AnyDomain})=TensorSpace(map(sp->union(sp,b),a.spaces))
 ## Special spaces
 
-function Base.convert{TS<:TensorSpace,T<:Number}(::Type{T},f::Fun{TS})
+function convert{TS<:TensorSpace,T<:Number}(::Type{T},f::Fun{TS})
     if all(sp->isa(sp,ConstantSpace),space(f).spaces)
         convert(T,f.coefficients[1])
     else
@@ -206,7 +206,7 @@ function Base.convert{TS<:TensorSpace,T<:Number}(::Type{T},f::Fun{TS})
     end
 end
 
-Base.convert(::Type{T},
+convert(::Type{T},
             f::Fun{TensorSpace{Tuple{CS1,CS2},DD,RR}}) where {CS1<:ConstantSpace,CS2<:ConstantSpace,T<:Number,DD,RR} =
     convert(T,f.coefficients[1])
 

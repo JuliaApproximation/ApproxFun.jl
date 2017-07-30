@@ -41,9 +41,9 @@ Base.complex{V<:Vec}(a::Arc{V}) = Arc(complex(a.center...),a.radius,a.angles)
 
 isambiguous(d::Arc) =
     isnan(d.center) && isnan(d.radius) && isnan(d.angles[1]) && isnan(d.angles[2])
-Base.convert{T<:Number,V<:Real}(::Type{Arc{T,V}},::AnyDomain) =
+convert{T<:Number,V<:Real}(::Type{Arc{T,V}},::AnyDomain) =
     Arc{T,V}(NaN,NaN,(NaN,NaN))
-Base.convert{IT<:Arc}(::Type{IT},::AnyDomain) =
+convert{IT<:Arc}(::Type{IT},::AnyDomain) =
     Arc(NaN,NaN,(NaN,NaN))
 
 Base.reverse(a::Arc) = Arc(a.center,a.radius,reverse(a.angles))

@@ -467,10 +467,10 @@ macro wrappergetindex(Wrap)
         BLAS.axpy!{T,OP<:$Wrap}(α,P::ApproxFun.SubOperator{T,OP},A::AbstractMatrix) =
             ApproxFun.unwrap_axpy!(α,P,A)
 
-        A_mul_B_coefficients(A::$Wrap,b) = A_mul_B_coefficients(A.op,b)
-        A_mul_B_coefficients{T,OP<:$Wrap}(A::ApproxFun.SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},b) =
+        ApproxFun.A_mul_B_coefficients(A::$Wrap,b) = A_mul_B_coefficients(A.op,b)
+        ApproxFun.A_mul_B_coefficients{T,OP<:$Wrap}(A::ApproxFun.SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},b) =
             A_mul_B_coefficients(view(parent(A).op,S.indexes[1],S.indexes[2]),b)
-        A_mul_B_coefficients{T,OP<:$Wrap}(A::ApproxFun.SubOperator{T,OP},b) =
+        ApproxFun.A_mul_B_coefficients{T,OP<:$Wrap}(A::ApproxFun.SubOperator{T,OP},b) =
             A_mul_B_coefficients(view(parent(A).op,S.indexes[1],S.indexes[2]),b)
     end
 
@@ -595,10 +595,10 @@ Base.zero{O<:Operator}(::Type{O}) = ZeroOperator(eltype(O))
 Base.eye(S::Space) = IdentityOperator(S)
 Base.eye(S::Domain) = eye(Space(S))
 
-Base.convert{T}(A::Type{Operator{T}},f::Fun) =
+convert{T}(A::Type{Operator{T}},f::Fun) =
     norm(f.coefficients)==0?zero(A):convert(A,Multiplication(f))
 
-Base.convert(A::Type{Operator},f::Fun) =
+convert(A::Type{Operator},f::Fun) =
     norm(f.coefficients)==0?ZeroOperator():Multiplication(f)
 
 
@@ -667,9 +667,9 @@ end
 
 
 
-Base.convert(::Type{BandedMatrix},S::Operator) = default_bandedmatrix(S)
+convert(::Type{BandedMatrix},S::Operator) = default_bandedmatrix(S)
 
-function Base.convert(::Type{BlockBandedMatrix},S::Operator)
+function convert(::Type{BlockBandedMatrix},S::Operator)
     if isbandedblockbanded(S)
         BlockBandedMatrix(BandedBlockBandedMatrix(S))
     else
@@ -681,7 +681,7 @@ end
 # TODO: Unify with SubOperator
 for TYP in (:RaggedMatrix,:Matrix)
     def_TYP = parse("default_" * string(TYP))
-    @eval function Base.convert(::Type{$TYP},S::Operator)
+    @eval function convert(::Type{$TYP},S::Operator)
         if isinf(size(S,1)) || isinf(size(S,2))
             error("Cannot convert $S to a $TYP")
         end
@@ -698,7 +698,7 @@ for TYP in (:RaggedMatrix,:Matrix)
     end
 end
 
-function Base.convert(::Type{Vector},S::Operator)
+function convert(::Type{Vector},S::Operator)
     if size(S,2) ≠ 1  || isinf(size(S,1))
         error("Cannot convert $S to a AbstractVector")
     end
@@ -708,9 +708,9 @@ end
 
 
 
-Base.convert(::Type{AbstractMatrix},S::Operator) = Matrix(S)
+convert(::Type{AbstractMatrix},S::Operator) = Matrix(S)
 
-function Base.convert(::Type{AbstractMatrix},S::SubOperator)
+function convert(::Type{AbstractMatrix},S::SubOperator)
     if isinf(size(S,1)) || isinf(size(S,2))
         throw(BoundsError())
     end
@@ -727,4 +727,4 @@ function Base.convert(::Type{AbstractMatrix},S::SubOperator)
     end
 end
 
-Base.convert(::Type{AbstractVector},S::Operator) = Vector(S)
+convert(::Type{AbstractVector},S::Operator) = Vector(S)

@@ -361,7 +361,7 @@ function getindex{J<:Jacobi,CC<:Chebyshev,T}(C::ConcreteConversion{CC,J,T},k::In
     end
 end
 
-function Base.convert{J<:Jacobi,CC<:Chebyshev,T}(::Type{BandedMatrix},
+function convert{J<:Jacobi,CC<:Chebyshev,T}(::Type{BandedMatrix},
                                         S::SubOperator{T,ConcreteConversion{CC,J,T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
     kr,jr = parentindexes(S)
@@ -382,7 +382,7 @@ function getindex{J<:Jacobi,CC<:Chebyshev,T}(C::ConcreteConversion{J,CC,T},k::In
     end
 end
 
-function Base.convert{J<:Jacobi,CC<:Chebyshev,T}(::Type{BandedMatrix},
+function convert{J<:Jacobi,CC<:Chebyshev,T}(::Type{BandedMatrix},
                                         S::SubOperator{T,ConcreteConversion{J,CC,T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
     kr,jr = parentindexes(S)
@@ -406,7 +406,7 @@ function getindex{US<:Ultraspherical,J<:Jacobi,T}(C::ConcreteConversion{US,J,T},
     end
 end
 
-function Base.convert{US<:Ultraspherical,J<:Jacobi,T}(::Type{BandedMatrix},
+function convert{US<:Ultraspherical,J<:Jacobi,T}(::Type{BandedMatrix},
                                         S::SubOperator{T,ConcreteConversion{US,J,T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
     kr,jr = parentindexes(S)
@@ -434,7 +434,7 @@ function getindex{US<:Ultraspherical,J<:Jacobi,T}(C::ConcreteConversion{J,US,T},
     end
 end
 
-function Base.convert{US<:Ultraspherical,J<:Jacobi,T}(::Type{BandedMatrix},
+function convert{US<:Ultraspherical,J<:Jacobi,T}(::Type{BandedMatrix},
                                         S::SubOperator{T,ConcreteConversion{J,US,T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
     kr,jr = parentindexes(S)
@@ -599,7 +599,7 @@ end
 
 JacobiSD(lr,S)=JacobiSD{Float64}(lr,S)
 
-Base.convert{T}(::Type{Operator{T}},SD::JacobiSD)=JacobiSD{T}(SD.lr,SD.S)
+convert{T}(::Type{Operator{T}},SD::JacobiSD)=JacobiSD{T}(SD.lr,SD.S)
 
 domain(op::JacobiSD)=domain(op.S)
 domainspace(op::JacobiSD)=op.S

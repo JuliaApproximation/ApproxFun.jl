@@ -9,7 +9,7 @@ for OP in (:domainspace,:rangespace)
     @eval $OP(T::PermutationOperator) = ℓ⁰
 end
 
-Base.convert{T}(::Type{Operator{T}},P::PermutationOperator) =
+convert{T}(::Type{Operator{T}},P::PermutationOperator) =
     PermutationOperator{T}(P.perm)
 
 function bandinds(P::PermutationOperator)
@@ -49,7 +49,7 @@ for OP in (:domainspace,:rangespace)
     @eval $OP(T::NegateEven) = ℓ⁰
 end
 
-Base.convert{T}(::Type{Operator{T}},P::NegateEven) =
+convert{T}(::Type{Operator{T}},P::NegateEven) =
     NegateEven{T}()
 
 bandinds(P::NegateEven) = (0,0)

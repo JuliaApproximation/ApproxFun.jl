@@ -30,7 +30,7 @@ end
 
 Base.promote_rule{D,R1,R2}(::Type{Jacobi{D,R1}},::Type{Jacobi{D,R2}}) =
     Jacobi{D,promote_type(R1,R2)}
-Base.convert{D,R1,R2}(::Type{Jacobi{D,R1}},J::Jacobi{D,R2}) =
+convert{D,R1,R2}(::Type{Jacobi{D,R1}},J::Jacobi{D,R2}) =
     Jacobi{D,R1}(J.b,J.a,J.domain)
 
 const WeightedJacobi{D,R} = JacobiWeight{Jacobi{D,R},D,R}

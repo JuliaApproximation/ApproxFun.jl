@@ -12,7 +12,7 @@ ConcreteConversion(a::Space,b::Space)=ConcreteConversion{typeof(a),typeof(b),
         promote_type(rangetype(a),rangetype(b))}(a,b)
 
 
-function Base.convert{T,S,V}(::Type{Operator{T}},C::ConcreteConversion{S,V})
+function convert{T,S,V}(::Type{Operator{T}},C::ConcreteConversion{S,V})
     if T==eltype(C)
         C
     else
@@ -71,7 +71,7 @@ Conversion(A::Space,B::Space,C::Space,D::Space...) =
 ==(A::ConversionWrapper,B::ConversionWrapper) = A.op==B.op
 
 
-function Base.convert{T}(::Type{Operator{T}},D::ConversionWrapper)
+function convert{T}(::Type{Operator{T}},D::ConversionWrapper)
     if T==eltype(D)
         D
     else

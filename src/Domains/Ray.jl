@@ -42,7 +42,7 @@ Ray() = Ray{false}()
 
 ##deal with vector
 
-function Base.convert(::Type{Ray},d::ClosedInterval)
+function convert(::Type{Ray},d::ClosedInterval)
     a,b=d.left,d.right
     @assert abs(a)==Inf || abs(b)==Inf
 
@@ -55,8 +55,8 @@ end
 
 
 isambiguous(d::Ray)=isnan(d.center)
-Base.convert{a,T<:Number}(::Type{Ray{a,T}},::AnyDomain) = Ray{a,T}(NaN,true)
-Base.convert{IT<:Ray}(::Type{IT},::AnyDomain) = Ray(NaN,NaN)
+convert{a,T<:Number}(::Type{Ray{a,T}},::AnyDomain) = Ray{a,T}(NaN,true)
+convert{IT<:Ray}(::Type{IT},::AnyDomain) = Ray(NaN,NaN)
 
 
 

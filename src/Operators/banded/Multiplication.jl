@@ -50,7 +50,7 @@ Multiplication(c::Number) = Multiplication(Fun(c) )
 Multiplication(S::Space,f::Fun) = Multiplication(f,S)
 
 
-function Base.convert{S,V,T}(::Type{Operator{T}},C::ConcreteMultiplication{S,V})
+function convert{S,V,T}(::Type{Operator{T}},C::ConcreteMultiplication{S,V})
     if T==eltype(C)
         C
     else
@@ -98,7 +98,7 @@ MultiplicationWrapper{D<:Space,V}(f::Fun{D,V},op::Operator) = MultiplicationWrap
 
 @wrapper MultiplicationWrapper
 
-function Base.convert{TT,S,V,O,T}(::Type{Operator{TT}},C::MultiplicationWrapper{S,V,O,T})
+function convert{TT,S,V,O,T}(::Type{Operator{TT}},C::MultiplicationWrapper{S,V,O,T})
     if TT==T
         C
     else

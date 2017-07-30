@@ -72,20 +72,20 @@ coefficient(f::Fun,::Colon) = coefficient(f,1:dimension(space(f)))
 ##Convert routines
 
 
-Base.convert(::Type{Fun{S,T,VT}},f::Fun{S}) where {T,S,VT} =
+convert(::Type{Fun{S,T,VT}},f::Fun{S}) where {T,S,VT} =
     Fun(f.space,convert(VT,f.coefficients))
-Base.convert(::Type{Fun{S,T,VT}},f::Fun) where {T,S,VT} =
+convert(::Type{Fun{S,T,VT}},f::Fun) where {T,S,VT} =
     Fun(Fun(f.space,convert(VT,f.coefficients)),convert(S,space(f)))
 
-Base.convert(::Type{Fun{S,T}},f::Fun{S}) where {T,S} =
+convert(::Type{Fun{S,T}},f::Fun{S}) where {T,S} =
     Fun(f.space,convert(AbstractVector{T},f.coefficients))
 
 
-Base.convert(::Type{VFun{S,T}},x::Number) where {T,S} =
+convert(::Type{VFun{S,T}},x::Number) where {T,S} =
     x==0 ? zeros(T,S(AnyDomain())) : x*ones(T,S(AnyDomain()))
-Base.convert{S}(::Type{Fun{S}},x::Number) =
+convert{S}(::Type{Fun{S}},x::Number) =
     x==0 ? zeros(S(AnyDomain())) : x*ones(S(AnyDomain()))
-Base.convert{IF<:Fun}(::Type{IF},x::Number) = convert(IF,Fun(x))
+convert{IF<:Fun}(::Type{IF},x::Number) = convert(IF,Fun(x))
 
 # if we are promoting, we need to change to a VFun
 Base.promote_rule(::Type{Fun{S,T,VT1}},::Type{Fun{S,V,VT2}}) where {T,V,S,VT1,VT2} =

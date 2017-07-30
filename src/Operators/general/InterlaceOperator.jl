@@ -189,7 +189,7 @@ InterlaceOperator{T,p}(ops::AbstractArray{T,p}) =
     InterlaceOperator(Array{Operator{mapreduce(eltype,promote_type,ops)},p}(ops))
 
 
-function Base.convert{T}(::Type{Operator{T}},S::InterlaceOperator)
+function convert{T}(::Type{Operator{T}},S::InterlaceOperator)
     if T == eltype(S)
         S
     else
@@ -330,7 +330,7 @@ end
 for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzeros),
                     (:BlockBandedMatrix,:bbzeros))
     @eval begin
-        function Base.convert{SS,PS,DI,RI,BI,T}(::Type{$TYP},
+        function convert{SS,PS,DI,RI,BI,T}(::Type{$TYP},
                                 S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI},
                                               Tuple{UnitRange{Int},UnitRange{Int}}})
             kr,jr=parentindexes(S)
@@ -355,7 +355,7 @@ for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzero
             ret
         end
 
-        function Base.convert{SS,PS,DI,RI,BI,T}(::Type{$TYP},
+        function convert{SS,PS,DI,RI,BI,T}(::Type{$TYP},
                               S::SubOperator{T,InterlaceOperator{T,2,SS,PS,DI,RI,BI},
                                         Tuple{UnitRange{Int},UnitRange{Int}}})
             kr,jr=parentindexes(S)
@@ -422,7 +422,7 @@ function blockbanded_interlace_convert!(S,ret)
 end
 
 for d in (:1,:2)
-    @eval Base.convert{SS,PS,DI,RI,BI,T}(::Type{BlockBandedMatrix},
+    @eval convert{SS,PS,DI,RI,BI,T}(::Type{BlockBandedMatrix},
                             S::SubOperator{T,InterlaceOperator{T,$d,SS,PS,DI,RI,BI},
                                             Tuple{UnitRange{Block},UnitRange{Block}}}) =
     blockbanded_interlace_convert!(S,bbzeros(S))
@@ -485,7 +485,7 @@ end
 
 ## Convert Matrix operator to operators
 
-Base.convert{OO<:Operator}(::Type{Operator},M::AbstractArray{OO}) = InterlaceOperator(M)
+convert{OO<:Operator}(::Type{Operator},M::AbstractArray{OO}) = InterlaceOperator(M)
 
 
 

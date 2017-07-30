@@ -11,7 +11,7 @@ end
 
 TransposeOperator{T<:Number}(B::Operator{T})=TransposeOperator{T,typeof(B)}(B)
 
-Base.convert{T}(::Type{Operator{T}},A::TransposeOperator)=TransposeOperator(convert(Operator{T},A.op))
+convert{T}(::Type{Operator{T}},A::TransposeOperator)=TransposeOperator(convert(Operator{T},A.op))
 
 domainspace(P::TransposeOperator)=rangespace(P.op)
 rangespace(P::TransposeOperator)=domainspace(P.op)
@@ -24,7 +24,7 @@ bandinds(P::TransposeOperator)=-bandinds(P.op)[end],-bandinds(P.op)[1]
 getindex(P::TransposeOperator,k::Integer,j::Integer) =
     P.op[j,k]
 
-function Base.convert{T,TO<:TransposeOperator}(::Type{BandedMatrix},S::SubOperator{T,TO})
+function convert{T,TO<:TransposeOperator}(::Type{BandedMatrix},S::SubOperator{T,TO})
     kr,jr=parentindexes(S)
     BandedMatrix(view(parent(S).op,jr,kr)).'
 end

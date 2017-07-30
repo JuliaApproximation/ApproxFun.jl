@@ -42,8 +42,8 @@ isperiodic(d::PiecewiseSegment) = first(d.points)==last(d.points)
 Base.reverse(d::PiecewiseSegment) = PiecewiseSegment(reverse(d.points))
 
 isambiguous(d::PiecewiseSegment)=isempty(d.points)
-Base.convert{T<:Number}(::Type{PiecewiseSegment{T}},::AnyDomain)=PiecewiseSegment{T}([])
-Base.convert{IT<:PiecewiseSegment}(::Type{IT},::AnyDomain)=PiecewiseSegment(Float64[])
+convert{T<:Number}(::Type{PiecewiseSegment{T}},::AnyDomain)=PiecewiseSegment{T}([])
+convert{IT<:PiecewiseSegment}(::Type{IT},::AnyDomain)=PiecewiseSegment(Float64[])
 
 
 function points(d::PiecewiseSegment,n)
