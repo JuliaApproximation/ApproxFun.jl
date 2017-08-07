@@ -182,8 +182,13 @@ Base.diff{AS<:ArraySpace,T}(f::Fun{AS,T},n...) = Fun(diff(Array(f),n...))
 
 ## conversion
 
-coefficients(f::AbstractVector,a::VectorSpace,b::VectorSpace) =
+function coefficients(f::AbstractVector,a::VectorSpace,b::VectorSpace)
+    if size(a) ≠ size(b)
+        throw(DimensionMismatch("dimensions must match"))
+    end
     interlace(map(coefficients,Fun(a,f),b),b)
+end
+
 
 coefficients{F<:Fun}(Q::AbstractVector{F},rs::VectorSpace) =
     interlace(map(coefficients,Q,rs),rs)

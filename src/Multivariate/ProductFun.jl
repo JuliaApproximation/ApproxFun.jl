@@ -225,7 +225,9 @@ evaluate(f::ProductFun,x) = evaluate(f,x...)
 
 function chop{S}(f::ProductFun{S},es...)
     kend=size(f,2)
-    if kend > 1 while isempty(chop(f.coefficients[kend].coefficients,es...)) kend-=1 end end
+    while kend > 1 && isempty(chop(f.coefficients[kend].coefficients,es...))
+        kend-=1
+    end
     ret=VFun{S,eltype(f)}[Fun(space(f.coefficients[k]),chop(f.coefficients[k].coefficients,es...)) for k=1:max(kend,1)]
 
     typeof(f)(ret,f.space)

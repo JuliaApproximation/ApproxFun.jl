@@ -271,7 +271,8 @@ end
         warn("Imaginary part is non-neglible.  Only plotting real part.")
     end
 
-    points(space(g,1),size(vals,1)),points(space(g,2),size(vals,2)),real(vals).'
+    points(factor(space(g),1),size(vals,1)),
+        points(factor(space(g),2),size(vals,2)),real(vals).'
 end
 
 @recipe function f{S<:UnivariateSpace,
@@ -286,7 +287,8 @@ end
         warn("Imaginary part is non-neglible.  Only plotting real part.")
     end
 
-    points(space(g,1),size(vals,1)),points(space(g,2),size(vals,2)),real(vals).'
+    points(factor(space(g),1),size(vals,1)),
+        points(factor(space(g),2),size(vals,2)),real(vals).'
 end
 
 

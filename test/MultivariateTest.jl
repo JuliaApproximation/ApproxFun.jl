@@ -288,3 +288,19 @@ f = a ⊗ a
 @test component(space(f),1,2) == Chebyshev(0..1)*Chebyshev(2..3)
 @test component(space(f),2,1) == Chebyshev(2..3)*Chebyshev(0..1)
 @test component(space(f),2,2) == Chebyshev(2..3)^2
+
+
+
+## Bug in chop of ProductFun
+
+u = Fun(Chebyshev()^2,[0.0,0.0])
+@test coefficients(chop(ProductFun(u),10eps())) == zeros(0,1)
+
+
+d=Domain(-1..1)^2
+B=[Dirichlet(factor(d,1))⊗I;I⊗ldirichlet(factor(d,2));I⊗rneumann(factor(d,2))]
+Δ=Laplacian(d)
+
+rs = rangespace([B;Δ])
+f = Fun((x,y)->exp(-x^2-y^2),d)
+@test_throws DimensionMismatch coefficients([0.0;0.0;0.0;0.0;f],rs)
