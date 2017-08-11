@@ -35,9 +35,12 @@ function Base.show(io::IO,d::Ray)
     end
 end
 
-Base.show(io::IO,d::PeriodicInterval)=print(io,"【$(d.a),$(d.b)❫")
-Base.show(io::IO,d::Circle)=print(io,(d.radius==1?"":string(d.radius))*(d.orientation?"🕒":"🕞")*(d.center==0?"":"+$(d.center)"))
-Base.show(io::IO,d::Point)=print(io,"Point($(d.x))")
+Base.show(io::IO,d::PeriodicInterval) = print(io,"【$(d.a),$(d.b)❫")
+Base.show(io::IO,d::Circle) =
+    print(io,(d.radius==1 ? "" : string(d.radius))*
+                    (d.orientation ? "🕒" : "🕞")*
+                    (d.center==0 ? "" : "+$(d.center)"))
+Base.show(io::IO,d::Point) = print(io,"Point($(d.x))")
 
 
 function Base.show(io::IO,d::UnionDomain)
@@ -136,6 +139,12 @@ function Base.show(io::IO,ss::PiecewiseSpace)
         print(io,"⨄")
         show(io,sp)
     end
+end
+
+Base.summary(ss::ArraySpace) = string(Base.dims2string(length.(indices(ss))), " ArraySpace")
+function Base.show(io::IO,ss::ArraySpace;header::Bool=true)
+    header && print(io,summary(ss)*":\n")
+    showarray(io,ss.spaces;header=false)
 end
 
 function Base.show(io::IO,s::TensorSpace)

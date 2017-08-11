@@ -532,6 +532,7 @@ a=Fun(x -> 0 ≤ x ≤ 0.5 ? 0.5 : 1, Domain(-1..1) \ [0,0.5])
 s=space(a)
 # Bx=[ldirichlet(s);continuity(s,0)]
 # TODO: this should concat
+dt=Interval(0,2.)
 Dx=Derivative(s);Dt=Derivative(dt)
 Bx=[ldirichlet(s);continuity(s,0)]
 
@@ -539,11 +540,10 @@ Bx=[ldirichlet(s);continuity(s,0)]
 @test ApproxFun.rangetype(rangespace(Bx)) == Vector{Any}
 @test ApproxFun.rangetype(rangespace(Bx⊗eye(Chebyshev()))) == Vector{Any}
 
-rangespace([I⊗ldirichlet(dt);Bx⊗I;I⊗Dt+(a*Dx)⊗I])[3]
 rhs = Fun([0,[0,[0,0]],0],rangespace([I⊗ldirichlet(dt);Bx⊗I;I⊗Dt+(a*Dx)⊗I]))
 @test rhs(-0.5,0.0) == [0,[0,[0,0]],0]
 
 u=\([I⊗ldirichlet(dt);Bx⊗I;I⊗Dt+(a*Dx)⊗I],
     [Fun(x->exp(-20(x+0.5)^2),s),[0,[0,0]],0.0];tolerance=1E-2)
 
-@test u(-0.4,0.1) ≈ u(-0.5,0.0) atol = 0.00001
+@test u(-0.4,0.1) ≈ u(-0.5,0.0) atol = 0.0001

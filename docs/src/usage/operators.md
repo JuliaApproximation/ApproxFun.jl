@@ -111,6 +111,29 @@ true
 As can be seen from the output, `rangespace(B)` is a `ConstantSpace(Point(0))`, a one-dimensional space used to represent scalars whose domain is a single point, `0`.
 
 
+Closely related to functionals are operators with finite-dimensional range. For example,
+the `Dirichlet` operator represents the restriction of a space to its boundary.
+In the case, of `Chebyshev()`, this amounts to evaluation at the endpoints `±1`:
+```jldoctest
+julia> B = Dirichlet(Chebyshev())
+ConcreteDirichlet:Chebyshev(【-1.0,1.0】)→2-element ArraySpace:
+ ConstantSpace(Point(-1.0))
+ ConstantSpace(Point(1.0))
+ 1.0  -1.0  1.0  -1.0  1.0  -1.0  1.0  -1.0  1.0  -1.0  ⋯
+ 1.0   1.0  1.0   1.0  1.0   1.0  1.0   1.0  1.0   1.0  ⋯
+
+julia> size(B)
+(2, ∞)
+
+julia> B*Fun(exp)
+Fun(2-element ArraySpace:
+ ConstantSpace(Point(-1.0))
+ ConstantSpace(Point(1.0)) ,[0.367879, 2.71828])
+
+julia> B*Fun(exp) ≈ Fun([exp(-1),exp(1)])
+true
+```
+
 ## Algebraic manipulation of operators
 
 Operators can be algebraically manipulated, provided that the domain and
@@ -326,3 +349,10 @@ Therefore, it has thrown away its domain space, and thus this is equivalent to
 ```@meta
 DocTestSetup = nothing
 ```
+
+
+## Concatenating operators
+
+The concatenation functions `vcat`, `hcat` and `hvcat` are overriden for
+operators to represent the resulting combined operator, now with
+a `rangespace` or `domainspace` that is an `ArraySpace`. 

@@ -262,6 +262,14 @@ Derivative
 ```
 
 ```@docs
+Dirichlet
+```
+
+```@docs
+Evaluation
+```
+
+```@docs
 Integral
 ```
 
@@ -271,6 +279,10 @@ Laplacian
 
 ```@docs
 Multiplication
+```
+
+```@docs
+Neumann
 ```
 
 ## Bivariate

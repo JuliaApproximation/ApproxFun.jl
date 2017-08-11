@@ -254,7 +254,7 @@ doc"""
 `Derivative(k)` represents the `k`-th derivative, acting on an unset space.
 Spaces will be inferred when applying or manipulating the operator.
 """
-Derivative(::)
+Derivative(k)
 
 doc"""
 `Derivative()` represents the first derivative on an unset space.
@@ -279,7 +279,7 @@ doc"""
 Integral(k)` represents the `k`-th integral, acting on an unset space.
 Spaces will be inferred when applying or manipulating the operator.
 """
-Integral(::)
+Integral(k)
 
 doc"""
 `Intergral()` represents the first integral on an unset space.
