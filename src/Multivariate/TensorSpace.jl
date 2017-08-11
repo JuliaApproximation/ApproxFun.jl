@@ -289,9 +289,18 @@ end
 tensorizer(sp::TensorSpace) = Tensorizer(map(blocklengths,sp.spaces))
 blocklengths(S::TensorSpace) = tensorblocklengths(map(blocklengths,S.spaces)...)
 
+
+# the evaluation is *, so the type will be the same as *
+# However, this fails for some any types
+tensor_eval_type(a,b) = Base.promote_op(*,a,b)
+tensor_eval_type(::Type{Vector{Any}},::Type{Vector{Any}}) = Vector{Any}
+tensor_eval_type(::Type{Vector{Any}},_) = Vector{Any}
+tensor_eval_type(_,::Type{Vector{Any}}) = Vector{Any}
+
+
 TensorSpace(sp::Tuple) =
     TensorSpace{typeof(sp),typeof(mapreduce(domain,*,sp)),
-                mapreduce(rangetype,(a,b)->Base.promote_op(*,a,b),sp)}(sp)
+                mapreduce(rangetype,(a,b)->tensor_eval_type(a,b),sp)}(sp)
 
 
 dimension(sp::TensorSpace) = mapreduce(dimension,*,sp.spaces)

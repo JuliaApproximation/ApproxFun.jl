@@ -523,3 +523,27 @@ Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 u0=Fun(θ->exp(-20θ^2),dθ,20)
 @time u=\([I⊗ldirichlet(dt);Dt-ε*Dθ^2-Dθ],[u0;0.];tolerance=1E-4)
 @test ≈(u(0.1,0.2),0.3103472600253807;atol=1E-2)
+
+
+## concatenate  InterlaceOperator
+a=Fun(x -> 0 ≤ x ≤ 0.5 ? 0.5 : 1, Domain(-1..1) \ [0,0.5])
+@test a(0.1) == 0.5
+@test a(0.7) == 1.0
+s=space(a)
+# Bx=[ldirichlet(s);continuity(s,0)]
+# TODO: this should concat
+Dx=Derivative(s);Dt=Derivative(dt)
+Bx=[ldirichlet(s);continuity(s,0)]
+
+@test ApproxFun.rangetype(rangespace(continuity(s,0))) == Vector{Float64}
+@test ApproxFun.rangetype(rangespace(Bx)) == Vector{Any}
+@test ApproxFun.rangetype(rangespace(Bx⊗eye(Chebyshev()))) == Vector{Any}
+
+rangespace([I⊗ldirichlet(dt);Bx⊗I;I⊗Dt+(a*Dx)⊗I])[3]
+rhs = Fun([0,[0,[0,0]],0],rangespace([I⊗ldirichlet(dt);Bx⊗I;I⊗Dt+(a*Dx)⊗I]))
+@test rhs(-0.5,0.0) == [0,[0,[0,0]],0]
+
+u=\([I⊗ldirichlet(dt);Bx⊗I;I⊗Dt+(a*Dx)⊗I],
+    [Fun(x->exp(-20(x+0.5)^2),s),[0,[0,0]],0.0];tolerance=1E-2)
+
+@test u(-0.4,0.1) ≈ u(-0.5,0.0) atol = 0.00001
