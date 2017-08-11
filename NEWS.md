@@ -3,8 +3,22 @@
 
 ### notes on release changes, ongoing development, and future planned work
 
+#### 0.7 (current master)
+- Examples moved to [ApproxFunExamples](https://github.com/JuliaApproximation/ApproxFunExamples) repository
+- `vcat`, `hcat` and `hvcat` of operators now returns an `Operator`
+- `Dirichlet` and `Neumann` operators supported in 1D, replacing
+`dirichlet` and `neumann`
+- Improved broadcasting over a `Fun`
+- Add multivariate `DefiniteIntegral`
+- `Evaluation(first)`/`Evaluation(last)` now used for
+evaluating at the boundary of an interval
+- Fast evaluation for `SumSpace` and `PiecewiseSpace`
+- Support general `AbstractVector` coefficients, to allow for sub-views
+- Simplifies `Space` and `Domain` templated variables
+- No longer abuses vector notation for `PiecewiseSpace`, `SumSpace` and `TensorSpace`
+- Drops support for Julia v0.5
 
-#### 0.6.1 (current master)
+#### 0.6.1
 - Uses more sophisticated chopping algorithm from [Aurentz & Trefethen 2016](https://people.maths.ox.ac.uk/trefethen/aurentz_trefethen_toms_final.pdf)
 
 #### 0.6.0
