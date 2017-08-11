@@ -5,22 +5,21 @@ using ApproxFun, Base.Test
 
 d=Interval(-20000.,20000.)
 x=Fun(identity,d)
-u=[dirichlet(d);Derivative(d)^2+I]\[1,0,0]
-u=[dirichlet(d);Derivative(d)^2+I]\[1,0,0]
-@time u=[dirichlet(d);Derivative(d)^2+I]\[1,0,0]
-println("Cos/Sin: should be ~0.017")
-
+u=[Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
+u=[Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
+@time u=[Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
+println("Cos/Sin: should be ~0.016920 seconds (3.19 k allocations: 12.593 MiB)")
 
 d=Interval(-1000.,5.)
 x=Fun(identity,d)
-u=[dirichlet(d);Derivative(d)^2-x]\[1,0,0]
-u=[dirichlet(d);Derivative(d)^2-x]\[1,0,0]
-@time u=[dirichlet(d);Derivative(d)^2-x]\[1,0,0]
+u=[Dirichlet(d);Derivative(d)^2-x]\[[1,0],0]
+u=[Dirichlet(d);Derivative(d)^2-x]\[[1,0],0]
+@time u=[Dirichlet(d);Derivative(d)^2-x]\[[1,0],0]
 println("Airy: 0.014356 seconds (1.08 k allocations: 8.015 MB)")
 
-M=cache(ApproxFun.InterlaceOperator([dirichlet(d);Derivative(d)^2-x]);padding=true)
+M=cache([Dirichlet(d);Derivative(d)^2-x];padding=true)
 @time ApproxFun.resizedata!(M,12500,:)
-println("Airy construct op: 0.005417 seconds (81 allocations: 5.279 MB)")
+println("Airy construct op: 0.003200 seconds (131 allocations: 3.723 MiB)")
 
 
 
@@ -28,20 +27,20 @@ S=Chebyshev()
 x=Fun(identity,S)
 D=Derivative(S)
 L=D^2+(7+2x+6x^2)
-B=dirichlet(S)
+B=Dirichlet(S)
 n=20000
 rhs=ones(n+2)
 u=A_ldiv_B_coefficients([B;L],rhs)
 u=A_ldiv_B_coefficients([B;L],rhs)
 @time u=A_ldiv_B_coefficients([B;L],rhs)
-println("Poly: should be ~0.025")
+println("Poly: should be ~0.020926 seconds (3.00 k allocations: 9.416 MiB)")
 
 
 S=Chebyshev()
 x=Fun(identity,S)
 D=Derivative(S)
 L=D^2+cos(x)
-B=dirichlet(S)
+B=Dirichlet(S)
 n=2000
 rhs=ones(n+2)
 u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
@@ -53,13 +52,24 @@ S=Chebyshev()
 x=Fun(identity,S)
 D=Derivative(S)
 L=D^2+sin(x)
-B=dirichlet(S)
+B=Dirichlet(S)
 n=2000
 rhs=ones(n+2)
 u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
 u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
 @time u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
 println("Sin: should be ~0.008663 seconds (660 allocations: 2.987 MB)")
+
+## Bessel
+
+x=Fun(identity,1..2000)
+d=domain(x)
+B=Dirichlet()
+ν=1000.0
+L=x^2*𝒟^2 + x*𝒟 + (x^2 - ν^2)   # our differential operator
+u=[B;L]\[[besselj(ν,first(d)),besselj(ν,last(d))],0]
+@time u=[B;L]\[[besselj(ν,first(d)),besselj(ν,last(d))],0]
+println("Bessel: should be ~0.008441 seconds (6.14 k allocations: 4.765 MiB)")
 
 
 x=Fun()
@@ -72,11 +82,11 @@ println("Complex exp: Time should be 0.03")
 x=Fun(identity,Domain(-20..15) \ [-10.,-5.,0.,1.])
 sp=space(x)
 D=Derivative(sp)
-B=dirichlet(sp)
+B=[Dirichlet(sp);continuity(sp,0:1)]
 u=[B;
-    D^2-x]\Any[[airyai(-20.);zeros(size(B,1)-1)],0];
-@time u=[dirichlet(sp);
-    D^2-x]\Any[[airyai(-20.);zeros(size(B,1)-1)],0]
+    D^2-x]\[[airyai(-20.),0.],zeros(8),0];
+@time u=[B;
+    D^2-x]\[[airyai(-20.),0.],zeros(8),0]
 
 
 println("Piecewise Airy: should be ~0.008")

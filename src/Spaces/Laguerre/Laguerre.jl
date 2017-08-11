@@ -14,7 +14,7 @@ export Laguerre, LaguerreWeight, WeightedLaguerre
 # p_{n+1} = (A_n x + B_n)p_n - C_n p_{n-1}
 #####
 
-immutable Laguerre{T} <: PolynomialSpace{Ray{false,Float64}}
+struct Laguerre{T} <: PolynomialSpace{Ray{false,Float64},Float64}
     α::T
 end
 
@@ -87,13 +87,13 @@ laguerrel(n::Range,S::Laguerre,v) = laguerrel(n,S.a,S.b,v)
 laguerrel(n,S::Laguerre,v) = laguerrel(n,S.a,S.b,v)
 
 
-immutable LaguerreTransformPlan{T,TT}
+struct LaguerreTransformPlan{T,TT}
     space::Laguerre{TT}
     points::Vector{T}
     weights::Vector{T}
 end
 
-plan_transform(S::Laguerre,v::Vector) = LaguerreTransformPlan(S,gausslaguerre(length(v),1.0S.α)...)
+plan_transform(S::Laguerre,v::AbstractVector) = LaguerreTransformPlan(S,gausslaguerre(length(v),1.0S.α)...)
 function *(plan::LaguerreTransformPlan,vals)
 #    @assert S==plan.space
     x,w = plan.points, plan.weights
@@ -141,7 +141,7 @@ end
 
 
 # x^α*exp(-L*x)
-immutable LaguerreWeight{S,T} <: WeightSpace{S,RealBasis,Ray{false,Float64},1}
+struct LaguerreWeight{S,T} <: WeightSpace{S,Ray{false,Float64},Float64}
     α::T
     L::T
     space::S
@@ -187,7 +187,7 @@ function conversion_rule(A::LaguerreWeight,B::LaguerreWeight)
 end
 
 
-conversion_rule{T,D<:Ray}(A::LaguerreWeight,B::UnivariateSpace{T,D}) = conversion_type(A,LaguerreWeight(0,0,B))
+conversion_rule{D<:Ray}(A::LaguerreWeight,B::Space{D}) = conversion_type(A,LaguerreWeight(0,0,B))
 
 
 function Conversion(A::LaguerreWeight,B::LaguerreWeight)
@@ -220,13 +220,13 @@ end
 
 
 Conversion{D<:Ray}(A::ConstantSpace{D},B::LaguerreWeight) = error("Cannot convert constants to LaguerreWeight.")
-Conversion{S<:LaguerreWeight,IT,DD<:Ray}(a::SubSpace{S,IT,RealBasis,DD,1},b::S) =
+Conversion(a::SubSpace{S,IT,DD,RR},b::S) where {S<:LaguerreWeight,IT,DD<:Ray,RR} =
     ConcreteConversion(a,b)
-Conversion{D<:Ray}(A::RealUnivariateSpace{D},B::LaguerreWeight) = ConversionWrapper(
+Conversion{D<:Ray,RR<:Real}(A::Space{D,RR},B::LaguerreWeight) = ConversionWrapper(
     SpaceOperator(
         Conversion(LaguerreWeight(0,0,A),B),
         A,B))
-Conversion{D<:Ray}(A::LaguerreWeight,B::RealUnivariateSpace{D})=ConversionWrapper(
+Conversion{D<:Ray,RR<:Real}(A::LaguerreWeight,B::Space{D,RR}) = ConversionWrapper(
     SpaceOperator(
         Conversion(A,LaguerreWeight(0,0,B)),
         A,B))

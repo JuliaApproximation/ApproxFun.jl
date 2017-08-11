@@ -55,8 +55,8 @@ Caches the entries of an operator, to speed up multiplying a Fun by the operator
 cache(O::Operator;kwds...) = CachedOperator(O;kwds...)
 cache{MT<:AbstractMatrix}(::Type{MT},O::Operator;kwds...) = CachedOperator(MT,O;kwds...)
 
-Base.convert{T}(::Type{Operator{T}},S::CachedOperator{T}) = S
-Base.convert{T}(::Type{Operator{T}},S::CachedOperator) =
+convert{T}(::Type{Operator{T}},S::CachedOperator{T}) = S
+convert{T}(::Type{Operator{T}},S::CachedOperator) =
     CachedOperator(Operator{T}(S.op),AbstractMatrix{T}(S.data),
                     S.datasize,S.domainspace,S.rangespace,S.bandinds)
 
@@ -104,7 +104,7 @@ resizedata!(B::CachedOperator,::Colon,m::Integer) = resizedata!(B,size(B,1),m)
 resizedata!(B::CachedOperator,n::Integer,::Colon) = resizedata!(B,n,size(B,2))
 
 
-function A_mul_B_coefficients{T<:Number}(B::CachedOperator,v::Vector{T})
+function A_mul_B_coefficients{T<:Number}(B::CachedOperator,v::AbstractVector{T})
     resizedata!(B,:,length(v))
 
     B.data*pad(v,size(B.data,2))

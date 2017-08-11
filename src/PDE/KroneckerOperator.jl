@@ -6,7 +6,7 @@ export KroneckerOperator
 # KroneckerOperator gives the kronecker product of two 1D operators
 #########
 
-immutable KroneckerOperator{S,V,DS,RS,DI,RI,T} <: Operator{T}
+struct KroneckerOperator{S,V,DS,RS,DI,RI,T} <: Operator{T}
     ops::Tuple{S,V}
     domainspace::DS
     rangespace::RS
@@ -39,19 +39,19 @@ KroneckerOperator(A::Fun,B) = KroneckerOperator(Multiplication(A),B)
 
 
 function promotedomainspace(K::KroneckerOperator,ds::TensorSpace)
-    A=promotedomainspace(K.ops[1],ds[1])
-    B=promotedomainspace(K.ops[2],ds[2])
+    A=promotedomainspace(K.ops[1],ds.spaces[1])
+    B=promotedomainspace(K.ops[2],ds.spaces[2])
     KroneckerOperator(A,B,ds,rangespace(A)⊗rangespace(B))
 end
 
 function promoterangespace(K::KroneckerOperator,rs::TensorSpace)
-    A=promoterangespace(K.ops[1],rs[1])
-    B=promoterangespace(K.ops[2],rs[2])
+    A=promoterangespace(K.ops[1],rs.spaces[1])
+    B=promoterangespace(K.ops[2],rs.spaces[2])
     KroneckerOperator(A,B,domainspace(K),rs)
 end
 
 
-function Base.convert{T<:Number}(::Type{Operator{T}},K::KroneckerOperator)
+function convert{T<:Number}(::Type{Operator{T}},K::KroneckerOperator)
     if T == eltype(K)
         K
     else
@@ -66,7 +66,12 @@ end
 
 function colstart(A::KroneckerOperator,k::Integer)
     K=block(A.domaintensorizer,k)
-    blockstart(A.rangetensorizer,max(Block(1),K-blockbandwidth(A,2)))
+    M = blockbandwidth(A,2)
+    if isfinite(M)
+        blockstart(A.rangetensorizer,max(Block(1),K-M))
+    else
+        blockstart(A.rangetensorizer,Block(1))
+    end
 end
 
 function colstop(A::KroneckerOperator,k::Integer)
@@ -136,7 +141,7 @@ subblockbandinds(K::KroneckerOperator,k::Integer) = subblockbandinds(K)[k]
 subblockbandinds(::Union{ConstantOperator,ZeroOperator},::Integer) = 0
 
 
-@compat const Wrappers = Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,LaplacianWrapper,
+const Wrappers = Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,LaplacianWrapper,
                        SpaceOperator,ConstantTimesOperator}
 
 
@@ -231,13 +236,13 @@ end
 Base.kron(A::Operator,B::Operator) = KroneckerOperator(A,B)
 Base.kron(A::Operator,B) = KroneckerOperator(A,B)
 Base.kron(A,B::Operator) = KroneckerOperator(A,B)
-Base.kron{T<:Operator}(A::Vector{T},B::Operator) =
+Base.kron{T<:Operator}(A::AbstractVector{T},B::Operator) =
     Operator{promote_type(eltype(T),eltype(B))}[kron(a,B) for a in A]
-Base.kron{T<:Operator}(A::Operator,B::Vector{T}) =
+Base.kron{T<:Operator}(A::Operator,B::AbstractVector{T}) =
     Operator{promote_type(eltype(T),eltype(A))}[kron(A,b) for b in B]
-Base.kron{T<:Operator}(A::Vector{T},B::UniformScaling) =
+Base.kron{T<:Operator}(A::AbstractVector{T},B::UniformScaling) =
     Operator{promote_type(eltype(T),eltype(B))}[kron(a,1.0B) for a in A]
-Base.kron{T<:Operator}(A::UniformScaling,B::Vector{T}) =
+Base.kron{T<:Operator}(A::UniformScaling,B::AbstractVector{T}) =
     Operator{promote_type(eltype(T),eltype(A))}[kron(1.0A,b) for b in B]
 
 
@@ -265,19 +270,19 @@ Base.transpose(S::ConstantTimesOperator) = sp.c*S.op.'
 ### Calculus
 
 #TODO: general dimension
-function Derivative{SV,TT,DD}(S::TensorSpace{SV,TT,DD,2},order::Vector{Int})
+function Derivative{SV,DD<:BivariateDomain}(S::TensorSpace{SV,DD},order::Vector{Int})
     @assert length(order)==2
     if order[1]==0
-        Dy=Derivative(S[2],order[2])
-        K=eye(S[1])⊗Dy
+        Dy=Derivative(S.spaces[2],order[2])
+        K=eye(S.spaces[1])⊗Dy
         T=eltype(Dy)
     elseif order[2]==0
-        Dx=Derivative(S[1],order[1])
-        K=Dx⊗eye(S[2])
+        Dx=Derivative(S.spaces[1],order[1])
+        K=Dx⊗eye(S.spaces[2])
         T=eltype(Dx)
     else
-        Dx=Derivative(S[1],order[1])
-        Dy=Derivative(S[2],order[2])
+        Dx=Derivative(S.spaces[1],order[1])
+        Dy=Derivative(S.spaces[2],order[2])
         K=Dx⊗Dy
         T=promote_type(eltype(Dx),eltype(Dy))
     end
@@ -286,6 +291,7 @@ function Derivative{SV,TT,DD}(S::TensorSpace{SV,TT,DD,2},order::Vector{Int})
 end
 
 
+DefiniteIntegral(S::TensorSpace) = DefiniteIntegralWrapper(mapreduce(DefiniteIntegral,⊗,S.spaces))
 
 
 
@@ -341,10 +347,10 @@ function default_bandedblockbandedmatrix(S)
     bandedblockbanded_convert!(ret,S,parent(S),rt,dt)
 end
 
-Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator) = default_bandedblockbandedmatrix(S)
+convert(::Type{BandedBlockBandedMatrix},S::SubOperator) = default_bandedblockbandedmatrix(S)
 
 
-function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
+function convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
                                                 S::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}})
     kr,jr = parentindexes(S)
     (isempty(kr) || isempty(jr)) && return bbbzeros(S)
@@ -375,8 +381,8 @@ function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
 end
 
 
-@compat const Trivial2DTensorizer = CachedIterator{Tuple{Int64,Int64},
-                                             Tensorizer{Tuple{Repeated{Bool},Repeated{Bool}}},
+const Trivial2DTensorizer = CachedIterator{Tuple{Int64,Int64},
+                                             TrivialTensorizer{2},
                                              Tuple{Tuple{Int64,Int64},Tuple{Int64,Int64},
                                                    Tuple{Int64,Int64},Tuple{Bool,Bool},
                                                    Tuple{Int64,Infinity{Bool}}}}
@@ -384,7 +390,7 @@ end
 # This routine is an efficient version of KroneckerOperator for the case of
 # tensor product of trivial blocks
 
-function Base.convert{SS,V,DS,RS,T}(::Type{BandedBlockBandedMatrix},
+function convert{SS,V,DS,RS,T}(::Type{BandedBlockBandedMatrix},
                                     S::SubOperator{T,KroneckerOperator{SS,V,DS,RS,
                                                    Trivial2DTensorizer,Trivial2DTensorizer,T},
                                                    Tuple{UnitRange{Block},UnitRange{Block}}})
@@ -423,23 +429,23 @@ end
 
 
 
-conversion_rule(a::TensorSpace,b::TensorSpace) = conversion_type(a[1],b[1])⊗conversion_type(a[2],b[2])
-maxspace(a::TensorSpace,b::TensorSpace) = maxspace(a[1],b[1])⊗maxspace(a[2],b[2])
+conversion_rule(a::TensorSpace,b::TensorSpace) = conversion_type(a.spaces[1],b.spaces[1])⊗conversion_type(a.spaces[2],b.spaces[2])
+maxspace(a::TensorSpace,b::TensorSpace) = maxspace(a.spaces[1],b.spaces[1])⊗maxspace(a.spaces[2],b.spaces[2])
 
 # TODO: we explicetly state type to avoid type inference bug in 0.4
 
 ConcreteConversion(a::BivariateSpace,b::BivariateSpace) =
     ConcreteConversion{typeof(a),typeof(b),
-                        promote_type(eltype(a),eltype(b),real(eltype(eltype(domain(a)))),real(eltype(eltype(domain(b)))))}(a,b)
+                        promote_type(prectype(a),prectype(b))}(a,b)
 
-Conversion(a::TensorSpace,b::TensorSpace) = ConversionWrapper(promote_type(eltype(a),eltype(b)),
-                KroneckerOperator(Conversion(a[1],b[1]),Conversion(a[2],b[2])))
+Conversion(a::TensorSpace,b::TensorSpace) = ConversionWrapper(promote_type(prectype(a),prectype(b)),
+                KroneckerOperator(Conversion(a.spaces[1],b.spaces[1]),Conversion(a.spaces[2],b.spaces[2])))
 
 
 
-function Multiplication{TS<:TensorSpace}(f::Fun{TS},S::TensorSpace)
+function Multiplication(f::Fun{TS},S::TensorSpace) where {TS<:TensorSpace}
     lr=LowRankFun(f)
-    ops=map(kron,map(a->Multiplication(a,S[1]),lr.A),map(a->Multiplication(a,S[2]),lr.B))
+    ops=map(kron,map(a->Multiplication(a,S.spaces[1]),lr.A),map(a->Multiplication(a,S.spaces[2]),lr.B))
     MultiplicationWrapper(f,+(ops...))
 end
 

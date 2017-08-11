@@ -15,7 +15,7 @@ doc"""
 represents a ray at angle `a` starting at `c`, with orientation out to
 infinity (`o = true`) or back from infinity (`o = false`).
 """
-immutable Ray{angle,T<:Number} <: IntervalDomain{T}
+struct Ray{angle,T<:Number} <: IntervalDomain{T}
     center::T
     orientation::Bool
     (::Type{Ray{angle,T}}){angle,T}(c,o) = new{angle,T}(c,o)
@@ -24,7 +24,7 @@ immutable Ray{angle,T<:Number} <: IntervalDomain{T}
     (::Type{Ray{angle,T}}){angle,T}(r::Ray{angle,T}) = r
 end
 
-@compat const RealRay{T} = Union{Ray{false,T},Ray{true,T}}
+const RealRay{T} = Union{Ray{false,T},Ray{true,T}}
 
 (::Type{Ray{a}}){a}(c,o) = Ray{a,typeof(c)}(c,o)
 (::Type{Ray{a}}){a}(c::Number) = Ray{a,typeof(c)}(c)
@@ -42,7 +42,7 @@ Ray() = Ray{false}()
 
 ##deal with vector
 
-function Base.convert(::Type{Ray},d::ClosedInterval)
+function convert(::Type{Ray},d::ClosedInterval)
     a,b=d.left,d.right
     @assert abs(a)==Inf || abs(b)==Inf
 
@@ -55,8 +55,8 @@ end
 
 
 isambiguous(d::Ray)=isnan(d.center)
-Base.convert{a,T<:Number}(::Type{Ray{a,T}},::AnyDomain) = Ray{a,T}(NaN,true)
-Base.convert{IT<:Ray}(::Type{IT},::AnyDomain) = Ray(NaN,NaN)
+convert{a,T<:Number}(::Type{Ray{a,T}},::AnyDomain) = Ray{a,T}(NaN,true)
+convert{IT<:Ray}(::Type{IT},::AnyDomain) = Ray(NaN,NaN)
 
 
 

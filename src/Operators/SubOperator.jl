@@ -28,7 +28,7 @@ checkbounds(A::Operator,K::Range{Block},J::Range{Block}) =
 
 ## SubOperator
 
-immutable SubOperator{T,B,I,DI,BI} <: Operator{T}
+struct SubOperator{T,B,I,DI,BI} <: Operator{T}
     parent::B
     indexes::I
     dims::DI
@@ -63,7 +63,7 @@ SubOperator(A,inds,dims) = SubOperator(A,inds,dims,(dims[1]-1,dims[2]-1))
 SubOperator(A,inds) = SubOperator(A,inds,map(length,inds))
 
 
-Base.convert{T}(::Type{Operator{T}},SO::SubOperator) =
+convert{T}(::Type{Operator{T}},SO::SubOperator) =
     SubOperator(Operator{T}(SO.parent),SO.indexes,SO.dims,SO.bandwidths)::Operator{T}
 
 function view(A::Operator,kr::AbstractCount,jr::AbstractCount)
@@ -120,9 +120,8 @@ view(A::Operator,k,j) = SubOperator(A,(k,j))
 
 
 ## Needed for Broadcast
-if VERSION ≥ v"0.6-"
-    Base.Broadcast.containertype(::SubOperator) = Array
-end
+Base.Broadcast.containertype(::SubOperator) = Array
+
 
 reindex(A::Operator, B::Tuple{Block,Any}, kj::Tuple{Any,Any}) =
     (reindex(rangespace(A),(B[1],), (kj[1],))[1], reindex(domainspace(A),tail(B), tail(kj))[1])
@@ -250,14 +249,14 @@ function domainspace(S::SubOperator)
     sp=domainspace(P)
     kr=parentindexes(S)[2]
 
-    SubSpace{typeof(sp),typeof(kr),basistype(sp),typeof(domain(sp)),domaindimension(sp)}(sp,kr)
+    SubSpace{typeof(sp),typeof(kr),domaintype(sp),rangetype(sp)}(sp,kr)
 end
 function rangespace(S::SubOperator)
     P =parent(S)
     sp=rangespace(P)
     kr=parentindexes(S)[1]
 
-    SubSpace{typeof(sp),typeof(kr),basistype(sp),typeof(domain(sp)),domaindimension(sp)}(sp,kr)
+    SubSpace{typeof(sp),typeof(kr),domaintype(sp),rangetype(sp)}(sp,kr)
 end
 
 size(V::SubOperator) = V.dims
@@ -281,20 +280,29 @@ end
 
 # TODO: These should be removed as the general purpose case will work,
 # once the notion of bandedness of finite dimensional operators is made sense of
-function Base.convert(::Type{RaggedMatrix},S::SubOperator)
-    if isbanded(parent(S))
-        RaggedMatrix(BandedMatrix(S))
-    elseif isbandedblockbanded(parent(S))
-        RaggedMatrix(BandedBlockBandedMatrix(S))
-    elseif isblockbanded(parent(S))
-        RaggedMatrix(BlockBandedMatrix(S))
-    else
-        default_raggedmatrix(S)
+
+
+for TYP in (:RaggedMatrix,:Matrix)
+    def_TYP = parse("default_" * string(TYP))
+    @eval function convert(::Type{$TYP},S::SubOperator)
+        if isinf(size(S,1)) || isinf(size(S,2))
+            error("Cannot convert $S to a $TYP")
+        end
+
+        if isbanded(parent(S))
+            $TYP(BandedMatrix(S))
+        elseif isbandedblockbanded(parent(S))
+            $TYP(BandedBlockBandedMatrix(S))
+        elseif isblockbanded(parent(S))
+            $TYP(BlockBandedMatrix(S))
+        else
+            $def_TYP(S)
+        end
     end
 end
 
 # fast converts to banded matrices would be based on indices, not blocks
-function Base.convert{T,B}(::Type{BandedMatrix},S::SubOperator{T,B,Tuple{UnitRange{Block},UnitRange{Block}}})
+function convert{T,B}(::Type{BandedMatrix},S::SubOperator{T,B,Tuple{UnitRange{Block},UnitRange{Block}}})
     A = parent(S)
     ds = domainspace(A)
     rs = rangespace(A)

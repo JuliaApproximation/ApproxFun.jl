@@ -3,18 +3,18 @@
 ## Converison
 
 #ensure that COnversion is called
-coefficients{DD}(cfs::Vector,A::Fourier{DD},B::Laurent{DD}) =
+coefficients{DD,R1,R2}(cfs::AbstractVector,A::Fourier{DD,R1},B::Laurent{DD,R2}) =
     A_mul_B_coefficients(Conversion(A,B),cfs)
-coefficients{DD}(cfs::Vector,A::Laurent{DD},B::Fourier{DD}) =
+coefficients{DD,R1,R2}(cfs::AbstractVector,A::Laurent{DD,R1},B::Fourier{DD,R2}) =
     A_mul_B_coefficients(Conversion(A,B),cfs)
 
-hasconversion{DD}(::Fourier{DD},::Laurent{DD})=true
-hasconversion{DD}(::Laurent{DD},::Fourier{DD})=true
+hasconversion{DD,R1,R2}(::Fourier{DD,R1},::Laurent{DD,R2}) = true
+hasconversion{DD,R1,R2}(::Laurent{DD,R1},::Fourier{DD,R2}) = true
 
-Conversion{DD}(a::Laurent{DD},b::Fourier{DD})=ConcreteConversion(a,b)
-Conversion{DD}(a::Fourier{DD},b::Laurent{DD})=ConcreteConversion(a,b)
+Conversion{DD,R1,R2}(a::Laurent{DD,R1},b::Fourier{DD,R2}) = ConcreteConversion(a,b)
+Conversion{DD,R1,R2}(a::Fourier{DD,R1},b::Laurent{DD,R2}) = ConcreteConversion(a,b)
 
-function getindex{DD,T}(C::ConcreteConversion{Laurent{DD},Fourier{DD},T},k::Integer,j::Integer)
+function getindex{DD,R1,R2,T}(C::ConcreteConversion{Laurent{DD,R1},Fourier{DD,R2},T},k::Integer,j::Integer)
     if k==j==1
         one(T)
     elseif iseven(k) && k==j
@@ -29,7 +29,7 @@ function getindex{DD,T}(C::ConcreteConversion{Laurent{DD},Fourier{DD},T},k::Inte
 end
 
 
-function getindex{DD,T}(C::ConcreteConversion{Fourier{DD},Laurent{DD},T},k::Integer,j::Integer)
+function getindex{DD,R1,R2,T}(C::ConcreteConversion{Fourier{DD,R1},Laurent{DD,R2},T},k::Integer,j::Integer)
     if k==j==1
         one(T)
     elseif iseven(k) && k==j
@@ -46,27 +46,27 @@ function getindex{DD,T}(C::ConcreteConversion{Fourier{DD},Laurent{DD},T},k::Inte
 end
 
 
-bandinds{DD}(::ConcreteConversion{Laurent{DD},Fourier{DD}})=-1,1
-bandinds{DD}(::ConcreteConversion{Fourier{DD},Laurent{DD}})=-1,1
+bandinds{DD,R1,R2}(::ConcreteConversion{Laurent{DD,R1},Fourier{DD,R2}})=-1,1
+bandinds{DD,R1,R2}(::ConcreteConversion{Fourier{DD,R1},Laurent{DD,R2}})=-1,1
 
 for RULE in (:conversion_rule,:maxspace_rule,:union_rule)
     @eval begin
         # override both to avoid SumSpace overrides
-        function $RULE{DD}(A::Laurent{DD},B::Fourier{DD})
+        function $RULE{DD,R1,R2}(A::Laurent{DD,R1},B::Fourier{DD,R2})
             @assert domainscompatible(A,B)
             B
         end
-        function $RULE{DD}(A::Fourier{DD},B::Laurent{DD})
+        function $RULE{DD,R1,R2}(A::Fourier{DD,R1},B::Laurent{DD,R2})
             @assert domainscompatible(A,B)
             A
         end
     end
 end
 
-conversion_type{DD<:Circle}(A::Fourier{DD},B::Fourier{DD})=domain(A).orientation?A:B
+conversion_type{DD<:Circle,R1,R2}(A::Fourier{DD,R1},B::Fourier{DD,R2}) = domain(A).orientation?A:B
 
-hasconversion{DD}(A::Fourier{DD},B::Fourier{DD})=domain(A) == reverse(domain(B))
-function Conversion{DD}(A::Fourier{DD},B::Fourier{DD})
+hasconversion{DD,R1,R2}(A::Fourier{DD,R1},B::Fourier{DD,R2}) = domain(A) == reverse(domain(B))
+function Conversion{DD,R1,R2}(A::Fourier{DD,R1},B::Fourier{DD,R2})
     if A==B
         ConversionWrapper(eye(A))
     else
@@ -74,9 +74,9 @@ function Conversion{DD}(A::Fourier{DD},B::Fourier{DD})
         ConcreteConversion(A,B)
     end
 end
-bandinds{DD}(::ConcreteConversion{Fourier{DD},Fourier{DD}})=0,0
+bandinds{DD,R1,R2}(::ConcreteConversion{Fourier{DD,R1},Fourier{DD,R2}})=0,0
 
-getindex{DD,T}(C::ConcreteConversion{Fourier{DD},Fourier{DD},T},k::Integer,j::Integer) =
+getindex{DD,R1,R2,T}(C::ConcreteConversion{Fourier{DD,R1},Fourier{DD,R2},T},k::Integer,j::Integer) =
     k==j?(iseven(k)?(-one(T)):one(T)):zero(T)
 
 
@@ -136,7 +136,7 @@ end
 
 
 # Use Laurent derivative
-Derivative{DD<:Circle}(S::Fourier{DD},k::Integer) =
+Derivative{DD<:Circle,RR}(S::Fourier{DD,RR},k::Integer) =
     DerivativeWrapper(Derivative(Laurent(S),k)*Conversion(S,Laurent(S)),k)
 
 Integral(::CosSpace,m::Integer) =
@@ -168,18 +168,18 @@ function getindex{CS<:SinSpace,OT,T}(D::ConcreteIntegral{CS,OT,T},k::Integer,j::
     end
 end
 
-function Integral{T,CS<:CosSpace,DD<:PeriodicInterval}(S::SubSpace{CS,UnitCount{Int64},T,DD,1},k::Integer)
+function Integral{CS<:CosSpace,DD<:PeriodicInterval}(S::SubSpace{CS,UnitCount{Int64},DD},k::Integer)
     @assert first(S.indexes)==2
     ConcreteIntegral(S,k)
 end
 
-bandinds{T,CS<:CosSpace,DD<:PeriodicInterval}(D::ConcreteIntegral{SubSpace{CS,UnitCount{Int64},T,DD,1}}) =
+bandinds{CS<:CosSpace,DD<:PeriodicInterval,RR}(D::ConcreteIntegral{SubSpace{CS,UnitCount{Int64},DD,RR}}) =
     (0,0)
-rangespace{T,CS<:CosSpace,DD<:PeriodicInterval}(D::ConcreteIntegral{SubSpace{CS,UnitCount{Int64},T,DD,1}}) =
+rangespace{CS<:CosSpace,DD<:PeriodicInterval,RR}(D::ConcreteIntegral{SubSpace{CS,UnitCount{Int64},DD,RR}}) =
     iseven(D.order)?D.space:SinSpace(domain(D))
 
-function getindex{TT,CS<:CosSpace,DD<:PeriodicInterval}(D::ConcreteIntegral{SubSpace{CS,UnitCount{Int64},TT,DD,1}},
-                                                            k::Integer,j::Integer)
+function getindex(D::ConcreteIntegral{SubSpace{CS,UnitCount{Int64},DD,RR}},
+                  k::Integer,j::Integer) where {CS<:CosSpace,DD<:PeriodicInterval,RR}
     d=domain(D)
     m=D.order
     T=eltype(D)
@@ -260,82 +260,84 @@ rangespace{SS<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,SS}) =
 
 
 
-function Multiplication{T,D}(a::Fun{Fourier{D},T},sp::Fourier{D})
+function Multiplication{T,D,R}(a::Fun{Fourier{D,R},T},sp::Fourier{D,R})
     d=domain(a)
-    c,s=vec(a)
+    c,s=components(a)
     O=Operator{T}[Multiplication(c,CosSpace(d)) Multiplication(s,SinSpace(d));
                         Multiplication(s,CosSpace(d)) Multiplication(c,SinSpace(d))]
     MultiplicationWrapper(a,InterlaceOperator(O,space(a),sp))
 end
+
+coefficienttimes{DD,RR}(f::Fun{Fourier{DD,RR}},g::Fun{Fourier{DD,RR}}) = Multiplication(f,space(g))*g
 
 
 ## Definite integral
 
 for SP in (:CosSpace,:SinSpace,:Fourier)
     @eval begin
-        DefiniteIntegral{D}(S::$SP{D}) =
-            ConcreteDefiniteIntegral{typeof(S),promote_type(eltype(S),eltype(D))}(S)
-        DefiniteLineIntegral{D}(S::$SP{D}) =
-            ConcreteDefiniteLineIntegral{typeof(S),real(promote_type(eltype(S),eltype(D)))}(S)
+        DefiniteIntegral{D,R}(S::$SP{D,R}) =
+            ConcreteDefiniteIntegral{typeof(S),prectype(S)}(S)
+        DefiniteLineIntegral{D,R}(S::$SP{D,R}) =
+            ConcreteDefiniteLineIntegral{typeof(S),real(prectype(S))}(S)
     end
 end
 
-getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{CosSpace{D},T},k::Integer) =
+getindex{T,D<:PeriodicInterval,R}(Σ::ConcreteDefiniteIntegral{CosSpace{D,R},T},k::Integer) =
     k == 1? T(complexlength(domain(Σ))) : zero(T)
 
-getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{SinSpace{D},T},k::Integer) =
+getindex{T,D<:PeriodicInterval,R}(Σ::ConcreteDefiniteIntegral{SinSpace{D,R},T},k::Integer) =
     zero(T)
 
-getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Fourier{D},T},k::Integer) =
+getindex{T,D<:PeriodicInterval,R}(Σ::ConcreteDefiniteIntegral{Fourier{D,R},T},k::Integer) =
     k == 1? T(complexlength(domain(Σ))) : zero(T)
 
-getindex{T,D<:Circle}(Σ::ConcreteDefiniteIntegral{CosSpace{D},T},k::Integer) =
+getindex{T,D<:Circle,R}(Σ::ConcreteDefiniteIntegral{CosSpace{D,R},T},k::Integer) =
     k==2? T(complexlength(domain(Σ))/2) : zero(T)
 
-getindex{T,D<:Circle}(Σ::ConcreteDefiniteIntegral{SinSpace{D},T},k::Integer) =
+getindex{T,D<:Circle,R}(Σ::ConcreteDefiniteIntegral{SinSpace{D,R},T},k::Integer) =
     k == 1? T(0.5im*complexlength(domain(Σ))) : zero(T)
 
-getindex{T,D<:Circle}(Σ::ConcreteDefiniteIntegral{Fourier{D},T},k::Integer) =
+getindex{T,D<:Circle,R}(Σ::ConcreteDefiniteIntegral{Fourier{D,R},T},k::Integer) =
     k == 2? T(0.5im*complexlength(domain(Σ))) : (k==3 ? T(complexlength(domain(Σ))/2) : zero(T))
 
-getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{CosSpace{D},T},k::Integer) =
+getindex{T,D<:PeriodicInterval,R}(Σ::ConcreteDefiniteLineIntegral{CosSpace{D,R},T},k::Integer) =
     k==1? T(arclength(domain(Σ))) : zero(T)
 
-getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{SinSpace{D},T},k::Integer) =
+getindex{T,D<:PeriodicInterval,R}(Σ::ConcreteDefiniteLineIntegral{SinSpace{D,R},T},k::Integer) =
     zero(T)
 
-getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{Fourier{D},T},k::Integer) =
+getindex{T,D<:PeriodicInterval,R}(Σ::ConcreteDefiniteLineIntegral{Fourier{D,R},T},k::Integer) =
     k==1? T(arclength(domain(Σ))) : zero(T)
 
-getindex{T,D<:Circle}(Σ::ConcreteDefiniteLineIntegral{CosSpace{D},T},k::Integer) =
+getindex{T,D<:Circle,R}(Σ::ConcreteDefiniteLineIntegral{CosSpace{D,R},T},k::Integer) =
     k==1? T(arclength(domain(Σ))) : zero(T)
 
-getindex{T,D<:Circle}(Σ::ConcreteDefiniteLineIntegral{SinSpace{D},T},k::Integer) =
+getindex{T,D<:Circle,R}(Σ::ConcreteDefiniteLineIntegral{SinSpace{D,R},T},k::Integer) =
     zero(T)
 
-getindex{T,D<:Circle}(Σ::ConcreteDefiniteLineIntegral{Fourier{D},T},k::Integer) =
+getindex{T,D<:Circle,R}(Σ::ConcreteDefiniteLineIntegral{Fourier{D,R},T},k::Integer) =
     k==1? T(arclength(domain(Σ))) : zero(T)
 
-bandinds{D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{CosSpace{D}}) = 0,0
-bandinds{D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{SinSpace{D}}) = 0,0
-bandinds{D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Fourier{D}}) = 0,0
-bandinds{D<:Circle}(Σ::ConcreteDefiniteIntegral{CosSpace{D}}) = 0,1
-bandinds{D<:Circle}(Σ::ConcreteDefiniteIntegral{SinSpace{D}}) = 0,0
-bandinds{D<:Circle}(Σ::ConcreteDefiniteIntegral{Fourier{D}}) = 0,2
-bandinds{D}(Σ::ConcreteDefiniteLineIntegral{CosSpace{D}}) = 0,0
-bandinds{D}(Σ::ConcreteDefiniteLineIntegral{SinSpace{D}}) = 0,0
-bandinds{D}(Σ::ConcreteDefiniteLineIntegral{Fourier{D}}) = 0,0
+bandinds{D<:PeriodicInterval,R}(Σ::ConcreteDefiniteIntegral{CosSpace{D,R}}) = 0,0
+bandinds{D<:PeriodicInterval,R}(Σ::ConcreteDefiniteIntegral{SinSpace{D,R}}) = 0,0
+bandinds{D<:PeriodicInterval,R}(Σ::ConcreteDefiniteIntegral{Fourier{D,R}}) = 0,0
+bandinds{D<:Circle,R}(Σ::ConcreteDefiniteIntegral{CosSpace{D,R}}) = 0,1
+bandinds{D<:Circle,R}(Σ::ConcreteDefiniteIntegral{SinSpace{D,R}}) = 0,0
+bandinds{D<:Circle,R}(Σ::ConcreteDefiniteIntegral{Fourier{D,R}}) = 0,2
+bandinds{D,R}(Σ::ConcreteDefiniteLineIntegral{CosSpace{D,R}}) = 0,0
+bandinds{D,R}(Σ::ConcreteDefiniteLineIntegral{SinSpace{D,R}}) = 0,0
+bandinds{D,R}(Σ::ConcreteDefiniteLineIntegral{Fourier{D,R}}) = 0,0
 
 
-transformtimes{CS<:CosSpace,D}(f::Fun{CS},g::Fun{Fourier{D}}) =
+transformtimes{CS<:CosSpace,D,R}(f::Fun{CS},g::Fun{Fourier{D,R}}) =
     transformtimes(Fun(Fourier(domain(f)),interlace(f.coefficients,zeros(eltype(f),ncoefficients(f)-1))),g)
-transformtimes{SS<:SinSpace,D}(f::Fun{SS},g::Fun{Fourier{D}}) =
+transformtimes{SS<:SinSpace,D,R}(f::Fun{SS},g::Fun{Fourier{D,R}}) =
     transformtimes(Fun(Fourier(domain(f)),interlace(zeros(eltype(f),ncoefficients(f)+1),f.coefficients)),g)
 transformtimes{CS<:CosSpace,SS<:SinSpace}(f::Fun{CS},g::Fun{SS}) =
     transformtimes(Fun(Fourier(domain(f)),interlace(f.coefficients,zeros(eltype(f),ncoefficients(f)-1))),
                     Fun(Fourier(domain(g)),interlace(zeros(eltype(g),ncoefficients(g)+1),g.coefficients)))
-transformtimes{CS<:CosSpace,D}(f::Fun{Fourier{D}},g::Fun{CS}) = transformtimes(g,f)
-transformtimes{SS<:SinSpace,D}(f::Fun{Fourier{D}},g::Fun{SS}) = transformtimes(g,f)
+transformtimes{CS<:CosSpace,D,R}(f::Fun{Fourier{D,R}},g::Fun{CS}) = transformtimes(g,f)
+transformtimes{SS<:SinSpace,D,R}(f::Fun{Fourier{D,R}},g::Fun{SS}) = transformtimes(g,f)
 transformtimes{SS<:SinSpace,CS<:CosSpace}(f::Fun{SS},g::Fun{CS}) = transformtimes(g,f)
 
 
@@ -350,15 +352,15 @@ Reverse{D}(S::Fourier{D}) = ReverseWrapper(SpaceOperator(NegateEven(),S,S))
 
 for TYP in (:Fourier,:Laurent,:CosSpace,:SinSpace,:Taylor)
     @eval begin
-        function Dirichlet{PS,T}(S::TensorSpace{Tuple{$TYP{PeriodicInterval{T}},PS}})
-            op = interlace([eye(S[1])⊗ldirichlet(S[2]);
-                            ReverseOrientation(S[1])⊗rdirichlet(S[2]) ])
-            DirichletWrapper(SpaceOperator(op,S,PiecewiseSpace(rangespace(op).spaces)),1)
+        function Dirichlet(S::TensorSpace{Tuple{$TYP{PeriodicInterval{T},R},PS}},k) where {PS,T,R}
+            op = [eye(S.spaces[1])⊗Evaluation(S.spaces[2],first,k);
+                            ReverseOrientation(S.spaces[1])⊗Evaluation(S.spaces[2],last,k) ]
+            DirichletWrapper(SpaceOperator(op,S,PiecewiseSpace(rangespace(op).spaces)),k)
         end
-        function Dirichlet{PS,T}(S::TensorSpace{Tuple{PS,$TYP{PeriodicInterval{T}}}})
-            op = interlace([ldirichlet(S[1])⊗eye(S[2]);
-                            rdirichlet(S[1])⊗ReverseOrientation(S[2]) ])
-            DirichletWrapper(SpaceOperator(op,S,PiecewiseSpace(rangespace(op).spaces)),1)
+        function Dirichlet(S::TensorSpace{Tuple{PS,$TYP{PeriodicInterval{T},R}}},k) where {PS,T,R}
+            op = [Evaluation(S.spaces[1],first,k)⊗eye(S.spaces[2]);
+                            Evaluation(S.spaces[1],last,k)⊗ReverseOrientation(S[2]) ]
+            DirichletWrapper(SpaceOperator(op,S,PiecewiseSpace(rangespace(op).spaces)),k)
         end
     end
 end

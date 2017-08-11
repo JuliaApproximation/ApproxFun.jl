@@ -2,12 +2,16 @@ export DiracDelta
 
 for TYP in (:DiracSpace,:PointSpace)
     @eval begin
-        immutable $TYP{T}<:RealUnivariateSpace{AnyDomain}
+        struct $TYP{T,D,R}<:Space{D,R}
           points::Vector{T}
-          (::Type{$TYP{T}}){T}(pts::Vector{T}) = new{T}(sort(pts))
+          $TYP{T,D,R}(pts::AbstractVector{T}) where {T,D,R} = new(sort(pts))
         end
 
-        $TYP(points::AbstractVector) = $TYP{eltype(points)}(points)
+        function $TYP(points::AbstractVector)
+            d = mapreduce(Point,union,points)
+            $TYP{eltype(points),typeof(d),real(prectype(d))}(points)
+        end
+
         $TYP(points::Tuple) = $TYP([points...])
         $TYP() = $TYP(Float64[])
         $TYP(point::Number) = $TYP([point])
@@ -23,7 +27,7 @@ for TYP in (:DiracSpace,:PointSpace)
 
         union_rule(a::$TYP,b::$TYP)=$TYP(sort(union(a.points,b.points)))
 
-        function coefficients(cfs::Vector,fromspace::$TYP,tospace::$TYP)
+        function coefficients(cfs::AbstractVector,fromspace::$TYP,tospace::$TYP)
             if spacescompatible(fromspace,tospace)
                 return cfs
             end
@@ -67,7 +71,7 @@ Space(d::Point) = PointSpace(d)
 
 identity_fun(S::PointSpace) = Fun(S,S.points)
 identity_fun(S::DiracSpace) = Fun(PointSpace(S.points),S.points)
-transform(S::PointSpace,v::Vector,plan...) = v
+transform(S::PointSpace,v::AbstractVector,plan...) = v
 values{S<:PointSpace}(f::Fun{S}) = coefficient(f,:)
 
 function evaluate(f::AbstractVector,PS::PointSpace,x::Number)
@@ -106,13 +110,13 @@ end
 
 # for TYP in (:ReSpace,:Space)
 #   @eval begin
-#     function coefficients(cfs::Vector,fromspace::$TYP,tospace::DiracSpace)
+#     function coefficients(cfs::AbstractVector,fromspace::$TYP,tospace::DiracSpace)
 #       [0*tospace.points;coefficients(cfs,fromspace,tospace.space)]
 #     end
 #   end
 # end
 
-# function coefficients(cfs::Vector,fromspace::DiracSpace,tospace::Space)
+# function coefficients(cfs::AbstractVector,fromspace::DiracSpace,tospace::Space)
 #   n = length(fromspace.points)
 #   if n == 0 || cfs[1:n] == 0*cfs[1:n]
 #       coefficients(fromspace.space,tospace)

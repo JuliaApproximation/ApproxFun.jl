@@ -96,11 +96,11 @@ end
 
 scaleshiftdomain(f::Fun,sc,sh)=setdomain(f,sc*domain(f)+sh)
 
-/{λ,DD}(c::Number,f::Fun{Ultraspherical{λ,DD}}) = c/Fun(f,Chebyshev(domain(f)))
-/{DD}(c::Number,f::Fun{Jacobi{DD}}) = c/Fun(f,Chebyshev(domain(f)))
+/{λ,DD,RR}(c::Number,f::Fun{Ultraspherical{λ,DD,RR}}) = c/Fun(f,Chebyshev(domain(f)))
+/{DD,RR}(c::Number,f::Fun{Jacobi{DD,RR}}) = c/Fun(f,Chebyshev(domain(f)))
 
 /{C<:Chebyshev}(c::Number,f::Fun{C})=setdomain(c/setcanonicaldomain(f),domain(f))
-function /{DD<:Segment}(c::Number,f::Fun{Chebyshev{DD}})
+function /{DD<:Segment,RR}(c::Number,f::Fun{Chebyshev{DD,RR}})
     fc = setcanonicaldomain(f)
     d=domain(f)
     # if domain f is small then the pts get projected in
@@ -261,7 +261,7 @@ function log{US<:Union{Ultraspherical,Chebyshev}}(f::Fun{US})
 end
 
 
-function log{T<:Real,D}(f::Fun{Fourier{D},T})
+function log{T<:Real,D,R}(f::Fun{Fourier{D,R},T})
     if isreal(domain(f))
         cumsum(differentiate(f)/f)+log(first(f))
     else
@@ -280,8 +280,8 @@ atan(f::Fun)=cumsum(f'/(1+f^2))+atan(first(f))
 # condition in calculating secial functions
 function specialfunctionnormalizationpoint(op,growth,f)
     g=chop(growth(f),eps(eltype(f)))
-    xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
-    xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
+    xmin = isempty(g.coefficients) ? first(domain(g)) : indmin(g)
+    xmax = isempty(g.coefficients) ? last(domain(g)) : indmax(g)
     opfxmin,opfxmax = op(f(xmin)),op(f(xmax))
     opmax = maximum(abs,(opfxmin,opfxmax))
     if abs(opfxmin) == opmax xmax,opfxmax = xmin,opfxmin end
@@ -302,7 +302,8 @@ for (op,ODE,RHS,growth) in ((:(exp),"D-f'","0",:(real)),
     L,R = parse(ODE),parse(RHS)
     @eval begin
         # depice before doing op
-        $op{PW<:PiecewiseSpace}(f::Fun{PW})=depiece(map(f->$op(f),pieces(f)))
+        $op{PW<:Union{PiecewiseSpace,ContinuousSpace}}(f::Fun{PW}) =
+            Fun(map(f->$op(f),components(f)),PiecewiseSpace)
 
         # We remove the MappedSpace
         # function $op{MS<:MappedSpace}(f::Fun{MS})
@@ -386,10 +387,10 @@ asin(f::Fun)=cumsum(f'/sqrt(1-f^2))+asin(first(f))
 ## Second order functions
 
 
-sin{S<:Space{RealBasis},T<:Real}(f::Fun{S,T}) = imag(exp(im*f))
-cos{S<:Space{RealBasis},T<:Real}(f::Fun{S,T}) = real(exp(im*f))
-sin{S<:Union{Ultraspherical,Chebyshev},T<:Real}(f::Fun{S,T}) = imag(exp(im*f))
-cos{S<:Union{Ultraspherical,Chebyshev},T<:Real}(f::Fun{S,T}) = real(exp(im*f))
+sin(f::Fun{S,T}) where {S<:RealSpace,T<:Real} = imag(exp(im*f))
+cos(f::Fun{S,T}) where {S<:RealSpace,T<:Real} = real(exp(im*f))
+sin(f::Fun{S,T}) where {S<:Union{Ultraspherical,Chebyshev},T<:Real} = imag(exp(im*f))
+cos(f::Fun{S,T}) where {S<:Union{Ultraspherical,Chebyshev},T<:Real} = real(exp(im*f))
 
 
 
@@ -409,8 +410,8 @@ for (op,ODE,RHS,growth) in ((:(erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
             f=setcanonicaldomain(fin)
 
             g=chop($growth(f),eps(T))
-            xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
-            xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
+            xmin = isempty(g.coefficients) ? first(domain(g)) : indmin(g)
+            xmax = isempty(g.coefficients) ? last(domain(g)) : indmax(g)
             opfxmin,opfxmax = $op(f(xmin)),$op(f(xmax))
             opmax = maximum(abs,(opfxmin,opfxmax))
             while opmax≤10eps(T) || abs(f(xmin)-f(xmax))≤10eps(T)
@@ -447,8 +448,8 @@ for (op,ODE,RHS,growth) in ((:(hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^
             f=setcanonicaldomain(fin)
 
             g=chop($growth(f),eps(T))
-            xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
-            xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
+            xmin = isempty(g.coefficients) ? first(domain(g)) : indmin(g)
+            xmax = isempty(g.coefficients) ? last(domain(g)) : indmax(g)
             opfxmin,opfxmax = $op(ν,f(xmin)),$op(ν,f(xmax))
             opmax = maximum(abs,(opfxmin,opfxmax))
             while opmax≤10eps(T) || abs(f(xmin)-f(xmax))≤10eps(T)
@@ -619,18 +620,19 @@ end
 ## Piecewise Space
 
 ## PIecewiseSpace
-# map over pieces
+# map over components
 
-/{S<:PiecewiseSpace}(c::Number,f::Fun{S}) = depiece(map(f->c/f,pieces(f)))
-^{S<:PiecewiseSpace}(f::Fun{S},c::Integer) = depiece(map(f->f^c,pieces(f)))
-^{S<:PiecewiseSpace}(f::Fun{S},c::Number) = depiece(map(f->f^c,pieces(f)))
+/{S<:PiecewiseSpace}(c::Number,f::Fun{S}) = Fun(map(f->c/f,components(f)),PiecewiseSpace)
+^{S<:PiecewiseSpace}(f::Fun{S},c::Integer) = Fun(map(f->f^c,components(f)),PiecewiseSpace)
+^{S<:PiecewiseSpace}(f::Fun{S},c::Number) = Fun(map(f->f^c,components(f)),PiecewiseSpace)
 
 
 
 for OP in (:(abs),:(sign),:(log))
     @eval begin
-        $OP{S,DD,T<:Real}(f::Fun{PiecewiseSpace{S,RealBasis,DD,1},T}) = depiece(map($OP,pieces(f)))
-        $OP{S,DD,B}(f::Fun{PiecewiseSpace{S,B,DD,1}}) = depiece(map($OP,pieces(f)))
+        $OP(f::Fun{PiecewiseSpace{S,DD,RR},T}) where {S,DD,RR<:Real,T<:Real} =
+            Fun(map($OP,components(f)),PiecewiseSpace)
+        $OP{S,DD<:UnivariateDomain,RR}(f::Fun{PiecewiseSpace{S,DD,RR}}) = Fun(map($OP,components(f)),PiecewiseSpace)
     end
 end
 

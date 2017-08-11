@@ -1,6 +1,6 @@
 export newton
 
-immutable DualFun{F,T}
+struct DualFun{F,T}
     f::F
     J::T
 end
@@ -13,7 +13,7 @@ differentiate(d::DualFun) = DualFun(d.f',Derivative(rangespace(d.J))*d.J)
 integrate(d::DualFun) = DualFun(integrate(d.f),Integral(rangespace(d.J))*d.J)
 function Base.cumsum(d::DualFun)
     Q=Integral(rangespace(d.J))*d.J
-    DualFun(cumsum(d.f),(I-Evaluation(rangespace(Q),false))*Q)
+    DualFun(cumsum(d.f),(I-Evaluation(rangespace(Q),first))*Q)
 end
 
 
@@ -49,14 +49,14 @@ end
 
 
 (d::DualFun)(x) = DualFun(d.f(x),Evaluation(rangespace(d.J),x)*d.J)
-Base.first(d::DualFun) = DualFun(first(d.f),Evaluation(rangespace(d.J),false)*d.J)
-Base.last(d::DualFun) = DualFun(last(d.f),Evaluation(rangespace(d.J),true)*d.J)
+Base.first(d::DualFun) = DualFun(first(d.f),Evaluation(rangespace(d.J),first)*d.J)
+Base.last(d::DualFun) = DualFun(last(d.f),Evaluation(rangespace(d.J),last)*d.J)
 
 jacobian(d::DualFun)=d.J
 
 
 Base.promote_rule{DF<:DualFun,T<:Number}(::Type{DF},::Type{T})=DualFun
-Base.convert(::Type{DualFun},b::Number)=DualFun(b,0)
+convert(::Type{DualFun},b::Number)=DualFun(b,0)
 
 
 

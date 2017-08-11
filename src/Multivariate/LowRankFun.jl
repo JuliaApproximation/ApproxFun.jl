@@ -7,12 +7,15 @@ export LowRankFun
 """
 `LowRankFun` gives an approximation to a bivariate function in low rank form.
 """
+
 type LowRankFun{S<:Space,M<:Space,SS<:AbstractProductSpace,T<:Number} <: BivariateFun{T}
-    A::Vector{Fun{S,T}}
-    B::Vector{Fun{M,T}}
+    A::Vector{VFun{S,T}}
+    B::Vector{VFun{M,T}}
     space::SS
 
-    function (::Type{LowRankFun{S,M,SS,T}}){S,M,SS,T}(A::Vector{Fun{S,T}},B::Vector{Fun{M,T}},space::SS)
+    function LowRankFun{S,M,SS,T}(A::Vector{VFun{S,T}},
+                                  B::Vector{VFun{M,T}},
+                                  space::SS) where {S,M,SS,T}
         @assert length(A) == length(B)
         @assert length(A) > 0
         new{S,M,SS,T}(A,B,space)
@@ -20,10 +23,14 @@ type LowRankFun{S<:Space,M<:Space,SS<:AbstractProductSpace,T<:Number} <: Bivaria
 end
 
 
-LowRankFun{S,M,SS,T}(A::Vector{Fun{S,T}},B::Vector{Fun{M,T}},space::SS) = LowRankFun{S,M,SS,T}(A,B,space)
-LowRankFun{S,M,T}(A::Vector{Fun{S,T}},B::Vector{Fun{M,T}}) = LowRankFun(A,B,space(first(A))⊗space(first(B)))
-LowRankFun{S,M,T,V}(A::Vector{Fun{S,T}},B::Vector{Fun{M,V}}) =
-    LowRankFun(convert(Vector{Fun{S,promote_type(T,V)}},A),convert(Vector{Fun{M,promote_type(T,V)}},B),space(first(A))⊗space(first(B)))
+LowRankFun{S,M,SS,T}(A::Vector{VFun{S,T}},B::Vector{VFun{M,T}},space::SS) =
+    LowRankFun{S,M,SS,T}(A,B,space)
+LowRankFun{S,M,T}(A::Vector{VFun{S,T}},B::Vector{VFun{M,T}}) =
+    LowRankFun(A,B,space(first(A))⊗space(first(B)))
+LowRankFun{S,M,T,V}(A::Vector{VFun{S,T}},B::Vector{VFun{M,V}}) =
+    LowRankFun(convert(Vector{VFun{S,promote_type(T,V)}},A),
+               convert(Vector{VFun{M,promote_type(T,V)}},B),
+               space(first(A))⊗space(first(B)))
 Base.rank(f::LowRankFun) = length(f.A)
 Base.size(f::LowRankFun,k::Integer) = k==1?mapreduce(length,max,f.A):mapreduce(length,max,f.B)
 Base.size(f::LowRankFun) = size(f,1),size(f,2)
@@ -34,20 +41,20 @@ function LowRankFun{S<:Space,M<:Space,T<:Number}(X::Array{T},dx::S,dy::M)
     U,Σ,V=svd(X)
     m=max(1,count(s->s>10eps(T),Σ))
 
-    A=Fun{S,T}[Fun(dx,U[:,k].*sqrt(Σ[k])) for k=1:m]
-    B=Fun{M,T}[Fun(dy,conj(V[:,k]).*sqrt(Σ[k])) for k=1:m]
+    A=VFun{S,T}[Fun(dx,U[:,k].*sqrt(Σ[k])) for k=1:m]
+    B=VFun{M,T}[Fun(dy,conj(V[:,k]).*sqrt(Σ[k])) for k=1:m]
 
     LowRankFun(A,B)
 end
 
 ## Construction in a TensorSpace via a Vector of Funs
 
-function LowRankFun{S,T,DD,SV}(X::Vector{Fun{S,T}},d::TensorSpace{SV,T,DD,2})
+function LowRankFun(X::Vector{VFun{S,T}},d::TensorSpace{SV,DD}) where {S,T,DD<:BivariateDomain,SV}
     @assert d[1] == space(X[1])
     LowRankFun(X,d[2])
 end
 
-function LowRankFun{S,T}(X::Vector{Fun{S,T}},dy::Space)
+function LowRankFun{S,T}(X::Vector{VFun{S,T}},dy::Space)
     m=mapreduce(ncoefficients,max,X)
     M=zeros(T,m,length(X))
     for k=1:length(X)
@@ -60,7 +67,9 @@ end
 
 ## Adaptive constructor selector
 
-function LowRankFun(f::F,dx::Space,dy::Space;method::Symbol=:standard,tolerance::Union{Symbol,Tuple{Symbol,Number}}=:relative,retmax::Bool=false,gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
+function LowRankFun(f::F,dx::Space,dy::Space;
+                    method::Symbol=:standard,tolerance::Union{Symbol,Tuple{Symbol,Number}}=:relative,
+                    retmax::Bool=false,gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
     if method == :standard
         F,maxabsf=standardLowRankFun(f,dx,dy;tolerance=tolerance,gridx=gridx,gridy=gridy,maxrank=maxrank)
     elseif method == :Cholesky
@@ -79,7 +88,7 @@ end
 
 function standardLowRankFun(f::F,dx::Space,dy::Space;tolerance::Union{Symbol,Tuple{Symbol,Number}}=:relative,gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
     xy = checkpoints(dx⊗dy)
-    T = promote_type(eltype(f(first(xy)...)),eltype(dx),eltype(domain(dx)),eltype(dy),eltype(domain(dy)))
+    T = promote_type(eltype(f(first(xy)...)),prectype(dx),prectype(dy))
 
     # We start by sampling on the given grid, find the approximate maximum and create the first rank-one approximation.
     ptsx,ptsy=points(dx,gridx),points(dy,gridy)
@@ -133,7 +142,7 @@ end
 
 function CholeskyLowRankFun(f::F,dx::Space;tolerance::Union{Symbol,Tuple{Symbol,Number}}=:relative,grid::Integer=64,maxrank::Integer=100)
     xy = checkpoints(dx⊗dx)
-    T = promote_type(eltype(f(first(xy)...)),eltype(dx),eltype(domain(dx)))
+    T = promote_type(eltype(f(first(xy)...)),prectype(dx))
 
     # We start by sampling on the given grid, find the approximate maximum and create the first rank-one approximation.
     pts=points(dx,grid)
@@ -183,28 +192,34 @@ end
 
 LowRankFun(f::Function,args...;kwds...) = LowRankFun(F(f),args...;kwds...)
 
-LowRankFun{SV,T,DD}(f::F,S::TensorSpace{SV,T,DD,2};kwds...)=LowRankFun(f,S[1],S[2];kwds...)
-LowRankFun(f::F,dx::Domain,dy::Domain;kwds...)=LowRankFun(f,Space(dx),Space(dy);kwds...)
-LowRankFun{D,T}(f::F,d::ProductDomain{D,T,2};kwds...)=LowRankFun(f,d[1],d[2];kwds...)
+LowRankFun(f::F,S::TensorSpace{SV,DD,RR};kwds...) where {SV,DD<:BivariateDomain,RR} =
+    LowRankFun(f,factor(S,1),factor(S,2);kwds...)
+LowRankFun(f::F,dx::Domain,dy::Domain;kwds...) =
+    LowRankFun(f,Space(dx),Space(dy);kwds...)
+LowRankFun(f::F,d::ProductDomain;kwds...) =
+    LowRankFun(f,d.domains...;kwds...)
 
-LowRankFun(f::F,d1::Vector,d2::Vector;kwds...)=LowRankFun(f,convert(Domain,d1),convert(Domain,d2);kwds...)
-LowRankFun(f::F;kwds...)=LowRankFun(f,Interval(),Interval();kwds...)
+LowRankFun(f::F,d1::Vector,d2::Vector;kwds...) =
+    LowRankFun(f,convert(Domain,d1),convert(Domain,d2);kwds...)
+LowRankFun(f::F;kwds...) = LowRankFun(f,Interval(),Interval();kwds...)
 
 ## Construction from values
 
-LowRankFun{T<:Number}(A::Array{T})=LowRankFun(A,Interval{T}(),Interval{T}())
-LowRankFun(c::Number,etc...)=LowRankFun((x,y)->c,etc...)
+LowRankFun{T<:Number}(A::Array{T}) = LowRankFun(A,Interval{T}(),Interval{T}())
+LowRankFun(c::Number,etc...) = LowRankFun((x,y)->c,etc...)
 
 ## Construction from other LowRankFuns
 
-LowRankFun(f::LowRankFun,d1::IntervalDomain,d2::IntervalDomain)=LowRankFun(map(g->Fun(d1,g.coefficients),f.A),map(g->Fun(d2,g.coefficients),f.B))
-LowRankFun(f::LowRankFun)=LowRankFun(f,Interval(),Interval())
+LowRankFun(f::LowRankFun,d1::IntervalDomain,d2::IntervalDomain) =
+    LowRankFun(map(g->Fun(d1,g.coefficients),f.A),
+               map(g->Fun(d2,g.coefficients),f.B))
+LowRankFun(f::LowRankFun) = LowRankFun(f,Interval(),Interval())
 
 
 
 ## Utilities
 
-function findapproxmax!(f::F,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,gridy)
+function findapproxmax!(f::F,X::AbstractMatrix,ptsx::AbstractVector,ptsy::Vector,gridx,gridy)
     for j=1:gridy
         ptsyj = ptsy[j]
         @simd for k=1:gridx
@@ -216,7 +231,7 @@ function findapproxmax!(f::F,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,gridy)
     maxabsf,[ptsx[imptple[1]],ptsy[imptple[2]]]
 end
 
-function findapproxmax!(A::Fun,B::Fun,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,gridy)
+function findapproxmax!(A::Fun,B::Fun,X::AbstractMatrix,ptsx::Vector,ptsy::Vector,gridx,gridy)
     Ax,By = A.(ptsx),B.(ptsy)
     subtractrankone!(Ax,By,X,gridx,gridy)
     maxabsf,impt = findmaxabs(X)
@@ -224,7 +239,7 @@ function findapproxmax!(A::Fun,B::Fun,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,
     [ptsx[imptple[1]],ptsy[imptple[2]]]
 end
 
-function findcholeskyapproxmax!(f::F,X::Vector,pts::Vector,grid)
+function findcholeskyapproxmax!(f::F,X::AbstractVector,pts::Vector,grid)
     @simd for k=1:grid
         @inbounds X[k]+=f(pts[k],pts[k])
     end
@@ -273,8 +288,8 @@ end
 
 (f::LowRankFun)(x,y)=evaluate(f,x,y)
 
-domain(f::LowRankFun,k::Integer)=k==1? domain(first(f.A)) : domain(first(f.B))
-space(f::LowRankFun,k::Integer)=k==1? space(first(f.A)) : space(first(f.B))
+domain(f::LowRankFun,k::Integer) = k==1? domain(first(f.A)) : domain(first(f.B))
+space(f::LowRankFun,k::Integer) = k==1? space(first(f.A)) : space(first(f.B))
 space(f::LowRankFun)=f.space
 
 Base.transpose{S,M,SS,T}(f::LowRankFun{S,M,SS,T})=LowRankFun(f.B,f.A,transpose(space(f)))
@@ -327,7 +342,7 @@ evaluate{T<:Fun,M<:Fun}(A::Vector{T},B::Vector{M},x::AbstractVector,y::AbstractV
 evaluate(f::LowRankFun,x,y)=evaluate(f.A,f.B,x,y)
 evaluate(f::LowRankFun,::Colon,::Colon)=f
 evaluate(f::LowRankFun,x::Number,::Colon)=dotu(f.B,evaluate(f.A,x))
-evaluate{T<:Number}(f::LowRankFun,x::Vector{T},::Colon)=f.B.'*evaluate.(f.A,x.')
+
 function evaluate(f::LowRankFun,::Colon,y::Number)
     m = maximum(map(ncoefficients,f.A))
     r=rank(f)
@@ -370,10 +385,8 @@ end
 # op(K,f) acts as operating in the y variable.
 
 for op = (:*,:/)
-    @eval ($op){S,T,U,V}(f::Fun{S,T},A::Vector{Fun{U,V}})=map(a->($op)(f,a),A)
-    @eval ($op)(f::Fun,K::LowRankFun) = LowRankFun(($op)(f,K.A),K.B)
-    @eval ($op){S,T,U,V}(B::Vector{Fun{U,V}},f::Fun{S,T})=map(b->($op)(b,f),B)
-    @eval ($op)(K::LowRankFun,f::Fun) = LowRankFun(K.A,($op)(K.B,f))
+    @eval ($op)(f::Fun,K::LowRankFun) = LowRankFun(($op).(f,K.A),K.B)
+    @eval ($op)(K::LowRankFun,f::Fun) = LowRankFun(K.A,($op).(K.B,f))
 end
 
 +(f::LowRankFun,g::LowRankFun) = LowRankFun([f.A;g.A],[f.B;g.B])

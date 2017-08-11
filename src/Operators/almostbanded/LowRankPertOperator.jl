@@ -1,4 +1,4 @@
-immutable LowRankPertOperator{OO,LR,T} <: Operator{T}
+struct LowRankPertOperator{OO,LR,T} <: Operator{T}
     op::OO
     pert::LR
 
@@ -21,9 +21,9 @@ end
 
 
 
-Base.convert{T}(::Type{Operator{T}},L::LowRankPertOperator) =
+convert{T}(::Type{Operator{T}},L::LowRankPertOperator) =
     LowRankPertOperator(Operator{T}(L.op),Operator{T}(L.pert))::Operator{T}
-Base.convert{OT<:Operator}(::Type{Operator},V::Vector{OT})=LowRankPertOperator(V)
+convert{OT<:Operator}(::Type{Operator},V::AbstractVector{OT})=LowRankPertOperator(V)
 
 
 Base.getindex(L::LowRankPertOperator,k::Integer,j::Integer)=L.op[k,j]+L.pert[k,j]

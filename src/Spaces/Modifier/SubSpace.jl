@@ -1,12 +1,12 @@
 
-immutable SubSpace{DS,IT,T,DD,dim} <: Space{T,DD,dim}
+struct SubSpace{DS,IT,DD,RR} <: Space{DD,RR}
     space::DS
     indexes::IT
-    (::Type{SubSpace{DS,IT,T,DD,dim}}){DS,IT,T,DD,dim}(sp::DS,ind::IT) = new{DS,IT,T,DD,dim}(sp,ind)
+    SubSpace{DS,IT,DD,RR}(sp::DS,ind::IT) where {DS,IT,DD,RR} = new(sp,ind)
 end
 
 SubSpace(sp::Space,kr) =
-    SubSpace{typeof(sp),typeof(kr),basistype(sp),domaintype(sp),domaindimension(sp)}(sp,kr)
+    SubSpace{typeof(sp),typeof(kr),domaintype(sp),rangetype(sp)}(sp,kr)
 
 SubSpace(sp::SubSpace,kr) = SubSpace(sp.space,reindex(sp,sp.indexes,to_indexes(kr))[1])
 
@@ -82,10 +82,10 @@ block(::,B::SubBlock) = B.block
 ##
 
 
-spacescompatible{DS,IT,T,DD,d}(S1::SubSpace{DS,IT,T,DD,d},S2::SubSpace{DS,IT,T,DD,d}) =
+spacescompatible{DS,IT,DD,RR}(S1::SubSpace{DS,IT,DD,RR},S2::SubSpace{DS,IT,DD,RR}) =
     spacescompatible(S1.space,S2.space) && S1.indexes == S2.indexes
 
-=={DS,IT,T,DD,d}(S1::SubSpace{DS,IT,T,DD,d},S2::SubSpace{DS,IT,T,DD,d}) =
+=={DS,IT,DD,RR}(S1::SubSpace{DS,IT,DD,RR},S2::SubSpace{DS,IT,DD,RR}) =
     S1.space == S2.space && S1.indexes == S2.indexes
 
 canonicalspace(a::SubSpace) = a.space
@@ -94,23 +94,30 @@ canonicalspace(a::SubSpace) = a.space
 
 setdomain(DS::SubSpace,d::Domain) = SubSpace(setdomain(DS.space,d),DS.indexes)
 
-Conversion{S<:Space,IT,T,DD,d}(a::SubSpace{S,IT,T,DD,d},b::S) =
+Conversion(a::SubSpace{S,IT,DD,RR},b::S) where {S<:Space,IT,DD,RR} =
     ConcreteConversion(a,b)
-bandinds{S,T,DD,d}(C::ConcreteConversion{SubSpace{S,UnitCount{Int},T,DD,d},S}) =
+
+function Conversion(a::S,b::SubSpace{S,IT,DD,RR}) where {S<:Space,IT<:UnitCount{Int},DD,RR}
+    @assert first(b.indexes) == 1
+    ConversionWrapper(SpaceOperator(eye(a),a,b))
+end
+
+bandinds{S,DD,RR}(C::ConcreteConversion{SubSpace{S,UnitCount{Int},DD,RR},S}) =
     1-first(domainspace(C).indexes),0
 
-getindex{S,IT,T,DD,d}(C::ConcreteConversion{SubSpace{S,IT,T,DD,d},S},
+getindex{S,IT,DD,RR}(C::ConcreteConversion{SubSpace{S,IT,DD,RR},S},
                    k::Integer,j::Integer) =
     domainspace(C).indexes[j]==k?one(eltype(C)):zero(eltype(C))
 
 
-
-
-getindex{IT,DS,T,DD,d}(E::ConcreteEvaluation{SubSpace{DS,IT,T,DD,d},Bool},k::Integer) =
+# avoid ambiguity
+for OP in (:first,:last)
+    @eval getindex(E::ConcreteEvaluation{SubSpace{DS,IT,DD,RR},typeof($OP)},k::Integer) where {IT,DS,DD,RR}=
+        Evaluation(E.space.space,E.x,E.order)[E.space.indexes[k]]
+end
+getindex(E::ConcreteEvaluation{SubSpace{DS,IT,DD,RR}},k::Integer) where {IT,DS,DD,RR}=
     Evaluation(E.space.space,E.x,E.order)[E.space.indexes[k]]
-getindex{IT,DS,T,DD,d}(E::ConcreteEvaluation{SubSpace{DS,IT,T,DD,d}},k::Integer) =
-    Evaluation(E.space.space,E.x,E.order)[E.space.indexes[k]]
-getindex{IT,DS,T,DD,d}(E::ConcreteEvaluation{SubSpace{DS,IT,T,DD,d}},kr::Range) =
+getindex(E::ConcreteEvaluation{SubSpace{DS,IT,DD,RR}},kr::Range) where {IT,DS,DD,RR} =
     Evaluation(E.space.space,E.x,E.order)[E.space.indexes[kr]]
 
 
@@ -130,8 +137,24 @@ function conversion_rule(a::SubSpace,b::Space)
     end
 end
 
+function union_rule(a::SubSpace,b::SubSpace)
+     if a == b
+        a
+    else
+        NoSpace()
+    end
+end
+# return the space that has banded Conversion to the other
+function union_rule(a::SubSpace,b::Space)
+    if a.space==b
+        b  # we can write droping coefficients as a banded operator
+    else
+        NoSpace()
+    end
+end
 
-function subspace_coefficients(v::Vector,sp::SubSpace,dropsp::SubSpace)
+
+function subspace_coefficients(v::AbstractVector,sp::SubSpace,dropsp::SubSpace)
     if sp == dropsp
         v
     else
@@ -140,7 +163,7 @@ function subspace_coefficients(v::Vector,sp::SubSpace,dropsp::SubSpace)
 end
 
 
-function subspace_coefficients(v::Vector,sp::Space,dropsp::SubSpace)
+function subspace_coefficients(v::AbstractVector,sp::Space,dropsp::SubSpace)
     n=length(v)
     if sp == dropsp.space
         ret = Array{eltype(v)}(0)
@@ -155,7 +178,7 @@ function subspace_coefficients(v::Vector,sp::Space,dropsp::SubSpace)
     end
 end
 
-function subspace_coefficients(v::Vector,dropsp::SubSpace,sp::Space)
+function subspace_coefficients(v::AbstractVector,dropsp::SubSpace,sp::Space)
     if sp==dropsp.space
         ret = zeros(eltype(v),dropsp.indexes[length(v)])
         for k = eachindex(v)
@@ -168,7 +191,7 @@ function subspace_coefficients(v::Vector,dropsp::SubSpace,sp::Space)
 end
 
 
-coefficients(v::Vector,sp::SubSpace,dropsp::SubSpace) = subspace_coefficients(v,sp,dropsp)
+coefficients(v::AbstractVector,sp::SubSpace,dropsp::SubSpace) = subspace_coefficients(v,sp,dropsp)
 
 
 
@@ -176,26 +199,26 @@ coefficients(v::Vector,sp::SubSpace,dropsp::SubSpace) = subspace_coefficients(v,
 
 
 ## transform
-function transform(sp::SubSpace,vals::Vector)
+function transform(sp::SubSpace,vals::AbstractVector)
     ret=transform(sp.space,vals)
     coefficients(ret,sp.space,sp)
 end
 
-itransform(sp::SubSpace,cfs::Vector) =
+itransform(sp::SubSpace,cfs::AbstractVector) =
     itransform(sp.space,coefficients(cfs,sp,sp.space))
 
 points(sp::SubSpace,n) = points(sp.space,n)
 
 
-coefficients{DS,IT,T,TT,SV,TTT,DD}(v::Vector,::SubSpace{DS,IT,T,Segment{Vec{2,TT}},1},::TensorSpace{SV,TTT,DD,2}) =
+coefficients{DS,IT,TT,SV,DD<:BivariateDomain}(v::AbstractVector,::SubSpace{DS,IT,Segment{Vec{2,TT}}},::TensorSpace{SV,DD}) =
     error("Not callable, only defined for ambiguity errors.")
-coefficients{DS,IT,T,D,SV,TTT,DD}(v::Vector,::SubSpace{DS,IT,T,D,1},::TensorSpace{SV,TTT,DD,2}) =
+coefficients{DS,IT,D,SV,DD<:BivariateDomain}(v::AbstractVector,::SubSpace{DS,IT,D},::TensorSpace{SV,DD}) =
     error("Not callable, only defined for ambiguity errors.")
 
 for TYP in (:SumSpace,:PiecewiseSpace,:TensorSpace,:ConstantSpace,:Space) # Resolve conflict
     @eval begin
-        coefficients(v::Vector,sp::$TYP,dropsp::SubSpace) = subspace_coefficients(v,sp,dropsp)
-        coefficients(v::Vector,dropsp::SubSpace,sp::$TYP) = subspace_coefficients(v,dropsp,sp)
+        coefficients(v::AbstractVector,sp::$TYP,dropsp::SubSpace) = subspace_coefficients(v,sp,dropsp)
+        coefficients(v::AbstractVector,dropsp::SubSpace,sp::$TYP) = subspace_coefficients(v,dropsp,sp)
     end
 end
 
@@ -205,13 +228,13 @@ end
 # values{S<:SubSpace}(f::ProductFun{S})=values(ProductFun(f,space(f,1).space,space(f,2)))
 #
 #
-# function coefficients{n,DS,TT,DD}(f::ProductFun{SubSpace{n,1,DS,TT,DD,1}},ox::Space,oy::Space)
+# function coefficients{n,DS,TT,DD}(f::ProductFun{SubSpace{n,1,DS,DD,RR}},ox::Space,oy::Space)
 #     T=eltype(f)
 #     m=size(f,1)
 #     A=[pad!(coefficients(fx,ox),m+n) for fx in f.coefficients]
 #     B=hcat(A...)::Array{T,2}
 #     for k=1:size(B,1)
-#         ccfs=coefficients(vec(B[k,:]),space(f,2),oy)
+#         ccfs=coefficients(B[k,:],space(f,2),oy)
 #         if length(ccfs)>size(B,2)
 #             B=pad(B,size(B,1),length(ccfs))
 #         end

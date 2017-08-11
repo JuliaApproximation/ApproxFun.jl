@@ -2,52 +2,49 @@
 
 export Domain,IntervalDomain,PeriodicDomain,tocanonical,fromcanonical,fromcanonicalD,∂
 export chebyshevpoints,fourierpoints,isambiguous,arclength
+export components, component, ncomponents
 
 
 # T is the numeric type used to represent the domain
-# d is the dimension
-@compat abstract type Domain{T,d} end
-@compat const UnivariateDomain{T} = Domain{T,1}
-@compat const BivariateDomain{T} = Domain{T,2}
+# For d-dimensional domains, it is Vec{d,T}
+
+abstract type Domain{T} end
+const UnivariateDomain{T} = Domain{T} where {T<:Number}
+const BivariateDomain{T} = Domain{Vec{2,T}} where {T<:Number}
 
 
-Base.eltype{T}(::Domain{T}) = T
-Base.eltype{T,d}(::Type{Domain{T,d}}) = T
+eltype{T}(::Domain{T}) = T
+eltype{T}(::Type{Domain{T}}) = T
 Base.isreal{T<:Real}(::Domain{T}) = true
 Base.isreal{T}(::Domain{T}) = false
-dimension{T,d}(::Domain{T,d}) = d
-dimension{T,d}(::Type{Domain{T,d}}) = d
-dimension{DT<:Domain}(::Type{DT}) = dimension(supertype(DT))
+dimension(::Domain{<:Number}) = 1
+dimension(::Type{Domain{Vec{d,T}}}) where {T,d} = d
+dimension(::Type{DT}) where {DT<:Domain} = dimension(supertype(DT))
 
 # add indexing for all spaces, not just DirectSumSpace
 # mimicking scalar vs vector
 
-# TODO: 0.5 iterator
+# TODO: 0.5 iteratorgo
 Base.start(s::Domain) = false
 Base.next(s::Domain,st) = (s,true)
 Base.done(s::Domain,st) = st
 Base.length(s::Domain) = 1
-Base.getindex(s::Domain,::CartesianIndex{0}) = s
+getindex(s::Domain,::CartesianIndex{0}) = s
 getindex(s::Domain,k) = k == 1 ? s : throw(BoundsError())
 Base.endof(s::Domain) = 1
 
 
 #supports broadcasting, overloaded for ArraySpace
 Base.size(::Domain) = ()
-if VERSION < v"0.6-"
-    # works around bug due to eltype
-    Base.promote_eltype_op{T}(op, A::Domain, ::AbstractArray{T}) =
-    (Base.@_pure_meta; Base.promote_op(op, typeof(A), T))
-end
 
 
 # prectype gives the precision, including for Vec
 prectype(d::Domain) = eltype(eltype(d))
-
+prectype(::Type{D}) where {D<:Domain} = eltype(eltype(D))
 
 #TODO: bivariate AnyDomain
-immutable AnyDomain <: Domain{UnsetNumber,Any} end
-immutable EmptyDomain <: Domain{UnsetNumber,0} end
+struct AnyDomain <: Domain{UnsetNumber} end
+struct EmptyDomain <: Domain{Void} end
 
 isambiguous(::AnyDomain) = true
 dimension(::AnyDomain) = 1
@@ -75,9 +72,9 @@ Base.setdiff(a::Domain,b) = a == b ? EmptyDomain() : a
 
 ## Interval Domains
 
-@compat abstract type IntervalDomain{T} <: UnivariateDomain{T} end
+abstract type IntervalDomain{T} <: UnivariateDomain{T} end
 
-canonicaldomain(d::IntervalDomain) = Segment{real(eltype(eltype(d)))}()
+canonicaldomain(d::IntervalDomain) = Segment{real(prectype(d))}()
 
 Base.isapprox(a::Domain,b::Domain) = a==b
 domainscompatible(a,b) = domainscompatible(domain(a),domain(b))
@@ -100,37 +97,45 @@ chebyshevpoints(n::Integer;kind::Integer=1) = chebyshevpoints(Float64,n;kind=kin
 ##TODO: Should fromcanonical be fromcanonical!?
 
 points{T}(d::IntervalDomain{T},n::Integer) =
-    fromcanonical.(d,chebyshevpoints(real(eltype(eltype(T))),n))  # eltype to handle point
+    fromcanonical.(d,chebyshevpoints(real(eltype(T)),n))  # eltype to handle point
 bary(v::AbstractVector{Float64},d::IntervalDomain,x::Float64) = bary(v,tocanonical(d,x))
 
 #TODO consider moving these
-Base.first{T}(d::IntervalDomain{T})=fromcanonical(d,-one(T))
-Base.last{T}(d::IntervalDomain{T})=fromcanonical(d,one(T))
+Base.first{T}(d::IntervalDomain{T}) = fromcanonical(d,-one(T))
+Base.last{T}(d::IntervalDomain{T}) = fromcanonical(d,one(T))
 
-Base.in(x,::AnyDomain)=true
+Base.in(x,::AnyDomain) = true
 function Base.in(x,d::IntervalDomain)
-    T=real(eltype(eltype(eltype(d))))
+    T=real(prectype(d))
     y=tocanonical(d,x)
     ry=real(y)
     iy=imag(y)
-    sc=norm(fromcanonicalD(d,ry<-1?-1:(ry>1?1:ry)))  # scale based on stretch of map on projection to interal
-    isapprox(fromcanonical(d,y),x) &&
-        -one(T)-100eps(T)/sc≤ry≤one(T)+100eps(T)/sc &&
-        -100eps(T)/sc≤iy≤100eps(T)/sc
+    sc=norm(fromcanonicalD(d,ry<-1?-one(ry):(ry>1?one(ry):ry)))  # scale based on stretch of map on projection to interal
+    dy=fromcanonical(d,y)
+    # TODO: use Base.isapprox once keywords are fast
+    ((isinf(norm(dy)) && isinf(norm(x))) ||  norm(dy-x) ≤ 1000eps(T)*norm(x)) &&
+        -one(T)-100eps(T)/sc ≤ ry ≤ one(T)+100eps(T)/sc &&
+        -100eps(T)/sc ≤ iy ≤ 100eps(T)/sc
 end
 
-pieces(d::Domain)=[d]
-issubcomponent(a::Domain,b::Domain)=a in pieces(b)
+ncomponents(s::Domain) = 1
+components(s::Domain) = [s]
+function components(s::Domain,k)
+    k ≠ 1 && throw(BoundsError())
+    s
+end
+
+issubcomponent(a::Domain,b::Domain) = a in components(b)
 
 ###### Periodic domains
 
-@compat abstract type PeriodicDomain{T} <: UnivariateDomain{T} end
+abstract type PeriodicDomain{T} <: UnivariateDomain{T} end
 
 
 canonicaldomain(::PeriodicDomain)=PeriodicInterval()
 
 points{T}(d::PeriodicDomain{T},n::Integer) =
-    fromcanonical.(d, fourierpoints(real(eltype(eltype(T))),n))
+    fromcanonical.(d, fourierpoints(real(eltype(T)),n))
 
 fourierpoints(n::Integer) = fourierpoints(Float64,n)
 fourierpoints{T<:Number}(::Type{T},n::Integer)= convert(T,π)*collect(0:2:2n-2)/n
@@ -157,10 +162,10 @@ Base.first(d::PeriodicDomain) = fromcanonical(d,0)
 Base.last(d::PeriodicDomain) = fromcanonical(d,2π)
 
 
-immutable AnyPeriodicDomain <: PeriodicDomain{UnsetNumber} end
+struct AnyPeriodicDomain <: PeriodicDomain{UnsetNumber} end
 isambiguous(::AnyPeriodicDomain)=true
 
-Base.convert{D<:PeriodicDomain}(::Type{D},::AnyDomain)=AnyPeriodicDomain()
+convert{D<:PeriodicDomain}(::Type{D},::AnyDomain)=AnyPeriodicDomain()
 
 ## conveninece routines
 
@@ -186,11 +191,11 @@ function commondomain(P::AbstractVector)
     ret
 end
 
-commondomain{T<:Number}(P::AbstractVector,g::Array{T}) = commondomain(P)
+commondomain{T<:Number}(P::AbstractVector,g::AbstractArray{T}) = commondomain(P)
 commondomain(P::AbstractVector,g) = commondomain([P;g])
 
 
-domain(::Number)=AnyDomain()
+domain(::Number) = AnyDomain()
 
 
 
@@ -223,6 +228,7 @@ that sketches the boundary of a rectangle.
 ## map domains
 # we auto vectorize arguments
 tocanonical(d::Domain,x,y,z...) = tocanonical(d,Vec(x,y,z...))
+fromcanonical(d::Domain,x,y,z...) = fromcanonical(d,Vec(x,y,z...))
 
 
 mappoint(d1::Domain,d2::Domain,x...) = fromcanonical(d2,tocanonical(d1,x...))
@@ -243,8 +249,8 @@ end
 
 ## Other special domains
 
-immutable PositiveIntegers <: Domain{Int,0} end
-immutable Integers <: Domain{Int,0} end
+struct PositiveIntegers <: Domain{Int} end
+struct Integers <: Domain{Int} end
 
 const ℕ = PositiveIntegers()
 const ℤ = Integers()

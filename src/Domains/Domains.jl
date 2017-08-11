@@ -12,13 +12,13 @@ include("Curve.jl")
 include("Point.jl")
 
 
-@compat const AffineDomain = Union{Segment,PeriodicInterval,Ray,Line}
+const AffineDomain = Union{Segment,PeriodicInterval,Ray,Line}
 
 
 points(d::ClosedInterval,n) = points(Domain(d),n)
 
 # These are needed for spaces to auto-convert [a,b] to Segment
-function Base.convert(::Type{Domain},d::ClosedInterval)
+function convert(::Type{Domain},d::ClosedInterval)
     a,b=d.left,d.right
     if isinf(norm(a)) && isinf(norm(b))
         Line(d)
@@ -30,7 +30,7 @@ function Base.convert(::Type{Domain},d::ClosedInterval)
 end
 
 # These are needed for spaces to auto-convert [a,b] to Interval
-function Base.convert(::Type{PeriodicDomain},d::ClosedInterval)
+function convert(::Type{PeriodicDomain},d::ClosedInterval)
     a,b=d.left,d.right
     if isinf(norm(a)) && isinf(norm(b))
         PeriodicLine(d)
@@ -41,7 +41,7 @@ function Base.convert(::Type{PeriodicDomain},d::ClosedInterval)
     end
 end
 
-Base.convert(::Type{Space},d::ClosedInterval) = Space(Domain(d))
+convert(::Type{Space},d::ClosedInterval) = Space(Domain(d))
 
 
 #issubset between domains
@@ -133,36 +133,3 @@ end
 
 include("multivariate.jl")
 include("Disk.jl")
-
-
-
-## broadcasting in 0.5
-if VERSION < v"0.6.0-dev"
-    for TYP in (:Circle,:Arc,:PeriodicInterval,:Point,:UnionDomain)
-        for op in (:+,:-,:*)
-            dop = parse("."*string(op))
-            @eval begin
-                $dop(c::Number,d::$TYP) = $op(c,d)
-                $dop(d::$TYP,c::Number) = $op(d,c)
-            end
-        end
-        for op in (:+,:-)
-            dop = parse("."*string(op))
-            @eval begin
-                $dop(a::$TYP,b::$TYP) = $op(a,b)
-            end
-        end
-        for op in (:/,)
-            dop = parse("."*string(op))
-            @eval begin
-                $dop(d::$TYP,c::Number) = $op(d,c)
-            end
-        end
-        for op in (:^,)
-            dop = parse("."*string(op))
-            @eval begin
-                $dop(d::$TYP,c::Number) = broadcast($op,d,c)
-            end
-        end
-    end
-end

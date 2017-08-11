@@ -17,7 +17,7 @@ doc"""
 
 represents the line at angle `a` in the complex plane, centred at `c`.
 """
-immutable Line{angle,T<:Number} <: IntervalDomain{T}
+struct Line{angle,T<:Number} <: IntervalDomain{T}
     center::T
     α::Float64
     β::Float64
@@ -28,18 +28,13 @@ immutable Line{angle,T<:Number} <: IntervalDomain{T}
     (::Type{Line{angle,T}}){angle,T}() = new{angle,T}(zero(T),-1.,-1.)
 end
 
-@compat const RealLine{T} = Union{Line{false,T},Line{true,T}}
+const RealLine{T} = Union{Line{false,T},Line{true,T}}
 
 (::Type{Line{a}}){a}(c,α,β) = Line{a,typeof(c)}(c,α,β)
 (::Type{Line{a}}){a}(c::Number) = Line{a,typeof(c)}(c)
 (::Type{Line{a}}){a}() = Line{a,Float64}()
 
 Base.angle{a}(d::Line{a}) = a*π
-Base.eltype{T}(::Type{Line{true,T}}) = T
-Base.eltype{T}(::Type{Line{false,T}}) = T
-Base.eltype{a,T}(::Type{Line{a,T}}) = promote_type(T,Complex128)
-Base.eltype(d::Line) = eltype(typeof(d))
-
 
 Base.reverse(d::Line{true}) = Line{false}(d.center,d.β,d.α)
 Base.reverse(d::Line{false}) = Line{true}(d.center,d.β,d.α)
@@ -55,8 +50,8 @@ Line() = Line(false)
 
 
 isambiguous(d::Line)=isnan(d.center)
-Base.convert{a,T<:Number}(::Type{Line{a,T}},::AnyDomain)=Line{a,T}(NaN)
-Base.convert{IT<:Line}(::Type{IT},::AnyDomain)=Line(NaN,NaN)
+convert{a,T<:Number}(::Type{Line{a,T}},::AnyDomain)=Line{a,T}(NaN)
+convert{IT<:Line}(::Type{IT},::AnyDomain)=Line(NaN,NaN)
 
 ## Map interval
 
@@ -160,7 +155,7 @@ end
 
 # angle is (false==0) and π (true==1)
 # or ranges from (-1,1]
-immutable PeriodicLine{angle,T} <: PeriodicDomain{Float64}
+struct PeriodicLine{angle,T} <: PeriodicDomain{Float64}
     center::T
     L::Float64
     (::Type{PeriodicLine{angle,T}}){angle,T}(c,L) = new{angle,T}(c,L)
@@ -169,7 +164,7 @@ immutable PeriodicLine{angle,T} <: PeriodicDomain{Float64}
     (::Type{PeriodicLine{angle,T}}){angle,T}() = new{angle,T}(0.,1.)
 end
 
-Base.convert{a}(::Type{PeriodicLine{a}},c,L) = PeriodicLine{a,typeof(c)}(c,L)
+convert{a}(::Type{PeriodicLine{a}},c,L) = PeriodicLine{a,typeof(c)}(c,L)
 
 
 PeriodicLine(c,a) = PeriodicLine{a/π,eltype(c)}(c,1.)
@@ -177,22 +172,18 @@ PeriodicLine() = PeriodicLine{false,Float64}(0.,1.)
 PeriodicLine(b::Bool) = PeriodicLine{b,Float64}()
 
 isambiguous(d::PeriodicLine) = isnan(d.center) && isnan(d.angle)
-Base.convert{T<:Number,TT}(::Type{PeriodicLine{T,TT}},::AnyDomain) = PeriodicLine{T,TT}(NaN,NaN)
-Base.convert{IT<:PeriodicLine}(::Type{IT},::AnyDomain) = PeriodicLine(NaN,NaN)
+convert{T<:Number,TT}(::Type{PeriodicLine{T,TT}},::AnyDomain) = PeriodicLine{T,TT}(NaN,NaN)
+convert{IT<:PeriodicLine}(::Type{IT},::AnyDomain) = PeriodicLine(NaN,NaN)
 
 Base.angle{a}(d::PeriodicLine{a})=a*π
-
-Base.eltype{T}(::Type{PeriodicLine{true,T}}) = T
-Base.eltype{T}(::Type{PeriodicLine{false,T}}) = T
-Base.eltype{T,a}(::Type{PeriodicLine{a,T}}) = promote_type(T,Complex128)
-Base.eltype(d::PeriodicLine) = eltype(typeof(d))
 
 Base.reverse(d::PeriodicLine{true})=PeriodicLine{false}(d.center,d.L)
 Base.reverse(d::PeriodicLine{false})=PeriodicLine{true}(d.center,d.L)
 Base.reverse{a}(d::PeriodicLine{a})=PeriodicLine{a-1}(d.center,d.L)
 
 tocanonical(d::PeriodicLine{false},x)= 2atan((x-d.center)/d.L)
-fromcanonical(d::PeriodicLine{false},v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
+fromcanonical(d::PeriodicLine{false},v::AbstractArray) =
+    eltype(d)[fromcanonical(d,vk) for vk in v]
 fromcanonical(d::PeriodicLine{false},θ)=d.L*tan(θ/2) + d.center
 
 tocanonical{a}(d::PeriodicLine{a},x)=tocanonical(PeriodicLine{false,Float64}(0.,d.L),exp(-π*im*a)*(x-d.center))
@@ -233,7 +224,7 @@ complexlength(d::Union{Line,PeriodicLine})=Inf
 ## vectorized
 
 for typ in (:Line,:PeriodicLine)
-    @eval function Base.convert(::Type{$typ},d::ClosedInterval)
+    @eval function convert(::Type{$typ},d::ClosedInterval)
         a,b=d.left,d.right
         @assert abs(a) == abs(b) == Inf
 

@@ -1,4 +1,4 @@
-export ⊕,depiece,pieces,PiecewiseSpace
+export ⊕,components,PiecewiseSpace
 
 
 
@@ -7,17 +7,23 @@ export ⊕,depiece,pieces,PiecewiseSpace
 # this has the property that all the coefficients of a block of a subspace
 # are grouped together, starting with the first bloc
 #
+# TODO: cache sums
 
-immutable BlockInterlacer{DMS<:Tuple}
+
+struct BlockInterlacer{DMS<:Tuple}
     blocks::DMS
 end
 
-BlockInterlacer(v::Vector) = BlockInterlacer(tuple(v...))
+
+const TrivialInterlacer{d} = BlockInterlacer{NTuple{d,Repeated{Bool}}}
+
+BlockInterlacer(v::AbstractVector) = BlockInterlacer(tuple(v...))
 
 Base.eltype(it::BlockInterlacer) = Tuple{Int,Int}
 
 dimensions(b::BlockInterlacer) = map(sum,b.blocks)
-Base.length(b::BlockInterlacer) = mapreduce(length,+,b.blocks)
+dimension(b::BlockInterlacer,k) = sum(b.blocks[k])
+Base.length(b::BlockInterlacer) = mapreduce(sum,+,b.blocks)
 
 # the state is always (whichblock,curblock,cursubblock,curcoefficients)
 Base.start(it::BlockInterlacer) = (1,1,map(start,it.blocks),ntuple(zero,length(it.blocks)))
@@ -27,7 +33,7 @@ function Base.next(it::BlockInterlacer,st)
 
     if N>length(it.blocks)
         # increment to next block
-        blkst = map((blit,blst)->done(blit,blst)?blst:next(blit,blst)[2],it.blocks,blkst)
+        blkst = map((blit,blst)->done(blit,blst) ? blst : next(blit,blst)[2],it.blocks,blkst)
         return next(it,(1,1,blkst,lngs))
     end
 
@@ -52,7 +58,7 @@ end
 # are all Ints, so finite dimensional
 function Base.done(it::BlockInterlacer,st)
     for k=1:length(it.blocks)
-        if st[end][k] < length(it.blocks[k])
+        if st[end][k] < sum(it.blocks[k])
             return false
         end
     end
@@ -67,15 +73,17 @@ end
 ## SumSpace encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
 
 
-@compat abstract type DirectSumSpace{SV,T,DD,d} <: Space{T,DD,d} end
+abstract type DirectSumSpace{SV,D,R} <: Space{D,R} end
 
 
 dimension(sp::DirectSumSpace) = mapreduce(dimension,+,sp.spaces)
 
-spaces(s::Space) = (s,)
-spaces(sp::DirectSumSpace) = sp.spaces
-space(s::Space,k...) = spaces(s)[k...]
-space(f::Fun,k...) = space(space(f),k...)
+components(s::Space) = (s,)
+components(sp::DirectSumSpace) = sp.spaces
+component(s::Space,k...) = components(s)[k...]
+
+ncomponents(s::Space) = length(components(s))
+ncomponents(f::Fun) = ncomponents(space(f))
 
 BlockInterlacer(sp::DirectSumSpace) = BlockInterlacer(map(blocklengths,sp.spaces))
 interlacer(sp::DirectSumSpace) = BlockInterlacer(sp)
@@ -83,7 +91,7 @@ interlacer(sp::Space) = BlockInterlacer(tuple(blocklengths(sp)))
 cache(Q::BlockInterlacer) = CachedIterator(Q)
 
 function blocklengths(sp::DirectSumSpace)
-    bl=map(blocklengths,sp)
+    bl=map(blocklengths,components(sp))
     N=mapreduce(length,max,bl)
     mapreduce(b->pad(b,N),+,bl)
 end
@@ -91,43 +99,49 @@ block(sp::DirectSumSpace,k::Int)::Block = findfirst(x->x≥k,cumsum(blocklengths
 
 
 
+isambiguous(sp::DirectSumSpace) = any(isambiguous,components(sp))
 
-immutable SumSpace{SV,T,DD,d} <: DirectSumSpace{SV,T,DD,d}
+
+struct SumSpace{SV,D,R} <: DirectSumSpace{SV,D,R}
     spaces::SV
-    (::Type{SumSpace{SV,T,DD,d}}){SV,T,DD,d}(dom::Domain) = new{SV,T,DD,d}(tuple(map(typ->typ(dom),SV.parameters)...))
-    (::Type{SumSpace{SV,T,DD,d}}){SV,T,DD,d}(sp::Tuple) = new{SV,T,DD,d}(sp)
+    SumSpace{SV,D,R}(dom::Domain) where {SV,D,R} =
+        new(tuple(map(typ->typ(dom),SV.parameters)...))
+    SumSpace{SV,D,R}(sp::Tuple) where {SV,D,R} = new(sp)
 end
 
-SumSpace(sp::Tuple) = SumSpace{typeof(sp),mapreduce(basistype,promote_type,sp),
-                     typeof(domain(first(sp))),domaindimension(first(sp))}(sp)
+SumSpace(sp::Tuple) = SumSpace{typeof(sp),domaintype(first(sp)),
+                                mapreduce(rangetype,promote_type,sp)}(sp)
 
 
-immutable PiecewiseSpace{SV,T,DD<:UnionDomain,d} <: DirectSumSpace{SV,T,DD,d}
+struct PiecewiseSpace{SV,D<:UnionDomain,R} <: DirectSumSpace{SV,D,R}
     spaces::SV
-    (::Type{PiecewiseSpace{SV,T,DD,d}}){SV,T,DD,d}(dom::AnyDomain) = new{SV,T,DD,d}(tuple(map(typ->typ(dom),SV.parameters)...))
-    (::Type{PiecewiseSpace{SV,T,DD,d}}){SV,T,DD,d}(dom::UnionDomain) = new{SV,T,DD,d}(tuple(map((typ,dom)->typ(dom),SV.parameters,dom.domains)...))
-    (::Type{PiecewiseSpace{SV,T,DD,d}}){SV,T,DD,d}(sp::Tuple) = new{SV,T,DD,d}(sp)
+    PiecewiseSpace{SV,D,R}(dom::AnyDomain) where {SV,D,R} =
+        new{SV,D,R}(tuple(map(typ->typ(dom),SV.parameters)...))
+    PiecewiseSpace{SV,D,R}(dom::UnionDomain) where {SV,D,R} =
+        new{SV,D,R}(tuple(map((typ,dom)->typ(dom),SV.parameters,dom.domains)...))
+    PiecewiseSpace{SV,D,R}(sp::Tuple) where {SV,D,R} =
+        new{SV,D,R}(sp)
 end
 
 function PiecewiseSpace(spin::Tuple)
     sp=tuple(union(spin)...)  # remove duplicates
 
-    PiecewiseSpace{typeof(sp),mapreduce(basistype,promote_type,sp),
-                               typeof(UnionDomain(map(domain,sp))),domaindimension(first(sp))}(sp)
+    PiecewiseSpace{typeof(sp),typeof(UnionDomain(map(domain,sp))),
+                   mapreduce(rangetype,promote_type,sp)}(sp)
 end
 
 
 
 for TYP in (:SumSpace,:PiecewiseSpace)
     @eval begin
-        $TYP(A::$TYP,B::$TYP)=$TYP(tuple(A.spaces...,B.spaces...))
+        $TYP(A::$TYP,B::$TYP) = $TYP(tuple(A.spaces...,B.spaces...))
 
-        $TYP(A::Space,B::$TYP)=$TYP(tuple(A,B.spaces...))
-        $TYP(A::$TYP,B::Space)=$TYP(tuple(A.spaces...,B))
-        $TYP(A::Space...)=$TYP(A)
-        $TYP(sp::Array)=$TYP(tuple(sp...))
+        $TYP(A::Space,B::$TYP) = $TYP(tuple(A,B.spaces...))
+        $TYP(A::$TYP,B::Space) = $TYP(tuple(A.spaces...,B))
+        $TYP(A::Space...) = $TYP(A)
+        $TYP(sp::AbstractArray) = $TYP(tuple(sp...))
 
-        canonicalspace(A::$TYP)=$TYP(sort([A.spaces...]))
+        canonicalspace(A::$TYP) = $TYP(sort([A.spaces...]))
     end
 end
 
@@ -142,12 +156,12 @@ setdomain(A::PiecewiseSpace,d::UnionDomain) =
 
 
 function spacescompatible{S<:DirectSumSpace}(A::S,B::S)
-    if length(A) != length(B)
+    if ncomponents(A) != ncomponents(B)
         false
     else
         ret=true
-        for k=1:length(A)
-            if !spacescompatible(A[k],B[k])
+        for k=1:ncomponents(A)
+            if !spacescompatible(component(A,k),component(B,k))
                 return false
             end
         end
@@ -155,59 +169,44 @@ function spacescompatible{S<:DirectSumSpace}(A::S,B::S)
     end
 end
 
-function Base.promote_rule{SV,B,DD,d,V,T<:Number}(::Type{Fun{SumSpace{SV,B,DD,d},V}},::Type{T})
+function Base.promote_rule{SV,D,R,V,T<:Number,VV}(::Type{Fun{SumSpace{SV,D,R},V,VV}},::Type{T})
     for k=1:length(SV.parameters)
-        pt=promote_type(Fun{SV.parameters[k],V},T)
+        pt=promote_type(VFun{SV.parameters[k],V},T)
         if pt != Fun
-            return Fun{SumSpace{Tuple{SV.parameters[1:k-1]...,pt.parameters[1],SV.parameters[k+1:end]...},
-                       B,DD,d},promote_type(V,T)}
+            return VFun{SumSpace{Tuple{SV.parameters[1:k-1]...,pt.parameters[1],SV.parameters[k+1:end]...},
+                       D,R},promote_type(V,T)}
         end
     end
     Fun
 end
 
-Base.promote_rule{SV,B,DD,d,T<:Number}(::Type{Fun{SumSpace{SV,B,DD,d}}},::Type{T})=promote_rule(Fun{SumSpace{SV,B,DD,d},Float64},T)
+Base.promote_rule{SV,D,R,T<:Number}(::Type{Fun{SumSpace{SV,D,R}}},::Type{T}) =
+    promote_rule(VFun{SumSpace{SV,D,R},Float64},T)
 
-function Base.promote_rule{SV,B,DD,d,V,T<:Number}(::Type{Fun{PiecewiseSpace{SV,B,DD,d},V}},::Type{T})
+function Base.promote_rule{SV,D,R,V,VV,T<:Number}(::Type{Fun{PiecewiseSpace{SV,D,R},V,VV}},::Type{T})
     # if any doesn't support promoting, just leave unpromoted
 
-    newfsp=map(s->promote_type(Fun{s,V},T),SV.parameters)
+    newfsp=map(s->promote_type(VFun{s,V},T),SV.parameters)
     if any(s->s==Fun,newfsp)
         Fun
     else
         newsp=map(s->s.parameters[1],newfsp)
-        Fun{PiecewiseSpace{Tuple{newsp...},B,DD,d},promote_type(V,T)}
+        VFun{PiecewiseSpace{Tuple{newsp...},D,R},promote_type(V,T)}
     end
 end
 
-Base.promote_rule{SV,B,DD,d,T<:Number}(::Type{Fun{PiecewiseSpace{SV,B,DD,d}}},::Type{T})=promote_rule(Fun{PiecewiseSpace{SV,B,DD,d},Float64},T)
+Base.promote_rule{SV,D,R,T<:Number}(::Type{Fun{PiecewiseSpace{SV,D,R}}},::Type{T}) =
+    promote_rule(VFun{PiecewiseSpace{SV,D,R},Float64},T)
 
 
 
-for OP in (:(Base.length),:(Base.start),:(Base.endof))
-    @eval $OP(S::DirectSumSpace)=$OP(spaces(S))
-end
-
-for OP in (:(Base.getindex),:(Base.next),:(Base.done))
-    @eval $OP(S::DirectSumSpace,k)=$OP(spaces(S),k)
-end
-
-
-#support tuple set
-for OP in (:(Base.start),:(Base.done),:(Base.endof))
-    @eval $OP{SS<:DirectSumSpace}(f::Fun{SS},k...)=$OP(space(f),k...)
-end
-
-Base.next{SS<:DirectSumSpace}(f::Fun{SS},k)=f[k],k+1
-
-
-
+# domain
 domain(A::SumSpace) = domain(A.spaces[end])      # TODO: this assumes all spaces have the same domain
                                                      #        we use end to avoid ConstantSpace
 
 
-Space(d::UnionDomain)=PiecewiseSpace(map(Space,d.domains))
-domain(S::PiecewiseSpace)=UnionDomain(map(domain,S.spaces))
+Space(d::UnionDomain) = PiecewiseSpace(map(Space,d.domains))
+domain(S::PiecewiseSpace) = UnionDomain(map(domain,S.spaces))
 
 
 
@@ -255,18 +254,69 @@ function union_rule(A::SumSpace,B::Space)
 end
 
 
+## components
+
+# We use a view when it's avaiable to avoid allocation
+component_coefficients(it::TrivialInterlacer{d},cfs,k) where {d} = (@view cfs[k:d:end])
+
+function component_coefficients(it,cfs,k)
+    N=length(cfs)
+    d=dimension(it,k)
+
+    # preallocate: we know we have at most N coefficients
+    ret=Array{eltype(cfs)}(N)
+    j=1  # current coefficient
+    p=0  # current length
+    for (n,m) in it
+        if j > N
+            break
+        end
+        if n==k
+            ret[m] = cfs[j]
+            p+=1
+            if m ≥ d
+                # if we've reached the dimension, we are done
+                break
+            end
+        end
+        j+=1
+    end
+    resize!(ret,p)  # throw out extra coefficients
+end
+
+component_coefficients(sp::Space,cfs,k) = component_coefficients(interlacer(sp),cfs,k)
+
+component{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer) =
+    Fun(component(space(f),k),component_coefficients(space(f),f.coefficients,k))
+
 
 ## evaluate
 
 
 for OP in (:(Base.last),:(Base.first))
     @eval begin
-        $OP{SS<:SumSpace}(f::Fun{SS}) = mapreduce($OP,+,vec(f))
-        $OP{SS<:PiecewiseSpace}(f::Fun{SS}) = $OP($OP(vec(f)))
+        $OP{SS<:SumSpace}(f::Fun{SS}) = mapreduce($OP,+,components(f))
+        $OP{SS<:PiecewiseSpace}(f::Fun{SS}) = $OP($OP(components(f)))
     end
 end
 
-evaluate(f::AbstractVector,S::SumSpace,x) = mapreduce(vf->evaluate(vf,x),+,vec(Fun(S,f)))
+# this is a type-stable version
+# TODO: replace with generated function
+function evaluate(f::AbstractVector,S::SumSpace{Tuple{A,B}},x) where {A,B}
+    it = interlacer(S)
+    a,b = S.spaces
+    evaluate(component_coefficients(it,f,1),a,x) +
+        evaluate(component_coefficients(it,f,2),b,x)
+end
+
+function evaluate(f::AbstractVector,S::SumSpace,x)
+    ret = zero(rangetype(S))
+    it = interlacer(S)
+    for k=1:ncomponents(S)
+        ret += evaluate(component_coefficients(it,f,k),component(S,k),x)
+    end
+    ret
+end
 
 
 function evaluate(f::AbstractVector,S::PiecewiseSpace,x)
@@ -274,9 +324,9 @@ function evaluate(f::AbstractVector,S::PiecewiseSpace,x)
     g=Fun(S,f)
 
 #    ret=zero(promote_type(eltype(f),eltype(S)))
-    for k=1:numpieces(d)
-        if in(x,d[k])
-            return g[k](x)
+    for k=1:ncomponents(d)
+        if in(x,component(d,k))
+            return component(g,k)(x)
         end
     end
     return 0*first(g)
@@ -287,16 +337,16 @@ end
 for TYP in (:SumSpace,:PiecewiseSpace)
     for OP in (:differentiate,:integrate)
         @eval function $OP{D<:$TYP,T}(f::Fun{D,T})
-            fs=map($OP,f)
-            sp=$TYP(map(space,fs))
+            fs = map($OP,components(f))
+            sp = $TYP(map(space,fs))
             Fun(sp,interlace(fs,sp))
         end
     end
     for OP in (:(Base.real),:(Base.imag),:(Base.conj))
         @eval begin
-            $OP{SV,DD,d}(f::Fun{$TYP{SV,RealBasis,DD,d}}) = Fun(f.space,$OP(f.coefficients))
-            function $OP{SV,T,DD,d}(f::Fun{$TYP{SV,T,DD,d}})
-                fs=map($OP,f)
+            $OP(f::Fun{$TYP{SV,DD,RR}}) where {SV,DD,RR<:Real} = Fun(f.space,$OP(f.coefficients))
+            function $OP(f::Fun{$TYP{SV,DD,RR}}) where {SV,DD,RR}
+                fs=map($OP,components(f))
                 sp=$TYP(map(space,fs))
                 Fun(sp,interlace(fs,sp))
             end
@@ -307,89 +357,64 @@ end
 
 
 @eval function Base.cumsum{D<:SumSpace,T}(f::Fun{D,T})
-    fs=map(cumsum,vec(f))
+    fs=map(cumsum,components(f))
     sp=SumSpace(map(space,fs))
     Fun(sp,interlace(fs,sp))
 end
 
 
 for TYP in (:SumSpace,:PiecewiseSpace), OP in (:(Base.sum),:linesum)
-    @eval $OP{V<:$TYP}(f::Fun{V}) = mapreduce($OP,+,vec(f))
+    @eval $OP{V<:$TYP}(f::Fun{V}) = mapreduce($OP,+,components(f))
 end
 
 function Base.cumsum{V<:PiecewiseSpace}(f::Fun{V})
-    vf=pieces(f)
+    vf=components(f)
     r=zero(eltype(f))
     for k=1:length(vf)
         vf[k]=cumsum(vf[k]) + r
         r=last(vf[k])
     end
-    depiece(vf)
+    Fun(vf,PiecewiseSpace)
 end
 
-Base.cumsum{V<:PiecewiseSpace}(f::Fun{V},d::Domain)=mapreduce(g->cumsum(g,d),+,pieces(f))
+Base.cumsum{V<:PiecewiseSpace}(f::Fun{V},d::Domain) =
+    mapreduce(g->cumsum(g,d),+,components(f))
 
 
 
-bilinearform{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) = sum(map(bilinearform,pieces(f),pieces(g)))
-linebilinearform{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) = sum(map(linebilinearform,pieces(f),pieces(g)))
+bilinearform{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) =
+    sum(map(bilinearform,components(f),components(g)))
+linebilinearform{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) =
+    sum(map(linebilinearform,components(f),components(g)))
 
 # assume first domain has 1 as a basis element
 
 
 
 function Base.ones{T<:Number}(::Type{T},S::SumSpace)
-    @assert length(S.spaces)==2
-    if isconvertible(ConstantSpace(),S.spaces[1])
-        ones(T,S[1])⊕zeros(T,S[2])
+    @assert ncomponents(S) == 2
+    if isconvertible(ConstantSpace(),component(S,1))
+        ones(T,component(S,1)) ⊕ zeros(T,component(S,2))
     else
-        zeros(T,S[1])⊕ones(T,S[2])
+        zeros(T,component(S,1)) ⊕ ones(T,component(S,2))
     end
 end
 
-Base.ones(S::SumSpace)=ones(Float64,S)
+Base.ones(S::SumSpace) = ones(Float64,S)
 
-Base.ones{T<:Number,SS,V}(::Type{T},S::PiecewiseSpace{SS,V}) = depiece(map(ones,spaces(S)))
+Base.ones{T<:Number,SS,V}(::Type{T},S::PiecewiseSpace{SS,V}) =
+    Fun(map(ones,components(S)),PiecewiseSpace)
 Base.ones(S::PiecewiseSpace) = ones(Float64,S)
 
 
-identity_fun(S::PiecewiseSpace) = depiece(map(identity_fun,S.spaces))
-
-# vec
-
-function Base.getindex{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer)
-    it=interlacer(space(f))
-    N=length(f.coefficients)
-    d=dimension(space(f,k))
-
-    # preallocate: we know we have at most N coefficients
-    ret=Array{eltype(f)}(N)
-    j=1  # current coefficient
-    p=0  # current length
-    for (n,m) in it
-        if j > N
-            break
-        end
-        if n==k
-            ret[m]=f.coefficients[j]
-            p+=1
-            if m ≥ d
-                # if we've reached the dimension, we are done
-                break
-            end
-        end
-        j+=1
-    end
-    resize!(ret,p)  # through out extra coefficients
-    Fun(space(f,k),ret)
-end
+identity_fun(S::PiecewiseSpace) = Fun(map(identity_fun,S.spaces),PiecewiseSpace)
 
 
 # interlace coefficients according to iterator
 function interlace{T,V<:AbstractVector}(::Type{T},v::AbstractVector{V},it::BlockInterlacer)
     ret=Array{T}(0)
     N=mapreduce(length,max,v)
-    cnts = map(length,v)
+    cnts = Vector(map(length,v))  # convert to Vector to ensure mutable
 
     for (n,m) in it
         if maximum(cnts) == 0
@@ -431,57 +456,44 @@ function interlace(v::Union{Tuple,Vector{Any}},sp::DirectSumSpace)
     interlace(V,sp)
 end
 
+components{S<:DirectSumSpace}(f::Fun{S}) = Fun[component(f,j) for j=1:ncomponents(f)]
 
-Base.vec(S::DirectSumSpace) = S.spaces
-Base.vec{S<:DirectSumSpace}(f::Fun{S}) = Fun[f[j] for j=1:length(f.space)]
-
-pieces{S<:PiecewiseSpace}(f::Fun{S}) = vec(f)
-
-for (Dep,Sp) in ((:depiece,:PiecewiseSpace),)
-    @eval begin
-        function $Dep{F<:Fun}(v::Vector{F})
-            spaces=map(space,v)
-            sp=$Sp(spaces)
-            Fun(sp,interlace(v,sp))
-        end
-        function $Dep(v::Tuple)
-            spaces=map(space,v)
-            sp=$Sp(spaces)
-            Fun(sp,interlace(v,sp))
-        end
-
-        $Dep(v::Vector{Any})=$Dep(tuple(v...))
-    end
+function Fun{F<:Fun}(v::AbstractVector{F},::Type{PiecewiseSpace})
+    sp = PiecewiseSpace(map(space,v))
+    Fun(sp,interlace(v,sp))
+end
+function Fun(v::Tuple,::Type{PiecewiseSpace})
+    sp=PiecewiseSpace(map(space,v))
+    Fun(sp,interlace(v,sp))
 end
 
-interlace{FF<:Fun}(f::AbstractVector{FF}) = vcat(f...)
-
+Fun(v::AbstractVector{Any},::Type{PiecewiseSpace}) = Fun(tuple(v...),PiecewiseSpace)
 
 ## transforms
 
 
 function points(d::PiecewiseSpace,n)
-   k=div(n,length(d))
-    r=n-length(d)*k
+   k=div(n,ncomponents(d))
+    r=n-ncomponents(d)*k
 
     [vcat([points(d.spaces[j],k+1) for j=1:r]...);
-        vcat([points(d.spaces[j],k) for j=r+1:length(d)]...)]
+        vcat([points(d.spaces[j],k) for j=r+1:ncomponents(d)]...)]
 end
 
-plan_transform(sp::PiecewiseSpace,vals::Vector) =
+plan_transform(sp::PiecewiseSpace,vals::AbstractVector) =
     TransformPlan{eltype(vals),typeof(sp),false,Void}(sp,nothing)
 
-plan_itransform(sp::PiecewiseSpace,vals::Vector) =
+plan_itransform(sp::PiecewiseSpace,vals::AbstractVector) =
     ITransformPlan{eltype(vals),typeof(sp),false,Void}(sp,nothing)
 
 
 
-function *{PS<:PiecewiseSpace,T}(P::TransformPlan{T,PS,false},vals::Vector{T})
-    S=P.space
+function *{PS<:PiecewiseSpace,T}(P::TransformPlan{T,PS,false},vals::AbstractVector{T})
+    S=components(P.space)
     n=length(vals)
     K=length(S)
     k=div(n,K)
-    PT=coefficient_type(S,eltype(vals))
+    PT=promote_type(prectype(P.space),eltype(vals))
     if k==0
         M=Array{Vector{PT}}(n)
         for j=1:n
@@ -499,11 +511,11 @@ function *{PS<:PiecewiseSpace,T}(P::TransformPlan{T,PS,false},vals::Vector{T})
         end
     end
 
-    interlace(M,S)
+    interlace(M,P.space)
 end
 
-*{T,PS<:PiecewiseSpace}(P::ITransformPlan{T,PS,false},cfs::Vector{T}) =
-    vcat([itransform(P.space.spaces[j],Fun(P.space,cfs)[j].coefficients) for j=1:length(P.space)]...)
+*{T,PS<:PiecewiseSpace}(P::ITransformPlan{T,PS,false},cfs::AbstractVector{T}) =
+    vcat([itransform(P.space.spaces[j],component(Fun(P.space,cfs),j).coefficients) for j=1:ncomponents(P.space)]...)
 
 
 
@@ -520,3 +532,23 @@ end
 
 union_rule(P::PiecewiseSpace,C::ConstantSpace{AnyDomain}) =
     PiecewiseSpace(map(sp->union(sp,C),P.spaces))
+
+
+
+
+## Multivariate
+
+ncomponents(sp::TensorSpace) = mapreduce(s -> ncomponents(s), *, factors(sp))
+
+component(sp::TensorSpace{Tuple{S1,S2}},k::Integer) where {S1<:DirectSumSpace,S2<:DirectSumSpace} =
+    error("Not defined. Used component(sp,k,j).")
+
+component(sp::TensorSpace{Tuple{S1,S2}},k::Integer) where {S1<:DirectSumSpace,S2} =
+    component(factor(sp,1),k) ⊗ factor(sp,2)
+
+component(sp::TensorSpace{Tuple{S1,S2}},k::Integer) where {S1,S2<:DirectSumSpace} =
+    factor(sp,1) ⊗ component(factor(sp,2),k)
+
+
+component(sp::TensorSpace{Tuple{S1,S2}},k::Integer,j::Integer) where {S1<:DirectSumSpace,S2<:DirectSumSpace} =
+    component(factor(sp,1),k) ⊗ component(factor(sp,2),j)

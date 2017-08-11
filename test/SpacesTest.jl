@@ -8,19 +8,15 @@ testtransforms(ChebyshevDirichlet{1,1}())
 
 d=Interval()
 sp=ChebyshevDirichlet{1,1}(d)
-B=dirichlet(sp)
+B=Dirichlet(sp)
 D=Derivative(d)
 L=D^2+I
+@test B[1:2,1:4] ≈ [1 -1 0 0; 1 1 0 0]
 
-@test B[1][1:3] ≈ [1.;-1.;0.]
-@test B[2][1:3] ≈ [1.;1.;0.]
-@test B[2][1:1,1:3] ≈ [1. 1. 0.]
+@test csc(2)sin(1 - 0.1)  ≈ ([Dirichlet(d);L]\[[1.,0.],0.])(0.1)
+@test csc(2)sin(1 - 0.1)  ≈ ([B;L]\[[1.,0.],0.])(0.1)
 
-
-@test csc(2)sin(1 - 0.1)  ≈ ([dirichlet(d);L]\[1.,0.,0.])(0.1)
-@test csc(2)sin(1 - 0.1)  ≈ ([B;L]\[1.,0.,0.])(0.1)
-
-@test norm(([B;L]\[1.,0,0])-([dirichlet(d);L]\[1.,0,0])) <10eps()
+@test norm(([B;L]\[[1.,0],0])-([Dirichlet(d);L]\[[1.,0],0])) <10eps()
 
 
 
@@ -34,18 +30,20 @@ testtransforms(sp;minpoints=2)
 D=Derivative(sp)
 testbandedoperator(D)
 
-B=dirichlet(sp)
+B=[Dirichlet(sp);continuity(sp,0:1)]
 u=[B;
-    D^2]\Any[[1;zeros(size(B,1)-1)],0];
-u2=[dirichlet();Derivative(Chebyshev())^2]\[1.,0,0]
+    D^2]\Any[[1,0],zeros(2),0];
+u2=[Dirichlet();Derivative(Chebyshev())^2]\[[1.,0],0]
 @test u(0.) ≈ u2(0.)
 
 x=Fun(identity,Domain(-10..15) \ [0,1])
 sp=space(x)
 D=Derivative(sp)
-B=dirichlet(sp)
+B=Dirichlet(sp)
+
 u=[B;
-    D^2-x]\Any[[airyai(-10.);zeros(size(B,1)-1)],0];
+    continuity(sp,0:1);
+    D^2-x]\[[airyai(-10.),0],zeros(4),0];
 
 @test u(0.) ≈ airyai(0.)
 
@@ -114,6 +112,16 @@ u=[ldirichlet(S),D-I]\[exp(1.),0]
 
 
 d=PiecewiseSegment(0,1.,1.+im,im,0.)
+s=Space(d)
+
+# narrow down bug
+@test s isa ContinuousSpace
+@test ApproxFun.rangetype(s) == Float64
+cs=ApproxFun.canonicalspace(s)
+@test ApproxFun.rangetype(cs) == Float64
+
+@test conversion_type(s,cs) == s
+
 @test Fun(exp,d)(.1) ≈ exp(.1)
 
 
@@ -152,7 +160,7 @@ o=ones(Γ)
 @test o(1.) ≈ 1.0
 @test o(0.4) ≈ 1.0
 
-G=Fun(z->in(z,Γ[2])?[1 0; -1/z 1]:[z 0; 0 1/z],Γ)
+G=Fun(z->in(z,component(Γ,2))?[1 0; -1/z 1]:[z 0; 0 1/z],Γ)
 @test (G-I)(exp(0.1im)) ≈ (G(exp(0.1im))-I)
 
 
@@ -190,7 +198,10 @@ Fun(f,JacobiWeight(1.,0.,0..1))
 f=Fun(x->x+x^2,Hermite())
 @test f(1.) ≈ 2.
 
-g=Derivative(Hermite()) * f
+D = Derivative(Hermite())
+testbandedoperator(D)
+
+g = D*f
 @test g(1.) ≈ 3.
 
 
@@ -205,10 +216,10 @@ z=Fun(identity,Arc(0.,.1,0.,π/2))
 
 Γ=Segment(-im,1.0-im) ∪ Curve(Fun(x->exp(0.8im)*(x+x^2-1+im*(x-4x^3+x^4)/6))) ∪ Circle(2.0,0.2)
 
-@test isempty(Γ[1]\Γ[1])
-@test Γ\Γ[1] == Γ[2]∪Γ[3]
+@test isempty(component(Γ,1)\component(Γ,1))
+@test Γ\component(Γ,1) == component(Γ,2) ∪ component(Γ,3)
 
-@test norm(Fun(ones(Γ[1]),Γ) - Fun(x->x ∈ Γ[1]?1.0:0.0,Γ)) == 0
+@test norm(Fun(ones(component(Γ,1)),Γ) - Fun(x->x ∈ component(Γ,1) ? 1.0 : 0.0,Γ)) == 0
 
 
 ## Line
@@ -242,3 +253,27 @@ x=Fun()
 
 ## ChebyshevDirichlet Integral
 @test Integral(S,1)*Fun(S,[1.,2.,3.]) ≈ integrate(Fun(Fun(S,[1.,2.,3.]),Chebyshev()))
+
+
+### QuotientSpace test
+
+import ApproxFun: SpaceOperator
+
+for (bcs,ret) in ((Dirichlet(Chebyshev()),[1 -1 0 0 0;1 1 0 0 0]),
+                  (Neumann(Chebyshev()),[0 1 -4 0 0;0 1 4 0 0]),
+                  ([DefiniteIntegral(Chebyshev());SpaceOperator(BasisFunctional(2),Chebyshev(),ConstantSpace())],[2 0 0 0 0;0 1 0 0 0]),
+                  (vcat(bvp(Chebyshev(),4)...),[1 -1 1 -1 0;0 1 -4 9 0;1 1 1 1 0;0 1 4 9 0]))
+    QS = QuotientSpace(bcs)
+    C = Conversion(QS, QS.space)
+
+    norm((bcs*C)[1:size(bcs, 1),1:5] - ret) < 1000eps()
+end
+
+
+
+## Check union of ChebyshevDirichlet
+
+
+dom = Domain(0..1) ∪ Domain(2..3)
+@test components(union(JacobiWeight.(-0.5,-0.5,ChebyshevDirichlet{1,1}.(components(dom)))...)) ==
+    (JacobiWeight.(-0.5,-0.5,ChebyshevDirichlet{1,1}.(components(dom)))...)

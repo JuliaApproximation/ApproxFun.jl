@@ -3,7 +3,7 @@ export →
 
 ## Space Operator is used to wrap other operators
 # and change the domain/range space
-immutable SpaceOperator{O<:Operator,S<:Space,V<:Space,T} <: Operator{T}
+struct SpaceOperator{O<:Operator,S<:Space,V<:Space,T} <: Operator{T}
     op::O
     domainspace::S
     rangespace::V
@@ -15,7 +15,7 @@ SpaceOperator(o::Operator,s::Space,rs::Space) =
     SpaceOperator{typeof(o),typeof(s),typeof(rs),eltype(o)}(o,s,rs)
 SpaceOperator(o,s) = SpaceOperator(o,s,s)
 
-function Base.convert{T}(::Type{Operator{T}},S::SpaceOperator)
+function convert{T}(::Type{Operator{T}},S::SpaceOperator)
     if T==eltype(S)
         S
     else
@@ -47,17 +47,17 @@ rangespace(S::SpaceOperator) = S.rangespace
 
 
 ##TODO: Do we need both max and min?
-function findmindomainspace(ops::Vector)
+function findmindomainspace(ops::AbstractVector)
     sp = UnsetSpace()
 
     for op in ops
-        sp = conversion_type(sp,domainspace(op))
+        sp = union(sp,domainspace(op))
     end
 
     sp
 end
 
-function findmaxrangespace(ops::Vector)
+function findmaxrangespace(ops::AbstractVector)
     sp = UnsetSpace()
 
     for op in ops
@@ -89,25 +89,25 @@ promotedomainspace(P::Operator,sp::Space,cursp::Space) =
 
 
 
-function promoterangespace{O<:Operator}(ops::Vector{O})
+function promoterangespace{O<:Operator}(ops::AbstractVector{O})
     isempty(ops) && return ops
     k=findmaxrangespace(ops)
     #TODO: T might be incorrect
     T=mapreduce(eltype,promote_type,ops)
     Operator{T}[promoterangespace(op,k) for op in ops]
 end
-function promotedomainspace{O<:Operator}(ops::Vector{O})
+function promotedomainspace{O<:Operator}(ops::AbstractVector{O})
     isempty(ops) && return ops
     k=findmindomainspace(ops)
     #TODO: T might be incorrect
     T=mapreduce(eltype,promote_type,ops)
     Operator{T}[promotedomainspace(op,k) for op in ops]
 end
-function promotedomainspace{O<:Operator}(ops::Vector{O},S::Space)
+function promotedomainspace{O<:Operator}(ops::AbstractVector{O},S::Space)
     isempty(ops) && return ops
     k=conversion_type(findmindomainspace(ops),S)
     #TODO: T might be incorrect
-    T=promote_type(mapreduce(eltype,promote_type,ops),eltype(S))
+    T=promote_type(mapreduce(eltype,promote_type,ops),prectype(S))
     Operator{T}[promotedomainspace(op,k) for op in ops]
 end
 
@@ -128,8 +128,8 @@ end
 choosedomainspace(A::Operator,sp::Space) = default_choosedomainspace(A,sp)
 
 choosedomainspace(A::Operator,f::Fun) = choosedomainspace(A,space(f))
-choosedomainspace{FF<:Fun}(A::Operator,f::Vector{FF}) =
-    choosedomainspace(A,devec(f))
+choosedomainspace{FF<:Fun}(A::Operator,f::AbstractVector{FF}) =
+    choosedomainspace(A,Fun(f))
 choosedomainspace(A::Operator,::) = choosedomainspace(A)
 
 choosedomainspace(A) = choosedomainspace(A,UnsetSpace())

@@ -1,13 +1,13 @@
 export Hermite,GaussWeight
 
 #TODO: Add general lines
-immutable Hermite{T} <: PolynomialSpace{Line{T}}
+struct Hermite{T} <: PolynomialSpace{Line{false,Float64},Float64}
     L::T
 end
 Hermite()=Hermite(1.0)
 
-domain(::Hermite)=Line()
-canonicalspace(H::Hermite)=Hermite()
+domain(::Hermite) = Line()
+canonicalspace(H::Hermite) = Hermite()
 spacescompatible(::Hermite,::Hermite)=true #TODO:L
 canonicaldomain(H::Hermite)=Line()
 tocanonical(H::Hermite,x)=x
@@ -51,15 +51,12 @@ function hermitep(r::Range,x::Number)
     v[r+1]
 end
 hermitep(n::Integer,v::Number)=hermitep(n:n,v)[1]
-hermitep(n::Range,v::Vector)=transpose(hcat(map(x->hermitep(n,x),v)...))
-hermitep(n::Integer,v::Vector)=map(x->hermitep(n,x),v)
-
 
 identity_fun(sp::Hermite)=Fun(sp,[0.,0.5])
 
 
 # exp(-Lx^2)
-immutable GaussWeight{S,T} <: WeightSpace{S,RealBasis,Line{Float64},1}
+struct GaussWeight{S,T} <: WeightSpace{S,Line{Float64},Float64}
     space::S
     L::T
 end

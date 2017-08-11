@@ -12,11 +12,11 @@ doc"""
 represents a line segment from `a` to `b`.  In the case where `a` and `b`
 are real and `a < b`, then this is is equivalent to an `Interval(a,b)`.
 """
-immutable Segment{T} <: IntervalDomain{T}
+struct Segment{T} <: IntervalDomain{T}
 	a::T
 	b::T
-	(::Type{Segment{T}}){T}() = new{T}(-one(T),one(T))
-	(::Type{Segment{T}}){T}(a,b) = new{T}(a,b)
+	Segment{T}() where {T} = new{T}(-one(T),one(T))
+	Segment{T}(a,b) where {T} = new{T}(a,b)
 end
 
 
@@ -49,14 +49,14 @@ represents the set `{x : a ≤ x ≤ b}`.
 """
 Interval
 
-Base.convert{T<:Number}(::Type{Segment{T}}, d::Segment) = Segment{T}(d.a,d.b)
-Base.convert(::Type{Segment},d::ClosedInterval) = Segment(d.left,d.right)
+convert{T<:Number}(::Type{Segment{T}}, d::Segment) = Segment{T}(d.a,d.b)
+convert(::Type{Segment},d::ClosedInterval) = Segment(d.left,d.right)
 
 AnySegment{T}(::Type{T}) = Segment{T}(NaN,NaN)
 AnySegment() = AnySegment(Float64)
 isambiguous(d::Segment) = all(isnan(d.a)) && all(isnan(d.b))
-Base.convert{T<:Number}(::Type{Segment{T}},::AnyDomain) = AnySegment(T)
-Base.convert(::Type{Segment},::AnyDomain) = AnySegment()
+convert{T<:Number}(::Type{Segment{T}},::AnyDomain) = AnySegment(T)
+convert(::Type{Segment},::AnyDomain) = AnySegment()
 
 
 ## Information
@@ -80,7 +80,7 @@ mobius(d::Segment,x) = (d.a + d.b - 2x)/(d.a - d.b)
 tocanonical{T<:Real}(d::Segment{T},x) = mobius(d,x)
 tocanonicalD{T<:Real}(d::Segment{T},x) = 2/(d.b- d.a)
 fromcanonical{T<:Number}(d::Segment{T},x) = (d.a + d.b)/2 + (d.b - d.a)x/2
-fromcanonical{T<:Vec}(d::Segment{T},x::Number) = (d.a + d.b)/2 + (d.b - d.a)x/2
+fromcanonical{T<:Vec}(d::Segment{T},x) = (d.a + d.b)/2 + (d.b - d.a)x/2
 fromcanonicalD(d::Segment,x) = (d.b- d.a) / 2
 
 
@@ -89,7 +89,7 @@ Base.angle(d::Segment) = angle(d.b-d.a)
 complexlength(d::Segment) = d.b-d.a
 
 
-==(d::Segment,m::Segment) = d.a == m.a && d.b == m.b
+==(d::Segment,m::Segment) = (isambiguous(d) && isambiguous(m)) || (d.a == m.a && d.b == m.b)
 function Base.isapprox(d::Segment,m::Segment)
     tol=10E-12
     norm(d.a-m.a)<tol&&norm(d.b-m.b)<tol

@@ -2,7 +2,7 @@
 
 
 
-immutable AlmostBandedMatrix{T} <: AbstractMatrix{T}
+struct AlmostBandedMatrix{T} <: AbstractMatrix{T}
     bands::BandedMatrix{T}
     fill::LowRankMatrix{T}
     function (::Type{AlmostBandedMatrix{T}}){T}(bands::BandedMatrix{T},fill::LowRankMatrix{T})
@@ -25,13 +25,13 @@ abzeros{T}(::Type{T},n::Integer,m::Integer,l::Integer,u::Integer,r::Integer) =
 
 
 for MAT in (:AlmostBandedMatrix, :AbstractMatrix, :AbstractArray)
-    @eval Base.convert{T}(::Type{$MAT{T}},A::AlmostBandedMatrix) =
+    @eval convert{T}(::Type{$MAT{T}},A::AlmostBandedMatrix) =
         AlmostBandedMatrix(AbstractMatrix{T}(A.bands),AbstractMatrix{T}(A.fill))
 end
 
 
 Base.size(A::AlmostBandedMatrix) = size(A.bands)
-@compat Base.IndexStyle{ABM<:AlmostBandedMatrix}(::Type{ABM}) =
+Base.IndexStyle{ABM<:AlmostBandedMatrix}(::Type{ABM}) =
     IndexCartesian()
 
 

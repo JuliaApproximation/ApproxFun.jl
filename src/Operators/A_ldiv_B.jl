@@ -30,13 +30,15 @@ function \(A::Operator,B::AbstractMatrix;kwds...)
         return choosespaces(A,B[:,1])\B
     end
 
-    ret=Matrix{Fun{typeof(ds),
-               promote_type(mapreduce(eltype,promote_type,B),eltype(ds))}}(1,size(B,2))
+    ret=Matrix{VFun{typeof(ds),
+               promote_type(mapreduce(eltype,promote_type,B),prectype(ds))}}(1,size(B,2))
     for j=1:size(B,2)
         ret[:,j]=\(A,B[:,j];kwds...)
     end
-    demat(ret)
+    Fun(ret)
 end
+
+\(A::Operator,B::MatrixFun;kwds...) = \(A,Array(B);kwds...)
 
 A_ldiv_B_coefficients(A::Operator,b;kwds...) = A_ldiv_B_coefficients(qrfact(A),b;kwds...)
 
@@ -52,5 +54,5 @@ for TYP in (:Vector,:Matrix)
             \(interlace(A),b;kwds...)
     end
 end
-A_ldiv_B_coefficients{OO<:Operator}(A::Array{OO},b;kwds...) =
+A_ldiv_B_coefficients{OO<:Operator}(A::AbstractArray{OO},b;kwds...) =
     A_ldiv_B_coefficients(interlace(A),b;kwds...)

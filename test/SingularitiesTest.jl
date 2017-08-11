@@ -31,10 +31,13 @@ f=Fun(x->exp(x)/sqrt(1-x.^2),JacobiWeight(-.5,-.5))
 
 
 S=JacobiWeight(-1.,-1.,Chebyshev(0..1))
-D=Derivative(S)
 
+# Checks bug in Derivative(S)
+@test typeof(ConstantSpace(Domain(0..1))) <: Space{Segment{Float64},Float64}
+
+D=Derivative(S)
 f=Fun(S,Fun(exp,0..1).coefficients)
-x=.1
+x=0.1
 @test f(x) ≈ exp(x)*x^(-1)*(1-x)^(-1)/4
 @test (D*f)(x) ≈ -exp(x)*(1+(x-3)*x)/(4*(x-1)^2*x^2)
 
@@ -183,7 +186,7 @@ w=sqrt(abs(first(d)-x))*sqrt(abs(last(d)-x))
 a,b=DiracDelta(0.),DiracDelta(1.)
 f=Fun(exp)
 g=a+0.2b+f
-@test pieces(g)[2](0.) ≈ 1.
+@test components(g)[2](0.) ≈ 1.
 @test g(.1) ≈ exp(.1)
 @test sum(g) ≈ (sum(f)+1.2)
 
@@ -271,3 +274,10 @@ f=abs(x+1.2)
 
 @test log(f)(-1.3) ≈ log(abs(-1.3+1.2))
 @test log(f)(-1.1) ≈ log(abs(-1.1+1.2))
+
+
+#393
+
+x=Fun(0..1)
+f = exp(x)*sqrt(x)*log(1-x)
+@test f(0.1) ≈ exp(0.1)*sqrt(0.1)*log(1-0.1)

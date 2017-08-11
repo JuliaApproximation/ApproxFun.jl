@@ -8,7 +8,8 @@ lap(d::Space) = Laplacian(d)
 lap(d::Domain) = Laplacian(d)
 lap(f::Fun) = Laplacian()*f
 
-function Laplacian{T,D}(d::Union{ProductDomain{T,2},Space{T,D,2}},k::Integer)
+
+function Laplacian(d::BivariateSpace,k::Integer)
     Dx2=Derivative(d,[2,0])
     Dy2=Derivative(d,[0,2])
     if k==1
@@ -20,33 +21,30 @@ function Laplacian{T,D}(d::Union{ProductDomain{T,2},Space{T,D,2}},k::Integer)
     end
 end
 
-
+Laplacian(d::BivariateDomain,k::Integer) = Laplacian(Space(d),k)
 grad(d::ProductDomain) = [Derivative(d,[1,0]),Derivative(d,[0,1])]
 
 
+function tensor_Dirichlet(d::Union{ProductDomain,TensorSpace},k)
+    @assert nfactors(d)==2
 
-for op in (:dirichlet,:neumann,:diffbcs)
-    @eval begin
-        function $op(d::Union{ProductDomain,TensorSpace},k...)
-            @assert length(d)==2
-            Bx=$op(d[1],k...)
-            By=$op(d[2],k...)
-            if isempty(Bx)
-                I⊗By
-            elseif isempty(By)
-                Bx⊗I
-            else
-                [Bx⊗I;I⊗By]
-            end
-        end
-    end
+    DirichletWrapper(
+        if isempty(∂(factor(d,1)))
+            I ⊗ Dirichlet(factor(d,2),k)
+        elseif isempty(∂(factor(d,2)))
+            Dirichlet(factor(d,1),k) ⊗ I
+        else
+            [Dirichlet(factor(d,1),k) ⊗ I;I ⊗ Dirichlet(factor(d,2),k)]
+        end, k)
 end
+
+Dirichlet(d::Union{ProductDomain,TensorSpace},k) = tensor_Dirichlet(d,k)
 
 
 function timedirichlet(d::Union{ProductDomain,TensorSpace})
-    @assert length(d.domains)==2
-    Bx=dirichlet(d.domains[1])
-    Bt=dirichlet(d.domains[2])[1]
+    @assert nfactors(d)==2
+    Bx=Dirichlet(factor(d,1))
+    Bt=ldirichlet(factor(d,2))
     [I⊗Bt;Bx⊗I]
 end
 
@@ -54,7 +52,7 @@ end
 
 function *(B::Operator,f::ProductFun)
     if isafunctional(B)
-        Fun(space(f,2),map(c->Number(B*c),f.coefficients))
+        Fun(factor(space(f),2),map(c->Number(B*c),f.coefficients))
     else
         ProductFun(space(f),map(c->B*c,f.coefficients))
     end

@@ -21,7 +21,7 @@ end
 
 # default copy is to loop through
 # override this for most operators.
-function default_raggedmatrix(S::Operator)
+function default_RaggedMatrix(S::Operator)
     data=Array{eltype(S)}(0)
     cols=Array{Int}(size(S,2)+1)
     cols[1]=1
@@ -37,6 +37,15 @@ function default_raggedmatrix(S::Operator)
     end
 
     RaggedMatrix(data,cols,size(S,1))
+end
+
+function default_Matrix(S::Operator)
+    n, m = size(S)
+    if isinf(n) || isinf(m)
+        error("Cannot convert $S to a Matrix")
+    end
+
+    eltype(S)[S[k,j] for k=1:n, j=1:m]
 end
 
 
@@ -61,8 +70,8 @@ diagindrow(S::SubOperator) = diagindrow(S,parentindexes(S)[1],parentindexes(S)[2
 # Conversions
 #####
 
-function Base.convert{T,DD}(::Type{BandedMatrix},
-                        S::SubOperator{T,ConcreteConversion{Chebyshev{DD},Ultraspherical{Int,DD},T},
+function convert{T,DD,RR}(::Type{BandedMatrix},
+                        S::SubOperator{T,ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR},T},
                                        Tuple{UnitRange{Int},UnitRange{Int}}})
     # we can assume order is 1
     ret = BandedMatrix(eltype(S),size(S,1),size(S,2),bandwidth(S,1),bandwidth(S,2))
@@ -83,7 +92,7 @@ function Base.convert{T,DD}(::Type{BandedMatrix},
     ret
 end
 
-function Base.convert{T,LT,DD}(::Type{BandedMatrix},S::SubOperator{T,ConcreteConversion{Ultraspherical{LT,DD},Ultraspherical{LT,DD},T},
+function convert{T,LT,DD,RR}(::Type{BandedMatrix},S::SubOperator{T,ConcreteConversion{Ultraspherical{LT,DD,RR},Ultraspherical{LT,DD,RR},T},
                                                                               Tuple{UnitRange{Int},UnitRange{Int}}})
 
     n,m = size(S)
@@ -113,7 +122,7 @@ end
 
 
 
-function Base.convert{T,K,DD}(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Chebyshev{DD},K,T},
+function convert{T,K,DD,RR}(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Chebyshev{DD,RR},K,T},
                                                                 Tuple{UnitRange{Int},UnitRange{Int}}})
 
     n,m = size(S)
@@ -135,7 +144,7 @@ function Base.convert{T,K,DD}(::Type{BandedMatrix},S::SubOperator{T,ConcreteDeri
 end
 
 
-function Base.convert{T,K,DD,LT}(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Ultraspherical{LT,DD},K,T},
+function convert{T,K,DD,RR,LT}(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Ultraspherical{LT,DD,RR},K,T},
                                                                 Tuple{UnitRange{Int},UnitRange{Int}}})
     n,m = size(S)
     ret = BandedMatrix(eltype(S),n,m,bandwidth(S,1),bandwidth(S,2))

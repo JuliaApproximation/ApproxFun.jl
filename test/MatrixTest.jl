@@ -18,6 +18,11 @@ A=ApproxFun.bbbrand(Float64,1,1,1,1,1:10,1:10)
 B=ApproxFun.bbbrand(Float64,1,1,1,1,1:10,1:10)
 @test A*B ≈ full(A)*full(B)
 
+
+@test ApproxFun.BandedBlockBandedMatrix{Float64}(A) === A
+@test full(ApproxFun.BandedBlockBandedMatrix{Complex128}(A)) ==
+    Matrix{Complex128}(full(A))
+
 # Tests bug in Complex
 ret=ApproxFun.bbbzeros(Float64,0,4,0,4,[1,2,2],[1,2,2])
 view(ret,Block(3),Block(3))[1,1]=2.0
@@ -45,6 +50,15 @@ cols=Int[rand(1:k+2) for k=1:size(B,1)]
 A=ApproxFun.rrand(Float64,maximum(cols),cols)
 @test full(A)*full(B) ≈ full(A*B)
 
+@test ApproxFun.RaggedMatrix(B) === B
+@test ApproxFun.RaggedMatrix{Float64}(B) === B
+@test full(ApproxFun.RaggedMatrix{Complex128}(B)) == Matrix{Complex128}(full(B))
+
+B = ApproxFun.brand(10,10,2,3)
+@test full(B) == full(ApproxFun.RaggedMatrix(B))
+@test ApproxFun.RaggedMatrix(B) == ApproxFun.RaggedMatrix{Float64}(B)
+@test ApproxFun.RaggedMatrix(ApproxFun.BandedMatrix{Complex128}(B)) == ApproxFun.RaggedMatrix{Complex128}(B)
+
 
 ## BlockBandedMatrix
 N=10
@@ -55,6 +69,10 @@ A[1,1]=2
 A[10,10]=2
 @test A[10,10] == 2
 
+
+@test ApproxFun.BlockBandedMatrix{Float64}(A) === A
+@test full(ApproxFun.BlockBandedMatrix{Complex128}(A)) ==
+    Matrix{Complex128}(full(A))
 
 N=10
 A=ApproxFun.bbrand(Float64,1,1,1:N,1:N)
@@ -110,3 +128,11 @@ A=ApproxFun.bbones(Float64,1,1,1:N,1:N)
 
 @test view(view(A,Block(3),Block(4)),2:3,:) == ones(2,4)
 @test view(view(A,Block(3),Block(4)),:,2:3) == ones(3,2)
+
+
+## diagonal
+
+D = ApproxFun.brand(Float64,10,10,0,0)
+
+@test ApproxFun.BlockBandedMatrix(D).cols == ones(10)
+@test ApproxFun.BlockBandedMatrix{Complex128}(D).cols == ones(10)

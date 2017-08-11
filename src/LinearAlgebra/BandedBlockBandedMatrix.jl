@@ -38,26 +38,35 @@ for FUNC in (:zeros,:rand,:ones)
     end
 end
 
-function Base.convert(::Type{BandedBlockBandedMatrix},Y::AbstractMatrix)
+convert(::Type{BandedBlockBandedMatrix{T,RI,CI}},Y::BandedBlockBandedMatrix{T,RI,CI}) where {T,RI,CI} = Y
+convert(::Type{BandedBlockBandedMatrix{T}},Y::BandedBlockBandedMatrix{T}) where T = Y
+
+
+function convert(::Type{BandedBlockBandedMatrix{T}},Y::AbstractMatrix) where T
     if !isbandedblockbanded(Y)
         error("$(typeof(Y)) is not banded block banded")
     end
-    ret = bbbzeros(eltype(Y),blockbandwidth(Y,1),blockbandwidth(Y,2),
+    ret = bbbzeros(T,blockbandwidth(Y,1),blockbandwidth(Y,2),
                         subblockbandwidth(Y,1),subblockbandwidth(Y,2),
                         rowblocklengths(Y),colblocklengths(Y))
-    BLAS.axpy!(one(eltype(Y)),Y,ret)
+    BLAS.axpy!(one(T),Y,ret)
 end
 
+convert(::Type{BandedBlockBandedMatrix},Y::AbstractMatrix) =
+    BandedBlockBandedMatrix{eltype(Y)}(Y)
 
-function BandedMatrix(B::BandedBlockBandedMatrix)
+
+function convert(::Type{BandedMatrix{T}},B::BandedBlockBandedMatrix) where T
     if length(B.rows) == length(B.cols) == 1
-        BandedMatrix(view(B,Block(1),Block(1)))
+        BandedMatrix{T}(view(B,Block(1),Block(1)))
     elseif all(x->x==1,B.rows) && all(x->x==1,B.cols)
-        BandedMatrix(B.data,length(B.rows),B.l,B.u)
+        BandedMatrix{T}(B.data,length(B.rows),B.l,B.u)
     else
         error("$B is not a banded matrix")
     end
 end
+
+convert(::Type{BandedMatrix},B::BandedBlockBandedMatrix) = BandedMatrix{eltype(B)}(B)
 
 isbandedblockbanded(::) = false
 isbandedblockbanded(::BandedBlockBandedMatrix) = true
@@ -69,10 +78,10 @@ Base.isdiag(A::BandedBlockBandedMatrix) = A.λ == A.μ == A.l == A.u
 zeroblock(X::BandedBlockBandedMatrix,K::Block,J::Block) = bzeros(eltype(X),X.rows[K.K],X.cols[J.K],X.λ,X.μ)
 
 
-@compat const BandedBlockBandedBlock{T,U,V} = SubArray{T,2,BandedBlockBandedMatrix{T,U,V},Tuple{Block,Block},false}
-@compat const BandedBlockBandedSubBlock{T,U,V} = SubArray{T,2,BandedBlockBandedMatrix{T,U,V},Tuple{SubBlock{UnitRange{Int}},SubBlock{UnitRange{Int}}},false}
-@compat const SubBandedBlockBandedRange{T,BBM<:BandedBlockBandedMatrix} = SubArray{T,2,BBM,Tuple{UnitRange{Block},UnitRange{Block}},false}
-@compat const BLASBandedMatrix2{T,A,I} = Union{BandedBlockBandedBlock{T,A,I},BandedMatrices.BLASBandedMatrix{T}}
+const BandedBlockBandedBlock{T,U,V} = SubArray{T,2,BandedBlockBandedMatrix{T,U,V},Tuple{Block,Block},false}
+const BandedBlockBandedSubBlock{T,U,V} = SubArray{T,2,BandedBlockBandedMatrix{T,U,V},Tuple{SubBlock{UnitRange{Int}},SubBlock{UnitRange{Int}}},false}
+const SubBandedBlockBandedRange{T,BBM<:BandedBlockBandedMatrix} = SubArray{T,2,BBM,Tuple{UnitRange{Block},UnitRange{Block}},false}
+const BLASBandedMatrix2{T,A,I} = Union{BandedBlockBandedBlock{T,A,I},BandedMatrices.BLASBandedMatrix{T}}
 
 isbandedblockbanded(::SubBandedBlockBandedRange) = true
 isbandedblockbanded{T,BBM<:BandedBlockBandedMatrix}(::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}},false}) = true
@@ -197,13 +206,13 @@ getindex(A::BandedBlockBandedMatrix,kr::UnitRange{Int},jr::UnitRange{Int}) =
 
 
 BLAS.axpy!{T,U,V,T2,U2,V2}(α,A::BandedBlockBandedBlock{T,U,V},B::BandedBlockBandedBlock{T2,U2,V2}) =
-    BandedMatrices.banded_axpy!(α,A,B)
+    BandedMatrices.banded_generic_axpy!(α,A,B)
 
 BLAS.axpy!{T,U,V,T2,U2,V2}(α,A::BandedBlockBandedSubBlock{T,U,V},B::BandedBlockBandedBlock{T2,U2,V2}) =
-    BandedMatrices.banded_axpy!(α,A,B)
+    BandedMatrices.banded_generic_axpy!(α,A,B)
 
 BLAS.axpy!{T,U,V,T2,U2,V2}(α,A::BandedBlockBandedSubBlock{T,U,V},B::BandedBlockBandedSubBlock{T2,U2,V2}) =
-    BandedMatrices.banded_axpy!(α,A,B)
+    BandedMatrices.banded_generic_axpy!(α,A,B)
 
 
 BLAS.axpy!{T,U,V}(α,A::BandedBlockBandedBlock{T,U,V},B::SubBandedBlockSubBlock) =
@@ -221,7 +230,7 @@ Base.BLAS.axpy!(α,A::SubBandedBlockRange,Y::SubBandedBlockBandedRange) = block_
 
 ## Convert routines
 
-function Base.convert{T,U,V}(::Type{BandedMatrix{T}},S::BandedBlockBandedBlock{T,U,V})
+function convert{T,U,V}(::Type{BandedMatrix{T}},S::BandedBlockBandedBlock{T,U,V})
     A = parent(S)
     K = parentindexes(S)[1]
     col = S.offset1 # first col of current block
@@ -307,7 +316,7 @@ end
 
 
 
-Base.convert(::Type{BandedBlockBandedMatrix},B::BandedMatrix) =
+convert(::Type{BandedBlockBandedMatrix},B::BandedMatrix) =
     if isdiag(B)
         BandedBlockBandedMatrix(copy(B.data),0,0,0,0,ones(Int,size(B,1)),ones(Int,size(B,2)))
     else

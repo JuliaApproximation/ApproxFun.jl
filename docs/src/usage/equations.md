@@ -85,6 +85,17 @@ julia> u(0.1)
 ```
 Note in this case the space is inferred from the variable coefficient `x`.
 
+This ODE can also be solved using the `Dirichlet` operator:
+```jldoctest
+julia> x = Fun();
+
+julia> u = [Dirichlet();
+            1/70*𝒟^2-x*𝒟+I] \ [[1,2],0];
+
+julia> u(0.1)
+0.04999999999996019
+```
+
 
 ## Systems of equations
 

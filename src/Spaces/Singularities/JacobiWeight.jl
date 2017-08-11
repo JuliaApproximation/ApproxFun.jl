@@ -12,34 +12,39 @@ weights a space `s` by a Jacobi weight, which on `-1..1`
 is `(1+x)^β*(1-x)^α`.
 For other domains, the weight is inferred by mapping to `-1..1`.
 """
-immutable JacobiWeight{S,DD} <: WeightSpace{S,RealBasis,DD,1}
+#TODO: support general types for paramaters
+struct JacobiWeight{S,DD,RR} <: WeightSpace{S,DD,RR}
     β::Float64
     α::Float64
     space::S
-    function (::Type{JacobiWeight{S,DD}}){S,DD}(β::Float64,α::Float64,space::S)
+    function JacobiWeight{S,DD,RR}(β::Float64,α::Float64,space::S) where {S,DD,RR}
         if isa(space,JacobiWeight)
-            new{S,DD}(β+space.β,α+space.α,space.space) else
-            new{S,DD}(β,α,space)
+            new(β+space.β,α+space.α,space.space) else
+            new(β,α,space)
         end
     end
 end
 
-JacobiWeight(a::Number,b::Number,d::RealUnivariateSpace) = JacobiWeight{typeof(d),typeof(domain(d))}(Float64(a),Float64(b),d)
+JacobiWeight(a::Number,b::Number,d::Space) =
+    JacobiWeight{typeof(d),domaintype(d),rangetype(d)}(Float64(a),Float64(b),d)
 JacobiWeight(β::Number,α::Number,d::JacobiWeight) =  JacobiWeight(β+d.β,α+d.α,d.space)
 JacobiWeight(a::Number,b::Number,d::IntervalDomain) = JacobiWeight(Float64(a),Float64(b),Space(d))
 JacobiWeight(a::Number,b::Number,d) = JacobiWeight(Float64(a),Float64(b),Space(d))
 JacobiWeight(a::Number,b::Number) = JacobiWeight(a,b,Chebyshev())
 
-JacobiWeight(a::Number,b::Number,s::PiecewiseSpace) = PiecewiseSpace(JacobiWeight(a,b,vec(s)))
+JacobiWeight(a::Number,b::Number,s::PiecewiseSpace) = PiecewiseSpace(JacobiWeight(a,b,components(s)))
 
 identity_fun(S::JacobiWeight)=isapproxinteger(S.β)&&isapproxinteger(S.α)?Fun(x->x,S):Fun(identity,domain(S))
 
-order{T,D}(S::JacobiWeight{Ultraspherical{Int,T},D}) = order(S.space)
+order{D,R}(S::JacobiWeight{Ultraspherical{Int,D,R},D,R}) = order(S.space)
 
 
-spacescompatible(A::JacobiWeight,B::JacobiWeight)= A.β ≈ B.β && A.α ≈ B.α && spacescompatible(A.space,B.space)
-spacescompatible{DD<:IntervalDomain}(A::JacobiWeight,B::RealUnivariateSpace{DD})=spacescompatible(A,JacobiWeight(0,0,B))
-spacescompatible{DD<:IntervalDomain}(B::RealUnivariateSpace{DD},A::JacobiWeight)=spacescompatible(A,JacobiWeight(0,0,B))
+spacescompatible(A::JacobiWeight,B::JacobiWeight) =
+    A.β ≈ B.β && A.α ≈ B.α && spacescompatible(A.space,B.space)
+spacescompatible{DD<:IntervalDomain,RR<:Real}(A::JacobiWeight,B::Space{DD,RR}) =
+    spacescompatible(A,JacobiWeight(0,0,B))
+spacescompatible{DD<:IntervalDomain,RR<:Real}(B::Space{DD,RR},A::JacobiWeight) =
+    spacescompatible(A,JacobiWeight(0,0,B))
 
 transformtimes{JW1<:JacobiWeight,JW2<:JacobiWeight}(f::Fun{JW1},g::Fun{JW2})=
             Fun(JacobiWeight(f.space.β+g.space.β,f.space.α+g.space.α,f.space.space),
@@ -67,7 +72,7 @@ setdomain(sp::JacobiWeight,d::Domain)=JacobiWeight(sp.β,sp.α,setdomain(sp.spac
 
 
 ##TODO: paradigm for same space
-function coefficients{SJ1,SJ2,DD<:IntervalDomain}(f::Vector,sp1::JacobiWeight{SJ1,DD},sp2::JacobiWeight{SJ2,DD})
+function coefficients{SJ1,SJ2,DD<:IntervalDomain}(f::AbstractVector,sp1::JacobiWeight{SJ1,DD},sp2::JacobiWeight{SJ2,DD})
     β,α=sp1.β,sp1.α
     c,d=sp2.β,sp2.α
 
@@ -79,22 +84,21 @@ function coefficients{SJ1,SJ2,DD<:IntervalDomain}(f::Vector,sp1::JacobiWeight{SJ
         defaultcoefficients(f,sp1,sp2)
     end
 end
-coefficients{SJ,S,IT,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},
-                                         S2::SubSpace{S,IT,RealBasis,DD,1}) = subspace_coefficients(f,sp,S2)
-coefficients{SJ,S,IT,DD<:IntervalDomain}(f::Vector,
-                                         S2::SubSpace{S,IT,RealBasis,DD,1},
-                                         sp::JacobiWeight{SJ,DD}) = subspace_coefficients(f,S2,sp)
+coefficients(f::AbstractVector,sp::JacobiWeight{SJ,DD},
+             S2::SubSpace{S,IT,DD,RR}) where {SJ,S,IT,DD<:IntervalDomain,RR<:Real} = subspace_coefficients(f,sp,S2)
+coefficients(f::AbstractVector,S2::SubSpace{S,IT,DD,RR},
+             sp::JacobiWeight{SJ,DD}) where {SJ,S,IT,DD<:IntervalDomain,RR<:Real} = subspace_coefficients(f,S2,sp)
 #TODO: it could be possible that we want to JacobiWeight a SumSpace....
-coefficients{SJ,SV,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},S2::SumSpace{SV,RealBasis,DD,1}) =
+coefficients(f::AbstractVector,sp::JacobiWeight{SJ,DD},S2::SumSpace{SV,DD,RR}) where {SJ,SV,DD<:IntervalDomain,RR<:Real} =
     sumspacecoefficients(f,sp,S2)
-coefficients{SJ,TT,SV,TTT,DD}(f::Vector,sp::JacobiWeight{SJ,Segment{Vec{2,TT}}},S2::TensorSpace{SV,TTT,DD,2}) =
+coefficients(f::AbstractVector,sp::JacobiWeight{SJ,Segment{Vec{2,TT}}},S2::TensorSpace{SV,TTT,DD}) where {SJ,TT,SV,TTT,DD<:BivariateDomain} =
     coefficients(f,sp,JacobiWeight(0,0,S2))
 
-coefficients{SJ,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},S2::RealUnivariateSpace{DD}) =
+coefficients{SJ,DD<:IntervalDomain,RR<:Real}(f::AbstractVector,sp::JacobiWeight{SJ,DD},S2::Space{DD,RR}) =
     coefficients(f,sp,JacobiWeight(0,0,S2))
-coefficients{SJ,DD<:IntervalDomain}(f::Vector,sp::ConstantSpace{DD},ts::JacobiWeight{SJ,DD}) =
+coefficients{SJ,DD<:IntervalDomain}(f::AbstractVector,sp::ConstantSpace{DD},ts::JacobiWeight{SJ,DD}) =
     f.coefficients[1]*ones(ts).coefficients
-coefficients{SJ,DD<:IntervalDomain}(f::Vector,S2::RealUnivariateSpace{DD},sp::JacobiWeight{SJ,DD}) =
+coefficients{SJ,DD<:IntervalDomain,RR<:Real}(f::AbstractVector,S2::Space{DD,RR},sp::JacobiWeight{SJ,DD}) =
     coefficients(f,JacobiWeight(0,0,S2),sp)
 
 
@@ -161,7 +165,7 @@ end
 
 # O(min(m,n)) Ultraspherical conjugated inner product
 
-function conjugatedinnerproduct{S,V}(sp::Ultraspherical,u::Vector{S},v::Vector{V})
+function conjugatedinnerproduct{S,V}(sp::Ultraspherical,u::AbstractVector{S},v::AbstractVector{V})
     λ=order(sp)
     if λ==1
         mn = min(length(u),length(v))
@@ -189,7 +193,7 @@ function conjugatedinnerproduct{S,V}(sp::Ultraspherical,u::Vector{S},v::Vector{V
     end
 end
 
-function conjugatedinnerproduct(::Chebyshev,u::Vector,v::Vector)
+function conjugatedinnerproduct(::Chebyshev,u::AbstractVector,v::AbstractVector)
     mn = min(length(u),length(v))
     if mn > 1
         return (2u[1]*v[1]+dotu(u[2:mn],v[2:mn]))*π/2
@@ -201,7 +205,7 @@ function conjugatedinnerproduct(::Chebyshev,u::Vector,v::Vector)
 end
 
 
-function bilinearform{LT,D}(f::Fun{JacobiWeight{Ultraspherical{LT,D},D}},g::Fun{Ultraspherical{LT,D}})
+function bilinearform{LT,D,R}(f::Fun{JacobiWeight{Ultraspherical{LT,D,R},D,R}},g::Fun{Ultraspherical{LT,D,R}})
     d = domain(f)
     @assert d == domain(g)
     λ = order(space(f).space)
@@ -212,8 +216,8 @@ function bilinearform{LT,D}(f::Fun{JacobiWeight{Ultraspherical{LT,D},D}},g::Fun{
     end
 end
 
-function bilinearform{LT,D}(f::Fun{Ultraspherical{LT,D}},
-                            g::Fun{JacobiWeight{Ultraspherical{LT,D},D}})
+function bilinearform{LT,D,R}(f::Fun{Ultraspherical{LT,D,R}},
+                            g::Fun{JacobiWeight{Ultraspherical{LT,D,R},D,R}})
     d = domain(f)
     @assert d == domain(g)
     λ = order(space(f))
@@ -224,8 +228,8 @@ function bilinearform{LT,D}(f::Fun{Ultraspherical{LT,D}},
     end
 end
 
-function bilinearform{LT,D}(f::Fun{JacobiWeight{Ultraspherical{LT,D},D}},
-                            g::Fun{JacobiWeight{Ultraspherical{LT,D},D}})
+function bilinearform{LT,D,R}(f::Fun{JacobiWeight{Ultraspherical{LT,D,R},D,R}},
+                            g::Fun{JacobiWeight{Ultraspherical{LT,D,R},D,R}})
     d = domain(f)
     @assert d == domain(g)
     λ = order(space(f).space)
@@ -236,7 +240,7 @@ function bilinearform{LT,D}(f::Fun{JacobiWeight{Ultraspherical{LT,D},D}},
     end
 end
 
-function linebilinearform{LT,D}(f::Fun{JacobiWeight{Ultraspherical{LT,D},D}},g::Fun{Ultraspherical{LT,D}})
+function linebilinearform{LT,D,R}(f::Fun{JacobiWeight{Ultraspherical{LT,D,R},D,R}},g::Fun{Ultraspherical{LT,D,R}})
     d = domain(f)
     @assert d == domain(g)
     λ = order(space(f).space)
@@ -247,7 +251,7 @@ function linebilinearform{LT,D}(f::Fun{JacobiWeight{Ultraspherical{LT,D},D}},g::
     end
 end
 
-function linebilinearform{LT,D}(f::Fun{Ultraspherical{LT,D}},g::Fun{JacobiWeight{Ultraspherical{LT,D},D}})
+function linebilinearform{LT,D,R}(f::Fun{Ultraspherical{LT,D,R}},g::Fun{JacobiWeight{Ultraspherical{LT,D,R},D,R}})
     d = domain(f)
     @assert d == domain(g)
     λ = order(space(f))
@@ -258,7 +262,7 @@ function linebilinearform{LT,D}(f::Fun{Ultraspherical{LT,D}},g::Fun{JacobiWeight
     end
 end
 
-function linebilinearform{LT,D}(f::Fun{JacobiWeight{Ultraspherical{LT,D},D}},g::Fun{JacobiWeight{Ultraspherical{LT,D},D}})
+function linebilinearform{LT,D,R}(f::Fun{JacobiWeight{Ultraspherical{LT,D,R},D,R}},g::Fun{JacobiWeight{Ultraspherical{LT,D,R},D,R}})
     d = domain(f)
     @assert d == domain(g)
     λ = order(space(f).space)

@@ -4,11 +4,14 @@ doc"""
 `Jacobi(b,a)` represents the space spanned by Jacobi polynomials `P_k^{(a,b)}`,
 which are orthogonal with respect to the weight `(1+x)^β*(1-x)^α`
 """
-immutable Jacobi{T,D<:Domain} <: PolynomialSpace{D}
-    b::T
-    a::T
+struct Jacobi{D<:Domain,R} <: PolynomialSpace{D,R}
+    b::R
+    a::R
     domain::D
+    Jacobi{D,R}(b,a,d) where {D,R} = new{D,R}(b,a,d)
 end
+Jacobi(b::T,a::T,d::Domain) where {T} =
+    Jacobi{typeof(d),promote_type(T,real(prectype(d)))}(b,a,d)
 Legendre(domain) = Jacobi(0.,0.,domain)
 Legendre() = Legendre(Segment())
 Jacobi(b,a,d::Domain) = Jacobi(promote(b,a)...,d)
@@ -25,10 +28,12 @@ function Ultraspherical(J::Jacobi)
     end
 end
 
-Base.promote_rule{T,V,D}(::Type{Jacobi{T,D}},::Type{Jacobi{V,D}}) = Jacobi{promote_type(T,V),D}
-Base.convert{T,V,D}(::Type{Jacobi{T,D}},J::Jacobi{V,D}) = Jacobi{T,D}(J.b,J.a,J.domain)
+Base.promote_rule{D,R1,R2}(::Type{Jacobi{D,R1}},::Type{Jacobi{D,R2}}) =
+    Jacobi{D,promote_type(R1,R2)}
+convert{D,R1,R2}(::Type{Jacobi{D,R1}},J::Jacobi{D,R2}) =
+    Jacobi{D,R1}(J.b,J.a,J.domain)
 
-@compat const WeightedJacobi{T,D} = JacobiWeight{Jacobi{T,D},D}
+const WeightedJacobi{D,R} = JacobiWeight{Jacobi{D,R},D,R}
 
 (::Type{WeightedJacobi})(β,α,d::Domain) = JacobiWeight(β,α,Jacobi(β,α,d))
 (::Type{WeightedJacobi})(β,α) = JacobiWeight(β,α,Jacobi(β,α))
@@ -72,24 +77,6 @@ for (REC,JREC) in ((:recα,:jacobirecα),(:recβ,:jacobirecβ),(:recγ,:jacobire
 end
 
 
-function jacobip(r::Range,α,β,x)
-    n=r[end]+1
-    if n<=2
-        v=[1.,.5*(α-β+(2+α+β)*x)]
-    else
-        T=promote_type(Float64,typeof(x))
-        v=Vector{T}(n)  # x may be complex
-        v[1]=1.
-        v[2]=.5*(α-β+(2+α+β)*x)
-
-        @inbounds for k=2:n-1
-            v[k+1]=((x-jacobirecα(T,α,β,k))*v[k] - jacobirecγ(T,α,β,k)*v[k-1])/jacobirecβ(T,α,β,k)
-        end
-    end
-    v[r+1]
-end
-
-
 function jacobip{T}(::Type{T},r::Range,α,β,x::Number)
     if x==1 && α==0
         ones(T,length(r))
@@ -118,10 +105,6 @@ jacobip(r::Range,α,β,x::Number) = jacobip(promote_type(typeof(α),typeof(β),t
 
 jacobip{T}(::Type{T},n::Integer,α,β,v) = jacobip(T,n:n,α,β,v)[1]
 jacobip(n::Integer,α,β,v) = jacobip(n:n,α,β,v)[1]
-jacobip{T}(::Type{T},n::Range,α,β,v::Vector) = transpose(hcat(map(x->jacobip(T,n,α,β,x),v)...))
-jacobip(n::Range,α,β,v::Vector) = transpose(hcat(map(x->jacobip(n,α,β,x),v)...))
-jacobip{T}(::Type{T},n::Integer,α,β,v::Vector) = map(x->jacobip(T,n,α,β,x),v)
-jacobip(n::Integer,α,β,v::Vector) = map(x->jacobip(n,α,β,x),v)
 jacobip{T}(::Type{T},n,S::Jacobi,v) = jacobip(T,n,S.a,S.b,v)
 jacobip(n,S::Jacobi,v) = jacobip(n,S.a,S.b,v)
 
@@ -154,7 +137,7 @@ setdomain(S::Jacobi,d::Domain)=Jacobi(S.b,S.a,d)
 
 # O(min(m,n)) Jacobi conjugated inner product
 
-function conjugatedinnerproduct{S,V}(sp::Jacobi,u::Vector{S},v::Vector{V})
+function conjugatedinnerproduct{S,V}(sp::Jacobi,u::AbstractVector{S},v::AbstractVector{V})
     T,mn = promote_type(S,V),min(length(u),length(v))
     α,β = sp.a,sp.b
     if mn > 1
@@ -173,7 +156,7 @@ function conjugatedinnerproduct{S,V}(sp::Jacobi,u::Vector{S},v::Vector{V})
     end
 end
 
-function bilinearform{J<:Jacobi}(f::Fun{J},g::Fun{J})
+function bilinearform(f::Fun{J},g::Fun{J}) where {J<:Jacobi}
     @assert domain(f) == domain(g)
     if f.space.a == g.space.a == 0. && f.space.b == g.space.b == 0.
         return complexlength(domain(f))/2*conjugatedinnerproduct(g.space,f.coefficients,g.coefficients)
@@ -182,7 +165,7 @@ function bilinearform{J<:Jacobi}(f::Fun{J},g::Fun{J})
     end
 end
 
-function bilinearform{J<:Jacobi,DD<:Segment}(f::Fun{JacobiWeight{J,DD}},g::Fun{J})
+function bilinearform(f::Fun{JacobiWeight{J,DD,RR}},g::Fun{J}) where {J<:Jacobi,DD<:Segment,RR}
     @assert domain(f) == domain(g)
     if f.space.β == f.space.space.a == g.space.a && f.space.α == f.space.space.b == g.space.b
         return complexlength(domain(f))/2*conjugatedinnerproduct(g.space,f.coefficients,g.coefficients)
@@ -191,7 +174,8 @@ function bilinearform{J<:Jacobi,DD<:Segment}(f::Fun{JacobiWeight{J,DD}},g::Fun{J
     end
 end
 
-function bilinearform{J<:Jacobi,DD<:Segment}(f::Fun{J},g::Fun{JacobiWeight{J,DD}})
+function bilinearform(f::Fun{J},
+                      g::Fun{JacobiWeight{J,DD,RR}}) where {J<:Jacobi,DD<:Segment,RR}
     @assert domain(f) == domain(g)
     if g.space.β == g.space.space.a == f.space.a && g.space.α == g.space.space.b == f.space.b
         return complexlength(domain(f))/2*conjugatedinnerproduct(f.space,f.coefficients,g.coefficients)
@@ -200,7 +184,8 @@ function bilinearform{J<:Jacobi,DD<:Segment}(f::Fun{J},g::Fun{JacobiWeight{J,DD}
     end
 end
 
-function bilinearform{J<:Jacobi,DD<:Segment}(f::Fun{JacobiWeight{J,DD}},g::Fun{JacobiWeight{J,DD}})
+function bilinearform(f::Fun{JacobiWeight{J,DD,RR}},
+                      g::Fun{JacobiWeight{J,DD,RR}}) where {J<:Jacobi,DD<:Segment,RR}
     @assert domain(f) == domain(g)
     if f.space.β + g.space.β == f.space.space.a == g.space.space.a && f.space.α + g.space.α == f.space.space.b == g.space.space.b
         return complexlength(domain(f))/2*conjugatedinnerproduct(f.space.space,f.coefficients,g.coefficients)
@@ -209,7 +194,7 @@ function bilinearform{J<:Jacobi,DD<:Segment}(f::Fun{JacobiWeight{J,DD}},g::Fun{J
     end
 end
 
-function linebilinearform{J<:Jacobi}(f::Fun{J},g::Fun{J})
+function linebilinearform(f::Fun{J},g::Fun{J}) where {J<:Jacobi}
     @assert domain(f) == domain(g)
     if f.space.a == g.space.a == 0. && f.space.b == g.space.b == 0.
         return arclength(domain(f))/2*conjugatedinnerproduct(g.space,f.coefficients,g.coefficients)
@@ -218,7 +203,7 @@ function linebilinearform{J<:Jacobi}(f::Fun{J},g::Fun{J})
     end
 end
 
-function linebilinearform{J<:Jacobi,DD<:Segment}(f::Fun{JacobiWeight{J,DD}},g::Fun{J})
+function linebilinearform(f::Fun{JacobiWeight{J,DD,RR}},g::Fun{J}) where {J<:Jacobi,DD<:Segment,RR}
     @assert domain(f) == domain(g)
     if f.space.β == f.space.space.a == g.space.a && f.space.α == f.space.space.b == g.space.b
         return arclength(domain(f))/2*conjugatedinnerproduct(g.space,f.coefficients,g.coefficients)
@@ -227,7 +212,7 @@ function linebilinearform{J<:Jacobi,DD<:Segment}(f::Fun{JacobiWeight{J,DD}},g::F
     end
 end
 
-function linebilinearform{J<:Jacobi,DD<:Segment}(f::Fun{J},g::Fun{JacobiWeight{J,DD}})
+function linebilinearform(f::Fun{J},g::Fun{JacobiWeight{J,DD,RR}}) where {J<:Jacobi,DD<:Segment,RR}
     @assert domain(f) == domain(g)
     if g.space.β == g.space.space.a == f.space.a && g.space.α == g.space.space.b == f.space.b
         return arclength(domain(f))/2*conjugatedinnerproduct(f.space,f.coefficients,g.coefficients)
@@ -236,7 +221,7 @@ function linebilinearform{J<:Jacobi,DD<:Segment}(f::Fun{J},g::Fun{JacobiWeight{J
     end
 end
 
-function linebilinearform{J<:Jacobi,DD<:Segment}(f::Fun{JacobiWeight{J,DD}},g::Fun{JacobiWeight{J,DD}})
+function linebilinearform(f::Fun{JacobiWeight{J,DD,RR}},g::Fun{JacobiWeight{J,DD,RR}}) where {J<:Jacobi,DD<:Segment,RR}
     @assert domain(f) == domain(g)
     if f.space.β + g.space.β == f.space.space.a == g.space.space.a && f.space.α + g.space.α == f.space.space.b == g.space.space.b
         return arclength(domain(f))/2*conjugatedinnerproduct(f.space.space,f.coefficients,g.coefficients)

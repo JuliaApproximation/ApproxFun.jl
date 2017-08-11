@@ -60,14 +60,14 @@ function Integral{LT,DD<:Segment}(sp::Ultraspherical{LT,DD},m::Integer)
 end
 
 
-rangespace{LT,DD<:Segment}(D::ConcreteDerivative{Ultraspherical{LT,DD}}) =
+rangespace{LT,DD<:Segment,RR}(D::ConcreteDerivative{Ultraspherical{LT,DD,RR}}) =
     Ultraspherical(order(domainspace(D))+D.order,domain(D))
-bandinds{LT,DD<:Segment}(D::ConcreteDerivative{Ultraspherical{LT,DD}}) = D.order,D.order
-bandinds{LT,DD<:Segment}(D::ConcreteIntegral{Ultraspherical{LT,DD}}) = -D.order,-D.order
-Base.stride{LT,DD<:Segment}(D::ConcreteDerivative{Ultraspherical{LT,DD}}) = D.order
+bandinds{LT,DD<:Segment,RR}(D::ConcreteDerivative{Ultraspherical{LT,DD,RR}}) = D.order,D.order
+bandinds{LT,DD<:Segment,RR}(D::ConcreteIntegral{Ultraspherical{LT,DD,RR}}) = -D.order,-D.order
+Base.stride{LT,DD<:Segment,RR}(D::ConcreteDerivative{Ultraspherical{LT,DD,RR}}) = D.order
 
 
-function getindex{TT,DD<:Segment,K,T}(D::ConcreteDerivative{Ultraspherical{TT,DD},K,T},
+function getindex{TT,DD<:Segment,RR,K,T}(D::ConcreteDerivative{Ultraspherical{TT,DD,RR},K,T},
                                       k::Integer,j::Integer)
     m=D.order
     d=domain(D)
@@ -83,17 +83,17 @@ end
 
 ## Integral
 
-linesum{LT,DD<:Segment}(f::Fun{Ultraspherical{LT,DD}}) =
+linesum{LT,DD<:Segment,RR}(f::Fun{Ultraspherical{LT,DD,RR}}) =
     sum(setcanonicaldomain(f))*arclength(d)/2
 
 
 
 
 
-rangespace{LT,DD<:Segment}(D::ConcreteIntegral{Ultraspherical{LT,DD}}) =
+rangespace{LT,DD<:Segment,RR}(D::ConcreteIntegral{Ultraspherical{LT,DD,RR}}) =
     order(domainspace(D)) == 1 ? Chebyshev() : Ultraspherical(order(domainspace(D))-D.order,domain(D))
 
-function getindex{LT,DD<:Segment}(Q::ConcreteIntegral{Ultraspherical{LT,DD}},k::Integer,j::Integer)
+function getindex{LT,DD<:Segment,RR}(Q::ConcreteIntegral{Ultraspherical{LT,DD,RR}},k::Integer,j::Integer)
     T=eltype(Q)
     m=Q.order
     d=domain(Q)
@@ -156,7 +156,7 @@ end
 maxspace_rule(A::Ultraspherical,B::Ultraspherical) = order(A) > order(B) ? A : B
 
 
-function getindex{DD,C<:Chebyshev,T}(M::ConcreteConversion{C,Ultraspherical{Int,DD},T},
+function getindex{DD,RR,C<:Chebyshev,T}(M::ConcreteConversion{C,Ultraspherical{Int,DD,RR},T},
                                      k::Integer,j::Integer)
    # order must be 1
     if k==j==1
@@ -171,7 +171,7 @@ function getindex{DD,C<:Chebyshev,T}(M::ConcreteConversion{C,Ultraspherical{Int,
 end
 
 
-function getindex{DD,T}(M::ConcreteConversion{Ultraspherical{Int,DD},Ultraspherical{Int,DD},T},
+function getindex{DD,RR,T}(M::ConcreteConversion{Ultraspherical{Int,DD,RR},Ultraspherical{Int,DD,RR},T},
                             k::Integer,j::Integer)
     #  we can assume that λ==m+1
     λ=order(rangespace(M))
@@ -185,7 +185,7 @@ function getindex{DD,T}(M::ConcreteConversion{Ultraspherical{Int,DD},Ultraspheri
     end
 end
 
-function getindex{LT,DD,T}(M::ConcreteConversion{Ultraspherical{LT,DD},Ultraspherical{LT,DD},T},
+function getindex{LT,DD,RR,T}(M::ConcreteConversion{Ultraspherical{LT,DD,RR},Ultraspherical{LT,DD,RR},T},
                             k::Integer,j::Integer)
     λ=order(rangespace(M))
     if order(domainspace(M))+1==λ
@@ -203,19 +203,19 @@ function getindex{LT,DD,T}(M::ConcreteConversion{Ultraspherical{LT,DD},Ultrasphe
 end
 
 
-bandinds{DD}(C::ConcreteConversion{Chebyshev{DD},Ultraspherical{Int,DD}}) = 0,2  # order == 1
-bandinds{DD}(C::ConcreteConversion{Ultraspherical{Int,DD},Ultraspherical{Int,DD}}) = 0,2
+bandinds{DD,RR}(C::ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR}}) = 0,2  # order == 1
+bandinds{DD,RR}(C::ConcreteConversion{Ultraspherical{Int,DD,RR},Ultraspherical{Int,DD,RR}}) = 0,2
 
-bandinds{LT,DD}(C::ConcreteConversion{Chebyshev{DD},Ultraspherical{LT,DD}}) =
+bandinds{LT,DD,RR}(C::ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{LT,DD,RR}}) =
     0,order(rangespace(C))==1?2:∞
-bandinds{LT,DD}(C::ConcreteConversion{Ultraspherical{LT,DD},Chebyshev{DD}}) =
+bandinds{LT,DD,RR}(C::ConcreteConversion{Ultraspherical{LT,DD,RR},Chebyshev{DD,RR}}) =
     0,order(domainspace(C))==1?2:∞
 
-bandinds{LT1,LT2,DD}(C::ConcreteConversion{Ultraspherical{LT1,DD},Ultraspherical{LT2,DD}}) =
+bandinds{LT1,LT2,DD,RR}(C::ConcreteConversion{Ultraspherical{LT1,DD,RR},Ultraspherical{LT2,DD,RR}}) =
     0,order(domainspace(C))+1==order(rangespace(C))?2:∞
 
-Base.stride{DD}(C::ConcreteConversion{Chebyshev{DD},Ultraspherical{Int,DD}}) = 2
-Base.stride{LT1,LT2,DD}(C::ConcreteConversion{Ultraspherical{LT1,DD},Ultraspherical{LT2,DD}}) = 2
+Base.stride{DD,RR}(C::ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR}}) = 2
+Base.stride{LT1,LT2,DD,RR}(C::ConcreteConversion{Ultraspherical{LT1,DD,RR},Ultraspherical{LT2,DD,RR}}) = 2
 
 
 ## coefficients
@@ -237,7 +237,7 @@ conversion_rule{LT}(a::Ultraspherical{LT},b::Ultraspherical{LT}) =
 
 
 
-function coefficients(g::Vector,sp::Ultraspherical{Int},C::Chebyshev)
+function coefficients(g::AbstractVector,sp::Ultraspherical{Int},C::Chebyshev)
     if order(sp) == 1
         ultraiconversion(g)
     else
@@ -245,7 +245,7 @@ function coefficients(g::Vector,sp::Ultraspherical{Int},C::Chebyshev)
         coefficients(g,sp,Ultraspherical(1,domain(sp)),C)
     end
 end
-function coefficients(g::Vector,C::Chebyshev,sp::Ultraspherical)
+function coefficients(g::AbstractVector,C::Chebyshev,sp::Ultraspherical)
     if order(sp) == 1
         ultraconversion(g)
     else
@@ -265,7 +265,7 @@ Integral{DD<:Segment}(sp::Chebyshev{DD},m::Integer) =
 
 ## Non-banded conversions
 
-function getindex{DD,LT,C<:Chebyshev,T}(M::ConcreteConversion{C,Ultraspherical{LT,DD},T},
+function getindex{DD,RR,LT,C<:Chebyshev,T}(M::ConcreteConversion{C,Ultraspherical{LT,DD,RR},T},
                                      k::Integer,j::Integer)
     λ = order(rangespace(M))
     if λ == 1
@@ -296,7 +296,7 @@ function getindex{DD,LT,C<:Chebyshev,T}(M::ConcreteConversion{C,Ultraspherical{L
 end
 
 
-function getindex{DD,LT,C<:Chebyshev,T}(M::ConcreteConversion{Ultraspherical{LT,DD},C,T},
+function getindex{DD,RR,LT,C<:Chebyshev,T}(M::ConcreteConversion{Ultraspherical{LT,DD,RR},C,T},
                                      k::Integer,j::Integer)
     λ = order(domainspace(M))
     if λ == 1
@@ -325,8 +325,8 @@ end
 
 
 
-function getindex{DD,LT,LT2,T}(M::ConcreteConversion{Ultraspherical{LT,DD},
-                                                     Ultraspherical{LT2,DD},T},
+function getindex{DD,RR,LT,LT2,T}(M::ConcreteConversion{Ultraspherical{LT,DD,RR},
+                                                     Ultraspherical{LT2,DD,RR},T},
                                      k::Integer,j::Integer)
     λ1 = order(domainspace(M))
     λ2 = order(rangespace(M))

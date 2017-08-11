@@ -1,18 +1,18 @@
 export Conversion
 
-@compat abstract type Conversion{T}<:Operator{T} end
+abstract type Conversion{T}<:Operator{T} end
 
-immutable ConcreteConversion{S<:Space,V<:Space,T} <: Conversion{T}
+struct ConcreteConversion{S<:Space,V<:Space,T} <: Conversion{T}
     domainspace::S
     rangespace::V
 end
 
 
 ConcreteConversion(a::Space,b::Space)=ConcreteConversion{typeof(a),typeof(b),
-        promote_type(op_eltype_realdomain(a),op_eltype_realdomain(b))}(a,b)
+        promote_type(rangetype(a),rangetype(b))}(a,b)
 
 
-function Base.convert{T,S,V}(::Type{Operator{T}},C::ConcreteConversion{S,V})
+function convert{T,S,V}(::Type{Operator{T}},C::ConcreteConversion{S,V})
     if T==eltype(C)
         C
     else
@@ -53,7 +53,7 @@ Conversion()=ConversionWrapper(eye(UnsetSpace()))
 # the domain and range space
 # but continue to know its a derivative
 
-immutable ConversionWrapper{S<:Operator,T} <: Conversion{T}
+struct ConversionWrapper{S<:Operator,T} <: Conversion{T}
     op::S
 end
 
@@ -71,7 +71,7 @@ Conversion(A::Space,B::Space,C::Space,D::Space...) =
 ==(A::ConversionWrapper,B::ConversionWrapper) = A.op==B.op
 
 
-function Base.convert{T}(::Type{Operator{T}},D::ConversionWrapper)
+function convert{T}(::Type{Operator{T}},D::ConversionWrapper)
     if T==eltype(D)
         D
     else

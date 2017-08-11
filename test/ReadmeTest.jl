@@ -60,9 +60,9 @@ println("    ODE tests")
 x = Fun(identity,-1000..200)
 d = domain(x)
 D = Derivative(d)
-B = dirichlet(d)
+B = Dirichlet(d)
 L = D^2 - x
-u = [B;L] \ [airyai(d.a);airyai(d.b);0]
+u = [B;L] \ [[airyai(d.a),airyai(d.b)],0]
 
 @test ≈(u(0.),airyai(0.);atol=10000eps())
 

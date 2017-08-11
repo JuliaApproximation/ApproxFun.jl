@@ -1,6 +1,7 @@
 using ApproxFun, Base.Test
     import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, testbandedblockbandedoperator,
-                        testblockbandedoperator, A_ldiv_B_coefficients, A_mul_B_coefficients
+                        testblockbandedoperator, A_ldiv_B_coefficients, A_mul_B_coefficients,
+                        factor
 ## Check operators
 
 ## Rectangle PDEs
@@ -36,7 +37,9 @@ A=[Dirichlet(d);Laplacian(d)]
 
 
 d=Interval()^2
-@time u=\([neumann(d);Laplacian(d)-100.0I],[ones(4);0.];tolerance=1E-12)
+
+# TODO: piecewise space
+@time u=\([Neumann(d);Laplacian(d)-100.0I],[[[1,1],[1,1]],0.];tolerance=1E-12)
 @test u(.1,.9) ≈ 0.03679861429138079
 
 
@@ -64,27 +67,32 @@ L=Dx^4⊗I+2*Dx^2⊗Dy^2+I⊗Dy^4
 
 testbandedblockbandedoperator(L)
 
-A=[dirichlet(dx)⊗eye(dy);
-        eye(dx)⊗dirichlet(dy);
-        neumann(dx)⊗eye(dy);
-        eye(dx)⊗neumann(dy);
+A=[ldirichlet(dx)⊗eye(dy);
+        rdirichlet(dx)⊗eye(dy);
+        eye(dx)⊗ldirichlet(dy);
+        eye(dx)⊗rdirichlet(dy);
+        lneumann(dx)⊗eye(dy);
+        rneumann(dx)⊗eye(dy);
+        eye(dx)⊗lneumann(dy);
+        eye(dx)⊗rneumann(dy);
          L]
 
 
 # Checks bug in constructor
-f=Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]),22)
+f=Fun((x,y)->real(exp(x+1.0im*y)),component(rangespace(A)[1],1),22)
 @test f(-1.,0.1) ≈ real(exp(-1.+0.1im))
-f=Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]))
+f=Fun((x,y)->real(exp(x+1.0im*y)),component(rangespace(A)[1],1))
 @test f(-1.,0.1) ≈ real(exp(-1.+0.1im))
 
-F=[Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
-    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[2]));
-    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[3]));
-    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[4]));
-    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[5]));
-    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[6]));
-    Fun((x,y)->-imag(exp(x+1.0im*y)),rangespace(A[7]));
-    Fun((x,y)->-imag(exp(x+1.0im*y)),rangespace(A[8]));
+
+F=[Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A)[1]);
+    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A)[2]);
+    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A)[3]);
+    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A)[4]);
+    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A)[5]);
+    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A)[6]);
+    Fun((x,y)->-imag(exp(x+1.0im*y)),rangespace(A)[7]);
+    Fun((x,y)->-imag(exp(x+1.0im*y)),rangespace(A)[8]);
     0]
 
 @time u=\(A,F;tolerance=1E-10)
@@ -114,14 +122,14 @@ u=\(A,[ones(8);0];tolerance=1E-5)
 
 
 
-F=[2Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
-    2Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[2]));
-    Fun((x,y)->real(exp(x+1.0im*y))-imag(exp(x+1.0im*y)),rangespace(A[3]));
-    Fun((x,y)->real(exp(x+1.0im*y))-imag(exp(x+1.0im*y)),rangespace(A[4]));
+F=[2Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A)[1]);
+    2Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A)[2]);
+    Fun((x,y)->real(exp(x+1.0im*y))-imag(exp(x+1.0im*y)),rangespace(A)[3]);
+    Fun((x,y)->real(exp(x+1.0im*y))-imag(exp(x+1.0im*y)),rangespace(A)[4]);
     0;
     0;
-    Fun((x,y)->real(exp(x+1.0im*y))+imag(exp(x+1.0im*y)),rangespace(A[7]));
-    Fun((x,y)->real(exp(x+1.0im*y))+imag(exp(x+1.0im*y)),rangespace(A[8]));
+    Fun((x,y)->real(exp(x+1.0im*y))+imag(exp(x+1.0im*y)),rangespace(A)[7]);
+    Fun((x,y)->real(exp(x+1.0im*y))+imag(exp(x+1.0im*y)),rangespace(A)[8]);
     0]
 
 u=\(A,F;tolerance=1E-10)
@@ -218,10 +226,10 @@ d=dx*dy
 g=Fun((x,y)->exp(x)*cos(y),∂(d))
 
 A=[Dirichlet(d);Laplacian(d)]
-let Ai=ApproxFun.interlace(A),co=cache(RaggedMatrix,Ai)
+let co=cache(RaggedMatrix,A)
     ApproxFun.resizedata!(co,:,100)
     ApproxFun.resizedata!(co,:,200)
-    @test norm(Ai[1:200,1:200]-co[1:200,1:200]) == 0
+    @test norm(A[1:200,1:200]-co[1:200,1:200]) == 0
 end
 
 
@@ -237,7 +245,7 @@ u=A\[g,0.]
 # Check resizing
 
 d=Interval()^2
-A=ApproxFun.interlace([Dirichlet(d);Laplacian()+100I])
+A=[Dirichlet(d);Laplacian()+100I]
 QR = qrfact(A)
 @time ApproxFun.resizedata!(QR.R,:,2000)
 @test norm(QR.R.data[1:200,1:200] - A[1:200,1:200]) ==0
@@ -282,6 +290,9 @@ QR1 = qrfact(A)
 
 @test norm((Dirichlet(d)*u-ones(∂(d))).coefficients) < 1E-7
 @test norm((A*u-Fun([ones(∂(d));0.])).coefficients) < 1E-7
+@test norm(((A*u)[2]-(Laplacian(space(u))+100I)*u).coefficients) < 1E-10
+@test eltype(ApproxFun.promotedomainspace(Laplacian(),space(u))) == Float64
+@test eltype(ApproxFun.promotedomainspace(Laplacian()+100I,space(u))) == Float64
 @test norm(((A*u)[2]-(Laplacian()+100I)*u).coefficients) < 1E-10
 @test norm((Laplacian()*u+100*u - (A*u)[2]).coefficients) < 1E-10
 @time v=\(A,[ones(∂(d));0.];tolerance=1E-7)
@@ -296,20 +307,22 @@ S=ChebyshevDirichlet()^2
 ff=(x,y)->exp(x)*cos(y)
 u=Fun(ff,S)
 
-for KO in [eye(S[1])⊗rdirichlet(S[1]),rdirichlet(S[1])⊗eye(S[2])]
+for KO in [eye(factor(S,1))⊗rdirichlet(factor(S,1)),rdirichlet(factor(S,1))⊗eye(factor(S,2))]
     testblockbandedoperator(KO)
     @test norm((KO*u-Fun(ff,rangespace(KO))).coefficients) ≤ 1E-10
 end
 
 
-B=[dirichlet(S[1])⊗eye(S[2]);
-   eye(S[1])⊗dirichlet(S[2]);
+B=[ldirichlet(factor(S,1))⊗eye(factor(S,2));
+    rdirichlet(factor(S,1))⊗eye(factor(S,2));
+   eye(factor(S,1))⊗ldirichlet(factor(S,2));
+   eye(factor(S,1))⊗rdirichlet(factor(S,2));
    Laplacian()]
 
 u=\(B,[ones(4);0];tolerance=1E-14)
 @test norm((u-Fun(S,[1.])).coefficients)<10eps()
 
-g=map(sp->Fun(ff,sp),map(rangespace,B[1:4]))
+g=map(sp->Fun(ff,sp),rangespace(B)[1:4])
 
 u=\(B,[g;0];tolerance=1E-10)
 @test u(0.1,0.2) ≈ ff(0.1,0.2)
@@ -337,7 +350,7 @@ S=Space(d)
 
 
 f=Fun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
-A=Laplacian(d)+.1I
+A=Laplacian(d)+0.1I
 testbandedblockbandedoperator(A)
 @time u=A\f
 @test u(.1,.2) ≈ u(.2,.1)
@@ -345,73 +358,6 @@ testbandedblockbandedoperator(A)
 
 
 
-
-# fourth order
-
-println("    Bilaplacian tests")
-dx=dy=Interval()
-d=dx*dy
-Dx=Derivative(dx);Dy=Derivative(dy)
-L=Dx^4⊗I+2*Dx^2⊗Dy^2+I⊗Dy^4
-
-
-A=[dirichlet(dx)⊗eye(dy);
-        eye(dx)⊗dirichlet(dy);
-        neumann(dx)⊗eye(dy);
-        eye(dx)⊗neumann(dy);
-         L]
-
-
-u=\(A,[ones(4);zeros(5)];tolerance=1E-5)
-@test u(0.1,0.2) ≈ 1.0
-
-
-F=[Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
-    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[2]));
-    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[3]));
-    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[4]));
-    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[5]));
-    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[6]));
-    Fun((x,y)->-imag(exp(x+1.0im*y)),rangespace(A[7]));
-    Fun((x,y)->-imag(exp(x+1.0im*y)),rangespace(A[8]));
-    0]
-
-u=\(A,F;tolerance=1E-10)
-
-@test u(0.1,0.2)  ≈ exp(0.1)*cos(0.2)
-
-
-
-
-A=[(ldirichlet(dx)+lneumann(dx))⊗eye(dy);
-        (rdirichlet(dx)+rneumann(dx))⊗eye(dy);
-        eye(dx)⊗(ldirichlet(dy)+lneumann(dy));
-        eye(dx)⊗(rdirichlet(dy)+rneumann(dy));
-        (ldirichlet(dx)-lneumann(dx))⊗eye(dy);
-        (rdirichlet(dx)-rneumann(dx))⊗eye(dy);
-        eye(dx)⊗(ldirichlet(dy)-lneumann(dy));
-        eye(dx)⊗(rdirichlet(dy)-rneumann(dy));
-         L]
-
-
-u=\(A,[ones(8);0];tolerance=1E-5)
-@test u(0.1,0.2) ≈ 1.0
-
-
-
-F=[2Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
-    2Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[2]));
-    Fun((x,y)->real(exp(x+1.0im*y))-imag(exp(x+1.0im*y)),rangespace(A[3]));
-    Fun((x,y)->real(exp(x+1.0im*y))-imag(exp(x+1.0im*y)),rangespace(A[4]));
-    0;
-    0;
-    Fun((x,y)->real(exp(x+1.0im*y))+imag(exp(x+1.0im*y)),rangespace(A[7]));
-    Fun((x,y)->real(exp(x+1.0im*y))+imag(exp(x+1.0im*y)),rangespace(A[8]));
-    0]
-
-u=\(A,F;tolerance=1E-10)
-
-@test u(0.1,0.2)  ≈ exp(0.1)*cos(0.2)
 
 
 
@@ -507,7 +453,7 @@ dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
 d=dt*dθ
 Dt=Derivative(d,[1,0]);Dθ=Derivative(d,[0,1])
 A=[ldirichlet(dt)⊗I;Dt+Dθ]
-testbandedblockbandedoperator(A[2])
+testbandedblockbandedoperator(A.ops[2])
 
 u0=Fun(θ->exp(-20θ^2),dθ,20)
 @time ut=\(A,[u0;0.];tolerance=1E-5)
@@ -524,8 +470,8 @@ dθ=PeriodicInterval(0.0,1.0);dt=Interval(0,0.01)
 d=dθ*dt
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1]);
 
-B=[I⊗ldirichlet(dt),I⊗lneumann(dt)]
-u0=Fun(θ->exp(-200(θ-.5).^2),dθ)
+B=[I⊗ldirichlet(dt);I⊗lneumann(dt)]
+u0=Fun(θ->exp(-200(θ-0.5)^2),dθ)
 @time u=\([B;Dt^2+Dθ^4],[u0;0.;0.];tolerance=1E-3)
 
 @test ≈(u(.1,.01),-0.2479768394633227;atol=1E-3) #empirical
@@ -537,7 +483,7 @@ println("    Rectangle tests")
 # Screened Poisson
 
 d=Interval()^2
-@time u=\([neumann(d);Laplacian(d)-100.0I],[ones(4);0.];tolerance=1E-12)
+@time u=\([Neumann(d);Laplacian(d)-100.0I],[[[1,1],[1,1]],0.];tolerance=1E-12)
 @test u(.1,.9) ≈ 0.03679861429138079
 
 # PiecewisePDE
@@ -548,8 +494,9 @@ dt=Interval(0,2.)
 Dx=Derivative(s);Dt=Derivative(dt)
 Bx=[ldirichlet(s);continuity(s,0)]
 
+Bx.ops[2]
 # test resize bug
-CO=cache(Bx[2])
+CO=cache(Bx.ops[2])
 @test ApproxFun.colstop(CO.op,2) == 2
 ApproxFun.resizedata!(CO,:,2)
 ApproxFun.resizedata!(CO,:,4)
@@ -576,3 +523,27 @@ Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 u0=Fun(θ->exp(-20θ^2),dθ,20)
 @time u=\([I⊗ldirichlet(dt);Dt-ε*Dθ^2-Dθ],[u0;0.];tolerance=1E-4)
 @test ≈(u(0.1,0.2),0.3103472600253807;atol=1E-2)
+
+
+## concatenate  InterlaceOperator
+a=Fun(x -> 0 ≤ x ≤ 0.5 ? 0.5 : 1, Domain(-1..1) \ [0,0.5])
+@test a(0.1) == 0.5
+@test a(0.7) == 1.0
+s=space(a)
+# Bx=[ldirichlet(s);continuity(s,0)]
+# TODO: this should concat
+dt=Interval(0,2.)
+Dx=Derivative(s);Dt=Derivative(dt)
+Bx=[ldirichlet(s);continuity(s,0)]
+
+@test ApproxFun.rangetype(rangespace(continuity(s,0))) == Vector{Float64}
+@test ApproxFun.rangetype(rangespace(Bx)) == Vector{Any}
+@test ApproxFun.rangetype(rangespace(Bx⊗eye(Chebyshev()))) == Vector{Any}
+
+rhs = Fun([0,[0,[0,0]],0],rangespace([I⊗ldirichlet(dt);Bx⊗I;I⊗Dt+(a*Dx)⊗I]))
+@test rhs(-0.5,0.0) == [0,[0,[0,0]],0]
+
+u=\([I⊗ldirichlet(dt);Bx⊗I;I⊗Dt+(a*Dx)⊗I],
+    [Fun(x->exp(-20(x+0.5)^2),s),[0,[0,0]],0.0];tolerance=1E-2)
+
+@test u(-0.4,0.1) ≈ u(-0.5,0.0) atol = 0.0001

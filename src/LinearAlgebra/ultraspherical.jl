@@ -3,7 +3,7 @@ export ultraconversion!,ultraint!
 ## Start of support for UFun
 
 # diff from T -> U
-function ultradiff{T<:Number}(v::Vector{T})
+function ultradiff{T<:Number}(v::AbstractVector{T})
     #polynomial is p(x) = sum ( v[i] * x^(i-1) )
     if length(v)≤1
         w = zeros(T,1)
@@ -20,7 +20,7 @@ end
 #int from U ->T
 
 #TODO: what about missing truncation?
-function ultraint!{T<:Number}(v::Array{T,2})
+function ultraint!{T<:Number}(v::AbstractMatrix{T})
     for k=size(v,1):-1:2
         for j=1:size(v,2)
             @inbounds v[k,j] = v[k-1,j]/(k-1)
@@ -34,7 +34,7 @@ function ultraint!{T<:Number}(v::Array{T,2})
     v
 end
 
-function ultraint!{T<:Number}(v::Vector{T})
+function ultraint!{T<:Number}(v::AbstractVector{T})
     resize!(v,length(v)+1)
     @simd for k=length(v):-1:2
         @inbounds v[k] = v[k-1]/(k-1)
@@ -46,7 +46,7 @@ function ultraint!{T<:Number}(v::Vector{T})
 end
 
 # Convert from U -> T
-function ultraiconversion{T<:Number}(v::Vector{T})
+function ultraiconversion{T<:Number}(v::AbstractVector{T})
     n = length(v)
     w = Array{T}(n)
 
@@ -71,7 +71,7 @@ end
 
 
 # Convert T -> U
-function ultraconversion{T<:Number}(v::Vector{T})
+function ultraconversion{T<:Number}(v::AbstractVector{T})
     n = length(v)
     w = Array{T}(n)
 
@@ -94,7 +94,7 @@ function ultraconversion{T<:Number}(v::Vector{T})
     w
 end
 
-function ultraconversion!{T<:Number}(v::Vector{T})
+function ultraconversion!{T<:Number}(v::AbstractVector{T})
     n = length(v) #number of coefficients
 
     if n ≤ 1
@@ -114,7 +114,7 @@ function ultraconversion!{T<:Number}(v::Vector{T})
     v
 end
 
-function ultraconversion!{T<:Number}(v::Array{T,2})
+function ultraconversion!{T<:Number}(v::AbstractMatrix{T})
     n = size(v)[1] #number of coefficients
     m = size(v)[2] #number of funs
 
@@ -142,8 +142,8 @@ end
 
 
 #ultraiconversion and ultraconversion are linear, so it is possible to define them on Complex numbers as so
-#ultraiconversion(v::Vector{Complex{Float64}})=ultraiconversion(real(v)) + ultraiconversion(imag(v))*1.0im
-#ultraconversion(v::Vector{Complex{Float64}})=ultraconversion(real(v)) + ultraconversion(imag(v))*1.0im
+#ultraiconversion(v::AbstractVector{Complex{Float64}})=ultraiconversion(real(v)) + ultraiconversion(imag(v))*1.0im
+#ultraconversion(v::AbstractVector{Complex{Float64}})=ultraconversion(real(v)) + ultraconversion(imag(v))*1.0im
 
 #using DualNumbers
-#ultraconversion{T<:Number}(v::Vector{Dual{T}})=dual(ultraconversion(real(v)), ultraconversion(epsilon(v)) )
+#ultraconversion{T<:Number}(v::AbstractVector{Dual{T}})=dual(ultraconversion(real(v)), ultraconversion(epsilon(v)) )

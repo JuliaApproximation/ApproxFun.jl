@@ -4,12 +4,12 @@ export Curve
 
 
 
-immutable IntervalCurve{S<:Space,T} <: IntervalDomain{T}
-    curve::Fun{S,T}
+struct IntervalCurve{S<:Space,T,VT} <: IntervalDomain{T}
+    curve::Fun{S,T,VT}
 end
 
-immutable PeriodicCurve{S<:Space,T} <: PeriodicDomain{T}
-    curve::Fun{S,T}
+struct PeriodicCurve{S<:Space,T,VT} <: PeriodicDomain{T}
+    curve::Fun{S,T,VT}
 end
 
 doc"""
@@ -21,7 +21,7 @@ x=Fun(1..2)
 Curve(exp(im*x))  # represents an arc
 ```
 """
-@compat const Curve{S,T} = Union{IntervalCurve{S,T},PeriodicCurve{S,T}}
+const Curve{S,T} = Union{IntervalCurve{S,T},PeriodicCurve{S,T}}
 
 
 ==(a::Curve,b::Curve)=a.curve==b.curve
@@ -62,8 +62,8 @@ end
 Base.reverse(d::Curve) = Curve(reverseorientation(d.curve))
 
 isambiguous(d::Curve) = ncoefficients(d.curve)==0 && isambiguous(domain(d.curve))
-Base.convert{S,T}(::Type{IntervalCurve{S,T}},::AnyDomain)=Fun(S(AnyDomain()),[NaN])
-Base.convert{S,T}(::Type{PeriodicCurve{S,T}},::AnyDomain)=Fun(S(AnyDomain()),[NaN])
+convert{S,T}(::Type{IntervalCurve{S,T}},::AnyDomain)=Fun(S(AnyDomain()),[NaN])
+convert{S,T}(::Type{PeriodicCurve{S,T}},::AnyDomain)=Fun(S(AnyDomain()),[NaN])
 
 
 arclength(d::Curve) = linesum(ones(d))

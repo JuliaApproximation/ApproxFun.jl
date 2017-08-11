@@ -1,6 +1,6 @@
 
 
-function coefficients{C<:Chebyshev,DD<:IntervalDomain}(f::Vector,sp1::JacobiWeight{C,DD},sp2::JacobiWeight{C,DD})
+function coefficients{C<:Chebyshev,DD<:IntervalDomain}(f::AbstractVector,sp1::JacobiWeight{C,DD},sp2::JacobiWeight{C,DD})
     β,α=sp1.β,sp1.α
     c,d=sp2.β,sp2.α
     tol=10E-5  #TODO:tol choice

@@ -4,12 +4,13 @@
 represents a function on `-1..1` weighted by `log((1+x)^β*(1-x)^α)`.
 For other domains, the weight is inferred by mapping to `-1..1`.
 """
-immutable LogWeight{S,DD} <: WeightSpace{S,RealBasis,DD,1}
+# TODO: support general parameters
+struct LogWeight{S,DD,RR} <: WeightSpace{S,DD,RR}
     β::Float64
     α::Float64
     space::S
 end
-LogWeight(β,α,space)=LogWeight{typeof(space),typeof(domain(space))}(β,α,space)
+LogWeight(β,α,space) = LogWeight{typeof(space),domaintype(space),rangetype(space)}(β,α,space)
 
 spacescompatible(A::LogWeight,B::LogWeight)=A.β==B.β && A.α == B.α && spacescompatible(A.space,B.space)
 canonicalspace(A::LogWeight)=A
@@ -20,7 +21,7 @@ weight(sp::LogWeight,x)=logweight(sp.β,sp.α,tocanonical(sp,x))
 
 setdomain(sp::LogWeight,d::Domain)=LogWeight(sp.β,sp.α,setdomain(sp.space,d))
 
-function coefficients(f::Vector,sp1::LogWeight,sp2::LogWeight)
+function coefficients(f::AbstractVector,sp1::LogWeight,sp2::LogWeight)
     β,α=sp1.β,sp1.α
     c,d=sp2.β,sp2.α
 
@@ -58,9 +59,15 @@ end
 # Same as JacobiWeight
 
 # avoid redundency
-function Multiplication{SS,LWS,DD<:IntervalDomain,T}(f::Fun{JacobiWeight{SS,DD},T},S::LogWeight{LWS,DD})
+function Multiplication(f::Fun{JacobiWeight{SS,DD,RR},T},S::LogWeight{LWS,DD,RR}) where {SS,LWS,DD<:IntervalDomain,RR,T}
     M=Multiplication(Fun(space(f).space,f.coefficients),S)
     rsp=JacobiWeight(space(f).β,space(f).α,rangespace(M))
+    MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
+end
+
+function Multiplication(f::Fun{<:LogWeight},S::JacobiWeight{SS,DD}) where {SS,DD<:IntervalDomain}
+    M=Multiplication(f,S.space)
+    rsp=JacobiWeight(S.β,S.α,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
 end
 
@@ -68,5 +75,19 @@ end
 function Multiplication(f::Fun,S::LogWeight)
     M=Multiplication(f,S.space)
     rsp=LogWeight(S.β,S.α,rangespace(M))
+    MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
+end
+
+function Multiplication(f::Fun{<:LogWeight},S::LogWeight)
+    M=Multiplication(f,S.space)
+    rsp=LogWeight(S.β,S.α,rangespace(M))
+    MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
+end
+
+
+
+function Multiplication(f::Fun{<:LogWeight},S::Space)
+    M=Multiplication(Fun(space(f).space,f.coefficients),S)
+    rsp=LogWeight(space(f).β,space(f).α,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
 end

@@ -1,5 +1,16 @@
 using ApproxFun, Base.Test
-    import ApproxFun: testbandedblockbandedoperator
+    import ApproxFun: testbandedblockbandedoperator, factor
+
+
+d=Domain(ApproxFun.Vec(0.,0.) .. ApproxFun.Vec(1.,1.))
+x=Fun()
+@test ((d.b - d.a)x/2)(0.1)  ≈ (d.b - d.a)*0.1/2
+@test ApproxFun.fromcanonical(d,x)(0.1) ≈ (d.b+d.a)/2 + (d.b - d.a)*0.1/2
+
+
+x,y = Fun(ApproxFun.Vec(0.,0.) .. ApproxFun.Vec(2.,1.))
+@test x(0.2,0.1) ≈ 0.2
+@test y(0.2,0.1) ≈ 0.1
 
 
 @time for k=0:5,j=0:5
@@ -129,13 +140,13 @@ C=Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical(1)⊗Ultraspherical(1))
     L=Dx+Dy
     @test (L*f)(0.2,0.3) ≈ (fx(0.2,0.3)+fy(0.2,0.3))
 
-    B=ldirichlet(d[1])⊗ldirichlet(d[2])
+    B=ldirichlet(factor(d,1))⊗ldirichlet(factor(d,2))
     @test abs(Number(B*f)-f(0.,0.)) ≤ 10eps()
 
-    B=Evaluation(d[1],0.1)⊗ldirichlet(d[2])
+    B=Evaluation(factor(d,1),0.1)⊗ldirichlet(factor(d,2))
     @test Number(B*f) ≈ f(0.1,0.)
 
-    B=Evaluation(d[1],0.1)⊗Evaluation(d[2],0.3)
+    B=Evaluation(factor(d,1),0.1)⊗Evaluation(factor(d,2),0.3)
     @test Number(B*f) ≈ f(0.1,0.3)
 
     B=Evaluation(d,(0.1,0.3))
@@ -178,17 +189,28 @@ dx=dy=Interval()
 d=dx*dy
 
 x,y=Fun(∂(d))
-x,y=vec(x),vec(y)
+x,y=components(x),components(y)
 
 g=[real(exp(x[1]-1im));0.0y[2];real(exp(x[3]+1im));real(exp(-1+1im*y[4]))]
-B=[eye(dx)⊗ldirichlet(dy);ldirichlet(dx)⊗eye(dy);eye(dx)⊗rdirichlet(dy);rneumann(dx)⊗eye(dy)]
+B=[ eye(dx)⊗ldirichlet(dy);
+    ldirichlet(dx)⊗eye(dy);
+    eye(dx)⊗rdirichlet(dy);
+    rneumann(dx)⊗eye(dy)    ]
 
-@test Fun(g[1],rangespace(B[1]))(-0.1,-1.0) ≈ g[1](-0.1,-1.0)
-@test Fun(g[3],rangespace(B[3]))(-0.1,1.0)  ≈ g[3](-0.1,1.0)
+
+@test Fun(g[1],rangespace(B)[1])(-0.1,-1.0) ≈ g[1](-0.1,-1.0)
+@test Fun(g[3],rangespace(B)[3])(-0.1,1.0)  ≈ g[3](-0.1,1.0)
 
 
-A=ApproxFun.interlace([B;Δ])
+A=[B;Δ]
+
+
+
+
+@test eltype([g;0.0]) == Float64
 g2=Fun([g;0.0],rangespace(A))
+@test eltype(g2) == Float64
+
 
 @test g2[1](-0.1,-1.0) ≈ g[1](-0.1,-1.0)
 @test g2[3](-0.1,1.0)  ≈ g[3](-0.1,1.0)
@@ -222,7 +244,63 @@ rDr = Mr * Dr
 testbandedblockbandedoperator(rDr)
 
 
+
+## Cheby * Interval
+
+
+d = Interval()^2
+x,y = Fun(∂(d))
+
+
+@test ApproxFun.rangetype(Space(∂(d))) == Float64
+@test ApproxFun.rangetype(space(y)) == Float64
+
+
+@test (im*y)(1.0,0.1) ≈ 0.1im
+@test (x+im*y)(1.0,0.1) ≈ 1+0.1im
+
+@test exp(x+im*y)(1.0,0.1) ≈ exp(1.0+0.1im)
+
+
 ## Taylor()^2, checks bug in type of plan_transform
 
 f = Fun((x,y)->exp((x-0.1)*cos(y-0.2)),Taylor()^2)
 @test f(0.2,0.3) ≈ exp(0.1*cos(0.1))
+
+
+## Test DefiniteIntegral
+
+f = Fun((x,y) -> exp(-x*cos(y)))
+@test Number(DefiniteIntegral()*f) ≈ sum(f)
+
+
+
+## Piecewise Tensor
+
+
+a = Fun(0..1) + Fun(2..3)
+f = a ⊗ a
+@test f(0.1,0.2) ≈ 0.1*0.2
+@test f(1.1,0.2) == 0
+@test f(2.1,0.2) == 2.1*0.2
+
+@test component(space(f),1,1) == Chebyshev(0..1)^2
+@test component(space(f),1,2) == Chebyshev(0..1)*Chebyshev(2..3)
+@test component(space(f),2,1) == Chebyshev(2..3)*Chebyshev(0..1)
+@test component(space(f),2,2) == Chebyshev(2..3)^2
+
+
+
+## Bug in chop of ProductFun
+
+u = Fun(Chebyshev()^2,[0.0,0.0])
+@test coefficients(chop(ProductFun(u),10eps())) == zeros(0,1)
+
+
+d=Domain(-1..1)^2
+B=[Dirichlet(factor(d,1))⊗I;I⊗ldirichlet(factor(d,2));I⊗rneumann(factor(d,2))]
+Δ=Laplacian(d)
+
+rs = rangespace([B;Δ])
+f = Fun((x,y)->exp(-x^2-y^2),d)
+@test_throws DimensionMismatch coefficients([0.0;0.0;0.0;0.0;f],rs)

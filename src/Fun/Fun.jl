@@ -8,19 +8,20 @@ include("Space.jl")
 ##  Constructors
 
 
-type Fun{S,T}
+type Fun{S,T,VT}
     space::S
-    coefficients::Vector{T}
-    function (::Type{Fun{S,T}}){S,T}(sp::S,coeff::Vector{T})
-        @assert length(coeff)≤dimension(sp)
-        new{S,T}(sp,coeff)
+    coefficients::VT
+    function Fun{S,T,VT}(sp::S,coeff::VT) where {S,T,VT}
+        @assert length(coeff) ≤ dimension(sp)
+        new{S,T,VT}(sp,coeff)
     end
 end
 
-Fun(sp::Space,coeff::Vector) = Fun{typeof(sp),eltype(coeff)}(sp,coeff)
-Fun{T<:Integer}(sp::Space,coeff::Vector{T}) = Fun(sp,1.0coeff)
+const VFun{S,T} = Fun{S,T,Vector{T}}
 
-function Fun(sp::Space,v::Vector{Any})
+Fun(sp::Space,coeff::AbstractVector) = Fun{typeof(sp),eltype(coeff),typeof(coeff)}(sp,coeff)
+
+function Fun(sp::Space,v::AbstractVector{Any})
     if isempty(v)
         Fun(sp,Float64[])
     elseif all(x->isa(x,Number),v)
@@ -71,44 +72,58 @@ coefficient(f::Fun,::Colon) = coefficient(f,1:dimension(space(f)))
 ##Convert routines
 
 
-Base.convert{T,S}(::Type{Fun{S,T}},f::Fun{S}) =
-    Fun(f.space,convert(Vector{T},f.coefficients))
-Base.convert{T,S}(::Type{Fun{S,T}},f::Fun) =
-    Fun(Fun(f.space,convert(Vector{T},f.coefficients)),convert(S,space(f)))
+convert(::Type{Fun{S,T,VT}},f::Fun{S}) where {T,S,VT} =
+    Fun(f.space,convert(VT,f.coefficients))
+convert(::Type{Fun{S,T,VT}},f::Fun) where {T,S,VT} =
+    Fun(Fun(f.space,convert(VT,f.coefficients)),convert(S,space(f)))
 
-Base.convert{T,S}(::Type{Fun{S,T}},x::Number) =
-    x==0?zeros(T,S(AnyDomain())):x*ones(T,S(AnyDomain()))
-Base.convert{S}(::Type{Fun{S}},x::Number) =
-    x==0?zeros(S(AnyDomain())):x*ones(S(AnyDomain()))
-Base.convert{IF<:Fun}(::Type{IF},x::Number)=Fun(x)
-Base.promote_rule{T,V,S}(::Type{Fun{S,T}},::Type{Fun{S,V}})=Fun{S,promote_type(T,V)}
+convert(::Type{Fun{S,T}},f::Fun{S}) where {T,S} =
+    Fun(f.space,convert(AbstractVector{T},f.coefficients))
 
 
-# promotion of * to fix 0.5 bug
-if VERSION > v"0.6-"
-    Base.promote_op{N,V,S,T}(::typeof(Base.LinAlg.matprod),::Type{Fun{N,V}},::Type{Fun{S,T}}) =
-        Fun{promote_type(N,S),promote_type(T,V)}
-end
+convert(::Type{VFun{S,T}},x::Number) where {T,S} =
+    x==0 ? zeros(T,S(AnyDomain())) : x*ones(T,S(AnyDomain()))
+convert{S}(::Type{Fun{S}},x::Number) =
+    x==0 ? zeros(S(AnyDomain())) : x*ones(S(AnyDomain()))
+convert{IF<:Fun}(::Type{IF},x::Number) = convert(IF,Fun(x))
 
-Base.promote_op{N,V,S,T}(::typeof(*),::Type{Fun{N,V}},::Type{Fun{S,T}}) =
-    Fun{promote_type(N,S),promote_type(T,V)}
-Base.promote_op{N,S,T}(::typeof(*),::Type{N},::Type{Fun{S,T}}) = Fun{S,promote_type(N,T)}
-Base.promote_op{N,S,T}(::typeof(*),::Type{Matrix{N}},::Type{Matrix{Fun{S,T}}}) =
-    Matrix{Fun{S,promote_type(N,T)}}
+# if we are promoting, we need to change to a VFun
+Base.promote_rule(::Type{Fun{S,T,VT1}},::Type{Fun{S,V,VT2}}) where {T,V,S,VT1,VT2} =
+    VFun{S,promote_type(T,V)}
 
 
-Base.zero(::Type{Fun})=Fun(0.)
-Base.zero{T,S<:Space}(::Type{Fun{S,T}})=zeros(T,S(AnyDomain()))
-Base.one{T,S<:Space}(::Type{Fun{S,T}})=ones(T,S(AnyDomain()))
+# TODO: Never assume!
+Base.promote_op(::typeof(*),::Type{F1},::Type{F2}) where {F1<:Fun,F2<:Fun} =
+    promote_type(F1,F2) # assume multiplication is defined between same types
+
+# we know multiplication by numbers preserves types
+Base.promote_op(::typeof(*),::Type{N},::Type{Fun{S,T,VT}}) where {N<:Number,S,T,VT} =
+    VFun{S,promote_type(T,N)}
+Base.promote_op(::typeof(*),::Type{Fun{S,T,VT}},::Type{N}) where {N<:Number,S,T,VT} =
+    VFun{S,promote_type(T,N)}
+
+Base.promote_op(::typeof(Base.LinAlg.matprod),::Type{Fun{S1,T1,VT1}},::Type{Fun{S2,T2,VT2}}) where {S1,T1,VT1,S2,T2,VT2} =
+            VFun{promote_type(S1,S2),promote_type(T1,T2)}
+# Fun's are always vector spaces, so we know matprod will preserve the space
+Base.promote_op(::typeof(Base.LinAlg.matprod),::Type{Fun{S,T,VT}},::Type{NN}) where {S,T,VT,NN<:Number} =
+            VFun{S,promote_type(T,NN)}
+Base.promote_op(::typeof(Base.LinAlg.matprod),::Type{NN},::Type{Fun{S,T,VT}}) where {S,T,VT,NN<:Number} =
+            VFun{S,promote_type(T,NN)}
+
+
+
+Base.zero(::Type{Fun}) = Fun(0.)
+Base.zero{T,S<:Space,VT}(::Type{Fun{S,T,VT}}) = zeros(T,S(AnyDomain()))
+Base.one{T,S<:Space,VT}(::Type{Fun{S,T,VT}}) = ones(T,S(AnyDomain()))
 for op in (:(Base.zeros),:(Base.ones))
-    @eval ($op){S,T}(f::Fun{S,T})=$op(T,f.space)
+    @eval ($op){S,T}(f::Fun{S,T}) = $op(T,f.space)
 end
 
 Base.zero(f::Fun)=zeros(f)
 Base.one(f::Fun)=ones(f)
 
 Base.eltype{S,T}(::Fun{S,T}) = T
-Base.eltype{S,T}(::Type{Fun{S,T}}) = T
+Base.eltype{S,T,VT}(::Type{Fun{S,T,VT}}) = T
 
 #supports broadcasting and scalar iterator
 Base.size(f::Fun,k...) = size(space(f),k...)
@@ -269,7 +284,7 @@ end
 
 # equivalent to Y+=a*X
 axpy!(a,X::Fun,Y::Fun)=axpy!(a,coefficients(X,space(Y)),Y)
-function axpy!(a,xcfs::Vector,Y::Fun)
+function axpy!(a,xcfs::AbstractVector,Y::Fun)
     if a!=0
         n=ncoefficients(Y); m=length(xcfs)
 
@@ -307,7 +322,7 @@ for op = (:*,:+)
 end
 
 
-function ^{S,T}(f::Fun{S,T},k::Integer)
+function ^(f::Fun,k::Integer)
     if k == 0
         ones(space(f))
     elseif k==1
@@ -319,7 +334,7 @@ function ^{S,T}(f::Fun{S,T},k::Integer)
     end
 end
 
-Base.inv{S,T}(f::Fun{S,T}) = 1/f
+Base.inv(f::Fun) = 1/f
 
 # Integrals over two Funs, which are fast with the orthogonal weight.
 
@@ -356,7 +371,7 @@ for (OP,SUM) in ((:(Base.norm),:(Base.sum)),(:linenorm,:linesum))
     @eval begin
         $OP(f::Fun) = $OP(f,2)
 
-        function $OP(f::Fun,p::Number)
+        function $OP(f::Fun{S},p::Number) where S<:Space{D,R} where {D,R<:Number}
             if p < 1
                 return error("p should be 1 ≤ p ≤ ∞")
             elseif 1 ≤ p < Inf
@@ -366,9 +381,9 @@ for (OP,SUM) in ((:(Base.norm),:(Base.sum)),(:linenorm,:linesum))
             end
         end
 
-        function $OP(f::Fun,p::Int)
+        function $OP(f::Fun{S},p::Int) where S<:Space{D,R} where {D,R<:Number}
             if 1 ≤ p < Inf
-                return iseven(p) ? abs($SUM(abs2(f)^div(p,2)))^(1/p) : abs($SUM(abs2(f)^(p/2)))^(1/p)
+                return iseven(p) ? abs($SUM(abs2(f)^(p÷2)))^(1/p) : abs($SUM(abs2(f)^(p/2)))^(1/p)
             else
                 return error("p should be 1 ≤ p ≤ ∞")
             end
@@ -382,13 +397,13 @@ end
 Base.transpose(f::Fun) = f  # default no-op
 
 for op = (:(Base.real),:(Base.imag),:(Base.conj))
-    @eval ($op){S<:Space{RealBasis}}(f::Fun{S}) = Fun(f.space,($op)(f.coefficients))
+    @eval ($op)(f::Fun{S}) where {S<:RealSpace} = Fun(f.space,($op)(f.coefficients))
 end
 
 Base.conj(f::Fun) = error("Override conj for $(typeof(f))")
 
-Base.abs2{S<:Space{RealBasis},T<:Real}(f::Fun{S,T}) = f^2
-Base.abs2{S<:Space{RealBasis},T<:Complex}(f::Fun{S,T}) = real(f)^2+imag(f)^2
+Base.abs2{S<:RealSpace,T<:Real}(f::Fun{S,T}) = f^2
+Base.abs2{S<:RealSpace,T<:Complex}(f::Fun{S,T}) = real(f)^2+imag(f)^2
 Base.abs2(f::Fun)=f*conj(f)
 
 ##  integration
@@ -415,6 +430,12 @@ end
 
 coefficientnorm(f::Fun,p::Real=2) = norm(f.coefficients,p)
 
+
+Base.rtoldefault(::Type{F}) where {F<:Fun} = Base.rtoldefault(eltype(F))
+Base.rtoldefault(x::Union{T,Type{T}}, y::Union{S,Type{S}}) where {T<:Union{Number,Fun},S<:Union{Number,Fun}} =
+    Base.rtoldefault(eltype(x),eltype(y))
+
+
 function Base.isapprox{S1,S2,T,S}(f::Fun{S1,T},g::Fun{S2,S};rtol::Real=Base.rtoldefault(T,S), atol::Real=0, norm::Function=coefficientnorm)
     if spacescompatible(f,g)
         d = norm(f - g)
@@ -438,8 +459,8 @@ Base.isapprox(f::Fun,g::Number)=isapprox(f,g*ones(space(f)))
 Base.isapprox(g::Number,f::Fun)=isapprox(g*ones(space(f)),f)
 
 
-Base.isreal{S,T<:Real}(f::Fun{S,T})=basistype(S)<:RealBasis
-Base.isreal(f::Fun)=false
+Base.isreal(f::Fun{<:RealSpace,<:Real}) = true
+Base.isreal(f::Fun) = false
 
 iszero(x::Number) = x == 0
 iszero(f::Fun)    = all(iszero,f.coefficients)
@@ -470,13 +491,57 @@ for op in (:+,:-,:*,:/,:^)
 end
 
 ## broadcasting
+# for broadcasting, we support broadcasting over `Fun`s, e.g.
+#
+#       exp.(f) is equivalent to Fun(x->exp(f(x)),domain(f)),
+#       exp.(f .+ g) is equivalent to Fun(x->exp(f(x)+g(x)),domain(f) ∪ domain(g)),
+#       exp.(f .+ 2) is equivalent to Fun(x->exp(f(x)+2),domain(f)),
+#
+# When we are broadcasting over arrays and scalar Fun's together,
+# it broadcasts over the Array and treats the scalar Fun's as constants, so will not
+# necessarily call the constructor:
+#
+#       exp.( x .+ [1,2,3]) is equivalent to [exp(x + 1),exp(x+2),exp(x+3)]
+#
+# When broadcasting over Fun's with array values, it treats them like Fun's:
+#
+#   exp.( [x;x]) throws an error as it is equivalent to Fun(x->exp([x;x](x)),domain(f))
+#
+# This is consistent with the deprecation thrown by exp.([[1,2],[3,4]). Note that
+#
+#   exp.( [x,x]) is equivalent to [exp(x),exp(x)]
+#
+# does not throw the same error. When array values are mixed with arrays, the Array
+# takes presidence:
+#
+#   exp.([x;x] .+ [x,x]) is equivalent to exp.(Array([x;x]) .+ [x,x])
+#
+# This presidence is picked by the `promote_containertype` overrides.
 
-broadcast(op,f::Fun) = Fun(x -> op(f(x)), domain(f))
-broadcast(op,f::Fun,c::Number) = Fun(x -> op(f(x),c), domain(f))
-broadcast(op,c::Number,f::Fun) = Fun(x -> op(c,f(x)), domain(f))
-broadcast(op,f::Fun,g::Fun) = Fun(x -> op(f(x),g(x)), domain(f) ∪ domain(g))
+Base.Broadcast._containertype(::Type{<:Fun}) = Fun
 
+Base.Broadcast.promote_containertype(::Type{Fun}, ::Type{Fun}) = Fun
+Base.Broadcast.promote_containertype(::Type{Array}, ::Type{Fun}) = Array
+Base.Broadcast.promote_containertype(::Type{Fun}, ::Type{Array}) = Array
+Base.Broadcast.promote_containertype(::Type{Fun}, ct) = Fun
+Base.Broadcast.promote_containertype(ct, ::Type{Fun}) = Fun
 
+# Treat Array Fun's like Arrays when broadcasting with an Array
+# note this only gets called when containertype returns Array,
+# so will not be used when no argument is an Array
+Base.Broadcast.broadcast_indices(::Type{Fun}, A) = indices(A)
+
+# This makes sure the result of the broadcast is typed correctly
+Base.Broadcast._broadcast_getindex_eltype(::Type{Fun}, A) = typeof(A)
+
+# TODO: use generated function to improve the following
+function Base.Broadcast.broadcast_c(f, ::Type{Fun}, A, Bs...)
+    args = (Fun(A),Fun.(Bs)...)  # convert all to funs
+    d = mapreduce(domain,∪,args)  # find joint domain, note that AnyDomain is olsot
+    Fun(x -> f(map(fun -> fun(x),args)...), d)
+end
+
+# TODO: Why two overrides?
 function broadcast!(op,dest::Fun,f::Fun)
     if domain(f) ≠ domain(dest)
         throw(ArgumentError("Domain of right-hand side incompatible with destination"))
@@ -499,16 +564,3 @@ function broadcast!(op,dest::Fun,As...)
 end
 
 include("constructors.jl")
-
-
-
-if VERSION < v"0.6.0-dev"
-    for op in (:+,:-,:*,:/,:^)
-        dop = parse("."*string(op))
-        @eval begin
-            $dop(c::Number,d::Fun) = $op(c,d)
-            $dop(d::Fun,c::Number) = $op(d,c)
-            $dop(a::Fun,b::Fun) = $op(a,b)
-        end
-    end
-end

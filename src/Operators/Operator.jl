@@ -1,12 +1,12 @@
 export Operator
 export bandinds, bandrange, \, periodic
-export dirichlet, neumann
+export neumann
 export ldirichlet,rdirichlet,lneumann,rneumann
 export ldiffbc,rdiffbc,diffbcs
 export domainspace,rangespace
 
 
-@compat abstract type Operator{T} end #T is the entry type, Float64 or Complex{Float64}
+abstract type Operator{T} end #T is the entry type, Float64 or Complex{Float64}
 
 Base.eltype{T}(::Operator{T}) = T
 Base.eltype{T}(::Type{Operator{T}}) = T
@@ -18,10 +18,9 @@ Base.eltype{OT<:Operator}(::Type{OT}) = eltype(supertype(OT))
 # realdomain case doesn't use
 
 
-op_eltype(sp::Space) = promote_type(eltype(sp),prectype(domain(sp)))
-op_eltype_realdomain(sp::Space) = promote_type(eltype(sp),real(prectype(domain(sp))))
+prectype(sp::Space) = promote_type(prectype(domaintype(sp)),eltype(rangetype(sp)))
 
- #Operators are immutable
+ #Operators are struct
 Base.copy(A::Operator) = A
 
 
@@ -51,7 +50,7 @@ hasconstblocks(A::Operator) = hasconstblocks(domainspace(A)) && hasconstblocks(r
 macro functional(FF)
     quote
         Base.size(A::$FF,k::Integer) = k==1?1:∞
-        ApproxFun.rangespace(::$FF) = ConstantSpace()
+        ApproxFun.rangespace(F::$FF) = ConstantSpace(eltype(F))
         ApproxFun.isafunctional(::$FF) = true
         ApproxFun.blockbandinds(A::$FF) = 0,hastrivialblocks(domainspace(A))?bandinds(A,2):∞
         function ApproxFun.defaultgetindex(f::$FF,k::Integer,j::Integer)
@@ -147,8 +146,7 @@ function blockbandinds(A::Operator)
         end
     end
 
-
-    return (-∞,∞)
+    return (1-length(blocklengths(rangespace(A))),length(blocklengths(domainspace(A)))-1)
 end
 
 # assume dense blocks
@@ -469,18 +467,19 @@ macro wrappergetindex(Wrap)
         BLAS.axpy!{T,OP<:$Wrap}(α,P::ApproxFun.SubOperator{T,OP},A::AbstractMatrix) =
             ApproxFun.unwrap_axpy!(α,P,A)
 
-        A_mul_B_coefficients(A::$Wrap,b) = A_mul_B_coefficients(A.op,b)
-        A_mul_B_coefficients{T,OP<:$Wrap}(A::ApproxFun.SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},b) =
+        ApproxFun.A_mul_B_coefficients(A::$Wrap,b) = A_mul_B_coefficients(A.op,b)
+        ApproxFun.A_mul_B_coefficients{T,OP<:$Wrap}(A::ApproxFun.SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},b) =
             A_mul_B_coefficients(view(parent(A).op,S.indexes[1],S.indexes[2]),b)
-        A_mul_B_coefficients{T,OP<:$Wrap}(A::ApproxFun.SubOperator{T,OP},b) =
+        ApproxFun.A_mul_B_coefficients{T,OP<:$Wrap}(A::ApproxFun.SubOperator{T,OP},b) =
             A_mul_B_coefficients(view(parent(A).op,S.indexes[1],S.indexes[2]),b)
     end
 
-    for TYP in (:(BandedMatrices.BandedMatrix),:Matrix,:Vector,:AbstractVector)
+    for TYP in (:(BandedMatrices.BandedMatrix),:(ApproxFun.RaggedMatrix),
+                :Matrix,:Vector,:AbstractVector)
         ret = quote
             $ret
 
-            Base.convert{T,OP<:$Wrap}(::Type{$TYP},P::ApproxFun.SubOperator{T,OP}) =
+            Base.convert(::Type{$TYP},P::ApproxFun.SubOperator{T,OP}) where {T,OP<:$Wrap} =
                 $TYP(view(parent(P).op,P.indexes[1],P.indexes[2]))
         end
     end
@@ -489,8 +488,9 @@ macro wrappergetindex(Wrap)
         $ret
 
         # fast converts to banded matrices would be based on indices, not blocks
-        function Base.convert{T,OP<:$Wrap}(::Type{BandedMatrices.BandedMatrix},
-                                S::ApproxFun.SubOperator{T,OP,Tuple{UnitRange{ApproxFun.Block},UnitRange{ApproxFun.Block}}})
+        function Base.convert(::Type{BandedMatrices.BandedMatrix},
+                              S::ApproxFun.SubOperator{T,OP,Tuple{UnitRange{ApproxFun.Block},
+                                                                  UnitRange{ApproxFun.Block}}}) where {T,OP<:$Wrap}
             A = parent(S)
             ds = domainspace(A)
             rs = rangespace(A)
@@ -502,7 +502,8 @@ macro wrappergetindex(Wrap)
 
 
         # if the spaces change, then we need to be smarter
-        function Base.convert{T,OP<:$Wrap}(::Type{ApproxFun.BlockBandedMatrix},S::ApproxFun.SubOperator{T,OP})
+        function Base.convert(::Type{ApproxFun.BlockBandedMatrix},
+                              S::ApproxFun.SubOperator{T,OP}) where {T,OP<:$Wrap}
             P = parent(S)
             if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
                     blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
@@ -512,7 +513,8 @@ macro wrappergetindex(Wrap)
             end
         end
 
-        function Base.convert{T,OP<:$Wrap}(::Type{ApproxFun.BandedBlockBandedMatrix},S::ApproxFun.SubOperator{T,OP})
+        function Base.convert(::Type{ApproxFun.BandedBlockBandedMatrix},
+                              S::ApproxFun.SubOperator{T,OP}) where {T,OP<:$Wrap}
             P = parent(S)
             if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
                     blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
@@ -593,10 +595,10 @@ Base.zero{O<:Operator}(::Type{O}) = ZeroOperator(eltype(O))
 Base.eye(S::Space) = IdentityOperator(S)
 Base.eye(S::Domain) = eye(Space(S))
 
-Base.convert{T}(A::Type{Operator{T}},f::Fun) =
+convert{T}(A::Type{Operator{T}},f::Fun) =
     norm(f.coefficients)==0?zero(A):convert(A,Multiplication(f))
 
-Base.convert(A::Type{Operator},f::Fun) =
+convert(A::Type{Operator},f::Fun) =
     norm(f.coefficients)==0?ZeroOperator():Multiplication(f)
 
 
@@ -612,12 +614,12 @@ Base.convert(A::Type{Operator},f::Fun) =
 Base.promote_rule{N<:Number}(::Type{N},::Type{Operator}) = Operator{N}
 Base.promote_rule{N<:Number}(::Type{UniformScaling{N}},::Type{Operator}) =
     Operator{N}
-Base.promote_rule{S,N<:Number}(::Type{Fun{S,N}},::Type{Operator}) = Operator{N}
+Base.promote_rule{S,N<:Number,VN}(::Type{Fun{S,N,VN}},::Type{Operator}) = Operator{N}
 Base.promote_rule{N<:Number,O<:Operator}(::Type{N},::Type{O}) =
-    Operator{promote_type(N,eltype(O))}
+    Operator{promote_type(N,eltype(O))}  # float because numbers are promoted to Fun
 Base.promote_rule{N<:Number,O<:Operator}(::Type{UniformScaling{N}},::Type{O}) =
     Operator{promote_type(N,eltype(O))}
-Base.promote_rule{S,N<:Number,O<:Operator}(::Type{Fun{S,N}},::Type{O}) =
+Base.promote_rule{S,N<:Number,O<:Operator,VN}(::Type{Fun{S,N,VN}},::Type{O}) =
     Operator{promote_type(N,eltype(O))}
 
 Base.promote_rule{BO1<:Operator,BO2<:Operator}(::Type{BO1},::Type{BO2}) =
@@ -665,26 +667,9 @@ end
 
 
 
+convert(::Type{BandedMatrix},S::Operator) = default_bandedmatrix(S)
 
-function Base.convert(::Type{Matrix},S::Operator)
-   if isinf(size(S,1)) || isinf(size(S,2))
-       error("Cannot convert $S to a Matrix")
-   end
-
-   if isbanded(S)
-       Matrix(BandedMatrix(S))
-   elseif isbandedblockbanded(S)
-       Matrix(BandedBlockBandedMatrix(S))
-   elseif isblockbanded(S)
-       Matrix(BlockBandedMatrix(S))
-   else
-       eltype(S)[S[k,j] for k=1:size(S,1),j=1:size(S,2)]
-   end
-end
-
-Base.convert(::Type{BandedMatrix},S::Operator) = default_bandedmatrix(S)
-
-function Base.convert(::Type{BlockBandedMatrix},S::Operator)
+function convert(::Type{BlockBandedMatrix},S::Operator)
     if isbandedblockbanded(S)
         BlockBandedMatrix(BandedBlockBandedMatrix(S))
     else
@@ -692,19 +677,28 @@ function Base.convert(::Type{BlockBandedMatrix},S::Operator)
     end
 end
 
-function Base.convert(::Type{RaggedMatrix},S::Operator)
-    if isbanded(S)
-        RaggedMatrix(BandedMatrix(S))
-    elseif isbandedblockbanded(S)
-        RaggedMatrix(BandedBlockBandedMatrix(S))
-    elseif isblockbanded(S)
-        RaggedMatrix(BlockBandedMatrix(S))
-    else
-        default_raggedmatrix(S)
+
+# TODO: Unify with SubOperator
+for TYP in (:RaggedMatrix,:Matrix)
+    def_TYP = parse("default_" * string(TYP))
+    @eval function convert(::Type{$TYP},S::Operator)
+        if isinf(size(S,1)) || isinf(size(S,2))
+            error("Cannot convert $S to a $TYP")
+        end
+
+        if isbanded(S)
+            $TYP(BandedMatrix(S))
+        elseif isbandedblockbanded(S)
+            $TYP(BandedBlockBandedMatrix(S))
+        elseif isblockbanded(S)
+            $TYP(BlockBandedMatrix(S))
+        else
+            $def_TYP(S)
+        end
     end
 end
 
-function Base.convert(::Type{Vector},S::Operator)
+function convert(::Type{Vector},S::Operator)
     if size(S,2) ≠ 1  || isinf(size(S,1))
         error("Cannot convert $S to a AbstractVector")
     end
@@ -714,9 +708,9 @@ end
 
 
 
-Base.convert(::Type{AbstractMatrix},S::Operator) = Matrix(S)
+convert(::Type{AbstractMatrix},S::Operator) = Matrix(S)
 
-function Base.convert(::Type{AbstractMatrix},S::SubOperator)
+function convert(::Type{AbstractMatrix},S::SubOperator)
     if isinf(size(S,1)) || isinf(size(S,2))
         throw(BoundsError())
     end
@@ -726,11 +720,11 @@ function Base.convert(::Type{AbstractMatrix},S::SubOperator)
         BandedBlockBandedMatrix(S)
     elseif isblockbanded(parent(S))
         BlockBandedMatrix(S)
-    elseif israggedbelow(parent(S))
+    elseif isinf(size(parent(S),1)) && israggedbelow(parent(S))
         RaggedMatrix(S)
     else
         Matrix(S)
     end
 end
 
-Base.convert(::Type{AbstractVector},S::Operator) = Vector(S)
+convert(::Type{AbstractVector},S::Operator) = Vector(S)

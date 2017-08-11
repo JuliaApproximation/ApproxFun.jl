@@ -1,7 +1,7 @@
 ## Evaluation
 
 
-function Evaluation(S::Jacobi,x::Bool,order)
+function Evaluation(S::Jacobi,x::Union{typeof(first),typeof(last)},order)
     if order ≤ 2
         ConcreteEvaluation(S,x,order)
     else
@@ -21,26 +21,25 @@ function Evaluation(S::Jacobi,x,order)
     end
 end
 
+# avoid ambiguity
+for OP in (:first,:last)
+    @eval getindex(op::ConcreteEvaluation{<:Jacobi,typeof($OP)},k::Integer) =
+        op[k:k][1]
+end
 
-getindex{J<:Jacobi}(op::ConcreteEvaluation{J,Bool},k::Integer) =
-    op[k:k][1]
-
-getindex{J<:Jacobi}(op::ConcreteEvaluation{J},k::Integer) =
-    op[k:k][1]
+getindex(op::ConcreteEvaluation{<:Jacobi},k::Integer) = op[k:k][1]
 
 
-function getindex{J<:Jacobi}(op::ConcreteEvaluation{J,Bool},kr::Range)
+function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(first)},kr::Range)
     @assert op.order <= 2
     sp=op.space
     T=eltype(op)
     RT=real(T)
     a=RT(sp.a);b=RT(sp.b)
-    x=op.x
-
 
     if op.order == 0
-        jacobip(T,kr-1,a,b,x?one(T):-one(T))
-    elseif op.order == 1&& !x && b==0
+        jacobip(T,kr-1,a,b,-one(T))
+    elseif op.order == 1&&  b==0
         d=domain(op)
         @assert isa(d,Segment)
         T[tocanonicalD(d,d.a)/2*(a+k)*(k-1)*(-1)^k for k=kr]
@@ -48,19 +47,48 @@ function getindex{J<:Jacobi}(op::ConcreteEvaluation{J,Bool},kr::Range)
         d=domain(op)
         @assert isa(d,Segment)
         if kr[1]==1 && kr[end] ≥ 2
-            tocanonicalD(d,d.a)*(a+b+kr).*T[zero(T);jacobip(T,0:kr[end]-2,1+a,1+b,x?one(T):-one(T))]/2
+            tocanonicalD(d,d.a)*(a+b+kr).*T[zero(T);jacobip(T,0:kr[end]-2,1+a,1+b,-one(T))]/2
         elseif kr[1]==1  # kr[end] ≤ 1
             zeros(T,length(kr))
         else
-            tocanonicalD(d,d.a)*(a+b+kr).*jacobip(T,kr-1,1+a,1+b,x?one(T):-one(T))/2
+            tocanonicalD(d,d.a)*(a+b+kr).*jacobip(T,kr-1,1+a,1+b,-one(T))/2
         end
     elseif op.order == 2
-        @assert !x && b==0
-        @assert domain(op)==Segment()
+        @assert b==0
+        @assert domain(op) == Segment()
         T[-0.125*(a+k)*(a+k+1)*(k-2)*(k-1)*(-1)^k for k=kr]
+    else
+        error("Not implemented")
     end
 end
-function getindex{J<:Jacobi}(op::ConcreteEvaluation{J,Float64},kr::Range)
+
+function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(last)},kr::Range)
+    @assert op.order <= 2
+    sp=op.space
+    T=eltype(op)
+    RT=real(T)
+    a=RT(sp.a);b=RT(sp.b)
+
+
+    if op.order == 0
+        jacobip(T,kr-1,a,b,one(T))
+    elseif op.order == 1
+        d=domain(op)
+        @assert isa(d,Segment)
+        if kr[1]==1 && kr[end] ≥ 2
+            tocanonicalD(d,d.a)*(a+b+kr).*T[zero(T);jacobip(T,0:kr[end]-2,1+a,1+b,one(T))]/2
+        elseif kr[1]==1  # kr[end] ≤ 1
+            zeros(T,length(kr))
+        else
+            tocanonicalD(d,d.a)*(a+b+kr).*jacobip(T,kr-1,1+a,1+b,one(T))/2
+        end
+    else
+        error("Not implemented")
+    end
+end
+
+
+function getindex(op::ConcreteEvaluation{<:Jacobi,<:Number},kr::Range)
     @assert op.order == 0
     jacobip(eltype(op),kr-1,op.space.a,op.space.b,tocanonical(domain(op),op.x))
 end
@@ -80,7 +108,7 @@ getindex{J<:Jacobi}(T::ConcreteDerivative{J},k::Integer,j::Integer) =
 
 
 
-function Derivative{T,DDD<:Segment}(S::WeightedJacobi{T,DDD})
+function Derivative{DDD<:Segment,RR}(S::WeightedJacobi{DDD,RR})
     if S.β>0 && S.β>0 && S.β==S.space.b && S.α==S.space.a
         ConcreteDerivative(S,1)
     else
@@ -88,11 +116,12 @@ function Derivative{T,DDD<:Segment}(S::WeightedJacobi{T,DDD})
     end
 end
 
-bandinds{T,DDD<:Segment}(D::ConcreteDerivative{WeightedJacobi{T,DDD}})=-1,0
-rangespace{T,DDD<:Segment}(D::ConcreteDerivative{WeightedJacobi{T,DDD}})=WeightedJacobi(domainspace(D).β-1,domainspace(D).α-1,domain(D))
+bandinds{DDD<:Segment,RR}(D::ConcreteDerivative{WeightedJacobi{DDD,RR}}) = -1,0
+rangespace{DDD<:Segment,RR}(D::ConcreteDerivative{WeightedJacobi{DDD,RR}}) =
+    WeightedJacobi(domainspace(D).β-1,domainspace(D).α-1,domain(D))
 
 
-getindex{T,DDD<:Segment}(D::ConcreteDerivative{WeightedJacobi{T,DDD}},k::Integer,j::Integer) =
+getindex{DDD<:Segment,RR}(D::ConcreteDerivative{WeightedJacobi{DDD,RR}},k::Integer,j::Integer) =
     j==k-1? eltype(D)(-4(k-1)./complexlength(domain(D))) : zero(eltype(D))
 
 
@@ -121,7 +150,7 @@ function getindex{J<:Jacobi}(T::ConcreteIntegral{J},k::Integer,j::Integer)
     if k≥2 && j==k-1
         complexlength(domain(T))./(k+T.space.a+T.space.b-2)
     else
-        zero(eltype(J))
+        zero(eltype(T))
     end
 end
 
@@ -332,7 +361,7 @@ function getindex{J<:Jacobi,CC<:Chebyshev,T}(C::ConcreteConversion{CC,J,T},k::In
     end
 end
 
-function Base.convert{J<:Jacobi,CC<:Chebyshev,T}(::Type{BandedMatrix},
+function convert{J<:Jacobi,CC<:Chebyshev,T}(::Type{BandedMatrix},
                                         S::SubOperator{T,ConcreteConversion{CC,J,T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
     kr,jr = parentindexes(S)
@@ -353,7 +382,7 @@ function getindex{J<:Jacobi,CC<:Chebyshev,T}(C::ConcreteConversion{J,CC,T},k::In
     end
 end
 
-function Base.convert{J<:Jacobi,CC<:Chebyshev,T}(::Type{BandedMatrix},
+function convert{J<:Jacobi,CC<:Chebyshev,T}(::Type{BandedMatrix},
                                         S::SubOperator{T,ConcreteConversion{J,CC,T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
     kr,jr = parentindexes(S)
@@ -370,14 +399,14 @@ function getindex{US<:Ultraspherical,J<:Jacobi,T}(C::ConcreteConversion{US,J,T},
     if j==k
         S=rangespace(C)
         jp=jacobip(T,k-1,S.a,S.b,one(T))
-        um=Evaluation(setcanonicaldomain(domainspace(C)),true,0)[k]
+        um=Evaluation(setcanonicaldomain(domainspace(C)),last,0)[k]
         um/jp::T
     else
         zero(T)
     end
 end
 
-function Base.convert{US<:Ultraspherical,J<:Jacobi,T}(::Type{BandedMatrix},
+function convert{US<:Ultraspherical,J<:Jacobi,T}(::Type{BandedMatrix},
                                         S::SubOperator{T,ConcreteConversion{US,J,T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
     kr,jr = parentindexes(S)
@@ -385,7 +414,7 @@ function Base.convert{US<:Ultraspherical,J<:Jacobi,T}(::Type{BandedMatrix},
 
     sp=rangespace(parent(S))
     jp=jacobip(T,k-1,sp.a,sp.b,one(T))
-    um=Evaluation(T,setcanonicaldomain(domainspace(parent(S))),true,0)[k]
+    um=Evaluation(T,setcanonicaldomain(domainspace(parent(S))),last,0)[k]
     vals = um./jp
 
     ret[band(bandshift(S))] = vals
@@ -398,14 +427,14 @@ function getindex{US<:Ultraspherical,J<:Jacobi,T}(C::ConcreteConversion{J,US,T},
     if j==k
         S=domainspace(C)
         jp=jacobip(T,k-1,S.a,S.b,one(T))
-        um=Evaluation(T,setcanonicaldomain(rangespace(C)),true,0)[k]
+        um=Evaluation(T,setcanonicaldomain(rangespace(C)),last,0)[k]
         jp/um::T
     else
         zero(T)
     end
 end
 
-function Base.convert{US<:Ultraspherical,J<:Jacobi,T}(::Type{BandedMatrix},
+function convert{US<:Ultraspherical,J<:Jacobi,T}(::Type{BandedMatrix},
                                         S::SubOperator{T,ConcreteConversion{J,US,T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
     kr,jr = parentindexes(S)
@@ -413,7 +442,7 @@ function Base.convert{US<:Ultraspherical,J<:Jacobi,T}(::Type{BandedMatrix},
 
     sp=domainspace(parent(S))
     jp=jacobip(T,k-1,sp.a,sp.b,one(T))
-    um=Evaluation(T,setcanonicaldomain(rangespace(parent(S))),true,0)[k]
+    um=Evaluation(T,setcanonicaldomain(rangespace(parent(S))),last,0)[k]
     vals = jp./um
 
     ret[band(bandshift(S))] = vals
@@ -472,7 +501,7 @@ hasconversion(a::Ultraspherical,b::Jacobi) = hasconversion(Jacobi(a),b)
 
 
 ## <: IntervalDomain avoids a julia bug
-function Multiplication{C<:ConstantSpace,DD<:IntervalDomain}(f::Fun{JacobiWeight{C,DD}},S::Jacobi)
+function Multiplication{C<:ConstantSpace,DD<:IntervalDomain,RR}(f::Fun{JacobiWeight{C,DD,RR}},S::Jacobi)
     # this implements (1+x)*P and (1-x)*P special case
     # see DLMF (18.9.6)
     d=domain(f)
@@ -495,10 +524,10 @@ function Multiplication{C<:ConstantSpace,DD<:IntervalDomain}(f::Fun{JacobiWeight
     end
 end
 
-Multiplication{C<:ConstantSpace,DD<:IntervalDomain}(f::Fun{JacobiWeight{C,DD}},S::Union{Ultraspherical,Chebyshev}) =
+Multiplication{C<:ConstantSpace,DD<:IntervalDomain,RR}(f::Fun{JacobiWeight{C,DD,RR}},S::Union{Ultraspherical,Chebyshev}) =
     MultiplicationWrapper(f,Multiplication(f,Jacobi(S))*Conversion(S,Jacobi(S)))
 
-function rangespace{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain}(M::ConcreteMultiplication{JacobiWeight{C,DD},J})
+function rangespace{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain,RR}(M::ConcreteMultiplication{JacobiWeight{C,DD,RR},J})
     S=domainspace(M)
     if space(M.f).β==1
         # multiply by (1+x)
@@ -511,9 +540,9 @@ function rangespace{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain}(M::ConcreteMu
     end
 end
 
-bandinds{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain}(::ConcreteMultiplication{JacobiWeight{C,DD},J})=-1,0
+bandinds{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain,RR}(::ConcreteMultiplication{JacobiWeight{C,DD,RR},J})=-1,0
 
-function getindex{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain}(M::ConcreteMultiplication{JacobiWeight{C,DD},J},k::Integer,j::Integer)
+function getindex{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain,RR}(M::ConcreteMultiplication{JacobiWeight{C,DD,RR},J},k::Integer,j::Integer)
     @assert ncoefficients(M.f)==1
     a,b=domainspace(M).a,domainspace(M).b
     c=M.f.coefficients[1]
@@ -547,7 +576,7 @@ end
 
 
 for FUNC in (:maxspace_rule,:union_rule,:hasconversion)
-    @eval function $FUNC{T,DD<:Segment}(A::WeightedJacobi{T,DD},B::Jacobi)
+    @eval function $FUNC{DD<:Segment}(A::WeightedJacobi{DD},B::Jacobi)
         if A.β==A.α+1 && A.space.b>0
             $FUNC(Jacobi(A.space.b-1,A.space.a,domain(A)),B)
         elseif A.α==A.β+1 && A.space.a>0
@@ -563,14 +592,14 @@ end
 
 
 # represents [b+(1+z)*d/dz] (false) or [a-(1-z)*d/dz] (true)
-immutable JacobiSD{T} <:Operator{T}
+struct JacobiSD{T} <:Operator{T}
     lr::Bool
     S::Jacobi
 end
 
 JacobiSD(lr,S)=JacobiSD{Float64}(lr,S)
 
-Base.convert{T}(::Type{Operator{T}},SD::JacobiSD)=JacobiSD{T}(SD.lr,SD.S)
+convert{T}(::Type{Operator{T}},SD::JacobiSD)=JacobiSD{T}(SD.lr,SD.S)
 
 domain(op::JacobiSD)=domain(op.S)
 domainspace(op::JacobiSD)=op.S

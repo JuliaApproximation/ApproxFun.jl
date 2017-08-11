@@ -1,9 +1,9 @@
 
 ## Orthogonal polynomials
 
-@compat abstract type PolynomialSpace{D} <: RealUnivariateSpace{D} end
+abstract type PolynomialSpace{D,R} <: Space{D,R} end
 
-
+@containsconstants PolynomialSpace
 
 Multiplication{U<:PolynomialSpace}(f::Fun{U},sp::PolynomialSpace) = ConcreteMultiplication(f,sp)
 bandinds{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V}) =
@@ -11,10 +11,7 @@ bandinds{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V}) 
 rangespace{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V}) = domainspace(M)
 
 
-# All polynomials contain constant
-union_rule(A::ConstantSpace,B::PolynomialSpace) = B
-Base.promote_rule{T<:Number,S<:PolynomialSpace,V}(::Type{Fun{S,V}},::Type{T}) = Fun{S,promote_type(V,T)}
-Base.promote_rule{T<:Number,S<:PolynomialSpace}(::Type{Fun{S}},::Type{T}) = Fun{S,T}
+
 
 ## Evaluation
 
@@ -45,13 +42,13 @@ extrapolate(f::AbstractVector,S::PolynomialSpace,x) = clenshaw(S,f,tocanonical(S
 # Recurrence encodes the recurrence coefficients
 # or equivalently multiplication by x
 ######
-immutable Recurrence{S,T} <: TridiagonalOperator{T}
+struct Recurrence{S,T} <: TridiagonalOperator{T}
     space::S
 end
 
-Recurrence(sp) = Recurrence{typeof(sp),promote_type(eltype(sp),eltype(domain(sp)))}(sp)
+Recurrence(sp) = Recurrence{typeof(sp),rangetype(sp)}(sp)
 
-Base.convert{T,S}(::Type{Operator{T}},J::Recurrence{S}) = Recurrence{S,T}(J.space)
+convert{T,S}(::Type{Operator{T}},J::Recurrence{S}) = Recurrence{S,T}(J.space)
 
 domainspace(R::Recurrence) = R.space
 rangespace(R::Recurrence) = R.space
@@ -78,15 +75,15 @@ end
 # JacobiZ encodes [BasisFunctional(1);(J-z*I)[2:end,:]]
 # where J is the Jacobi operator
 ######
-immutable JacobiZ{S<:Space,T} <: TridiagonalOperator{T}
+struct JacobiZ{S<:Space,T} <: TridiagonalOperator{T}
     space::S
     z::T
 end
 
 JacobiZ(sp::PolynomialSpace,z) =
-    (T = promote_type(eltype(sp),eltype(domain(sp)),typeof(z)); JacobiZ{typeof(sp),T}(sp,T(z)))
+    (T = promote_type(prectype(sp),typeof(z)); JacobiZ{typeof(sp),T}(sp,T(z)))
 
-Base.convert{T,S}(::Type{Operator{T}},J::JacobiZ{S}) = JacobiZ{S,T}(J.space,J.z)
+convert{T,S}(::Type{Operator{T}},J::JacobiZ{S}) = JacobiZ{S,T}(J.space,J.z)
 
 domainspace(::JacobiZ) = ℓ⁰
 rangespace(::JacobiZ) = ℓ⁰
@@ -176,7 +173,7 @@ end
 
 
 
-function Base.convert{PS<:PolynomialSpace,T,C<:PolynomialSpace}(::Type{BandedMatrix},
+function convert{PS<:PolynomialSpace,T,C<:PolynomialSpace}(::Type{BandedMatrix},
                                                                 S::SubOperator{T,ConcreteMultiplication{C,PS,T},
                                                                                Tuple{UnitRange{Int},UnitRange{Int}}})
     M=parent(S)
@@ -312,12 +309,18 @@ function Evaluation(S::PolynomialSpace,x,order)
 end
 
 
-function getindex{J<:PolynomialSpace}(op::ConcreteEvaluation{J,Bool},kr::Range)
+function getindex{J<:PolynomialSpace}(op::ConcreteEvaluation{J,typeof(first)},kr::Range)
     sp=op.space
     T=eltype(op)
-    x=op.x
 
-    forwardrecurrence(T,sp,kr-1,x?one(T):-one(T))
+    forwardrecurrence(T,sp,kr-1,-one(T))
+end
+
+function getindex{J<:PolynomialSpace}(op::ConcreteEvaluation{J,typeof(last)},kr::Range)
+    sp=op.space
+    T=eltype(op)
+
+    forwardrecurrence(T,sp,kr-1,one(T))
 end
 
 

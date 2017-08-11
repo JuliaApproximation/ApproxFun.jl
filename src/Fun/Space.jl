@@ -4,75 +4,38 @@ export Space, domainspace, rangespace, maxspace,Space,conversion_type, transform
             itransform, SequenceSpace, ConstantSpace
 
 
-##
-# "enum" types used for whether the basis is
-# Real or Complex.  AnyBasis is used when the answer
-# is unknown.
-##
 
-immutable RealBasis end
-immutable ComplexBasis end
-immutable AnyBasis end
+# Space maps the Domain to the type R
+# For example, we have
+#   Chebyshev{Interval{Float64}} <: Space{Interval{Float64},Float64}
+#   Laurent{PeriodicInterval{Float64}} <: Space{PeriodicInterval{Float64},Complex128}
+#   Fourier{Circle{Complex128}} <: Space{Circle{Complex128},Float64}
+# Note for now Space doesn't contain any information about the coefficients
 
-
-Base.promote_rule(::Type{RealBasis},::Type{ComplexBasis})=ComplexBasis
-Base.promote_rule(::Type{ComplexBasis},::Type{AnyBasis})=AnyBasis
-Base.promote_rule(::Type{RealBasis},::Type{AnyBasis})=AnyBasis
-
-# coefficient_type(basis,valuetype) gives the type for coefficients
-# for basis of type RealBasis/ComplexBasis and valuetype
-# giving the type of function values
-coefficient_type{T<:Complex}(::Type{ComplexBasis},::Type{T})=T
-coefficient_type{T<:Real}(::Type{ComplexBasis},::Type{T})=Complex{T}
-coefficient_type{T}(::Type{RealBasis},::Type{T})=T
+abstract type Space{D,R} end
 
 
-#
-# eltype for RealBasis/ComplexBasis gives the
-# default type.  Maybe should be defaulteltype?
-#
 
-Base.eltype(::RealBasis)=Float64
-Base.eltype(::ComplexBasis)=Complex{Float64}
-Base.eltype(::AnyBasis)=Number
-
-Base.eltype(::Type{RealBasis})=Float64
-Base.eltype(::Type{ComplexBasis})=Complex{Float64}
-Base.eltype(::Type{AnyBasis})=Number
+const RealSpace = Space{D,R} where {D,R<:Real}
+const ComplexSpace = Space{D,R} where {D,R<:Complex}
+const UnivariateSpace = Space{D,R} where {D<:UnivariateDomain,R}
+const BivariateSpace = Space{D,R}  where {D<:BivariateDomain,R}
+const RealUnivariateSpace = RealSpace{D,R} where {D<:UnivariateDomain,R<:Real}
 
 
 
 
+Base.eltype{T}(S::Space{T}) = error("Eltype has been changed to domaintype, rangetype or prectype")
+Base.eltype{D,R}(::Type{Space{D,R}}) = error("Eltype has been changed to domaintype, rangetype or prectype")
 
-# T is either RealBasis (cos/sin/polynomial) or ComplexBasis (laurent)
-# D is the domain
-# d is the dimension
-@compat abstract type Space{T,D,d} end
-
-
-
-@compat const RealSpace{D,d} = Space{RealBasis,D,d}
-@compat const ComplexSpace{D,d} = Space{ComplexBasis,D,d}
-@compat const UnivariateSpace{T,D} = Space{T,D,1}
-@compat const BivariateSpace{T,DD} = Space{T,DD,2}
-@compat const RealUnivariateSpace{D} = RealSpace{D,1}
-
-
-
-
-Base.eltype{T}(::Space{T}) = eltype(T)
-Base.eltype{T,D,d}(::Type{Space{T,D,d}}) = eltype(T)
-basistype{T}(::Space{T}) = T
-basistype{T,D,d}(::Type{Space{T,D,d}}) = T
-basistype{FT<:Space}(::Type{FT}) = basistype(supertype(FT))
-
-domaintype{T,D}(::Space{T,D}) = D
-domaintype{T,D,d}(::Type{Space{T,D,d}}) = D
+domaintype{D,R}(::Space{D,R}) = D
+domaintype{D,R}(::Type{Space{D,R}}) = D
 domaintype{FT<:Space}(::Type{FT}) = domaintype(supertype(FT))
+rangetype{D,R}(::Space{D,R}) = R
+rangetype{D,R}(::Type{Space{D,R}}) = R
+rangetype{FT<:Space}(::Type{FT}) = rangetype(supertype(FT))
 
-coefficient_type{S}(::Space{S},T) = coefficient_type(S,T)
-
-domaindimension{S,D,d}(::Space{S,D,d}) = d
+domaindimension(sp::Space) = dimension(domain(sp))
 dimension(::Space) = ∞  # We assume infinite-dimensional spaces
 
 
@@ -92,24 +55,23 @@ Base.endof(s::Space) = 1
 #supports broadcasting, overloaded for ArraySpace
 Base.size(::Space) = ()
 
-# but broadcasts like Number (even for overloaded ArraySpace)
-# TODO for v0.6: remove this
-Base.broadcast(f,x::Union{Number,Domain,Space}...) = f(x...)
+Base.transpose(sp::Space) = sp  # default no-op
+
 
 # the default is all spaces have one-coefficient blocks
 blocklengths(S::Space) = repeated(true,dimension(S))
+nblocks(S::Space) = length(blocklengths(S))
 block(S::Space,k) = Block(k)
 
 Space{D<:Number}(d::AbstractVector{D}) = Space(convert(Domain,d))
 
 
-@compat abstract type AmbiguousSpace <: Space{RealBasis,AnyDomain,1} end
-
+abstract type AmbiguousSpace <: Space{AnyDomain,UnsetNumber} end
 domain(::AmbiguousSpace) = AnyDomain()
 
 
-function setdomain{T,D<:Domain}(sp::Space{T,D},d::D)
-    S=typeof(sp)
+function setdomain{D<:Domain}(sp::Space{D},d::D)
+    S = typeof(sp)
     @assert length(fieldnames(S))==1
     S(d)
 end
@@ -132,16 +94,14 @@ reverseorientation(S::Space) = setdomain(S,reverse(domain(S)))
 # NoSpace is used to indicate no space exists for, e.g.,
 # conversion_type
 
-immutable UnsetSpace <: AmbiguousSpace end
-immutable NoSpace <: AmbiguousSpace end
-immutable ZeroSpace <: AmbiguousSpace end   # ZeroSpace is compatible with all spaces
+struct UnsetSpace <: AmbiguousSpace end
+struct NoSpace <: AmbiguousSpace end
 
+isambiguous(::) = false
+isambiguous(::Type{UnsetNumber}) = true
+isambiguous(::Type{Array{T}}) where {T} = isambiguous(T)
+isambiguous(sp::Space) = isambiguous(rangetype(sp))
 
-dimension(::ZeroSpace) = 0
-
-
-isambiguous(::)=false
-isambiguous(::AmbiguousSpace) = true
 
 #TODO: should it default to canonicalspace?
 points(d::Space,n) = points(domain(d),n)
@@ -157,13 +117,12 @@ canonicaldomain(S::Space) = canonicaldomain(domain(S))
 spacescompatible{D<:Space}(f::D,g::D) = error("Override spacescompatible for "*string(D))
 spacescompatible(::UnsetSpace,::UnsetSpace) = true
 spacescompatible(::NoSpace,::NoSpace) = true
-spacescompatible(::ZeroSpace,::ZeroSpace) = true
 spacescompatible(f,g) = false
 ==(A::Space,B::Space) = spacescompatible(A,B)&&domain(A)==domain(B)
 spacesequal(A::Space,B::Space) = A==B
 
 # check a list of spaces for compatibility
-for OP in (:spacescompatible,:domainscompatible,:spacesequal),TYP in (:Array,:Tuple)
+for OP in (:spacescompatible,:domainscompatible,:spacesequal),TYP in (:AbstractArray,:Tuple)
     @eval function $OP(v::$TYP)
         for k=1:length(v)-1
             if !$OP(v[k],v[k+1])
@@ -203,10 +162,9 @@ for FUNC in (:conversion_rule,:maxspace_rule,:union_rule)
 end
 
 
+
 for FUNC in (:conversion_type,:maxspace)
     @eval begin
-        $FUNC(::ZeroSpace,::UnsetSpace) = UnsetSpace()
-        $FUNC(::UnsetSpace,::ZeroSpace) = UnsetSpace()
         $FUNC(a::UnsetSpace,b::UnsetSpace) = a
         $FUNC(a::UnsetSpace,b::Space) = b
         $FUNC(a::Space,b::UnsetSpace) = a
@@ -292,7 +250,9 @@ end
 Base.union(a::AmbiguousSpace,b::AmbiguousSpace)=b
 Base.union(a::AmbiguousSpace,b::Space)=b
 Base.union(a::Space,b::AmbiguousSpace)=a
-function Base.union(a::Space,b::Space)
+
+
+function union_by_union_rule(a::Space,b::Space)
     if spacescompatible(a,b)
         if isambiguous(domain(a))
             return b
@@ -302,31 +262,27 @@ function Base.union(a::Space,b::Space)
     end
 
     cr=union_rule(a,b)
-    if !isa(cr,NoSpace)
-        return cr
-    end
+    cr isa NoSpace || return cr
 
-    cr=union_rule(b,a)
-    if !isa(cr,NoSpace)
-        return cr
-    end
+    union_rule(b,a)
+end
+
+function Base.union(a::Space,b::Space)
+    cr = union_by_union_rule(a,b)
+    cr isa NoSpace || return cr
 
     cspa=canonicalspace(a)
     cspb=canonicalspace(b)
     if cspa!=a || cspb!=b
-        cr=union(cspa,cspb)
+        cr = union_by_union_rule(cspa,cspb)
     end
-    if !isa(cr,NoSpace)
-        return cr
-    end
-
     #TODO: Uncomment when Julia bug is fixed
     # cr=maxspace(a,b)  #Max space since we can convert both to it
     # if !isa(cr,NoSpace)
     #     return cr
     # end
 
-    a⊕b
+    a ⊕ b
 end
 
 Base.union(a::Space) = a
@@ -344,19 +300,19 @@ hasconversion(a,b) = maxspace(a,b)==b
 isconvertible(a,b) = hasconversion(a,b)
 
 ## Conversion routines
-#       coefficients(v::Vector,a,b)
+#       coefficients(v::AbstractVector,a,b)
 # converts from space a to space b
 #       coefficients(v::Fun,a)
 # is equivalent to coefficients(v.coefficients,v.space,a)
-#       coefficients(v::Vector,a,b,c)
+#       coefficients(v::AbstractVector,a,b,c)
 # uses an intermediate space b
 
 coefficients(f,sp1,sp2,sp3) = coefficients(coefficients(f,sp1,sp2),sp2,sp3)
 
-coefficients{T1<:Space,T2<:Space}(f::Vector,::Type{T1},::Type{T2}) =
+coefficients{T1<:Space,T2<:Space}(f::AbstractVector,::Type{T1},::Type{T2}) =
     coefficients(f,T1(),T2())
-coefficients{T1<:Space}(f::Vector,::Type{T1},sp2::Space) = coefficients(f,T1(),sp2)
-coefficients{T2<:Space}(f::Vector,sp1::Space,::Type{T2}) = coefficients(f,sp1,T2())
+coefficients{T1<:Space}(f::AbstractVector,::Type{T1},sp2::Space) = coefficients(f,T1(),sp2)
+coefficients{T2<:Space}(f::AbstractVector,sp1::Space,::Type{T2}) = coefficients(f,sp1,T2())
 
 ## coefficients defaults to calling Conversion, otherwise it tries to pipe through Chebyshev
 
@@ -418,7 +374,7 @@ identity_fun(S::Space) = identity_fun(domain(S))
 
 function identity_fun(d::Domain)
     cd=canonicaldomain(d)
-    if typeof(d)==typeof(cd)
+    if typeof(d) == typeof(cd)
         Fun(x->x,d) # fall back to constructor
     else
         # this allows support for singularities, that the constructor doesn't
@@ -447,7 +403,7 @@ checkpoints(d::Space) = checkpoints(domain(d))
 # These plans are use to wrap another plan
 for Typ in (:TransformPlan,:ITransformPlan)
     @eval begin
-        immutable $Typ{T,SP,inplace,PL} <: FFTW.Plan{T}
+        struct $Typ{T,SP,inplace,PL} <: FFTW.Plan{T}
             space::SP
             plan::PL
         end
@@ -458,7 +414,7 @@ end
 
 for Typ in (:CanonicalTransformPlan,:ICanonicalTransformPlan)
     @eval begin
-        immutable $Typ{T,SP,PL,CSP} <: FFTW.Plan{T}
+        struct $Typ{T,SP,PL,CSP} <: FFTW.Plan{T}
             space::SP
             plan::PL
             canonicalspace::CSP
@@ -510,8 +466,8 @@ plan_itransform!(sp::Space,cfs) = error("Override for $sp")
 transform(S::Space,vals) = plan_transform(S,vals)*vals
 itransform(S::Space,cfs) = plan_itransform(S,cfs)*cfs
 
-*(P::CanonicalTransformPlan,vals::Vector) = coefficients(P.plan*vals,P.canonicalspace,P.space)
-*(P::ICanonicalTransformPlan,cfs::Vector) = P.plan*coefficients(cfs,P.space,P.canonicalspace)
+*(P::CanonicalTransformPlan,vals::AbstractVector) = coefficients(P.plan*vals,P.canonicalspace,P.space)
+*(P::ICanonicalTransformPlan,cfs::AbstractVector) = P.plan*coefficients(cfs,P.space,P.canonicalspace)
 
 
 
@@ -519,7 +475,7 @@ for OP in (:plan_transform,:plan_itransform,:plan_transform!,:plan_itransform!)
     # plan transform expects a vector
     # this passes an empty Float64 array
     @eval begin
-        $OP{T}(S::Space,::Type{T},n::Integer) = $OP(S,Vector{T}(n))
+        $OP(S::Space,::Type{T},n::Integer) where {T} = $OP(S,Vector{T}(n))
         $OP(S::Space,n::Integer) = $OP(S,Float64,n)
     end
 end
@@ -531,44 +487,70 @@ for OP in (:<,:(<=),:>,:(>=),:(Base.isless))
     @eval $OP(a::Space,b::Space)=$OP(string(a),string(b))
 end
 
-
-
 ## Important special spaces
+
+
+struct ZeroSpace{DD,R} <: Space{DD,R}
+    domain::DD
+    ZeroSpace{DD,R}(d::DD) where {DD,R} = new(d)
+    ZeroSpace{DD,R}(d::AnyDomain) where {DD,R} = new(DD(d))
+end
+
+
+ZeroSpace(S::Space) = ZeroSpace{domaintype(S),rangetype(S)}(domain(S))
+ZeroSpace() = ZeroSpace{AnyDomain,UnsetNumber}(AnyDomain())
+domain(S::ZeroSpace) = S.domain
+
+dimension(::ZeroSpace) = 0
+
+spacescompatible(::ZeroSpace,::ZeroSpace) = true
+for FUNC in (:conversion_type,:maxspace)
+    @eval begin
+        $FUNC(::ZeroSpace,::UnsetSpace) = UnsetSpace()
+        $FUNC(::UnsetSpace,::ZeroSpace) = UnsetSpace()
+    end
+end
 
 
 """
 `ConstantSpace` is the 1-dimensional scalar space.
 """
 
-immutable ConstantSpace{DD} <: UnivariateSpace{RealBasis,DD}
+struct ConstantSpace{DD,R} <: Space{DD,R}
     domain::DD
-    (::Type{ConstantSpace{DD}}){DD}(d::DD) = new{DD}(d)
-    (::Type{ConstantSpace{DD}}){DD}(d::AnyDomain) = new{DD}(DD(d))
+    ConstantSpace{DD,R}(d::DD) where {DD,R} = new(d)
+    ConstantSpace{DD,R}(d::AnyDomain) where {DD,R} = new(DD(d))
 end
 
-ConstantSpace(d::Domain) = ConstantSpace{typeof(d)}(d)
+ConstantSpace(d::Domain) = ConstantSpace{typeof(d),real(prectype(d))}(d)
 ConstantSpace() = ConstantSpace(AnyDomain())
+ConstantSpace(::Type{N}) where {N<:Number} = ConstantSpace{AnyDomain,real(N)}(AnyDomain())
+
+convert(::Type{Space},z::Number) = ConstantSpace(Domain(z))  # Spaces
 
 isconstspace(::ConstantSpace) = true
 
 for pl in (:plan_transform,:plan_transform!,:plan_itransform,:plan_itransform!)
-    @eval $pl(sp::ConstantSpace,vals::Vector) = I
+    @eval $pl(sp::ConstantSpace,vals::AbstractVector) = I
 end
 
 # we override maxspace instead of maxspace_rule to avoid
 # domainscompatible check.
 for OP in (:maxspace,:(Base.union))
     @eval begin
-        $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace{AnyDomain})=A
-        $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace)=B
-        $OP(A::ConstantSpace,B::ConstantSpace{AnyDomain})=A
-        $OP(A::ConstantSpace,B::ConstantSpace)=ConstantSpace(domain(A) ∪ domain(B))
+        $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace{AnyDomain}) = A
+        $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace) = B
+        $OP(A::ConstantSpace,B::ConstantSpace{AnyDomain}) = A
+        $OP(A::ConstantSpace,B::ConstantSpace) = ConstantSpace(domain(A) ∪ domain(B))
     end
 end
 
+space(x::Number) = ConstantSpace(typeof(x))
 
 
-immutable SequenceSpace <: Space{RealBasis,PositiveIntegers,0} end
+
+# Range type is Void since function evaluation is not defined
+struct SequenceSpace <: Space{PositiveIntegers,Void} end
 
 doc"""
 `SequenceSpace` is the space of all sequences, i.e., infinite vectors.

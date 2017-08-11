@@ -12,23 +12,15 @@ For example, the following represents the rectangle `1 ≤ x ≤ 2 & 3 ≤ y 
 Interval(1,2)*(3,4)
 ```
 """
-immutable ProductDomain{D,T,dim} <: Domain{T,dim}
+struct ProductDomain{D,T} <: Domain{T}
     domains::D
 end
 
 ProductDomain(d::Tuple) =
-    ProductDomain{typeof(d),Vec{length(d),mapreduce(eltype,promote_type,d)},
-                   mapreduce(dimension,+,d)}(d)
+    ProductDomain{typeof(d),Vec{length(d),mapreduce(eltype,promote_type,d)}}(d)
 
 Base.issubset(a::ProductDomain,b::ProductDomain) =
   length(a) == length(b) && all(issubset(a.domains[i],b.domains[i]) for i in eachindex(a.domains))
-
-# TODO: Remove Tuple variants
-fromcanonical(d::BivariateDomain,x::Tuple) = fromcanonical(d,Vec(x...))
-tocanonical(d::BivariateDomain,x::Tuple) = tocanonical(d,Vec(x...))
-
-fromcanonical(d::BivariateDomain,x,y) = fromcanonical(d,Vec(x,y))
-tocanonical(d::BivariateDomain,x,y) = tocanonical(d,Vec(x,y))
 
 
 canonicaldomain(d::ProductDomain) = ProductDomain(map(canonicaldomain,d.domains))
@@ -45,10 +37,10 @@ ProductDomain(A,B) = ProductDomain((A,B))
 *(A::Domain,B::ProductDomain) = ProductDomain(tuple(A,B.domains...))
 *(A::Domain,B::Domain) = ProductDomain(A,B)
 
-Base.length(d::ProductDomain)=length(d.domains)
-Base.transpose(d::ProductDomain)=ProductDomain(d[2],d[1])
-Base.getindex(d::ProductDomain,k::Integer)=d.domains[k]
-==(d1::ProductDomain,d2::ProductDomain)=d1.domains==d2.domains
+Base.transpose(d::ProductDomain) = ProductDomain(d[2],d[1])
+nfactors(d::ProductDomain) = length(d.domains)
+factor(d::ProductDomain,k::Integer) = d.domains[k]
+==(d1::ProductDomain,d2::ProductDomain) = d1.domains==d2.domains
 
 Base.first(d::ProductDomain) = (first(d[1]),first(d[2]))
 

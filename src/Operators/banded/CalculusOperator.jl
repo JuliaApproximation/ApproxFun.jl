@@ -1,7 +1,7 @@
 export Derivative,Integral,Laplacian,Volterra
 
 
-@compat abstract type CalculusOperator{S,OT,T}<:Operator{T} end
+abstract type CalculusOperator{S,OT,T}<:Operator{T} end
 
 
 ## Note that all functions called in calculus_operator must be exported
@@ -12,13 +12,13 @@ macro calculus_operator(Op)
     DefaultOp=parse("Default"*string(Op))
     return esc(quote
         # The SSS, TTT are to work around #9312
-        @compat abstract type $Op{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT} end
+        abstract type $Op{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT} end
 
-        immutable $ConcOp{S<:Space,OT,T} <: $Op{S,OT,T}
+        struct $ConcOp{S<:Space,OT,T} <: $Op{S,OT,T}
             space::S        # the domain space
             order::OT
         end
-        immutable $WrappOp{BT<:Operator,S<:Space,OT,T} <: $Op{S,OT,T}
+        struct $WrappOp{BT<:Operator,S<:Space,OT,T} <: $Op{S,OT,T}
             op::BT
             order::OT
         end
@@ -27,7 +27,7 @@ macro calculus_operator(Op)
 
 
         ## Constructors
-        $ConcOp(sp::Space,k) = $ConcOp{typeof(sp),typeof(k),op_eltype(sp)}(sp,k)
+        $ConcOp(sp::Space,k) = $ConcOp{typeof(sp),typeof(k),prectype(sp)}(sp,k)
 
         $Op(sp::UnsetSpace,k) = $ConcOp(sp,k)
         $Op(sp::UnsetSpace,k::Real) = $ConcOp(sp,k)
@@ -74,19 +74,19 @@ macro calculus_operator(Op)
         end
 
         ## Routines
-        domain(D::$ConcOp) = domain(D.space)
-        domainspace(D::$ConcOp) = D.space
+        ApproxFun.domain(D::$ConcOp) = domain(D.space)
+        ApproxFun.domainspace(D::$ConcOp) = D.space
 
-        getindex{OT,T}(::$ConcOp{UnsetSpace,OT,T},k::Integer,j::Integer) =
+        Base.getindex{OT,T}(::$ConcOp{UnsetSpace,OT,T},k::Integer,j::Integer) =
             error("Spaces cannot be inferred for operator")
-        rangespace{T}(D::$ConcOp{UnsetSpace,T}) = UnsetSpace()
+        ApproxFun.rangespace{T}(D::$ConcOp{UnsetSpace,T}) = UnsetSpace()
 
         #promoting domain space is allowed to change range space
         # for integration, we fall back on existing conversion for now
-        promotedomainspace(D::$Op,sp::UnsetSpace) = D
+        ApproxFun.promotedomainspace(D::$Op,sp::UnsetSpace) = D
 
 
-        function promotedomainspace(D::$Op,sp::Space)
+        function ApproxFun.promotedomainspace(D::$Op,sp::Space)
             if isambiguous(domain(sp))
                 $Op(typeof(sp)(domain(D)),D.order)
             else
@@ -254,7 +254,7 @@ doc"""
 `Derivative(k)` represents the `k`-th derivative, acting on an unset space.
 Spaces will be inferred when applying or manipulating the operator.
 """
-Derivative(::)
+Derivative(k)
 
 doc"""
 `Derivative()` represents the first derivative on an unset space.
@@ -279,7 +279,7 @@ doc"""
 Integral(k)` represents the `k`-th integral, acting on an unset space.
 Spaces will be inferred when applying or manipulating the operator.
 """
-Integral(::)
+Integral(k)
 
 doc"""
 `Intergral()` represents the first integral on an unset space.

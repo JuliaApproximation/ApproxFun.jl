@@ -35,12 +35,16 @@ function Base.show(io::IO,d::Ray)
     end
 end
 
-Base.show(io::IO,d::PeriodicInterval)=print(io,"【$(d.a),$(d.b)❫")
-Base.show(io::IO,d::Circle)=print(io,(d.radius==1?"":string(d.radius))*(d.orientation?"🕒":"🕞")*(d.center==0?"":"+$(d.center)"))
-Base.show(io::IO,d::Point)=print(io,"Point($(d.x))")
+Base.show(io::IO,d::PeriodicInterval) = print(io,"【$(d.a),$(d.b)❫")
+Base.show(io::IO,d::Circle) =
+    print(io,(d.radius==1 ? "" : string(d.radius))*
+                    (d.orientation ? "🕒" : "🕞")*
+                    (d.center==0 ? "" : "+$(d.center)"))
+Base.show(io::IO,d::Point) = print(io,"Point($(d.x))")
 
 
-function Base.show(io::IO,s::UnionDomain)
+function Base.show(io::IO,d::UnionDomain)
+    s = components(d)
     show(io,s[1])
     for d in s[2:end]
         print(io,"∪")
@@ -55,12 +59,12 @@ Base.show(io::IO,S::ConstantSpace) = print(io,"ConstantSpace($(domain(S)))")
 Base.show(io::IO,f::Fun{ConstantSpace{AnyDomain}}) =
     print(io,"$(Number(f)) anywhere")
 
-Base.show{DD}(io::IO,f::Fun{ConstantSpace{DD}}) =
+Base.show{DD,RR}(io::IO,f::Fun{ConstantSpace{DD,RR}}) =
     print(io,"$(Number(f)) on $(domain(f))")
 
 for typ in ("Chebyshev","Fourier","Laurent","Taylor","SinSpace","CosSpace")
     TYP=parse(typ)
-    @eval function Base.show{D}(io::IO,S::$TYP{D})
+    @eval function Base.show{D,R}(io::IO,S::$TYP{D,R})
         print(io,$typ*"(")
         show(io,domain(S))
         print(io,")")
@@ -111,9 +115,15 @@ function Base.show(io::IO,s::LogWeight)
     print(io,"]")
 end
 
+function Base.show(io::IO,s::QuotientSpace)
+    show(io,s.space)
+    print(io," /\n")
+    show(io,s.bcs;header=false)
+end
 
 
-function Base.show(io::IO,s::SumSpace)
+function Base.show(io::IO,ss::SumSpace)
+    s = components(ss)
     show(io,s[1])
     for sp in s[2:end]
         print(io,"⊕")
@@ -122,7 +132,8 @@ function Base.show(io::IO,s::SumSpace)
 end
 
 
-function Base.show(io::IO,s::PiecewiseSpace)
+function Base.show(io::IO,ss::PiecewiseSpace)
+    s = components(ss)
     show(io,s[1])
     for sp in s[2:end]
         print(io,"⨄")
@@ -130,13 +141,19 @@ function Base.show(io::IO,s::PiecewiseSpace)
     end
 end
 
+Base.summary(ss::ArraySpace) = string(Base.dims2string(length.(indices(ss))), " ArraySpace")
+function Base.show(io::IO,ss::ArraySpace;header::Bool=true)
+    header && print(io,summary(ss)*":\n")
+    showarray(io,ss.spaces;header=false)
+end
+
 function Base.show(io::IO,s::TensorSpace)
-    d = length(s)
+    d = length(s.spaces)
     for i=1:d-1
-        show(io,s[i])
+        show(io,s.spaces[i])
         print(io,"⊗")
     end
-    show(io,s[d])
+    show(io,s.spaces[d])
 end
 
 function Base.show(io::IO,s::SubSpace)

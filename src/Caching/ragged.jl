@@ -230,7 +230,7 @@ end
 
 
 function Ac_mul_Bpars{RR,T}(A::QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T},
-                            B::Vector{T},tolerance,maxlength)
+                            B::AbstractVector{T},tolerance,maxlength)
     if length(B) > A.QR.ncols
         # upper triangularize extra columns to prepare for \
         resizedata!(A.QR,:,length(B)+size(A.QR.H,1)+10)
@@ -276,7 +276,7 @@ end
 # BLAS apply Q
 
 function Ac_mul_Bpars{RR,T<:BlasFloat}(A::QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T},
-                            B::Vector{T},tolerance,maxlength)
+                            B::AbstractVector{T},tolerance,maxlength)
     if length(B) > A.QR.ncols
         # upper triangularize extra columns to prepare for \
         resizedata!(A.QR,:,length(B)+size(A.QR.H,1)+10)

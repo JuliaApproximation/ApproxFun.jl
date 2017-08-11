@@ -81,9 +81,9 @@ Solve the Airy ODE `u'' - x u = 0` as a BVP on `[-1000,200]`:
 x = Fun(identity,-1000..200)
 d = domain(x)
 D = Derivative(d)
-B = dirichlet(d)
+B = Dirichlet(d)
 L = D^2 - x
-u = [B;L] \ [airyai(d.a);airyai(d.b);0]
+u = [B;L] \ [[airyai(d.a),airyai(d.b)],0]
 plot(u)
 ```
 

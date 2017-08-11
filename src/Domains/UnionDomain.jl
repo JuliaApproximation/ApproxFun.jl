@@ -8,12 +8,13 @@ export UnionDomain
 
 represents a union of multiple subdomains: `{x : x ∈ d1 || … || x ∈ dn}`.
 """
-immutable UnionDomain{DD,T,d} <: Domain{T,d}
+struct UnionDomain{DD,T} <: Domain{T}
     domains::DD
 end
 
+UnionDomain(d::Tuple{}) = error("Cannot create UnionDomain with no components")
 UnionDomain(d::Tuple) =
-    UnionDomain{typeof(d),mapreduce(eltype,promote_type,d),mapreduce(dimension,max,d)}(d)
+    UnionDomain{typeof(d),mapreduce(eltype,promote_type,d)}(d)
 UnionDomain(d::AbstractVector) = UnionDomain(tuple(d...))
 
 
@@ -28,9 +29,9 @@ UnionDomain(d1::Domain,d2::Domain) = UnionDomain((d1,d2))
 canonicaldomain(d::UnionDomain) = d  # we could map all to canonical, but then there would be overlap
 
 isambiguous(d::UnionDomain) = isempty(d.domains)
-Base.convert{DD,T,d}(::Type{UnionDomain{DD,T,d}},::AnyDomain) =
-    UnionDomain{DD,T,d}(map(D->D(AnyDomain()),DD.parameters))
-Base.convert{IT<:UnionDomain}(::Type{IT},::AnyDomain) = UnionDomain(tuple())
+convert{DD,T}(::Type{UnionDomain{DD,T}},::AnyDomain) =
+    UnionDomain{DD,T}(map(D->D(AnyDomain()),DD.parameters))
+convert{IT<:UnionDomain}(::Type{IT},::AnyDomain) = UnionDomain(tuple())
 
 
 
@@ -47,6 +48,10 @@ Base.union(d1::EmptyDomain,d2::EmptyDomain) = d1
 Base.union(d1::EmptyDomain,d2::Domain) = d2
 Base.union(d1::Domain,d2::EmptyDomain) = d1
 
+Base.union(d1::AnyDomain,d2::AnyDomain) = d1
+Base.union(d1::AnyDomain,d2::Domain) = d2
+Base.union(d1::Domain,d2::AnyDomain) = d1
+
 function Base.union(d1::Domain,d2::Domain)
     if d1==d2
         return d1
@@ -56,7 +61,7 @@ function Base.union(d1::Domain,d2::Domain)
     if isempty(Γ)
         UnionDomain(d1,d2)
     else
-        (d1\Γ)∪Γ∪(d2\Γ)
+        (d1\Γ) ∪ Γ ∪ (d2\Γ)
     end
 end
 
@@ -80,21 +85,18 @@ for op in (:(Base.first),:(Base.last))
 end
 
 #support tuple set
-for OP in (:(Base.start),:(Base.done),:(Base.endof),:(Base.getindex),:(Base.length),:(Base.next))
-    @eval $OP(S::UnionDomain,k...) = $OP(S.domains,k...)
-end
-
-pieces(d::UnionDomain) = [d.domains...]
-numpieces(d::UnionDomain) = length(d.domains)
+components(d::UnionDomain) = [d.domains...]
+component(d::UnionDomain,k) = d.domains[k]
+ncomponents(d::UnionDomain) = length(d.domains)
 
 arclength(d::UnionDomain) = mapreduce(arclength,+,d.domains)
 
 ==(d1::UnionDomain,d2::UnionDomain) =
-    length(d1)==length(d2)&&all(Bool[d1[k]==d2[k] for k=1:length(d1)])
+    ncomponents(d1)==ncomponents(d2) && all(Bool[component(d1,k) == component(d2,k) for k=1:ncomponents(d1)])
 
 
 Base.in(x,d::UnionDomain) = any(a->x∈a,d.domains)
-Base.issubset(a::Domain,d::UnionDomain) = (a∪d)==d
+Base.issubset(a::Domain,d::UnionDomain) = (a∪d) == d
 Base.reverse(d::UnionDomain) = UnionDomain(reverse(map(reverse,d.domains)))
 
 ∂(d::UnionDomain) = mapreduce(∂,union,d.domains)
@@ -107,7 +109,7 @@ function points(d::UnionDomain,n)
         vcat([points(d.domains[j],k) for j=r+1:length(d)]...)]
 end
 
-Base.rand(d::UnionDomain) = rand(d[rand(1:length(d))])
+Base.rand(d::UnionDomain) = rand(component(d,rand(1:length(d))))
 checkpoints(d::UnionDomain) = mapreduce(checkpoints,union,d.domains)
 
 function Base.merge(d1::UnionDomain,m::Segment)

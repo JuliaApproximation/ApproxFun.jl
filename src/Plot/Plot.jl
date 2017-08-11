@@ -155,11 +155,11 @@ end
 
 
 @recipe function f{S<:ArraySpace,T<:Real}(g::Fun{S,T})
-    vec(g)
+    components(g)
 end
 
 @recipe function f{S<:PiecewiseSpace,T<:Real}(g::Fun{S,T})
-    p=pieces(g)
+    p=components(g)
     for k=1:length(p)
         @series begin
             primary := (k==1)
@@ -271,7 +271,13 @@ end
         warn("Imaginary part is non-neglible.  Only plotting real part.")
     end
 
-    points(space(g,1),size(vals,1)),points(space(g,2),size(vals,2)),real(vals).'
+    # sort the points
+    x = points(factor(space(g),1),size(vals,1))
+    y = points(factor(space(g),2),size(vals,2))
+    px = sortperm(x)
+    py = sortperm(y)
+
+    x[px],y[py],real(vals).'[py,px]
 end
 
 @recipe function f{S<:UnivariateSpace,
@@ -286,7 +292,14 @@ end
         warn("Imaginary part is non-neglible.  Only plotting real part.")
     end
 
-    points(space(g,1),size(vals,1)),points(space(g,2),size(vals,2)),real(vals).'
+
+    # sort the points
+    x = points(factor(space(g),1),size(vals,1))
+    y = points(factor(space(g),2),size(vals,2))
+    px = sortperm(x)
+    py = sortperm(y)
+
+    x[px],y[py],real(vals).'[py,px]
 end
 
 

@@ -1,6 +1,6 @@
 export DefiniteIntegral,DefiniteLineIntegral
 
-@compat abstract type CalculusFunctional{S,T} <: Operator{T} end
+abstract type CalculusFunctional{S,T} <: Operator{T} end
 
 @functional CalculusFunctional
 
@@ -10,11 +10,11 @@ macro calculus_functional(Op)
     ConcOp=parse("Concrete"*string(Op))
     WrappOp=parse(string(Op)*"Wrapper")
     return esc(quote
-        @compat abstract type $Op{SSS,TTT} <: CalculusFunctional{SSS,TTT} end
-        immutable $ConcOp{S,T} <: $Op{S,T}
+        abstract type $Op{SSS,TTT} <: CalculusFunctional{SSS,TTT} end
+        struct $ConcOp{S,T} <: $Op{S,T}
             domainspace::S
         end
-        immutable $WrappOp{BT<:Operator,S<:Space,T} <: $Op{S,T}
+        struct $WrappOp{BT<:Operator,S<:Space,T} <: $Op{S,T}
             op::BT
         end
 
@@ -22,22 +22,22 @@ macro calculus_functional(Op)
 
 
         # We expect the operator to be real/complex if the basis is real/complex
-        $ConcOp(dsp::Space) = $ConcOp{typeof(dsp),op_eltype(dsp)}(dsp)
+        $ConcOp(dsp::Space) = $ConcOp{typeof(dsp),prectype(dsp)}(dsp)
 
         $Op() = $Op(UnsetSpace())
         $Op(dsp) = $ConcOp(dsp)
         $Op(d::Domain) = $Op(Space(d))
 
-        promotedomainspace(::$Op,sp::Space) = $Op(sp)
+        ApproxFun.promotedomainspace(::$Op,sp::Space) = $Op(sp)
 
 
         Base.convert{T}(::Type{Operator{T}},Σ::$ConcOp) =
             (T==eltype(Σ)?Σ:$ConcOp{typeof(Σ.domainspace),T}(Σ.domainspace))::Operator{T}
 
-        domain(Σ::$ConcOp) = domain(Σ.domainspace)
-        domainspace(Σ::$ConcOp) = Σ.domainspace
+        ApproxFun.domain(Σ::$ConcOp) = domain(Σ.domainspace)
+        ApproxFun.domainspace(Σ::$ConcOp) = Σ.domainspace
 
-        getindex(::$ConcOp{UnsetSpace},kr::Range) =
+        Base.getindex(::$ConcOp{UnsetSpace},kr::Range) =
             error("Spaces cannot be inferred for operator")
 
         $WrappOp(op::Operator) =
@@ -63,7 +63,7 @@ function DefiniteIntegral(sp::Space)
         # try using `Integral`
         Q = Integral(sp)
         rsp = rangespace(Q)
-        DefiniteIntegralWrapper((Evaluation(rsp,true)-Evaluation(rsp,false))*Q)
+        DefiniteIntegralWrapper((Evaluation(rsp,last)-Evaluation(rsp,first))*Q)
     else
         # try mapping to canonical domain
         M = Multiplication(fromcanonicalD(sp),setcanonicaldomain(sp))

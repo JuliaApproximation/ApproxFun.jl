@@ -1,5 +1,5 @@
 # FiniteRange gives the nonzero entries in a row/column
-immutable FiniteRange end
+struct FiniteRange end
 
 getindex(A::AbstractMatrix,::Type{FiniteRange},j::Integer) = A[1:colstop(A,j),j]
 getindex(A::AbstractMatrix,k::Integer,::Type{FiniteRange}) = A[k,1:rowstop(A,k)]
@@ -28,7 +28,7 @@ end
 RaggedMatrix(dat::Vector,cols::Vector{Int},m::Int) =
     RaggedMatrix{eltype(dat)}(dat,cols,m)
 
-RaggedMatrix{T}(::Type{T},m::Int,colns::AbstractVector{Int}) =
+RaggedMatrix(::Type{T},m::Int,colns::AbstractVector{Int}) where {T} =
     RaggedMatrix(Vector{T}(sum(colns)),Int[1;1+cumsum(colns)],m)
 
 RaggedMatrix(m::Int,collengths::AbstractVector{Int}) = RaggedMatrix(Float64,m,collengths)
@@ -39,7 +39,7 @@ Base.size(A::RaggedMatrix) = (A.m,length(A.cols)-1)
 colstart(A::RaggedMatrix,j::Integer) = 1
 colstop(A::RaggedMatrix,j::Integer) = min(A.cols[j+1]-A.cols[j],size(A,1))
 
-@compat Base.IndexStyle{RM<:RaggedMatrix}(::Type{RM}) = IndexCartesian()
+Base.IndexStyle{RM<:RaggedMatrix}(::Type{RM}) = IndexCartesian()
 
 function getindex(A::RaggedMatrix,k::Int,j::Int)
     if k>size(A,1) || k < 1 || j>size(A,2) || j < 1
@@ -66,33 +66,44 @@ function Base.setindex!(A::RaggedMatrix,v,k::Int,j::Int)
     v
 end
 
+convert(::Type{RaggedMatrix{T}},R::RaggedMatrix{T}) where T = R
 
-function Base.convert(::Type{Matrix},A::RaggedMatrix)
-    ret = zeros(eltype(A),size(A,1),size(A,2))
+convert(::Type{RaggedMatrix{T}},R::RaggedMatrix) where T =
+    RaggedMatrix{T}(Vector{T}(R.data), R.cols, R.m)
+
+
+function convert(::Type{Matrix{T}},A::RaggedMatrix) where T
+    ret = zeros(T,size(A,1),size(A,2))
     for j=1:size(A,2)
         ret[1:colstop(A,j),j] = view(A,1:colstop(A,j),j)
     end
     ret
 end
 
+convert(::Type{Matrix},A::RaggedMatrix) = Matrix{eltype(A)}(A)
+
 Base.full(A::RaggedMatrix) = convert(Matrix,A)
 
-function Base.convert(::Type{RaggedMatrix},B::BandedMatrix)
+function convert(::Type{RaggedMatrix{T}},B::BandedMatrix) where T
     l = bandwidth(B,1)
-    ret = rzeros(eltype(B),size(B,1),Int[colstop(B,j) for j=1:size(B,2)])
+    ret = rzeros(T,size(B,1),Int[colstop(B,j) for j=1:size(B,2)])
     for j=1:size(B,2),k=colrange(B,j)
         ret[k,j] = B[k,j]
     end
     ret
 end
 
-function Base.convert(::Type{RaggedMatrix},B::AbstractMatrix)
-    ret = rzeros(eltype(B),size(B,1),Int[colstop(B,j) for j=1:size(B,2)])
+convert(::Type{RaggedMatrix},B::BandedMatrix) = RaggedMatrix{eltype(B)}(B)
+
+function convert(::Type{RaggedMatrix{T}},B::AbstractMatrix) where T
+    ret = rzeros(T,size(B,1),Int[colstop(B,j) for j=1:size(B,2)])
     for j=1:size(B,2),k=colrange(B,j)
         ret[k,j] = B[k,j]
     end
     ret
 end
+
+convert(::Type{RaggedMatrix},B::AbstractMatrix) = RaggedMatrix{eltype(B)}(B)
 
 Base.similar{T}(B::RaggedMatrix,::Type{T}) = RaggedMatrix(Vector{T}(length(B.data)),copy(B.cols),B.m)
 

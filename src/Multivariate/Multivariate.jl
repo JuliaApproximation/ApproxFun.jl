@@ -1,5 +1,5 @@
-@compat abstract type MultivariateFun{T,N} end
-@compat const BivariateFun{T} = MultivariateFun{T,2}
+abstract type MultivariateFun{T,N} end
+const BivariateFun{T} = MultivariateFun{T,2}
 
 export grad, lap, curl
 
@@ -13,9 +13,9 @@ differentiate(u::BivariateFun,i::Integer,j::Integer) =
     j==0?u:differentiate(differentiate(u,i),i,j-1)
 grad(u::BivariateFun) = [differentiate(u,1),differentiate(u,2)]
 lap(u::BivariateFun) = differentiate(u,1,2)+differentiate(u,2,2)
-Base.div{B<:BivariateFun}(u::Vector{B}) =
+Base.div{B<:BivariateFun}(u::AbstractVector{B}) =
     differentiate(u[1],1)+differentiate(u[2],2)
-curl{B<:BivariateFun}(u::Vector{B}) = differentiate(u[2],1)-differentiate(u[1],2)
+curl{B<:BivariateFun}(u::AbstractVector{B}) = differentiate(u[2],1)-differentiate(u[1],2)
 
 Base.chop(f::MultivariateFun) = chop(f,10eps())
 Base.eltype{T}(::MultivariateFun{T}) = T
@@ -43,7 +43,6 @@ Fun(f::LowRankFun) = Fun(ProductFun(f))
 Fun(f::MultivariateFun,sp::Space) = Fun(Fun(f),sp)
 
 Fun(f,d1::Domain,d2::Domain) = Fun(f,d1*d2)
-Fun{T<:Number,V<:Number}(f,d1::Vector{T},d2::Vector{V}) = Fun(f,convert(Domain,d1),convert(Domain,d2))
 
 coefficients(f::BivariateFun,sp::TensorSpace)=coefficients(f,sp[1],sp[2])
 

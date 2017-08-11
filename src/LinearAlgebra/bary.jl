@@ -2,7 +2,7 @@
 
 export bary,barysum
 
-function bary(v::Vector{Float64},pts::Vector{Float64},x::Float64)
+function bary(v::AbstractVector{Float64},pts::AbstractVector{Float64},x::Float64)
   n=length(v)
   @assert n == length(pts)
 
@@ -30,7 +30,7 @@ function bary(v::Vector{Float64},pts::Vector{Float64},x::Float64)
 end
 
 
-bary(v::Vector{Float64},x::Float64)=bary(v,chebyshevpoints(length(v);kind=2),x)
+bary(v::AbstractVector{Float64},x::Float64)=bary(v,chebyshevpoints(length(v);kind=2),x)
 
 function randomadaptivebary(f::Function)
   r=rand()

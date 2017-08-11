@@ -3,6 +3,7 @@ include("SumSpace.jl")
 include("ArraySpace.jl")
 include("ProductSpaceOperators.jl")
 include("SubSpace.jl")
+include("QuotientSpace.jl")
 
 
 ⊕(A::Space,B::Space) = domainscompatible(A,B) ? SumSpace(A,B) : PiecewiseSpace(A,B)
@@ -14,25 +15,25 @@ include("SubSpace.jl")
 
 
 #split the cfs into component spaces
-function coefficients(cfs::Vector,A::SumSpace,B::SumSpace)
+function coefficients(cfs::AbstractVector,A::SumSpace,B::SumSpace)
     if spacescompatible(A,B)
         cfs
     else
-        mapreduce(f->Fun(f,B),+,vec(Fun(A,cfs))).coefficients
+        mapreduce(f->Fun(f,B),+,components(Fun(A,cfs))).coefficients
     end
 end
-function coefficients(cfs::Vector,A::PiecewiseSpace,B::PiecewiseSpace)
+function coefficients(cfs::AbstractVector,A::PiecewiseSpace,B::PiecewiseSpace)
     if spacescompatible(A,B)
         cfs
     else
-        mapreduce(f->Fun(f,B),+,pieces(Fun(A,cfs))).coefficients
+        mapreduce(f->Fun(f,B),+,components(Fun(A,cfs))).coefficients
     end
 end
 
 
 # spread a single space into a sum space by placing
 # its coefficients depending on k
-function interlacewithzeros(cfs::Vector,k,it)
+function interlacewithzeros(cfs::AbstractVector,k,it)
     n = length(cfs)
 
     ret = Array{eltype(cfs)}(0)
@@ -49,14 +50,14 @@ function interlacewithzeros(cfs::Vector,k,it)
     ret
 end
 
-interlacewithzeros(cfs::Vector,k,B::DirectSumSpace) = interlacewithzeros(cfs,k,interlacer(B))
+interlacewithzeros(cfs::AbstractVector,k,B::DirectSumSpace) = interlacewithzeros(cfs,k,interlacer(B))
 
-function sumspacecoefficients(cfsin::Vector,A::Space,B::SumSpace)
-    m=length(B.spaces)
+function sumspacecoefficients(cfsin::AbstractVector,A::Space,B::SumSpace)
+    m=length(components(B))
 
     for k=1:m
-        if isconvertible(A,B[k])
-            cfs = coefficients(cfsin,A,B[k])
+        if isconvertible(A,component(B,k))
+            cfs = coefficients(cfsin,A,component(B,k))
             return interlacewithzeros(cfs,k,B)
         end
     end
@@ -64,12 +65,12 @@ function sumspacecoefficients(cfsin::Vector,A::Space,B::SumSpace)
     defaultcoefficients(cfsin,A,B)
 end
 
-function sumspacecoefficients(cfsin::Vector,A::Space,B::PiecewiseSpace)
-    m=length(B.spaces)
+function sumspacecoefficients(cfsin::AbstractVector,A::Space,B::PiecewiseSpace)
+    m=length(components(B))
 
     for k=1:m
-        if domain(B[k]) == domain(A) && isconvertible(A,B[k])
-            cfs = coefficients(cfsin,A,B[k])
+        if domain(component(B,k)) == domain(A) && isconvertible(A,component(B,k))
+            cfs = coefficients(cfsin,A,component(B,k))
             return interlacewithzeros(cfs,k,B)
         end
     end
@@ -78,7 +79,7 @@ function sumspacecoefficients(cfsin::Vector,A::Space,B::PiecewiseSpace)
 end
 
 for TYP in (:SumSpace,:PiecewiseSpace), ATYP in (:ConstantSpace,:Space)
-    @eval coefficients(cfsin::Vector,A::$ATYP,B::$TYP) = sumspacecoefficients(cfsin,A,B)
+    @eval coefficients(cfsin::AbstractVector,A::$ATYP,B::$TYP) = sumspacecoefficients(cfsin,A,B)
 end
 
 
@@ -89,7 +90,7 @@ end
 # the default is a  ArraySpace, but support is there for PiecewiseSpace
 # for bcs
 for TYP in (:PiecewiseSpace,:VectorSpace)
-    @eval function LowRankPertOperator{OT<:Operator}(A::Vector{OT},::Type{$TYP})
+    @eval function LowRankPertOperator{OT<:Operator}(A::AbstractVector{OT},::Type{$TYP})
         A=promotedomainspace(A)
         for k=1:length(A)-1
             @assert isafunctional(A[k])
@@ -103,24 +104,24 @@ for TYP in (:PiecewiseSpace,:VectorSpace)
     end
 end
 
-LowRankPertOperator{OT<:Operator}(A::Vector{OT})=LowRankPertOperator(A,VectorSpace)
+LowRankPertOperator{OT<:Operator}(A::AbstractVector{OT})=LowRankPertOperator(A,VectorSpace)
 
-function LowRankOperator{FT<:Operator}(Bin::Vector{FT},::Type{PiecewiseSpace})
+function LowRankOperator{FT<:Operator}(Bin::AbstractVector{FT},::Type{PiecewiseSpace})
     B=promotedomainspace(Bin)
     rsp=PiecewiseSpace(map(rangespace,B))
     LowRankOperator(
-        Fun{typeof(rsp),Float64}[Fun(rsp,[zeros(k-1);1]) for k=1:length(B)],
+        VFun{typeof(rsp),Float64}[Fun(rsp,[zeros(k-1);1]) for k=1:length(B)],
         B)
 end
 
-function LowRankOperator{FT<:Operator}(Bin::Vector{FT},::Type{VectorSpace})
+function LowRankOperator{FT<:Operator}(Bin::AbstractVector{FT},::Type{VectorSpace})
     B=promotedomainspace(Bin)
-    rsp=ArraySpace([map(rangespace,B);ZeroSpace()])  #TODO: Why the hack?
+    rsp=Space([map(rangespace,B);ZeroSpace()])  #TODO: Why the hack?
     LowRankOperator(
-        Fun{typeof(rsp),Float64}[Fun(rsp,[zeros(k-1);1]) for k=1:length(B)],
+        VFun{typeof(rsp),Float64}[Fun(rsp,[zeros(k-1);1]) for k=1:length(B)],
         B)
 end
 
 
 
-LowRankOperator{FT<:Operator}(Bin::Vector{FT})=LowRankOperator(Bin,VectorSpace)
+LowRankOperator{FT<:Operator}(Bin::AbstractVector{FT}) = LowRankOperator(Bin,VectorSpace)

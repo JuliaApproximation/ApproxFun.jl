@@ -5,7 +5,7 @@ Space{S<:Fourier}(d::PeriodicCurve{S})=Fourier(d)
 Space{S<:Laurent}(d::PeriodicCurve{S})=Laurent(d)
 
 #TODO: Make type stable
-Base.convert(::Type{Curve},f::Fun)=isa(domain(f),IntervalDomain)?IntervalCurve(f):PeriodicCurve(f)
+convert(::Type{Curve},f::Fun)=isa(domain(f),IntervalDomain)?IntervalCurve(f):PeriodicCurve(f)
 
 # function evaluate{C<:Curve,TT}(f::AbstractVector,S::Space{TT,C},x::Number)
 #     rts=roots(domain(S).curve-x)
@@ -15,7 +15,7 @@ Base.convert(::Type{Curve},f::Fun)=isa(domain(f),IntervalDomain)?IntervalCurve(f
 
 
 
-identity_fun{C<:Curve,TT}(d::Space{TT,C})=Fun(setdomain(space(domain(d).curve),domain(d)),
+identity_fun(d::Space{<:Curve}) = Fun(setdomain(space(domain(d).curve),domain(d)),
                                                 domain(d).curve.coefficients)
 
 # Bernstein polynomials are given by:
@@ -24,22 +24,21 @@ identity_fun{C<:Curve,TT}(d::Space{TT,C})=Fun(setdomain(space(domain(d).curve),d
 #
 export Bernstein, Bézier
 
-immutable Bernstein{order,T} <: RealUnivariateSpace{T}
+struct Bernstein{order,T,R} <: Space{T,R}
     domain::Segment{T}
-    (::Type{Bernstein{order,T}}){order,T}(d) = new{order,T}(d)
-    (::Type{Bernstein{order,T}}){order,T}() = new{order,T}(Segment{T}())
+    Bernstein{order,T,R}(d) where {order,T,R} = new(d)
+    Bernstein{order,T,R}() where {order,T,R} = new(Segment{T}())
 end
 
-@compat const Bézier = Bernstein # option+e e gives é
+const Bézier = Bernstein # option+e e gives é
 
-(::Type{Bernstein{O}}){O}() = Bernstein{O,Float64}()
-(::Type{Bernstein{O}}){O}(d::Domain) = Bernstein{O,eltype(d)}(d)
-(::Type{Bernstein{O}}){O}(d::Vector) = Bernstein{O}(Segment(d))
+Bernstein{O}() where {O} = Bernstein{O,Float64,Float64}()
+Bernstein{O}(d::Domain) where {O} = Bernstein{O,eltype(d),real(prectype(d))}(d)
 
 order{O}(::Bernstein{O}) = O
-order{O,T}(::Type{Bernstein{O,T}}) = O
+order{O,T,R}(::Type{Bernstein{O,T,R}}) = O
 dimension{O}(::Bernstein{O}) = O+1
-dimension{O,T}(::Type{Bernstein{O,T}}) = O+1
+dimension{O,T,R}(::Type{Bernstein{O,T,R}}) = O+1
 
 canonicalspace(B::Bernstein) = Chebyshev(domain(B))
 canonicaldomain{O,T}(B::Bernstein{O,T}) = Segment{T}()
@@ -104,7 +103,7 @@ Fun(f::Function,S::Bernstein) = Fun(Fun(f,canonicalspace(S),dimension(S)),S)
 #
 #    A. Rababah, "Transformation of Chebyshev–Bernstein polynomial basis", Comp. Meth. Appl. Math. 3:608–622, 2003.
 #
-function coefficients(f::Vector,a::Chebyshev,b::Bernstein)
+function coefficients(f::AbstractVector,a::Chebyshev,b::Bernstein)
     if domain(a) == domain(b)
         n = length(f)-1
         @assert n == order(b)
@@ -124,7 +123,7 @@ function coefficients(f::Vector,a::Chebyshev,b::Bernstein)
     end
 end
 
-function coefficients(f::Vector,a::Bernstein,b::Chebyshev)
+function coefficients(f::AbstractVector,a::Bernstein,b::Chebyshev)
     if domain(a) == domain(b)
         n = length(f)-1
         @assert n == order(a)

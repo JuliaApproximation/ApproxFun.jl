@@ -1,9 +1,9 @@
 export OperatorFunction
 
 
-@compat abstract type OperatorFunction{BT,FF,T} <: Operator{T} end
+abstract type OperatorFunction{BT,FF,T} <: Operator{T} end
 
-immutable ConcreteOperatorFunction{BT<:Operator,FF,T} <: OperatorFunction{BT,FF,T}
+struct ConcreteOperatorFunction{BT<:Operator,FF,T} <: OperatorFunction{BT,FF,T}
     op::BT
     f::FF
 end
@@ -27,7 +27,7 @@ function getindex(OF::ConcreteOperatorFunction,k::Integer,j::Integer)
     end
 end
 
-function Base.convert{T}(::Type{Operator{T}},D::ConcreteOperatorFunction)
+function convert{T}(::Type{Operator{T}},D::ConcreteOperatorFunction)
     if T==eltype(D)
         D
     else

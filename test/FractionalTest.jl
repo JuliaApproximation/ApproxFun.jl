@@ -113,8 +113,7 @@ QU = LeftIntegral(0.5)	: JacobiWeight(0.5,0.,Ultraspherical(1))	→	Legendre()
 
 
 λ=0.25
-A=[λ*I QU; QL λ*I]
-L=ApproxFun.interlace(A)
+L=[λ*I QU; QL λ*I]
 @test L[2,5] ≈ 0.
 
 

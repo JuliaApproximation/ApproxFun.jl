@@ -1,4 +1,4 @@
-immutable F <: Function
+struct F <: Function
     f
 end
 (f::F)(args...) = f.f(args...)
@@ -43,34 +43,34 @@ function choosefuneltype(ftype,Td)
 end
 
 # last argument is whether to splat or not
-defaultFun{T,ReComp}(::Type{T},f,d::Space{ReComp},pts::Vector,::Type{Val{true}}) =
+defaultFun{T,ReComp}(::Type{T},f,d::Space{ReComp},pts::AbstractVector,::Type{Val{true}}) =
     Fun(d,transform(d,T[f(x...) for x in pts]))
 
-defaultFun{T,ReComp}(::Type{T},f,d::Space{ReComp},pts::Vector,::Type{Val{false}}) =
+defaultFun{T,ReComp}(::Type{T},f,d::Space{ReComp},pts::AbstractVector,::Type{Val{false}}) =
     Fun(d,transform(d,T[f(x) for x in pts]))
 
 
 function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer,::Type{Val{false}})
     pts=points(d, n)
     f1=f(pts[1])
-    if (isa(f1,AbstractArray) || isa(f1,Vec)) && !isa(d,ArraySpace)
-        return Fun(f,ArraySpace(d,size(f1)...),n)
+    if isa(f1,AbstractArray) && size(d) ≠ size(f1)
+        return Fun(f,Space(fill(d,size(f1))),n)
     end
 
     # we need 3 eltype calls for the case Interval(Point([1.,1.]))
-    Tprom=choosefuneltype(typeof(f1),eltype(eltype(eltype(domain(d)))))
+    Tprom=choosefuneltype(typeof(f1),prectype(domain(d)))
     defaultFun(Tprom,f,d,pts,Val{false})
 end
 
 function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer,::Type{Val{true}})
     pts=points(d, n)
     f1=f(pts[1]...)
-    if (isa(f1,AbstractArray) || isa(f1,Vec)) && !isa(d,ArraySpace)
-        return Fun(f,ArraySpace(d,size(f1)...),n)
+    if isa(f1,AbstractArray) && size(d) ≠ size(f1)
+        return Fun(f,Space(fill(d,size(f1))),n)
     end
 
     # we need 3 eltype calls for the case Interval(Point([1.,1.]))
-    Tprom=choosefuneltype(typeof(f1),eltype(eltype(eltype(domain(d)))))
+    Tprom=choosefuneltype(typeof(f1),prectype(domain(d)))
     defaultFun(Tprom,f,d,pts,Val{true})
 end
 
@@ -109,7 +109,7 @@ Fun(f,d::Domain,n) = Fun(f,Space(d),n)
 # We do zero special since zero exists even when one doesn't
 Fun{T<:Space}(c::Number,::Type{T}) = c==0?zeros(T(AnyDomain())):c*ones(T(AnyDomain()))
 Fun(c::Number,d::Domain) = c==0?c*zeros(d):c*ones(d)
-Fun(c::Number,d::Space) = c==0?c*zeros(eltype(d),d):c*ones(eltype(d),d)
+Fun(c::Number,d::Space) = c==0?c*zeros(prectype(d),d):c*ones(prectype(d),d)
 
 
 ## List constructor
@@ -140,8 +140,8 @@ function zerocfsFun(f, d::Space)
     r=checkpoints(d)
     f0=f(first(r))
 
-    if !isa(d,ArraySpace) && isa(f0,Array)
-        return zerocfsFun(f,ArraySpace(d,size(f0)...))
+    if isa(f0,AbstractArray) && size(d) ≠ size(f0)
+        return zerocfsFun(f,Space(fill(d,size(f0))))
     end
 
     tol =T==Any?20eps():20eps(T)
@@ -249,10 +249,5 @@ Fun(f::Number,d::ClosedInterval) = Fun(f,Domain(d))
 Fun(d::ClosedInterval) = Fun(Domain(d))
 
 Fun{TT<:Number}(T::Type,d::AbstractVector{TT}) = Fun(T(),d)
-
-function Fun(s::Space,cfs::AbstractVector{Any})
-    @assert isempty(cfs)
-    Fun(s,Float64[])
-end
 
 Fun(f::Fun{SequenceSpace},s::Space) = Fun(s,f.coefficients)

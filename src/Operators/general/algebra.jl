@@ -4,7 +4,7 @@ export PlusOperator, TimesOperator, A_mul_B_coefficients
 
 
 
-immutable PlusOperator{T,BI} <: Operator{T}
+struct PlusOperator{T,BI} <: Operator{T}
     ops::Vector{Operator{T}}
     bandinds::BI
     function (::Type{PlusOperator{T,BI}}){T,BI}(opsin::Vector{Operator{T}},bi::BI)
@@ -48,7 +48,7 @@ function PlusOperator(ops::Vector)
     PlusOperator(ops,(b1,b2))
 end
 
-function Base.convert{T}(::Type{Operator{T}},P::PlusOperator)
+function convert{T}(::Type{Operator{T}},P::PlusOperator)
     if T==eltype(P)
         P
     else
@@ -108,9 +108,9 @@ end
 
 for TYP in (:RaggedMatrix,:Matrix,:BandedMatrix,
             :BlockBandedMatrix,:BandedBlockBandedMatrix)
-    @eval Base.convert{T,PP<:PlusOperator}(::Type{$TYP},P::SubOperator{T,PP,Tuple{UnitRange{Block},UnitRange{Block}}}) =
+    @eval convert{T,PP<:PlusOperator}(::Type{$TYP},P::SubOperator{T,PP,Tuple{UnitRange{Block},UnitRange{Block}}}) =
         convert_axpy!($TYP,P)   # use axpy! to copy
-    @eval Base.convert{T,PP<:PlusOperator}(::Type{$TYP},P::SubOperator{T,PP}) =
+    @eval convert{T,PP<:PlusOperator}(::Type{$TYP},P::SubOperator{T,PP}) =
         convert_axpy!($TYP,P)   # use axpy! to copy
 end
 
@@ -156,7 +156,7 @@ end
 
 ## Times Operator
 
-immutable ConstantTimesOperator{B,T} <: Operator{T}
+struct ConstantTimesOperator{B,T} <: Operator{T}
     λ::T
     op::B
     (::Type{ConstantTimesOperator{B,T}}){B,T}(c,op) = new{B,T}(c,op)
@@ -173,7 +173,7 @@ ConstantTimesOperator(c::Number,op::ConstantTimesOperator) =
 @wrapperstructure ConstantTimesOperator
 @wrapperspaces ConstantTimesOperator
 
-Base.convert{T<:Number}(::Type{T},C::ConstantTimesOperator) = T(C.λ)*convert(T,C.op)
+convert{T<:Number}(::Type{T},C::ConstantTimesOperator) = T(C.λ)*convert(T,C.op)
 
 choosedomainspace(C::ConstantTimesOperator,sp::Space) = choosedomainspace(C.op,sp)
 
@@ -183,7 +183,7 @@ for OP in (:promotedomainspace,:promoterangespace),SP in (:UnsetSpace,:Space)
 end
 
 
-function Base.convert{T}(::Type{Operator{T}},C::ConstantTimesOperator)
+function convert{T}(::Type{Operator{T}},C::ConstantTimesOperator)
     if T==eltype(C)
         C
     else
@@ -200,10 +200,10 @@ for (TYP,ZERS) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
                    (:RaggedMatrix,:rzeros),(:BlockBandedMatrix,:bbzeros))
     @eval begin
         # avoid ambiugity
-        Base.convert{T,OP<:ConstantTimesOperator}(::Type{$TYP},
+        convert{T,OP<:ConstantTimesOperator}(::Type{$TYP},
                                                   S::SubOperator{T,OP,Tuple{UnitRange{Block},UnitRange{Block}}}) =
             convert_axpy!($TYP,S)
-        Base.convert{T,OP<:ConstantTimesOperator}(::Type{$TYP},S::SubOperator{T,OP}) =
+        convert{T,OP<:ConstantTimesOperator}(::Type{$TYP},S::SubOperator{T,OP}) =
             convert_axpy!($TYP,S)
     end
 end
@@ -215,7 +215,7 @@ BLAS.axpy!{T,OP<:ConstantTimesOperator}(α,S::SubOperator{T,OP},A::AbstractMatri
 
 
 
-immutable TimesOperator{T,BI} <: Operator{T}
+struct TimesOperator{T,BI} <: Operator{T}
     ops::Vector{Operator{T}}
     bandinds::BI
 
@@ -281,7 +281,7 @@ TimesOperator(A::Operator,B::Operator) =
 
 ==(A::TimesOperator,B::TimesOperator)=A.ops==B.ops
 
-function Base.convert{T}(::Type{Operator{T}},P::TimesOperator)
+function convert{T}(::Type{Operator{T}},P::TimesOperator)
     if T==eltype(P)
         P
     else
@@ -378,7 +378,7 @@ for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
                     (:BandedBlockBandedMatrix,:bbbzeros),
                     (:BlockBandedMatrix,:bbzeros),
                     (:RaggedMatrix,:rzeros))
-    @eval function Base.convert{T,TO<:TimesOperator}(::Type{$STyp},
+    @eval function convert{T,TO<:TimesOperator}(::Type{$STyp},
                         S::SubOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
         P=parent(S)
         kr,jr=parentindexes(S)
@@ -426,19 +426,19 @@ for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
 
         # The following returns a banded Matrix with all rows
         # for large k its upper triangular
-        BA=$STyp(P.ops[end][krl[end,1]:krl[end,2],jr])
+        BA=$STyp{T}(P.ops[end][krl[end,1]:krl[end,2],jr])
         for m=(length(P.ops)-1):-1:1
-            BA=$STyp(P.ops[m][krl[m,1]:krl[m,2],krl[m+1,1]:krl[m+1,2]])*BA
+            BA=$STyp{T}(P.ops[m][krl[m,1]:krl[m,2],krl[m+1,1]:krl[m+1,2]])*BA
         end
 
-        BA
+        $STyp{T}(BA)
     end
 end
 
 
 for (STyp,Zer) in ((:BandedBlockBandedMatrix,:bbbzeros),
                     (:BlockBandedMatrix,:bbzeros))
-    @eval function Base.convert{T,TO<:TimesOperator}(::Type{$STyp},
+    @eval function convert{T,TO<:TimesOperator}(::Type{$STyp},
                         S::SubOperator{T,TO,Tuple{UnitRange{Block},UnitRange{Block}}})
         P=parent(S)
         KR,JR=parentindexes(S)
@@ -556,7 +556,7 @@ function *(f::Fun,A::Operator)
     if isafunctional(A)
         if bandwidth(A)<Inf
             # We get a banded operator, so we take that into account
-            TimesOperator(Multiplication(f,ConstantSpace()),A)
+            TimesOperator(Multiplication(f,rangespace(A)),A)
         else
             LowRankOperator(f,A)
         end
@@ -616,14 +616,8 @@ end
 A_mul_B_coefficients(A::PlusOperator,b::Fun) =
     mapreduce(x->A_mul_B_coefficients(x,b),+,A.ops)
 
-for TYP in (:TimesOperator,:Operator)
-    @eval function *{F<:Fun}(A::$TYP,b::Matrix{F})
-        @assert size(b,1)==1
-        demat([A*bk  for bk in b])
-    end
-end
-
-*{T<:Operator}(A::Vector{T},b::Fun) = map(a->a*b,convert(Array{Any,1},A))
+*(A::Operator,b::AbstractMatrix{<:Fun}) = A*Fun(b)
+*(A::Vector{<:Operator},b::Fun) = map(a->a*b,convert(Array{Any,1},A))
 
 
 
@@ -637,7 +631,8 @@ function promotedomainspace{T}(P::PlusOperator{T},sp::Space,cursp::Space)
     if sp==cursp
         P
     else
-        promoteplus(Operator{T}[promotedomainspace(op,sp) for op in P.ops])
+        ops = [promotedomainspace(op,sp) for op in P.ops]
+        promoteplus(Vector{Operator{mapreduce(eltype,promote_type,ops)}}(ops))
     end
 end
 

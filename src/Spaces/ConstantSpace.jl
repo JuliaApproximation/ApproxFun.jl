@@ -25,14 +25,31 @@ Base.norm(f::Fun{SequenceSpace},k::Int) = norm(f.coefficients,k)
 Base.norm(f::Fun{SequenceSpace},k::Number) = norm(f.coefficients,k)
 
 
-Fun(cfs::Vector,S::SequenceSpace) = Fun(S,cfs)
-coefficients(cfs::Vector,::SequenceSpace) = cfs  # all vectors are convertible to SequenceSpace
+Fun(cfs::AbstractVector,S::SequenceSpace) = Fun(S,cfs)
+coefficients(cfs::AbstractVector,::SequenceSpace) = cfs  # all vectors are convertible to SequenceSpace
 
 
 
 ## Constant space defintions
 
-Fun(c::Number) = Fun(ConstantSpace(),[c])
+# setup conversions for spaces that contain constants
+macro containsconstants(SP)
+    quote
+        ApproxFun.union_rule(A::(ApproxFun.ConstantSpace),B::$SP) = B
+        Base.promote_rule(A::Type{<:(ApproxFun.ConstantSpace)},B::Type{<:($SP)}) = B
+
+        Base.promote_rule{T<:Number,S<:$SP,V,VV}(::Type{ApproxFun.Fun{S,V,VV}},::Type{T}) =
+            ApproxFun.VFun{S,promote_type(V,T)}
+        Base.promote_rule{T<:Number,S<:$SP}(::Type{ApproxFun.Fun{S}},::Type{T}) = ApproxFun.VFun{S,T}
+        Base.promote_rule{T,S<:$SP,V,VV,VT}(::Type{ApproxFun.Fun{S,V,VV}},
+                          ::Type{Fun{ApproxFun.ConstantSpace{ApproxFun.AnyDomain},T,VT}}) =
+            ApproxFun.VFun{S,promote_type(V,T)}
+    end
+end
+
+
+
+Fun(c::Number) = Fun(ConstantSpace(typeof(c)),[c])
 Fun(c::Number,d::ConstantSpace) = Fun(d,[c])
 
 dimension(::ConstantSpace) = 1
@@ -50,7 +67,7 @@ evaluate(f::AbstractVector,::ConstantSpace,x...)=f[1]
 evaluate(f::AbstractVector,::ZeroSpace,x...)=zero(eltype(f))
 
 
-Base.convert{CS<:ConstantSpace,T<:Number}(::Type{T},f::Fun{CS}) =
+convert{CS<:ConstantSpace,T<:Number}(::Type{T},f::Fun{CS}) =
     convert(T,f.coefficients[1])
 
 # promoting numbers to Fun
@@ -59,6 +76,22 @@ Base.promote_rule{CS<:ConstantSpace,T<:Number}(::Type{Fun{CS}},::Type{T}) = Fun{
 Base.promote_rule{CS<:ConstantSpace,T<:Number,V}(::Type{Fun{CS,V}},::Type{T}) =
     Fun{CS,promote_type(T,V)}
 Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T}) = Fun
+
+
+# we know multiplication by constants preserves types
+Base.promote_op(::typeof(*),::Type{Fun{CS,T,VT}},::Type{F}) where {CS<:ConstantSpace,T,VT,F<:Fun} =
+    promote_op(*,T,F)
+Base.promote_op(::typeof(*),::Type{F},::Type{Fun{CS,T,VT}}) where {CS<:ConstantSpace,T,VT,F<:Fun} =
+    promote_op(*,F,T)
+
+
+
+Base.promote_op(::typeof(Base.LinAlg.matprod),::Type{Fun{S1,T1,VT1}},::Type{Fun{S2,T2,VT2}}) where {S1<:ConstantSpace,T1,VT1,S2<:ConstantSpace,T2,VT2} =
+            VFun{promote_type(S1,S2),promote_type(T1,T2)}
+Base.promote_op(::typeof(Base.LinAlg.matprod),::Type{Fun{S1,T1,VT1}},::Type{Fun{S2,T2,VT2}}) where {S1<:ConstantSpace,T1,VT1,S2,T2,VT2} =
+            VFun{S2,promote_type(T1,T2)}
+Base.promote_op(::typeof(Base.LinAlg.matprod),::Type{Fun{S1,T1,VT1}},::Type{Fun{S2,T2,VT2}}) where {S1,T1,VT1,S2<:ConstantSpace,T2,VT2} =
+            VFun{S1,promote_type(T1,T2)}
 
 
 # When the union of A and B is a ConstantSpace, then it contains a one
@@ -78,8 +111,8 @@ union_rule(A::ConstantSpace,B::Space) = ConstantSpace(domain(B))⊕B
 ## Special Multiplication and Conversion for constantspace
 
 #  TODO: this is a special work around but really we want it to be blocks
-Conversion{T,D}(a::ConstantSpace,b::Space{T,D,2}) = ConcreteConversion{typeof(a),typeof(b),
-        promote_type(op_eltype_realdomain(a),eltype(op_eltype_realdomain(b)))}(a,b)
+Conversion{D<:BivariateDomain}(a::ConstantSpace,b::Space{D}) = ConcreteConversion{typeof(a),typeof(b),
+        promote_type(real(prectype(a)),real(prectype(b)))}(a,b)
 
 Conversion(a::ConstantSpace,b::Space) = ConcreteConversion(a,b)
 bandinds{CS<:ConstantSpace,S<:Space}(C::ConcreteConversion{CS,S}) =
@@ -92,9 +125,19 @@ function getindex{CS<:ConstantSpace,S<:Space,T}(C::ConcreteConversion{CS,S,T},k:
     k ≤ ncoefficients(on)?T(on.coefficients[k]):zero(T)
 end
 
-coefficients{TT,SV,T,DD}(f::Vector,sp::ConstantSpace{Segment{Vec{2,TT}}},ts::TensorSpace{SV,T,DD,2}) =
+coefficients(f::AbstractVector,sp::ConstantSpace{Segment{Vec{2,TT}}},
+             ts::TensorSpace{SV,DD}) where {TT,SV,DD<:BivariateDomain} =
     f[1]*ones(ts).coefficients
-coefficients(f::Vector,sp::ConstantSpace,ts::Space) = f[1]*ones(ts).coefficients
+coefficients(f::AbstractVector,sp::ConstantSpace,ts::Space) = f[1]*ones(ts).coefficients
+
+
+########
+# Evaluation
+########
+
+#########
+# Multiplication
+#########
 
 
 # this is identity operator, but we don't use MultiplicationWrapper to avoid
@@ -155,7 +198,7 @@ end
 union_rule(a::TensorSpace,b::ConstantSpace{AnyDomain})=TensorSpace(map(sp->union(sp,b),a.spaces))
 ## Special spaces
 
-function Base.convert{TS<:TensorSpace,T<:Number}(::Type{T},f::Fun{TS})
+function convert{TS<:TensorSpace,T<:Number}(::Type{T},f::Fun{TS})
     if all(sp->isa(sp,ConstantSpace),space(f).spaces)
         convert(T,f.coefficients[1])
     else
@@ -163,7 +206,8 @@ function Base.convert{TS<:TensorSpace,T<:Number}(::Type{T},f::Fun{TS})
     end
 end
 
-Base.convert{CS1<:ConstantSpace,CS2<:ConstantSpace,T<:Number,TT,DD,d}(::Type{T},f::Fun{TensorSpace{Tuple{CS1,CS2},TT,DD,d}}) =
+convert(::Type{T},
+            f::Fun{TensorSpace{Tuple{CS1,CS2},DD,RR}}) where {CS1<:ConstantSpace,CS2<:ConstantSpace,T<:Number,DD,RR} =
     convert(T,f.coefficients[1])
 
 isconstspace(sp::TensorSpace) = all(isconstspace,sp.spaces)

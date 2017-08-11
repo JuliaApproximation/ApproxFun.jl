@@ -2,12 +2,12 @@
 
 
 ## just takes realpart of operator
-immutable ReOperator{O,T} <: Operator{T}
+struct ReOperator{O,T} <: Operator{T}
     op::O
 end
 
 ReOperator(op)=ReOperator{typeof(op),Float64}(op)
-Base.convert{T}(::Type{Operator{T}},R::ReOperator) = ReOperator{typeof(R.op),T}(R.op)
+convert{T}(::Type{Operator{T}},R::ReOperator) = ReOperator{typeof(R.op),T}(R.op)
 
 @wrapperstructure ReOperator
 @wrapperspaces ReOperator

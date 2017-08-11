@@ -10,14 +10,14 @@ where `T_k(x) = cos(k*acos(x))`.  This is the default space
 as there exists a fast transform and general smooth functions on `[-1,1]`
 can be easily resolved.
 """
-immutable Chebyshev{D<:Domain} <: PolynomialSpace{D}
+struct Chebyshev{D<:Domain,R} <: PolynomialSpace{D,R}
     domain::D
-    (::Type{Chebyshev{D}}){D}(d) = new{D}(d)
-    (::Type{Chebyshev{D}}){D}() = new{D}(Segment())
+    Chebyshev{D,R}(d) where {D,R} = new(d)
+    Chebyshev{D,R}() where {D,R} = new(Segment())
 end
 
-Chebyshev() = Chebyshev{Segment{Float64}}()
-Chebyshev(d::Domain) = Chebyshev{typeof(d)}(d)
+Chebyshev(d::Domain) = Chebyshev{typeof(d),real(prectype(d))}(d)
+Chebyshev() = Chebyshev{Segment{Float64},Float64}()
 Chebyshev(d) = Chebyshev(Domain(d))
 
 
@@ -29,26 +29,26 @@ setdomain(S::Chebyshev,d::Domain) = Chebyshev(d)
 Base.ones{T<:Number}(::Type{T},S::Chebyshev) = Fun(S,ones(T,1))
 Base.ones(S::Chebyshev) = Fun(S,ones(1))
 
-function Base.first{D,T}(f::Fun{Chebyshev{D},T})
+function Base.first(f::Fun{<:Chebyshev})
     n = ncoefficients(f)
-    n == 0 && return zero(T)
+    n == 0 && return zero(eltype(f))
     n == 1 && return f.coefficients[1]
     foldr(-,coefficients(f))
 end
 
-Base.last{D}(f::Fun{Chebyshev{D}}) = reduce(+,coefficients(f))
+Base.last(f::Fun{<:Chebyshev}) = reduce(+,coefficients(f))
 identity_fun(d::Chebyshev) = identity_fun(domain(d))
 
 spacescompatible(a::Chebyshev,b::Chebyshev) = domainscompatible(a,b)
 hasfasttransform(::Chebyshev) = true
 
 
-function coefficients(g::Vector,::ConstantSpace,::Chebyshev)
+function coefficients(g::AbstractVector,::ConstantSpace,::Chebyshev)
     @assert length(g)==1
     g
 end
 
-function coefficients(g::Vector,::Chebyshev,::ConstantSpace)
+function coefficients(g::AbstractVector,::Chebyshev,::ConstantSpace)
     @assert length(g)==1
     g
 end
@@ -56,10 +56,10 @@ end
 
 ## Transform
 
-transform(::Chebyshev,vals::Vector,plan) = plan*vals
-itransform(::Chebyshev,cfs::Vector,plan) = plan*cfs
-plan_transform(::Chebyshev,vals::Vector) = plan_chebyshevtransform(vals)
-plan_itransform(::Chebyshev,cfs::Vector) = plan_ichebyshevtransform(cfs)
+transform(::Chebyshev,vals::AbstractVector,plan) = plan*vals
+itransform(::Chebyshev,cfs::AbstractVector,plan) = plan*cfs
+plan_transform(::Chebyshev,vals::AbstractVector) = plan_chebyshevtransform(vals)
+plan_itransform(::Chebyshev,cfs::AbstractVector) = plan_ichebyshevtransform(cfs)
 
 ## Evaluation
 
@@ -74,7 +74,7 @@ function clenshaw(::Chebyshev,c::AbstractVector,x)
 
     x = 2x
     bk1,bk2 = zero(T),zero(T)
-    for k = N:-1:2
+    @inbounds for k = N:-1:2
         bk2, bk1 = bk1, muladd(x,bk1,c[k]-bk2)
     end
 
@@ -181,7 +181,7 @@ end
 
 # overwrite x
 
-function clenshaw!{S<:Chebyshev,V}(c::Vector,x::Vector,plan::ClenshawPlan{S,V})
+function clenshaw!{S<:Chebyshev,V}(c::AbstractVector,x::AbstractVector,plan::ClenshawPlan{S,V})
     N,n = length(c),length(x)
 
     if isempty(c)
@@ -220,9 +220,9 @@ end
 
 
 # diff T -> U, then convert U -> T
-integrate{D<:Segment}(f::Fun{Chebyshev{D}}) =
+integrate{D<:Segment,R}(f::Fun{Chebyshev{D,R}}) =
     Fun(f.space,fromcanonicalD(f,0)*ultraint!(ultraconversion(f.coefficients)))
-differentiate{D<:Segment}(f::Fun{Chebyshev{D}}) =
+differentiate{D<:Segment,R}(f::Fun{Chebyshev{D,R}}) =
     Fun(f.space,1/fromcanonicalD(f,0)*ultraiconversion(ultradiff(f.coefficients)))
 
 ## identity_fun
@@ -233,9 +233,9 @@ differentiate{D<:Segment}(f::Fun{Chebyshev{D}}) =
 
 ## Multivariate
 
-function points{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},N)
+function points{D,R}(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},N)
     if domain(S) == Segment()^2
-        pts=paduapoints(real(eltype(eltype(D))),Int(cld(-3+sqrt(1+8N),2)))
+        pts=paduapoints(real(prectype(D)),Int(cld(-3+sqrt(1+8N),2)))
         T=eltype(pts)
         ret=Array{Vec{2,T}}(size(pts,1))
         @inbounds for k in eachindex(ret)
@@ -247,16 +247,16 @@ function points{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},N)
     end
 end
 
-plan_transform{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},v::Vector) =
+plan_transform{D,R}(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector) =
     plan_paduatransform!(v,Val{false})
 
-transform{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},v::Vector,
+transform{D,R}(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector,
              plan=plan_transform(S,v)) = plan*copy(v)
 
-plan_itransform{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},v::Vector) =
+plan_itransform{D,R}(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector) =
      plan_ipaduatransform!(eltype(v),sum(1:nblocks(Fun(S,v))),Val{false})
 
-itransform{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},v::Vector,
+itransform{D,R}(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector,
               plan=plan_itransform(S,v)) = plan*pad(v,sum(1:nblocks(Fun(S,v))))
 
 

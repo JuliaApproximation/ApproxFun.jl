@@ -49,9 +49,9 @@ end
 
 function Base.dot{T<:Union{Number,Fun,MultivariateFun},F<:Union{Fun,MultivariateFun}}(c::Vector{T},f::Vector{F})
     @assert length(c)==length(f)
-    ret=conj(first(c))*first(f)
-    for k=2:length(c)
-        ret+=conj(c[k])*f[k]
+    ret = conj(first(c))*first(f)
+    for k = 2:length(c)
+        ret += conj(c[k])*f[k]
     end
     ret
 end
@@ -59,9 +59,10 @@ end
 
 function dotu{T<:Union{Fun,MultivariateFun,Number},F<:Union{Fun,MultivariateFun,Number}}(c::Vector{T},f::Vector{F})
     @assert length(c)==length(f)
-    ret=first(c)*first(f)
-    for k=2:length(c)
-        ret+=c[k]*f[k]
+    isempty(c) && return zero(Base.promote_op(*,T,F))
+    ret = c[1]*f[1]
+    for k = 2:length(c)
+        ret += c[k]*f[k]
     end
     ret
 end

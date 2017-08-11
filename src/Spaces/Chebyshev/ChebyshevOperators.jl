@@ -17,7 +17,7 @@ Evaluation(S::Chebyshev,x::Bool,o::Integer) =
     ConcreteEvaluation(S,x,o)
 
 Evaluation(S::Chebyshev,x::Number,o::Integer) =
-    o==0?ConcreteEvaluation(S,x,o):EvaluationWrapper(S,x,o,Evaluation(x,o)*Derivative(S,o))
+    o==0?ConcreteEvaluation(S,x,o):EvaluationWrapper(S,x,o,Evaluation(x)*Derivative(S,o))
 
 function evaluatechebyshev{T<:Number}(n::Integer,x::T)
     if n == 1
@@ -36,10 +36,10 @@ function evaluatechebyshev{T<:Number}(n::Integer,x::T)
 end
 
 
-function getindex{DD<:Segment}(op::ConcreteEvaluation{Chebyshev{DD},Bool},j::Integer)
+function getindex{DD<:Segment,RR}(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(first)},j::Integer)
     T=eltype(op)
     if op.order == 0
-        ifelse(op.x || isodd(j),  # right rule
+        ifelse(isodd(j),  # right rule
             one(T),
             -one(T))
     else
@@ -48,9 +48,19 @@ function getindex{DD<:Segment}(op::ConcreteEvaluation{Chebyshev{DD},Bool},j::Int
     end
 end
 
+function getindex{DD<:Segment,RR}(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(last)},j::Integer)
+    T=eltype(op)
+    if op.order == 0
+        one(T)
+    else
+        #TODO: Fast version
+        op[j:j][1]
+    end
+end
 
 
-function getindex{DD<:Segment}(op::ConcreteEvaluation{Chebyshev{DD},Bool},k::Range)
+
+function getindex{DD<:Segment,RR}(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(first)},k::Range)
     T=eltype(op)
     x = op.x
     d = domain(op)
@@ -58,14 +68,10 @@ function getindex{DD<:Segment}(op::ConcreteEvaluation{Chebyshev{DD},Bool},k::Ran
     cst = T((2/(d.b-d.a))^p)
     n=length(k)
 
-    if x
-        ret = ones(T,n)
-    else
-        ret = Array{T}(n)
-        k1=1-first(k)
-        @simd for j=k
-            @inbounds ret[j+k1]=(-1)^(p+1)*(-one(T))^j
-        end
+    ret = Array{T}(n)
+    k1=1-first(k)
+    @simd for j=k
+        @inbounds ret[j+k1]=(-1)^(p+1)*(-one(T))^j
     end
 
     for m=0:p-1
@@ -79,7 +85,28 @@ function getindex{DD<:Segment}(op::ConcreteEvaluation{Chebyshev{DD},Bool},k::Ran
     scal!(cst,ret)
 end
 
-function getindex{DD<:Segment,M<:Real,OT,T}(op::ConcreteEvaluation{Chebyshev{DD},M,OT,T},
+function getindex{DD<:Segment,RR}(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(last)},k::Range)
+    T=eltype(op)
+    x = op.x
+    d = domain(op)
+    p = op.order
+    cst = T((2/(d.b-d.a))^p)
+    n=length(k)
+
+    ret = ones(T,n)
+
+    for m=0:p-1
+        k1=1-first(k)
+        @simd for j=k
+            @inbounds ret[j+k1] *= (j-1)^2-m^2
+        end
+        scal!(T(1/(2m+1)), ret)
+    end
+
+    scal!(cst,ret)
+end
+
+function getindex{DD<:Segment,RR,M<:Real,OT,T}(op::ConcreteEvaluation{Chebyshev{DD,RR},M,OT,T},
                                              j::Integer)
     if op.order == 0
         T(evaluatechebyshev(j,tocanonical(domain(op),op.x))[end])
@@ -88,8 +115,8 @@ function getindex{DD<:Segment,M<:Real,OT,T}(op::ConcreteEvaluation{Chebyshev{DD}
     end
 end
 
-function getindex{DD<:Segment,M<:Real,OT,T}(op::ConcreteEvaluation{Chebyshev{DD},M,OT,T},
-                                             k::Range)
+function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},M,OT,T},
+                                             k::Range) where {DD<:Segment,RR,M<:Real,OT,T}
     if op.order == 0
         Array{T}(evaluatechebyshev(k[end],tocanonical(domain(op),op.x))[k])
     else
@@ -97,6 +124,45 @@ function getindex{DD<:Segment,M<:Real,OT,T}(op::ConcreteEvaluation{Chebyshev{DD}
     end
 end
 
+function Dirichlet(S::Chebyshev,order)
+    order == 0 && return ConcreteDirichlet(S,ArraySpace([ConstantSpace(Point(first(domain(S)))),
+                                                         ConstantSpace(Point(last(domain(S))))]),0)
+    default_Dirichlet(S,order)
+end
+
+
+function getindex(op::ConcreteDirichlet{<:Chebyshev},
+                                             k::Integer,j::Integer)
+    if op.order == 0
+        k == 1 && iseven(j) && return -one(eltype(op))
+        return one(eltype(op))
+    else
+        error("Only zero Dirichlet conditions implemented")
+    end
+end
+
+function convert(::Type{Matrix},
+                 S::SubOperator{T,ConcreteDirichlet{C,V,T},
+                                Tuple{UnitRange{Int},UnitRange{Int}}}) where {C<:Chebyshev,V,T}
+    ret = Array{T}(size(S)...)
+    kr,jr = parentindexes(S)
+    isempty(kr) && return ret
+    isempty(jr) && return ret
+    if first(kr) == 1
+        if isodd(jr[1])
+            ret[1,1:2:end] = one(T)
+            ret[1,2:2:end] = -one(T)
+        else
+            ret[1,1:2:end] = -one(T)
+            ret[1,2:2:end] = one(T)
+        end
+    end
+    if last(kr) == 2
+        ret[end,:] = one(T)
+    end
+    return ret
+end
+#
 
 # Multiplication
 
@@ -104,7 +170,7 @@ Base.stride{U<:Chebyshev,V<:Chebyshev}(M::ConcreteMultiplication{U,V}) =
     stride(M.f)
 
 
-function chebmult_getindex(cfs::Vector,k::Integer,j::Integer)
+function chebmult_getindex(cfs::AbstractVector,k::Integer,j::Integer)
     n=length(cfs)
 
     ret=zero(eltype(cfs))
@@ -134,7 +200,7 @@ getindex{PS<:PolynomialSpace,T,C<:Chebyshev}(M::ConcreteMultiplication{C,PS,T},k
     M[k:k,j:j][1,1]
 
 
-function Base.convert{C<:Chebyshev,T}(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,C,T},Tuple{UnitRange{Int},UnitRange{Int}}})
+function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,C,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {C<:Chebyshev,T}
     ret=bzeros(S)
 
     kr,jr=parentindexes(S)
@@ -171,12 +237,12 @@ Derivative{DD<:Segment}(sp::Chebyshev{DD},order::Integer) =
     ConcreteDerivative(sp,order)
 
 
-rangespace{DD<:Segment}(D::ConcreteDerivative{Chebyshev{DD}}) =
+rangespace{DD<:Segment,RR}(D::ConcreteDerivative{Chebyshev{DD,RR}}) =
     Ultraspherical(D.order,domain(D))
-bandinds{DD<:Segment}(D::ConcreteDerivative{Chebyshev{DD}}) = D.order,D.order
-Base.stride{DD<:Segment}(D::ConcreteDerivative{Chebyshev{DD}}) = D.order
+bandinds{DD<:Segment,RR}(D::ConcreteDerivative{Chebyshev{DD,RR}}) = D.order,D.order
+Base.stride{DD<:Segment,RR}(D::ConcreteDerivative{Chebyshev{DD,RR}}) = D.order
 
-function getindex{DD<:Segment,K,T}(D::ConcreteDerivative{Chebyshev{DD},K,T},k::Integer,j::Integer)
+function getindex(D::ConcreteDerivative{Chebyshev{DD,RR},K,T},k::Integer,j::Integer) where {DD<:Segment,RR,K,T}
     m=D.order
     d=domain(D)
 
@@ -188,7 +254,7 @@ function getindex{DD<:Segment,K,T}(D::ConcreteDerivative{Chebyshev{DD},K,T},k::I
     end
 end
 
-linesum{DD<:Segment}(f::Fun{Chebyshev{DD}}) =
+linesum{DD<:Segment,RR}(f::Fun{Chebyshev{DD,RR}}) =
     sum(setcanonicaldomain(f))*arclength(domain(f))/2
 
 
@@ -199,7 +265,7 @@ for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:ar
     ConcFunc = parse("Concrete"*string(Func))
     @eval begin
         $Func{D<:Segment}(S::Chebyshev{D}) = $ConcFunc(S)
-        function getindex{D<:Segment,T}(Σ::$ConcFunc{Chebyshev{D},T},k::Integer)
+        function getindex{D<:Segment,R,T}(Σ::$ConcFunc{Chebyshev{D,R},T},k::Integer)
             d = domain(Σ)
             C = $Len(d)/2
 

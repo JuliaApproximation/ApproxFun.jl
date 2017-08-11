@@ -1,12 +1,12 @@
 export Multiplication
 
-@compat abstract type Multiplication{D,S,T} <:Operator{T} end
+abstract type Multiplication{D,S,T} <:Operator{T} end
 
-immutable ConcreteMultiplication{D<:Space,S<:Space,T} <: Multiplication{D,S,T}
-    f::Fun{D,T}
+struct ConcreteMultiplication{D<:Space,S<:Space,T} <: Multiplication{D,S,T}
+    f::VFun{D,T}
     space::S
 
-    (::Type{ConcreteMultiplication{D,S,T}}){D,S,T}(f::Fun{D,T},sp::S) = new{D,S,T}(f,sp)
+    ConcreteMultiplication{D,S,T}(f::Fun{D,T},sp::S) where {D,S,T} = new{D,S,T}(f,sp)
 end
 
 function ConcreteMultiplication{V,D,T}(::Type{V},f::Fun{D,T},sp::Space)
@@ -22,7 +22,7 @@ function ConcreteMultiplication{D,T}(f::Fun{D,T},sp::Space)
     if !domainscompatible(space(f),sp)
         error("Domain mismatch: cannot multiply function on $(domain(f)) to function on $(domain(sp))")
     end
-    V = promote_type(T,eltype(sp))
+    V = promote_type(T,rangetype(sp))
     ConcreteMultiplication{D,typeof(sp),V}(convert(Fun{D,V},chop(f,maximum(abs,f.coefficients)*40*eps(eltype(f)))),sp)
 end
 
@@ -30,7 +30,7 @@ end
 # without ambiguity errors
 function defaultMultiplication(f::Fun,sp::Space)
     csp=space(f)
-    if csp==sp
+    if csp==sp || !hasconversion(sp,csp)
         error("Implement Multiplication(::Fun{$(typeof(space(f)))},::$(typeof(sp)))")
     end
     MultiplicationWrapper(f,Multiplication(f,csp)*Conversion(sp,csp))
@@ -50,7 +50,7 @@ Multiplication(c::Number) = Multiplication(Fun(c) )
 Multiplication(S::Space,f::Fun) = Multiplication(f,S)
 
 
-function Base.convert{S,V,T}(::Type{Operator{T}},C::ConcreteMultiplication{S,V})
+function convert{S,V,T}(::Type{Operator{T}},C::ConcreteMultiplication{S,V})
     if T==eltype(C)
         C
     else
@@ -88,8 +88,8 @@ choosedomainspace{D}(M::ConcreteMultiplication{D,UnsetSpace},sp::Space) = sp
 
 Base.diagm(a::Fun) = Multiplication(a)
 
-immutable MultiplicationWrapper{D<:Space,S<:Space,O<:Operator,T} <: Multiplication{D,S,T}
-    f::Fun{D,T}
+struct MultiplicationWrapper{D<:Space,S<:Space,O<:Operator,T} <: Multiplication{D,S,T}
+    f::VFun{D,T}
     op::O
 end
 
@@ -98,7 +98,7 @@ MultiplicationWrapper{D<:Space,V}(f::Fun{D,V},op::Operator) = MultiplicationWrap
 
 @wrapper MultiplicationWrapper
 
-function Base.convert{TT,S,V,O,T}(::Type{Operator{TT}},C::MultiplicationWrapper{S,V,O,T})
+function convert{TT,S,V,O,T}(::Type{Operator{TT}},C::MultiplicationWrapper{S,V,O,T})
     if TT==T
         C
     else
