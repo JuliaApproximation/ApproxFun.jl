@@ -4,8 +4,8 @@ const BivariateFun{T} = MultivariateFun{T,2}
 export grad, lap, curl
 
 #implements coefficients/values/evaluate
-space{T,N}(f::MultivariateFun{T,N})=mapreduce(k->space(f,k),⊗,1:N)
-domain{T,N}(f::MultivariateFun{T,N})=mapreduce(k->domain(f,k),*,1:N)
+space(f::MultivariateFun{T,N}) where {T,N}=mapreduce(k->space(f,k),⊗,1:N)
+domain(f::MultivariateFun{T,N}) where {T,N}=mapreduce(k->domain(f,k),*,1:N)
 
 domain(f::MultivariateFun,k::Integer)=domain(space(f,k))
 
@@ -13,14 +13,14 @@ differentiate(u::BivariateFun,i::Integer,j::Integer) =
     j==0?u:differentiate(differentiate(u,i),i,j-1)
 grad(u::BivariateFun) = [differentiate(u,1),differentiate(u,2)]
 lap(u::BivariateFun) = differentiate(u,1,2)+differentiate(u,2,2)
-Base.div{B<:BivariateFun}(u::AbstractVector{B}) =
+Base.div(u::AbstractVector{B}) where {B<:BivariateFun} =
     differentiate(u[1],1)+differentiate(u[2],2)
-curl{B<:BivariateFun}(u::AbstractVector{B}) = differentiate(u[2],1)-differentiate(u[1],2)
+curl(u::AbstractVector{B}) where {B<:BivariateFun} = differentiate(u[2],1)-differentiate(u[1],2)
 
 Base.chop(f::MultivariateFun) = chop(f,10eps())
-Base.eltype{T}(::MultivariateFun{T}) = T
-Base.eltype{T,N}(::Type{MultivariateFun{T,N}}) = T
-Base.eltype{MF<:MultivariateFun}(::Type{MF}) = eltype(supertype(MF))
+Base.eltype(::MultivariateFun{T}) where {T} = T
+Base.eltype(::Type{MultivariateFun{T,N}}) where {T,N} = T
+Base.eltype(::Type{MF}) where {MF<:MultivariateFun} = eltype(supertype(MF))
 
 include("VectorFun.jl")
 include("TensorSpace.jl")
@@ -71,8 +71,8 @@ for OP in (:+,:-,:*,:/)
 end
 
 
-Base.sum{TS<:TensorSpace}(f::Fun{TS},k::Integer)=sum(ProductFun(f),k)
-Base.sum{TS<:TensorSpace}(f::Fun{TS})=sum(ProductFun(f))
+Base.sum(f::Fun{TS},k::Integer) where {TS<:TensorSpace}=sum(ProductFun(f),k)
+Base.sum(f::Fun{TS}) where {TS<:TensorSpace}=sum(ProductFun(f))
 
 
 ## kron

@@ -51,7 +51,7 @@ function promoterangespace(K::KroneckerOperator,rs::TensorSpace)
 end
 
 
-function convert{T<:Number}(::Type{Operator{T}},K::KroneckerOperator)
+function convert(::Type{Operator{T}},K::KroneckerOperator) where T<:Number
     if T == eltype(K)
         K
     else
@@ -236,13 +236,13 @@ end
 Base.kron(A::Operator,B::Operator) = KroneckerOperator(A,B)
 Base.kron(A::Operator,B) = KroneckerOperator(A,B)
 Base.kron(A,B::Operator) = KroneckerOperator(A,B)
-Base.kron{T<:Operator}(A::AbstractVector{T},B::Operator) =
+Base.kron(A::AbstractVector{T},B::Operator) where {T<:Operator} =
     Operator{promote_type(eltype(T),eltype(B))}[kron(a,B) for a in A]
-Base.kron{T<:Operator}(A::Operator,B::AbstractVector{T}) =
+Base.kron(A::Operator,B::AbstractVector{T}) where {T<:Operator} =
     Operator{promote_type(eltype(T),eltype(A))}[kron(A,b) for b in B]
-Base.kron{T<:Operator}(A::AbstractVector{T},B::UniformScaling) =
+Base.kron(A::AbstractVector{T},B::UniformScaling) where {T<:Operator} =
     Operator{promote_type(eltype(T),eltype(B))}[kron(a,1.0B) for a in A]
-Base.kron{T<:Operator}(A::UniformScaling,B::AbstractVector{T}) =
+Base.kron(A::UniformScaling,B::AbstractVector{T}) where {T<:Operator} =
     Operator{promote_type(eltype(T),eltype(A))}[kron(1.0A,b) for b in B]
 
 
@@ -270,7 +270,7 @@ Base.transpose(S::ConstantTimesOperator) = sp.c*S.op.'
 ### Calculus
 
 #TODO: general dimension
-function Derivative{SV,DD<:BivariateDomain}(S::TensorSpace{SV,DD},order::Vector{Int})
+function Derivative(S::TensorSpace{SV,DD},order::Vector{Int}) where {SV,DD<:BivariateDomain}
     @assert length(order)==2
     if order[1]==0
         Dy=Derivative(S.spaces[2],order[2])
@@ -350,8 +350,8 @@ end
 convert(::Type{BandedBlockBandedMatrix},S::SubOperator) = default_bandedblockbandedmatrix(S)
 
 
-function convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
-                                                S::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}})
+function convert(::Type{BandedBlockBandedMatrix},
+                      S::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}}) where {KKO<:KroneckerOperator,T}
     kr,jr = parentindexes(S)
     (isempty(kr) || isempty(jr)) && return bbbzeros(S)
     KO = parent(S)
@@ -390,10 +390,10 @@ const Trivial2DTensorizer = CachedIterator{Tuple{Int64,Int64},
 # This routine is an efficient version of KroneckerOperator for the case of
 # tensor product of trivial blocks
 
-function convert{SS,V,DS,RS,T}(::Type{BandedBlockBandedMatrix},
-                                    S::SubOperator{T,KroneckerOperator{SS,V,DS,RS,
-                                                   Trivial2DTensorizer,Trivial2DTensorizer,T},
-                                                   Tuple{UnitRange{Block},UnitRange{Block}}})
+function convert(::Type{BandedBlockBandedMatrix},
+                      S::SubOperator{T,KroneckerOperator{SS,V,DS,RS,
+                                     Trivial2DTensorizer,Trivial2DTensorizer,T},
+                                     Tuple{UnitRange{Block},UnitRange{Block}}}) where {SS,V,DS,RS,T}
     KR,JR=parentindexes(S)
     KO=parent(S)
 
@@ -456,7 +456,7 @@ Evaluation(sp::TensorSpace,x::Tuple) = Evaluation(sp,Vec(x...))
 
 
 # it's faster to build the operators to the last b
-function A_mul_B_coefficients{T,KKO<:KroneckerOperator}(A::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}},b)
+function A_mul_B_coefficients(A::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}},b) where {T,KKO<:KroneckerOperator}
     P = parent(A)
     kr,jr = parentindexes(A)
     dt,rt = domaintensorizer(P),rangetensorizer(P)

@@ -9,12 +9,12 @@ struct ChebyshevTransformPlan{T,kind,inplace,P} <: FFTW.Plan{T}
     plan::P
 end
 
-(::Type{ChebyshevTransformPlan{k,inp}}){k,inp}(plan) =
+ChebyshevTransformPlan{k,inp}(plan) where {k,inp} =
     ChebyshevTransformPlan{eltype(plan),k,inp,typeof(plan)}(plan)
 
 
 
-function plan_chebyshevtransform!{T<:FFTW.fftwNumber}(x::AbstractVector{T};kind::Integer=1)
+function plan_chebyshevtransform!(x::AbstractVector{T};kind::Integer=1) where T<:FFTW.fftwNumber
     if kind == 1
         plan = FFTW.plan_r2r!(x, FFTW.REDFT10)
         ChebyshevTransformPlan{1,true}(plan)
@@ -27,12 +27,12 @@ function plan_chebyshevtransform!{T<:FFTW.fftwNumber}(x::AbstractVector{T};kind:
     end
 end
 
-function plan_chebyshevtransform{T<:FFTW.fftwNumber}(x::AbstractVector{T};kind::Integer=1)
+function plan_chebyshevtransform(x::AbstractVector{T};kind::Integer=1) where T<:FFTW.fftwNumber
     plan = plan_chebyshevtransform!(x;kind=kind)
     ChebyshevTransformPlan{kind,false}(plan)
 end
 
-function *{T}(P::ChebyshevTransformPlan{T,1,true},x::AbstractVector{T})
+function *(P::ChebyshevTransformPlan{T,1,true},x::AbstractVector{T}) where T
     n = length(x)
     if n == 1
         x
@@ -43,7 +43,7 @@ function *{T}(P::ChebyshevTransformPlan{T,1,true},x::AbstractVector{T})
     end
 end
 
-function *{T}(P::ChebyshevTransformPlan{T,2,true},x::AbstractVector{T})
+function *(P::ChebyshevTransformPlan{T,2,true},x::AbstractVector{T}) where T
     n = length(x)
     if n == 1
         x
@@ -59,12 +59,12 @@ function *{T}(P::ChebyshevTransformPlan{T,2,true},x::AbstractVector{T})
     end
 end
 
-chebyshevtransform!{T<:FFTW.fftwNumber}(x::AbstractVector{T};kind::Integer=1) =
+chebyshevtransform!(x::AbstractVector{T};kind::Integer=1) where {T<:FFTW.fftwNumber} =
     plan_chebyshevtransform!(x;kind=kind)*x
 
 chebyshevtransform(x;kind::Integer=1) = chebyshevtransform!(copy(x);kind=kind)
 
-*{T,k}(P::ChebyshevTransformPlan{T,k,false},x::AbstractVector{T}) = P.plan*copy(x)
+*(P::ChebyshevTransformPlan{T,k,false},x::AbstractVector{T}) where {T,k} = P.plan*copy(x)
 
 ## Inverse transforms take Chebyshev coefficients and produce values at Chebyshev points of the first and second kinds
 
@@ -73,7 +73,7 @@ struct IChebyshevTransformPlan{T,kind,inplace,P}
     plan::P
 end
 
-function plan_ichebyshevtransform!{T<:FFTW.fftwNumber}(x::AbstractVector{T};kind::Integer=1)
+function plan_ichebyshevtransform!(x::AbstractVector{T};kind::Integer=1) where T<:FFTW.fftwNumber
     if kind == 1
         if length(x) == 0
             error("Cannot create a length 0 inverse chebyshev transform")
@@ -89,18 +89,18 @@ function plan_ichebyshevtransform!{T<:FFTW.fftwNumber}(x::AbstractVector{T};kind
     end
 end
 
-function plan_ichebyshevtransform{T<:FFTW.fftwNumber}(x::AbstractVector{T};kind::Integer=1)
+function plan_ichebyshevtransform(x::AbstractVector{T};kind::Integer=1) where T<:FFTW.fftwNumber
     plan = plan_ichebyshevtransform!(similar(Vector{T},indices(x));kind=kind)
     IChebyshevTransformPlan{T,kind,false,typeof(plan)}(plan)
 end
 
-function *{T<:FFTW.fftwNumber}(P::IChebyshevTransformPlan{T,1,true},x::AbstractVector{T})
+function *(P::IChebyshevTransformPlan{T,1,true},x::AbstractVector{T}) where T<:FFTW.fftwNumber
     x[1] *=2
     x = scale!(T(0.5),P.plan*x)
     x
 end
 
-function *{T<:FFTW.fftwNumber}(P::IChebyshevTransformPlan{T,2,true},x::AbstractVector{T})
+function *(P::IChebyshevTransformPlan{T,2,true},x::AbstractVector{T}) where T<:FFTW.fftwNumber
     n = length(x)
     if n == 1
         x
@@ -113,24 +113,24 @@ function *{T<:FFTW.fftwNumber}(P::IChebyshevTransformPlan{T,2,true},x::AbstractV
     end
 end
 
-ichebyshevtransform!{T<:FFTW.fftwNumber}(x::AbstractVector{T};kind::Integer=1) =
+ichebyshevtransform!(x::AbstractVector{T};kind::Integer=1) where {T<:FFTW.fftwNumber} =
     plan_ichebyshevtransform!(x;kind=kind)*x
 
 ichebyshevtransform(x;kind::Integer=1) = ichebyshevtransform!(copy(x);kind=kind)
 
-*{T,k}(P::IChebyshevTransformPlan{T,k,false},x::AbstractVector{T}) = P.plan*copy(x)
+*(P::IChebyshevTransformPlan{T,k,false},x::AbstractVector{T}) where {T,k} = P.plan*copy(x)
 
 ## Code generation for integer inputs
 
 for func in (:chebyshevtransform,:ichebyshevtransform)
-    @eval $func{T<:Integer}(x::AbstractVector{T};kind::Integer=1) = $func(convert(Float64,x);kind=kind)
+    @eval $func(x::AbstractVector{T};kind::Integer=1) where {T<:Integer} = $func(convert(Float64,x);kind=kind)
 end
 
 
 # Matrix inputs
 
 
-function chebyshevtransform!{T<:FFTW.fftwNumber}(X::AbstractMatrix{T};kind::Integer=1)
+function chebyshevtransform!(X::AbstractMatrix{T};kind::Integer=1) where T<:FFTW.fftwNumber
     if kind == 1
         if size(X) == (1,1)
             X
@@ -152,7 +152,7 @@ function chebyshevtransform!{T<:FFTW.fftwNumber}(X::AbstractMatrix{T};kind::Inte
     end
 end
 
-function ichebyshevtransform!{T<:FFTW.fftwNumber}(X::AbstractMatrix{T};kind::Integer=1)
+function ichebyshevtransform!(X::AbstractMatrix{T};kind::Integer=1) where T<:FFTW.fftwNumber
     if kind == 1
         if size(X) == (1,1)
             X

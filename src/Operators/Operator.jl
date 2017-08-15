@@ -8,9 +8,9 @@ export domainspace,rangespace
 
 abstract type Operator{T} end #T is the entry type, Float64 or Complex{Float64}
 
-Base.eltype{T}(::Operator{T}) = T
-Base.eltype{T}(::Type{Operator{T}}) = T
-Base.eltype{OT<:Operator}(::Type{OT}) = eltype(supertype(OT))
+Base.eltype(::Operator{T}) where {T} = T
+Base.eltype(::Type{Operator{T}}) where {T} = T
+Base.eltype(::Type{OT}) where {OT<:Operator} = eltype(supertype(OT))
 
 
 # default entry type
@@ -404,8 +404,8 @@ defaultgetindex(A::Operator,kr,::Type{FiniteRange}) =
 ## Composition with a Fun, LowRankFun, and ProductFun
 
 getindex(B::Operator,f::Fun) = B*Multiplication(domainspace(B),f)
-getindex{S,M,SS,T}(B::Operator,f::LowRankFun{S,M,SS,T}) = mapreduce(i->f.A[i]*B[f.B[i]],+,1:rank(f))
-getindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) =
+getindex(B::Operator,f::LowRankFun{S,M,SS,T}) where {S,M,SS,T} = mapreduce(i->f.A[i]*B[f.B[i]],+,1:rank(f))
+getindex(B::Operator{BT},f::ProductFun{S,V,SS,T}) where {BT,S,V,SS,T} =
     mapreduce(i->f.coefficients[i]*B[Fun(f.space[2],[zeros(promote_type(BT,T),i-1);
                                             one(promote_type(BT,T))])],
                 +,1:length(f.coefficients))
@@ -464,13 +464,13 @@ macro wrappergetindex(Wrap)
 
         Base.getindex(OP::$Wrap,k::Union{Number,AbstractArray,Colon}...) = OP.op[k...]
 
-        BLAS.axpy!{T,OP<:$Wrap}(α,P::ApproxFun.SubOperator{T,OP},A::AbstractMatrix) =
+        BLAS.axpy!(α,P::ApproxFun.SubOperator{T,OP},A::AbstractMatrix) where {T,OP<:$Wrap} =
             ApproxFun.unwrap_axpy!(α,P,A)
 
         ApproxFun.A_mul_B_coefficients(A::$Wrap,b) = A_mul_B_coefficients(A.op,b)
-        ApproxFun.A_mul_B_coefficients{T,OP<:$Wrap}(A::ApproxFun.SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},b) =
+        ApproxFun.A_mul_B_coefficients(A::ApproxFun.SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},b) where {T,OP<:$Wrap} =
             A_mul_B_coefficients(view(parent(A).op,S.indexes[1],S.indexes[2]),b)
-        ApproxFun.A_mul_B_coefficients{T,OP<:$Wrap}(A::ApproxFun.SubOperator{T,OP},b) =
+        ApproxFun.A_mul_B_coefficients(A::ApproxFun.SubOperator{T,OP},b) where {T,OP<:$Wrap} =
             A_mul_B_coefficients(view(parent(A).op,S.indexes[1],S.indexes[2]),b)
     end
 
@@ -588,14 +588,14 @@ include("nullspace.jl")
 
 
 
-Base.zero{T<:Number}(::Type{Operator{T}}) = ZeroOperator(T)
-Base.zero{O<:Operator}(::Type{O}) = ZeroOperator(eltype(O))
+Base.zero(::Type{Operator{T}}) where {T<:Number} = ZeroOperator(T)
+Base.zero(::Type{O}) where {O<:Operator} = ZeroOperator(eltype(O))
 
 
 Base.eye(S::Space) = IdentityOperator(S)
 Base.eye(S::Domain) = eye(Space(S))
 
-convert{T}(A::Type{Operator{T}},f::Fun) =
+convert(A::Type{Operator{T}},f::Fun) where {T} =
     norm(f.coefficients)==0?zero(A):convert(A,Multiplication(f))
 
 convert(A::Type{Operator},f::Fun) =
@@ -611,18 +611,18 @@ convert(A::Type{Operator},f::Fun) =
 
 
 
-Base.promote_rule{N<:Number}(::Type{N},::Type{Operator}) = Operator{N}
-Base.promote_rule{N<:Number}(::Type{UniformScaling{N}},::Type{Operator}) =
+Base.promote_rule(::Type{N},::Type{Operator}) where {N<:Number} = Operator{N}
+Base.promote_rule(::Type{UniformScaling{N}},::Type{Operator}) where {N<:Number} =
     Operator{N}
-Base.promote_rule{S,N<:Number,VN}(::Type{Fun{S,N,VN}},::Type{Operator}) = Operator{N}
-Base.promote_rule{N<:Number,O<:Operator}(::Type{N},::Type{O}) =
+Base.promote_rule(::Type{Fun{S,N,VN}},::Type{Operator}) where {S,N<:Number,VN} = Operator{N}
+Base.promote_rule(::Type{N},::Type{O}) where {N<:Number,O<:Operator} =
     Operator{promote_type(N,eltype(O))}  # float because numbers are promoted to Fun
-Base.promote_rule{N<:Number,O<:Operator}(::Type{UniformScaling{N}},::Type{O}) =
+Base.promote_rule(::Type{UniformScaling{N}},::Type{O}) where {N<:Number,O<:Operator} =
     Operator{promote_type(N,eltype(O))}
-Base.promote_rule{S,N<:Number,O<:Operator,VN}(::Type{Fun{S,N,VN}},::Type{O}) =
+Base.promote_rule(::Type{Fun{S,N,VN}},::Type{O}) where {S,N<:Number,O<:Operator,VN} =
     Operator{promote_type(N,eltype(O))}
 
-Base.promote_rule{BO1<:Operator,BO2<:Operator}(::Type{BO1},::Type{BO2}) =
+Base.promote_rule(::Type{BO1},::Type{BO2}) where {BO1<:Operator,BO2<:Operator} =
     Operator{promote_type(eltype(BO1),eltype(BO2))}
 
 

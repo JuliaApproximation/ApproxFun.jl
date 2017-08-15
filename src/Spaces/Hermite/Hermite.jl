@@ -26,9 +26,9 @@ recA(::Type,::Hermite,k)=2;recB(::Type,::Hermite,k)=0;recC(::Type,::Hermite,k)=2
 Derivative(H::Hermite,order)=ConcreteDerivative(H,order)
 
 
-bandinds{H<:Hermite}(D::ConcreteDerivative{H})=0,D.order
-rangespace{H<:Hermite}(D::ConcreteDerivative{H})=domainspace(D)
-getindex{H<:Hermite}(D::ConcreteDerivative{H},k::Integer,j::Integer) =
+bandinds(D::ConcreteDerivative{H}) where {H<:Hermite}=0,D.order
+rangespace(D::ConcreteDerivative{H}) where {H<:Hermite}=domainspace(D)
+getindex(D::ConcreteDerivative{H},k::Integer,j::Integer) where {H<:Hermite} =
         j==k+D.order?one(eltype(D))*2^D.order*pochhammer(k,D.order):zero(eltype(D))
 
 
@@ -83,7 +83,7 @@ end
 
 weight(H::GaussWeight,x) = exp(-H.L*x^2)
 
-function Base.sum{H<:Hermite,T}(f::Fun{GaussWeight{H,T}})
+function Base.sum(f::Fun{GaussWeight{H,T}}) where {H<:Hermite,T}
     @assert space(f).space.L==space(f).L  # only implemented with matching weight
     f.coefficients[1]*sqrt(π)/sqrt(space(f).L)
 end
@@ -94,13 +94,13 @@ include("hermitetransform.jl")
 
 
 
-function Multiplication{H<:Hermite}(f::Fun{H},S::GaussWeight{H})
+function Multiplication(f::Fun{H},S::GaussWeight{H}) where H<:Hermite
     M=Multiplication(f,S.space)
     rs=rangespace(M)
     MultiplicationWrapper(f,SpaceOperator(M,S,GaussWeight(rs,rs.L)))
 end
 
-function Multiplication{H<:Hermite,T}(f::Fun{GaussWeight{H,T}},S::Hermite)
+function Multiplication(f::Fun{GaussWeight{H,T}},S::Hermite) where {H<:Hermite,T}
     M=Multiplication(Fun(space(f).space,f.coefficients),S)
     rs=rangespace(M)
     MultiplicationWrapper(f,SpaceOperator(M,S,GaussWeight(rs,rs.L)))

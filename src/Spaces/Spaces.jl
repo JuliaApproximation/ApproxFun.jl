@@ -12,12 +12,12 @@ include("Modifier/Modifier.jl")
 
 # union_rule dictates how to create a space that both spaces can be converted to
 # in this case, it means
-function union_rule{S1<:Tuple{Vararg{PolynomialSpace}},
-                    S2<:Tuple{Vararg{PolynomialSpace}}}(s1::PiecewiseSpace{S1},s2::PiecewiseSpace{S2})
+function union_rule(s1::PiecewiseSpace{S1},s2::PiecewiseSpace{S2}) where {S1<:Tuple{Vararg{PolynomialSpace}},
+                    S2<:Tuple{Vararg{PolynomialSpace}}}
     PiecewiseSpace(map(Space,merge(domain(s1),domain(s2)).domains))
 end
 
-function union_rule{S1<:Tuple{Vararg{PolynomialSpace}}}(s1::PiecewiseSpace{S1},s2::PolynomialSpace)
+function union_rule(s1::PiecewiseSpace{S1},s2::PolynomialSpace) where S1<:Tuple{Vararg{PolynomialSpace}}
     PiecewiseSpace(map(Space,merge(domain(s1),domain(s2)).domains))
 end
 

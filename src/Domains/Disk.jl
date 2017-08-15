@@ -27,9 +27,9 @@ isambiguous(d::Disk) = isnan(d.radius) && all(isnan,d.center)
 
 #canonical is rectangle [r,0]x[-π,π]
 # we assume radius and centre are zero for now
-fromcanonical{T<:Real}(D::Disk{T},x,t) =
+fromcanonical(D::Disk{T},x,t) where {T<:Real} =
     Vec(D.radius*x*cos(t)+D.center[1],D.radius*x*sin(t)+D.center[2])
-tocanonical{T<:Real}(D::Disk{T},x,y) =
+tocanonical(D::Disk{T},x,y) where {T<:Real} =
     Vec(sqrt((x-D.center[1])^2+(y-D.center[2])^2)/D.radius,
         atan2(y-D.center[2],x-D.center[1]))
 checkpoints(d::Disk) = [fromcanonical(d,(.1,.2243));fromcanonical(d,(-.212423,-.3))]

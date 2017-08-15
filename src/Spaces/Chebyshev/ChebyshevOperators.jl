@@ -1,11 +1,11 @@
 
-recA{T}(::Type{T},::Chebyshev,k) = 2one(T)
-recB{T}(::Type{T},::Chebyshev,::) = zero(T)
-recC{T}(::Type{T},::Chebyshev,k) = one(T)   # one(T) ensures we get correct type
+recA(::Type{T},::Chebyshev,k) where {T} = 2one(T)
+recB(::Type{T},::Chebyshev,::) where {T} = zero(T)
+recC(::Type{T},::Chebyshev,k) where {T} = one(T)   # one(T) ensures we get correct type
 
-recα{T}(::Type{T},::Chebyshev,::) = zero(T)
-recβ{T}(::Type{T},::Chebyshev,k) = ifelse(k==1,one(T),one(T)/2)   # one(T) ensures we get correct type,ifelse ensures inlining
-recγ{T}(::Type{T},::Chebyshev,k) = one(T)/2   # one(T) ensures we get correct type
+recα(::Type{T},::Chebyshev,::) where {T} = zero(T)
+recβ(::Type{T},::Chebyshev,k) where {T} = ifelse(k==1,one(T),one(T)/2)   # one(T) ensures we get correct type,ifelse ensures inlining
+recγ(::Type{T},::Chebyshev,k) where {T} = one(T)/2   # one(T) ensures we get correct type
 
 
 
@@ -19,7 +19,7 @@ Evaluation(S::Chebyshev,x::Bool,o::Integer) =
 Evaluation(S::Chebyshev,x::Number,o::Integer) =
     o==0?ConcreteEvaluation(S,x,o):EvaluationWrapper(S,x,o,Evaluation(x)*Derivative(S,o))
 
-function evaluatechebyshev{T<:Number}(n::Integer,x::T)
+function evaluatechebyshev(n::Integer,x::T) where T<:Number
     if n == 1
         [one(T)]
     else
@@ -36,7 +36,7 @@ function evaluatechebyshev{T<:Number}(n::Integer,x::T)
 end
 
 
-function getindex{DD<:Segment,RR}(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(first)},j::Integer)
+function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(first)},j::Integer) where {DD<:Segment,RR}
     T=eltype(op)
     if op.order == 0
         ifelse(isodd(j),  # right rule
@@ -48,7 +48,7 @@ function getindex{DD<:Segment,RR}(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof
     end
 end
 
-function getindex{DD<:Segment,RR}(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(last)},j::Integer)
+function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(last)},j::Integer) where {DD<:Segment,RR}
     T=eltype(op)
     if op.order == 0
         one(T)
@@ -60,7 +60,7 @@ end
 
 
 
-function getindex{DD<:Segment,RR}(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(first)},k::Range)
+function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(first)},k::Range) where {DD<:Segment,RR}
     T=eltype(op)
     x = op.x
     d = domain(op)
@@ -85,7 +85,7 @@ function getindex{DD<:Segment,RR}(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof
     scal!(cst,ret)
 end
 
-function getindex{DD<:Segment,RR}(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(last)},k::Range)
+function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(last)},k::Range) where {DD<:Segment,RR}
     T=eltype(op)
     x = op.x
     d = domain(op)
@@ -106,8 +106,8 @@ function getindex{DD<:Segment,RR}(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof
     scal!(cst,ret)
 end
 
-function getindex{DD<:Segment,RR,M<:Real,OT,T}(op::ConcreteEvaluation{Chebyshev{DD,RR},M,OT,T},
-                                             j::Integer)
+function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},M,OT,T},
+                j::Integer) where {DD<:Segment,RR,M<:Real,OT,T}
     if op.order == 0
         T(evaluatechebyshev(j,tocanonical(domain(op),op.x))[end])
     else
@@ -166,7 +166,7 @@ end
 
 # Multiplication
 
-Base.stride{U<:Chebyshev,V<:Chebyshev}(M::ConcreteMultiplication{U,V}) =
+Base.stride(M::ConcreteMultiplication{U,V}) where {U<:Chebyshev,V<:Chebyshev} =
     stride(M.f)
 
 
@@ -193,10 +193,10 @@ function chebmult_getindex(cfs::AbstractVector,k::Integer,j::Integer)
 end
 
 
-getindex{T,C<:Chebyshev}(M::ConcreteMultiplication{C,C,T},k::Integer,j::Integer) =
+getindex(M::ConcreteMultiplication{C,C,T},k::Integer,j::Integer) where {T,C<:Chebyshev} =
     chebmult_getindex(coefficients(M.f),k,j)
 
-getindex{PS<:PolynomialSpace,T,C<:Chebyshev}(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) =
+getindex(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) where {PS<:PolynomialSpace,T,C<:Chebyshev} =
     M[k:k,j:j][1,1]
 
 
@@ -233,14 +233,14 @@ end
 
 ## Derivative
 
-Derivative{DD<:Segment}(sp::Chebyshev{DD},order::Integer) =
+Derivative(sp::Chebyshev{DD},order::Integer) where {DD<:Segment} =
     ConcreteDerivative(sp,order)
 
 
-rangespace{DD<:Segment,RR}(D::ConcreteDerivative{Chebyshev{DD,RR}}) =
+rangespace(D::ConcreteDerivative{Chebyshev{DD,RR}}) where {DD<:Segment,RR} =
     Ultraspherical(D.order,domain(D))
-bandinds{DD<:Segment,RR}(D::ConcreteDerivative{Chebyshev{DD,RR}}) = D.order,D.order
-Base.stride{DD<:Segment,RR}(D::ConcreteDerivative{Chebyshev{DD,RR}}) = D.order
+bandinds(D::ConcreteDerivative{Chebyshev{DD,RR}}) where {DD<:Segment,RR} = D.order,D.order
+Base.stride(D::ConcreteDerivative{Chebyshev{DD,RR}}) where {DD<:Segment,RR} = D.order
 
 function getindex(D::ConcreteDerivative{Chebyshev{DD,RR},K,T},k::Integer,j::Integer) where {DD<:Segment,RR,K,T}
     m=D.order
@@ -254,7 +254,7 @@ function getindex(D::ConcreteDerivative{Chebyshev{DD,RR},K,T},k::Integer,j::Inte
     end
 end
 
-linesum{DD<:Segment,RR}(f::Fun{Chebyshev{DD,RR}}) =
+linesum(f::Fun{Chebyshev{DD,RR}}) where {DD<:Segment,RR} =
     sum(setcanonicaldomain(f))*arclength(domain(f))/2
 
 
@@ -264,8 +264,8 @@ linesum{DD<:Segment,RR}(f::Fun{Chebyshev{DD,RR}}) =
 for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:arclength))
     ConcFunc = parse("Concrete"*string(Func))
     @eval begin
-        $Func{D<:Segment}(S::Chebyshev{D}) = $ConcFunc(S)
-        function getindex{D<:Segment,R,T}(Σ::$ConcFunc{Chebyshev{D,R},T},k::Integer)
+        $Func(S::Chebyshev{D}) where {D<:Segment} = $ConcFunc(S)
+        function getindex(Σ::$ConcFunc{Chebyshev{D,R},T},k::Integer) where {D<:Segment,R,T}
             d = domain(Σ)
             C = $Len(d)/2
 

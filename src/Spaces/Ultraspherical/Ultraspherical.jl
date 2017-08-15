@@ -40,14 +40,14 @@ struct UltrasphericalPlan{CT,FT}
     chebplan::CT
     cheb2legplan::FT
 
-    (::Type{UltrasphericalPlan{CT,FT}}){CT,FT}(cp,c2lp) = new{CT,FT}(cp,c2lp)
+    (::Type{UltrasphericalPlan{CT,FT}}){CT_,FT_}(cp,c2lp) where {CT_,FT_, CT,FT} = new{CT,FT}(cp,c2lp)
 end
 
 struct UltrasphericalIPlan{CT,FT}
     chebiplan::CT
     leg2chebplan::FT
 
-    (::Type{UltrasphericalIPlan{CT,FT}}){CT,FT}(cp,c2lp) = new{CT,FT}(cp,c2lp)
+    (::Type{UltrasphericalIPlan{CT,FT}}){CT_,FT_}(cp,c2lp) where {CT_,FT_, CT,FT} = new{CT,FT}(cp,c2lp)
 end
 
 function UltrasphericalPlan(λ::Number,vals)
@@ -85,24 +85,24 @@ plan_itransform(sp::Ultraspherical,cfs::AbstractVector) = UltrasphericalIPlan(or
 
 #domain(S) may be any domain
 
-Base.ones{T<:Number}(::Type{T},S::Ultraspherical) = Fun(S,ones(T,1))
+Base.ones(::Type{T},S::Ultraspherical) where {T<:Number} = Fun(S,ones(T,1))
 Base.ones(S::Ultraspherical) = Fun(S,ones(1))
 
 
 
 ## Fast evaluation
 
-function Base.first{D,R}(f::Fun{Ultraspherical{Int,D,R}})
+function Base.first(f::Fun{Ultraspherical{Int,D,R}}) where {D,R}
     n = length(f.coefficients)
     n == 0 && return zero(eltype(f))
     n == 1 && return first(f.coefficients)
     foldr(-,coefficients(f,Chebyshev))
 end
 
-Base.last{D,R}(f::Fun{Ultraspherical{Int,D,R}}) = reduce(+,coefficients(f,Chebyshev))
+Base.last(f::Fun{Ultraspherical{Int,D,R}}) where {D,R} = reduce(+,coefficients(f,Chebyshev))
 
-Base.first{O,D,R}(f::Fun{Ultraspherical{O,D,R}}) = f(first(domain(f)))
-Base.last{O,D,R}(f::Fun{Ultraspherical{O,D,R}}) = f(last(domain(f)))
+Base.first(f::Fun{Ultraspherical{O,D,R}}) where {O,D,R} = f(first(domain(f)))
+Base.last(f::Fun{Ultraspherical{O,D,R}}) where {O,D,R} = f(last(domain(f)))
 
 identity_fun(d::Ultraspherical) = Fun(identity_fun(domain(d)),d)
 

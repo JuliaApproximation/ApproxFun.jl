@@ -45,7 +45,7 @@ rangespace(E::ConcreteEvaluation{<:AmbiguousSpace}) = ConstantSpace()
 rangespace(E::ConcreteEvaluation) = ConstantSpace(Point(E.x))
 
 
-function convert{T}(::Type{Operator{T}},E::ConcreteEvaluation)
+function convert(::Type{Operator{T}},E::ConcreteEvaluation) where T
     if T == eltype(E)
         E
     else
@@ -102,7 +102,7 @@ promotedomainspace(E::Evaluation,sp::Space) = Evaluation(sp,E.x,E.order)
 
 
 
-function convert{T}(::Type{Operator{T}},E::EvaluationWrapper)
+function convert(::Type{Operator{T}},E::EvaluationWrapper) where T
     if T == eltype(E)
         E
     else
@@ -158,7 +158,7 @@ ConcreteDirichlet(sp::Space,rs::Space,order) =
 ConcreteDirichlet(sp::Space,order) = ConcreteDirichlet(sp,Space(∂(domain(sp))),order)
 ConcreteDirichlet(sp::Space) = ConcreteDirichlet(sp,0)
 
-convert{S,V,T}(::Type{Operator{T}},B::ConcreteDirichlet{S,V}) =
+convert(::Type{Operator{T}},B::ConcreteDirichlet{S,V}) where {S,V,T} =
     ConcreteDirichlet{S,V,T}(B.domainspace,B.rangespace,B.order)
 
 
@@ -171,7 +171,7 @@ end
 
 DirichletWrapper(B::Operator,λ=0) = DirichletWrapper{typeof(B),eltype(B)}(B,λ)
 
-convert{T}(::Type{Operator{T}},B::DirichletWrapper) =
+convert(::Type{Operator{T}},B::DirichletWrapper) where {T} =
     DirichletWrapper(Operator{T}(B.op),B.order)::Operator{T}
 
 # Default is to use diffbca

@@ -1,18 +1,18 @@
 export ToeplitzOperator, HankelOperator
 
 
-type ToeplitzOperator{T<:Number} <: Operator{T}
+mutable struct ToeplitzOperator{T<:Number} <: Operator{T}
     negative::Vector{T}
     nonnegative::Vector{T}
 end
 
 
-ToeplitzOperator{T<:Number,Q<:Number}(V::Vector{T},W::Vector{Q}) =
+ToeplitzOperator(V::Vector{T},W::Vector{Q}) where {T<:Number,Q<:Number} =
     ToeplitzOperator{promote_type(T,Q)}(V,W)
 ToeplitzOperator(V::AbstractVector,W::AbstractVector) =
     ToeplitzOperator(collect(V),collect(W))
 
-convert{TT}(::Type{Operator{TT}},T::ToeplitzOperator) =
+convert(::Type{Operator{TT}},T::ToeplitzOperator) where {TT} =
     ToeplitzOperator(convert(Vector{TT},T.negative),convert(Vector{TT},T.nonnegative))
 
 function SymToeplitzOperator(V::Vector)
@@ -29,7 +29,7 @@ end
 getindex(T::ToeplitzOperator,k::Integer,j::Integer) =
     toeplitz_getindex(T.negative,T.nonnegative,k,j)
 
-function toeplitz_getindex{T}(negative::AbstractVector{T},nonnegative::AbstractVector{T},k::Integer,j::Integer)
+function toeplitz_getindex(negative::AbstractVector{T},nonnegative::AbstractVector{T},k::Integer,j::Integer) where T
     if 0<k-j≤length(negative)
         negative[k-j]
     elseif 0≤j-k≤length(nonnegative)-1
@@ -39,7 +39,7 @@ function toeplitz_getindex{T}(negative::AbstractVector{T},nonnegative::AbstractV
     end
 end
 
-function toeplitz_getindex{T}(cfs::AbstractVector{T},k::Integer,j::Integer)
+function toeplitz_getindex(cfs::AbstractVector{T},k::Integer,j::Integer) where T
     if k==j
         2cfs[1]
     elseif 0<k-j≤length(cfs)-1
@@ -51,7 +51,7 @@ function toeplitz_getindex{T}(cfs::AbstractVector{T},k::Integer,j::Integer)
     end
 end
 
-function convert{T}(::Type{BandedMatrix},S::SubOperator{T,ToeplitzOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}})
+function convert(::Type{BandedMatrix},S::SubOperator{T,ToeplitzOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}}) where T
     ret=bzeros(S)
 
     kr,jr=parentindexes(S)
@@ -87,7 +87,7 @@ end
 ## Hankel Operator
 
 
-type HankelOperator{T<:Number} <: Operator{T}
+mutable struct HankelOperator{T<:Number} <: Operator{T}
     coefficients::Vector{T}
 end
 
@@ -101,7 +101,7 @@ HankelOperator(f::Fun)=HankelOperator(f.coefficients)
 
 
 
-@eval convert{TT}(::Type{Operator{TT}},T::HankelOperator)=HankelOperator(convert(Vector{TT},T.coefficients))
+@eval convert(::Type{Operator{TT}},T::HankelOperator) where {TT}=HankelOperator(convert(Vector{TT},T.coefficients))
 
 function hankel_getindex(v::AbstractVector,k::Integer,j::Integer)
    if k+j-1 ≤ length(v)
@@ -115,7 +115,7 @@ getindex(T::HankelOperator,k::Integer,j::Integer) =
     hankel_getindex(T.coefficients,k,j)
 
 
-function convert{T}(::Type{BandedMatrix},S::SubOperator{T,HankelOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}})
+function convert(::Type{BandedMatrix},S::SubOperator{T,HankelOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}}) where T
     ret=bzeros(S)
 
     kr,jr=parentindexes(S)

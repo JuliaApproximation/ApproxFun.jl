@@ -2,7 +2,7 @@ struct LowRankPertOperator{OO,LR,T} <: Operator{T}
     op::OO
     pert::LR
 
-    function (::Type{LowRankPertOperator{OO,LR,T}}){OO,LR,T}(a::OO,b::LR)
+    function LowRankPertOperator{OO,LR,T}(a::OO,b::LR) where {OO,LR,T}
         @assert domainspace(a)==domainspace(b)
         @assert rangespace(a)==rangespace(b)
         new{OO,LR,T}(a,b)
@@ -21,9 +21,9 @@ end
 
 
 
-convert{T}(::Type{Operator{T}},L::LowRankPertOperator) =
+convert(::Type{Operator{T}},L::LowRankPertOperator) where {T} =
     LowRankPertOperator(Operator{T}(L.op),Operator{T}(L.pert))::Operator{T}
-convert{OT<:Operator}(::Type{Operator},V::AbstractVector{OT})=LowRankPertOperator(V)
+convert(::Type{Operator},V::AbstractVector{OT}) where {OT<:Operator}=LowRankPertOperator(V)
 
 
 Base.getindex(L::LowRankPertOperator,k::Integer,j::Integer)=L.op[k,j]+L.pert[k,j]

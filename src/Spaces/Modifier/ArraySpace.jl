@@ -38,7 +38,7 @@ interlacer(sp::ArraySpace) = BlockInterlacer(sp)
 for OP in (:(Base.length),:(Base.start),:(Base.endof),:(Base.size))
     @eval begin
         $OP(S::ArraySpace) = $OP(components(S))
-        $OP{SS<:ArraySpace}(f::Fun{SS}) = $OP(space(f))
+        $OP(f::Fun{SS}) where {SS<:ArraySpace} = $OP(space(f))
     end
 end
 
@@ -92,7 +92,7 @@ transform(AS::VectorSpace{SS},vals::AbstractVector{Vec{V,n}}) where {SS,n,V} =
     transform(AS,map(Vector,vals))
 
 Base.vec(AS::ArraySpace) = ArraySpace(vec(AS.spaces))
-Base.vec{S,n,DD,RR}(f::Fun{ArraySpace{S,n,DD,RR}}) =
+Base.vec(f::Fun{ArraySpace{S,n,DD,RR}}) where {S,n,DD,RR} =
     [f[j] for j=1:length(f.space)]
 
 Base.repmat(A::ArraySpace,n,m) = ArraySpace(repmat(A.spaces,n,m))
@@ -102,14 +102,14 @@ component(A::MatrixSpace,k::Integer,j::Integer) = A.spaces[k,j]
 Base.getindex(f::Fun{DSS},k::Integer) where {DSS<:ArraySpace} = component(f,k)
 
 
-Base.getindex{S,DD,RR}(f::Fun{MatrixSpace{S,DD,RR}},k::Integer,j::Integer) =
+Base.getindex(f::Fun{MatrixSpace{S,DD,RR}},k::Integer,j::Integer) where {S,DD,RR} =
     f[k+stride(f,2)*(j-1)]
 
 Base.getindex(f::Fun{DSS},kj::CartesianIndex{1}) where {DSS<:ArraySpace} = f[kj[1]]
 Base.getindex(f::Fun{DSS},kj::CartesianIndex{2}) where {DSS<:ArraySpace} = f[kj[1],kj[2]]
 
 
-function Fun{S,V,VV,DD,RR}(A::AbstractArray{Fun{VectorSpace{S,DD,RR},V,VV},2})
+function Fun(A::AbstractArray{Fun{VectorSpace{S,DD,RR},V,VV},2}) where {S,V,VV,DD,RR}
     @assert size(A,1)==1
 
     M=Matrix{Fun{S,V,VV}}(length(space(A[1])),size(A,2))
@@ -137,7 +137,7 @@ Fun(v::AbstractArray{TT,n},sp::Space{D,R}) where {D,R<:AbstractArray{SS,n}} wher
     reshape(Fun(vec(v),vec(sp)),size(sp))
 
 
-coefficients{TT,SS,n}(v::AbstractArray{TT,n},sp::ArraySpace{SS,n}) = coefficients(Fun(v,sp))
+coefficients(v::AbstractArray{TT,n},sp::ArraySpace{SS,n}) where {TT,SS,n} = coefficients(Fun(v,sp))
 
 
 for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace),
@@ -164,7 +164,7 @@ evaluate(f::AbstractVector,S::ArraySpace,x) = map(g->g(x),Fun(S,f))
 
 ## choosedomainspace
 
-function choosedomainspace{T}(A::InterlaceOperator{T,1},sp::ArraySpace)
+function choosedomainspace(A::InterlaceOperator{T,1},sp::ArraySpace) where T
     # this ensures correct dispatch for unino
     sps = Vector{Space}(
         filter(x->!isambiguous(x),map(choosedomainspace,A.ops,sp.spaces)))
@@ -176,9 +176,9 @@ function choosedomainspace{T}(A::InterlaceOperator{T,1},sp::ArraySpace)
 end
 
 
-Base.reshape{AS<:ArraySpace}(f::Fun{AS},k...) = Fun(reshape(space(f),k...),f.coefficients)
+Base.reshape(f::Fun{AS},k...) where {AS<:ArraySpace} = Fun(reshape(space(f),k...),f.coefficients)
 
-Base.diff{AS<:ArraySpace,T}(f::Fun{AS,T},n...) = Fun(diff(Array(f),n...))
+Base.diff(f::Fun{AS,T},n...) where {AS<:ArraySpace,T} = Fun(diff(Array(f),n...))
 
 ## conversion
 
@@ -190,14 +190,14 @@ function coefficients(f::AbstractVector,a::VectorSpace,b::VectorSpace)
 end
 
 
-coefficients{F<:Fun}(Q::AbstractVector{F},rs::VectorSpace) =
+coefficients(Q::AbstractVector{F},rs::VectorSpace) where {F<:Fun} =
     interlace(map(coefficients,Q,rs),rs)
 
 
 
 
-Fun{FF<:Fun}(f::AbstractVector{FF},d::VectorSpace) = Fun(d,coefficients(f,d))
-Fun{FF<:Fun}(f::AbstractMatrix{FF},d::MatrixSpace) = Fun(d,coefficients(f,d))
+Fun(f::AbstractVector{FF},d::VectorSpace) where {FF<:Fun} = Fun(d,coefficients(f,d))
+Fun(f::AbstractMatrix{FF},d::MatrixSpace) where {FF<:Fun} = Fun(d,coefficients(f,d))
 
 
 
@@ -219,7 +219,7 @@ Fun(M::UniformScaling,sp::MatrixSpace) = Fun(M.λ*eye(size(sp)...),sp)
 
 
 
-Base.ones{T<:Number}(::Type{T},A::ArraySpace) = Fun(ones.(T,spaces(A)))
+Base.ones(::Type{T},A::ArraySpace) where {T<:Number} = Fun(ones.(T,spaces(A)))
 Base.ones(A::ArraySpace) = Fun(ones.(spaces(A)))
 
 

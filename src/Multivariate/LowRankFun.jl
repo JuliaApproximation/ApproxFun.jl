@@ -8,7 +8,7 @@ export LowRankFun
 `LowRankFun` gives an approximation to a bivariate function in low rank form.
 """
 
-type LowRankFun{S<:Space,M<:Space,SS<:AbstractProductSpace,T<:Number} <: BivariateFun{T}
+mutable struct LowRankFun{S<:Space,M<:Space,SS<:AbstractProductSpace,T<:Number} <: BivariateFun{T}
     A::Vector{VFun{S,T}}
     B::Vector{VFun{M,T}}
     space::SS
@@ -23,11 +23,11 @@ type LowRankFun{S<:Space,M<:Space,SS<:AbstractProductSpace,T<:Number} <: Bivaria
 end
 
 
-LowRankFun{S,M,SS,T}(A::Vector{VFun{S,T}},B::Vector{VFun{M,T}},space::SS) =
+LowRankFun(A::Vector{VFun{S,T}},B::Vector{VFun{M,T}},space::SS) where {S,M,SS,T} =
     LowRankFun{S,M,SS,T}(A,B,space)
-LowRankFun{S,M,T}(A::Vector{VFun{S,T}},B::Vector{VFun{M,T}}) =
+LowRankFun(A::Vector{VFun{S,T}},B::Vector{VFun{M,T}}) where {S,M,T} =
     LowRankFun(A,B,space(first(A))⊗space(first(B)))
-LowRankFun{S,M,T,V}(A::Vector{VFun{S,T}},B::Vector{VFun{M,V}}) =
+LowRankFun(A::Vector{VFun{S,T}},B::Vector{VFun{M,V}}) where {S,M,T,V} =
     LowRankFun(convert(Vector{VFun{S,promote_type(T,V)}},A),
                convert(Vector{VFun{M,promote_type(T,V)}},B),
                space(first(A))⊗space(first(B)))
@@ -37,7 +37,7 @@ Base.size(f::LowRankFun) = size(f,1),size(f,2)
 
 ## Construction via a Matrix of coefficients
 
-function LowRankFun{S<:Space,M<:Space,T<:Number}(X::Array{T},dx::S,dy::M)
+function LowRankFun(X::Array{T},dx::S,dy::M) where {S<:Space,M<:Space,T<:Number}
     U,Σ,V=svd(X)
     m=max(1,count(s->s>10eps(T),Σ))
 
@@ -54,7 +54,7 @@ function LowRankFun(X::Vector{VFun{S,T}},d::TensorSpace{SV,DD}) where {S,T,DD<:B
     LowRankFun(X,d[2])
 end
 
-function LowRankFun{S,T}(X::Vector{VFun{S,T}},dy::Space)
+function LowRankFun(X::Vector{VFun{S,T}},dy::Space) where {S,T}
     m=mapreduce(ncoefficients,max,X)
     M=zeros(T,m,length(X))
     for k=1:length(X)
@@ -205,7 +205,7 @@ LowRankFun(f::F;kwds...) = LowRankFun(f,Interval(),Interval();kwds...)
 
 ## Construction from values
 
-LowRankFun{T<:Number}(A::Array{T}) = LowRankFun(A,Interval{T}(),Interval{T}())
+LowRankFun(A::Array{T}) where {T<:Number} = LowRankFun(A,Interval{T}(),Interval{T}())
 LowRankFun(c::Number,etc...) = LowRankFun((x,y)->c,etc...)
 
 ## Construction from other LowRankFuns
@@ -292,7 +292,7 @@ domain(f::LowRankFun,k::Integer) = k==1? domain(first(f.A)) : domain(first(f.B))
 space(f::LowRankFun,k::Integer) = k==1? space(first(f.A)) : space(first(f.B))
 space(f::LowRankFun)=f.space
 
-Base.transpose{S,M,SS,T}(f::LowRankFun{S,M,SS,T})=LowRankFun(f.B,f.A,transpose(space(f)))
+Base.transpose(f::LowRankFun{S,M,SS,T}) where {S,M,SS,T}=LowRankFun(f.B,f.A,transpose(space(f)))
 
 function values(f::LowRankFun)
     xm=mapreduce(ncoefficients,max,f.A)
@@ -336,8 +336,8 @@ function vecpoints(f::LowRankFun,k::Integer)
 end
 
 
-evaluate{T<:Fun,M<:Fun}(A::Vector{T},B::Vector{M},x,y)=dotu(evaluate(A,x),evaluate(B,y))
-evaluate{T<:Fun,M<:Fun}(A::Vector{T},B::Vector{M},x::AbstractVector,y::AbstractVector)=evaluate.(A.',x)*evaluate.(B,y.')
+evaluate(A::Vector{T},B::Vector{M},x,y) where {T<:Fun,M<:Fun}=dotu(evaluate(A,x),evaluate(B,y))
+evaluate(A::Vector{T},B::Vector{M},x::AbstractVector,y::AbstractVector) where {T<:Fun,M<:Fun}=evaluate.(A.',x)*evaluate.(B,y.')
 
 evaluate(f::LowRankFun,x,y)=evaluate(f.A,f.B,x,y)
 evaluate(f::LowRankFun,::Colon,::Colon)=f
@@ -375,7 +375,7 @@ end
 ## Algebra
 
 for op = (:*,:/)
-    @eval ($op){T<:Fun}(A::Array{T,1},c::Number)=map(f->($op)(f,c),A)
+    @eval ($op)(A::Array{T,1},c::Number) where {T<:Fun}=map(f->($op)(f,c),A)
     @eval ($op)(f::LowRankFun,c::Number) = LowRankFun(($op)(f.A,c),f.B)
     @eval ($op)(c::Number,f::LowRankFun) = LowRankFun(($op)(c,f.A),f.B)
 end

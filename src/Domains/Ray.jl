@@ -18,19 +18,19 @@ infinity (`o = true`) or back from infinity (`o = false`).
 struct Ray{angle,T<:Number} <: IntervalDomain{T}
     center::T
     orientation::Bool
-    (::Type{Ray{angle,T}}){angle,T}(c,o) = new{angle,T}(c,o)
-    (::Type{Ray{angle,T}}){angle,T}(c) = new{angle,T}(c,true)
-    (::Type{Ray{angle,T}}){angle,T}() = new{angle,T}(zero(T),true)
-    (::Type{Ray{angle,T}}){angle,T}(r::Ray{angle,T}) = r
+    Ray{angle,T}(c,o) where {angle,T} = new{angle,T}(c,o)
+    Ray{angle,T}(c) where {angle,T} = new{angle,T}(c,true)
+    Ray{angle,T}() where {angle,T} = new{angle,T}(zero(T),true)
+    Ray{angle,T}(r::Ray{angle,T}) where {angle,T} = r
 end
 
 const RealRay{T} = Union{Ray{false,T},Ray{true,T}}
 
-(::Type{Ray{a}}){a}(c,o) = Ray{a,typeof(c)}(c,o)
-(::Type{Ray{a}}){a}(c::Number) = Ray{a,typeof(c)}(c)
-(::Type{Ray{a}}){a}() = Ray{a,Float64}()
+Ray{a}(c,o) where {a} = Ray{a,typeof(c)}(c,o)
+Ray{a}(c::Number) where {a} = Ray{a,typeof(c)}(c)
+Ray{a}() where {a} = Ray{a,Float64}()
 
-Base.angle{a}(d::Ray{a}) = a*π
+Base.angle(d::Ray{a}) where {a} = a*π
 
 # ensure the angle is always in (-1,1]
 Ray(c,a,o) = Ray{a==0?false:(abs(a)==(1.0π)?true:mod(a/π-1,-2)+1),typeof(c)}(c,o)
@@ -55,8 +55,8 @@ end
 
 
 isambiguous(d::Ray)=isnan(d.center)
-convert{a,T<:Number}(::Type{Ray{a,T}},::AnyDomain) = Ray{a,T}(NaN,true)
-convert{IT<:Ray}(::Type{IT},::AnyDomain) = Ray(NaN,NaN)
+convert(::Type{Ray{a,T}},::AnyDomain) where {a,T<:Number} = Ray{a,T}(NaN,true)
+convert(::Type{IT},::AnyDomain) where {IT<:Ray} = Ray(NaN,NaN)
 
 
 
@@ -89,7 +89,7 @@ ray_fromcanonical(o,x)=ray_fromcanonical((o?1:-1)*x)
 ray_fromcanonicalD(o,x)=(o?1:-1)*ray_fromcanonicalD((o?1:-1)*x)
 ray_invfromcanonicalD(o,x)=(o?1:-1)*ray_invfromcanonicalD((o?1:-1)*x)
 
-cisangle{a}(::Ray{a})=cis(a*π)
+cisangle(::Ray{a}) where {a}=cis(a*π)
 cisangle(::Ray{false})=1
 cisangle(::Ray{true})=-1
 
@@ -106,4 +106,4 @@ invfromcanonicalD(d::Ray,x) = conj(cisangle(d))*ray_invfromcanonicalD(d.orientat
 
 arclength(d::Ray) = Inf
 
-=={a}(d::Ray{a},m::Ray{a}) = d.center == m.center
+==(d::Ray{a},m::Ray{a}) where {a} = d.center == m.center

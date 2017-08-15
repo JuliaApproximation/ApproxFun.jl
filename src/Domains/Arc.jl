@@ -16,19 +16,19 @@ struct Arc{T,V<:Real,TT} <: IntervalDomain{TT}
     center::T
     radius::V
     angles::Tuple{V,V}
-    (::Type{Arc{T,V,TT}}){T,V,TT}(c,r,a) = new{T,V,TT}(T(c),V(r),Tuple{V,V}(a))
+    Arc{T,V,TT}(c,r,a) where {T,V,TT} = new{T,V,TT}(T(c),V(r),Tuple{V,V}(a))
 end
 
 
-Arc{T<:Number,V<:Real,V1<:Real,V2<:Real}(c::T,r::V,t::Tuple{V1,V2}) =
+Arc(c::T,r::V,t::Tuple{V1,V2}) where {T<:Number,V<:Real,V1<:Real,V2<:Real} =
     Arc{promote_type(T,V,V1,V2),
         promote_type(real(T),V,V1,V2),
         Complex{promote_type(real(T),V,V1,V2)}}(c,r,t)
-Arc{T<:Number,V<:Real}(c::Vec{2,T},r::V,t::Tuple{V,V}) =
+Arc(c::Vec{2,T},r::V,t::Tuple{V,V}) where {T<:Number,V<:Real} =
     Arc{Vec{2,promote_type(T,V)},
         promote_type(real(T),V),
         Vec{2,promote_type(real(T),V)}}(c,r,t)
-Arc{T<:Number,V<:Real,V1<:Real,V2<:Real}(c::Vec{2,T},r::V,t::Tuple{V1,V2}) =
+Arc(c::Vec{2,T},r::V,t::Tuple{V1,V2}) where {T<:Number,V<:Real,V1<:Real,V2<:Real} =
     Arc{Vec{2,promote_type(T,V,V1,V2)},
         promote_type(real(T),V,V1,V2),
         Vec{2,promote_type(T,V,V1,V2)}}(c,r,t)
@@ -37,13 +37,13 @@ Arc(c::Tuple,r,t) = Arc(Vec(c...),r,t)
 Arc(c,r,t0,t1) = Arc(c,r,(t0,t1))
 
 
-Base.complex{V<:Vec}(a::Arc{V}) = Arc(complex(a.center...),a.radius,a.angles)
+Base.complex(a::Arc{V}) where {V<:Vec} = Arc(complex(a.center...),a.radius,a.angles)
 
 isambiguous(d::Arc) =
     isnan(d.center) && isnan(d.radius) && isnan(d.angles[1]) && isnan(d.angles[2])
-convert{T<:Number,V<:Real}(::Type{Arc{T,V}},::AnyDomain) =
+convert(::Type{Arc{T,V}},::AnyDomain) where {T<:Number,V<:Real} =
     Arc{T,V}(NaN,NaN,(NaN,NaN))
-convert{IT<:Arc}(::Type{IT},::AnyDomain) =
+convert(::Type{IT},::AnyDomain) where {IT<:Arc} =
     Arc(NaN,NaN,(NaN,NaN))
 
 Base.reverse(a::Arc) = Arc(a.center,a.radius,reverse(a.angles))
@@ -65,17 +65,17 @@ for OP in (:mobius,:mobiusinv,:mobiusD,:mobiusinvD)
 end
 
 
-tocanonical{T<:Number}(a::Arc{T},x) = real(mobius(a,x))
-tocanonicalD{T<:Number}(a::Arc{T},x) = mobiusD(a,x)
-fromcanonical{T<:Number,V<:Real,TT<:Complex}(a::Arc{T,V,TT},x) =
+tocanonical(a::Arc{T},x) where {T<:Number} = real(mobius(a,x))
+tocanonicalD(a::Arc{T},x) where {T<:Number} = mobiusD(a,x)
+fromcanonical(a::Arc{T,V,TT},x) where {T<:Number,V<:Real,TT<:Complex} =
     mobiusinv(a,x)
-fromcanonicalD{T<:Number}(a::Arc{T},x) = mobiusinvD(a,x)
+fromcanonicalD(a::Arc{T},x) where {T<:Number} = mobiusinvD(a,x)
 
-tocanonical{V<:Vec}(a::Arc{V},x::Vec) =
+tocanonical(a::Arc{V},x::Vec) where {V<:Vec} =
     tocanonical(complex(a),complex(x...))
-fromcanonical{V<:Vec}(a::Arc{V},x::Number) =
+fromcanonical(a::Arc{V},x::Number) where {V<:Vec} =
     Vec(reim(fromcanonical(complex(a),x))...)
-fromcanonicalD{V<:Vec}(a::Arc{V},x::Number) =
+fromcanonicalD(a::Arc{V},x::Number) where {V<:Vec} =
     Vec(reim(fromcanonicalD(complex(a),x))...)
 
 ## information
@@ -101,7 +101,7 @@ end
 
 
 # allow exp(im*Segment(0,1)) for constructing arc
-function Base.exp{CMP<:Complex}(d::Segment{CMP})
+function Base.exp(d::Segment{CMP}) where CMP<:Complex
     @assert isapprox(real(d.a),0) && isapprox(real(d.b),0)
     Arc(0,1,(imag(d.a),imag(d.b)))
 end

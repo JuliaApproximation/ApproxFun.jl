@@ -1,11 +1,11 @@
 struct PiecewiseSegment{T} <: UnivariateDomain{T}
     points::Vector{T}
-    (::Type{PiecewiseSegment{T}}){T}(d::Vector{T}) = new{T}(d)
+    PiecewiseSegment{T}(d::Vector{T}) where {T} = new{T}(d)
 end
 PiecewiseSegment(d::AbstractVector) = PiecewiseSegment{eltype(d)}(collect(d))
 PiecewiseSegment(d...) = PiecewiseSegment([d...])
 
-function PiecewiseSegment{IT<:Segment}(pcsin::AbstractVector{IT})
+function PiecewiseSegment(pcsin::AbstractVector{IT}) where IT<:Segment
     pcs=collect(pcsin)
     p=∂(pop!(pcs))
     successful=true
@@ -30,7 +30,7 @@ end
 canonicaldomain(d::PiecewiseSegment)=d
 ncomponents(d::PiecewiseSegment)=length(d.points)-1
 component(d::PiecewiseSegment,j::Integer) = Segment(d.points[j],d.points[j+1])
-components{T}(d::PiecewiseSegment{T}) = Segment{T}[component(d,k) for k=1:ncomponents(d)]
+components(d::PiecewiseSegment{T}) where {T} = Segment{T}[component(d,k) for k=1:ncomponents(d)]
 
 for OP in (:arclength,:complexlength)
     @eval $OP(d::PiecewiseSegment) = mapreduce($OP,+,components(d))
@@ -42,8 +42,8 @@ isperiodic(d::PiecewiseSegment) = first(d.points)==last(d.points)
 Base.reverse(d::PiecewiseSegment) = PiecewiseSegment(reverse(d.points))
 
 isambiguous(d::PiecewiseSegment)=isempty(d.points)
-convert{T<:Number}(::Type{PiecewiseSegment{T}},::AnyDomain)=PiecewiseSegment{T}([])
-convert{IT<:PiecewiseSegment}(::Type{IT},::AnyDomain)=PiecewiseSegment(Float64[])
+convert(::Type{PiecewiseSegment{T}},::AnyDomain) where {T<:Number}=PiecewiseSegment{T}([])
+convert(::Type{IT},::AnyDomain) where {IT<:PiecewiseSegment}=PiecewiseSegment(Float64[])
 
 
 function points(d::PiecewiseSegment,n)
@@ -57,7 +57,7 @@ end
 
 
 Base.rand(d::PiecewiseSegment) = rand(d[rand(1:ncomponents(d))])
-checkpoints{T}(d::PiecewiseSegment{T}) =
+checkpoints(d::PiecewiseSegment{T}) where {T} =
     mapreduce(checkpoints,union,components(d))::Vector{T}
 
 for OP in (:(Base.first),:(Base.last))

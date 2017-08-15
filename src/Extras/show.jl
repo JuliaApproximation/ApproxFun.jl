@@ -59,12 +59,12 @@ Base.show(io::IO,S::ConstantSpace) = print(io,"ConstantSpace($(domain(S)))")
 Base.show(io::IO,f::Fun{ConstantSpace{AnyDomain}}) =
     print(io,"$(Number(f)) anywhere")
 
-Base.show{DD,RR}(io::IO,f::Fun{ConstantSpace{DD,RR}}) =
+Base.show(io::IO,f::Fun{ConstantSpace{DD,RR}}) where {DD,RR} =
     print(io,"$(Number(f)) on $(domain(f))")
 
 for typ in ("Chebyshev","Fourier","Laurent","Taylor","SinSpace","CosSpace")
     TYP=parse(typ)
-    @eval function Base.show{D,R}(io::IO,S::$TYP{D,R})
+    @eval function Base.show(io::IO,S::$TYP{D,R}) where {D,R}
         print(io,$typ*"(")
         show(io,domain(S))
         print(io,")")
@@ -259,7 +259,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
 end
 
 
-function Base.show{T<:Operator}(io::IO, ::MIME"text/plain", A::Vector{T}; header::Bool=true)
+function Base.show(io::IO, ::MIME"text/plain", A::Vector{T}; header::Bool=true) where T<:Operator
     nf = length(A)-1
     header && for k=1:nf+1 println(io,summary(A[k])) end
     if all(Ak -> isafunctional(Ak), A[1:nf]) && isbanded(A[end]) &&

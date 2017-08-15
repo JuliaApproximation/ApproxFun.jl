@@ -5,7 +5,7 @@
 struct AlmostBandedMatrix{T} <: AbstractMatrix{T}
     bands::BandedMatrix{T}
     fill::LowRankMatrix{T}
-    function (::Type{AlmostBandedMatrix{T}}){T}(bands::BandedMatrix{T},fill::LowRankMatrix{T})
+    function AlmostBandedMatrix{T}(bands::BandedMatrix{T},fill::LowRankMatrix{T}) where T
         if size(bands) ≠ size(fill)
             error("Data and fill must be compatible size")
         end
@@ -16,22 +16,22 @@ end
 AlmostBandedMatrix(bands::BandedMatrix,fill::LowRankMatrix) =
     AlmostBandedMatrix{promote_type(eltype(bands),eltype(fill))}(bands,fill)
 
-AlmostBandedMatrix{T}(::Type{T},n::Integer,m::Integer,l::Integer,u::Integer,r::Integer) =
+AlmostBandedMatrix(::Type{T},n::Integer,m::Integer,l::Integer,u::Integer,r::Integer) where {T} =
     AlmostBandedMatrix(BandedMatrix(T,n,m,l,u),LowRankMatrix(T,n,m,r))
 
 
-abzeros{T}(::Type{T},n::Integer,m::Integer,l::Integer,u::Integer,r::Integer) =
+abzeros(::Type{T},n::Integer,m::Integer,l::Integer,u::Integer,r::Integer) where {T} =
     AlmostBandedMatrix(bzeros(T,n,m,l,u),lrzeros(T,n,m,r))
 
 
 for MAT in (:AlmostBandedMatrix, :AbstractMatrix, :AbstractArray)
-    @eval convert{T}(::Type{$MAT{T}},A::AlmostBandedMatrix) =
+    @eval convert(::Type{$MAT{T}},A::AlmostBandedMatrix) where {T} =
         AlmostBandedMatrix(AbstractMatrix{T}(A.bands),AbstractMatrix{T}(A.fill))
 end
 
 
 Base.size(A::AlmostBandedMatrix) = size(A.bands)
-Base.IndexStyle{ABM<:AlmostBandedMatrix}(::Type{ABM}) =
+Base.IndexStyle(::Type{ABM}) where {ABM<:AlmostBandedMatrix} =
     IndexCartesian()
 
 

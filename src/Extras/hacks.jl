@@ -47,7 +47,7 @@ end
 
 ## dot for vector{Number} * Vector{Fun}
 
-function Base.dot{T<:Union{Number,Fun,MultivariateFun},F<:Union{Fun,MultivariateFun}}(c::Vector{T},f::Vector{F})
+function Base.dot(c::Vector{T},f::Vector{F}) where {T<:Union{Number,Fun,MultivariateFun},F<:Union{Fun,MultivariateFun}}
     @assert length(c)==length(f)
     ret = conj(first(c))*first(f)
     for k = 2:length(c)
@@ -57,7 +57,7 @@ function Base.dot{T<:Union{Number,Fun,MultivariateFun},F<:Union{Fun,Multivariate
 end
 
 
-function dotu{T<:Union{Fun,MultivariateFun,Number},F<:Union{Fun,MultivariateFun,Number}}(c::Vector{T},f::Vector{F})
+function dotu(c::Vector{T},f::Vector{F}) where {T<:Union{Fun,MultivariateFun,Number},F<:Union{Fun,MultivariateFun,Number}}
     @assert length(c)==length(f)
     isempty(c) && return zero(Base.promote_op(*,T,F))
     ret = c[1]*f[1]
@@ -72,5 +72,5 @@ end
 ## Gets blockbandinds working for SpectralMeasures
 
 # TODO: Is this a good definition?
-blockbandinds{AT,TT,SS1<:Union{EuclideanSpace,SequenceSpace},
-              SS2<:Union{EuclideanSpace,SequenceSpace}}(T::FiniteOperator{AT,TT,SS1,SS2}) = bandinds(T)
+blockbandinds(T::FiniteOperator{AT,TT,SS1,SS2}) where {AT,TT,SS1<:Union{EuclideanSpace,SequenceSpace},
+              SS2<:Union{EuclideanSpace,SequenceSpace}} = bandinds(T)

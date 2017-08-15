@@ -8,7 +8,7 @@ function splitatroots(f::Fun)
     splitmap(x->f(x),d,pts)
 end
 
-function abs{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
+function abs(f::Fun{S,T}) where {S<:RealUnivariateSpace,T<:Real}
     d=domain(f)
     pts=roots(f)
     splitmap(x->abs(f(x)),d,pts)
@@ -33,7 +33,7 @@ midpoints(d::UnionDomain) = map(midpoints,d.domains)
 
 
 for OP in (:sign,:angle)
-    @eval function $OP{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
+    @eval function $OP(f::Fun{S,T}) where {S<:RealUnivariateSpace,T<:Real}
         d=domain(f)
 
         pts=roots(f)
@@ -50,14 +50,14 @@ end
 
 for op in (:(max),:(min))
     @eval begin
-        function $op{S<:RealUnivariateSpace,V<:RealUnivariateSpace,T1<:Real,T2<:Real}(f::Fun{S,T1},g::Fun{V,T2})
+        function $op(f::Fun{S,T1},g::Fun{V,T2}) where {S<:RealUnivariateSpace,V<:RealUnivariateSpace,T1<:Real,T2<:Real}
             h=f-g
             d=domain(h)
             pts=roots(h)
             splitmap(x->$op(f(x),g(x)),d,pts)
         end
-        $op{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T},g::Real) = $op(f,Fun(g,domain(f)))
-        $op{S<:RealUnivariateSpace,T<:Real}(f::Real,g::Fun{S,T}) = $op(Fun(f,domain(g)),g)
+        $op(f::Fun{S,T},g::Real) where {S<:RealUnivariateSpace,T<:Real} = $op(f,Fun(g,domain(f)))
+        $op(f::Real,g::Fun{S,T}) where {S<:RealUnivariateSpace,T<:Real} = $op(Fun(f,domain(g)),g)
     end
 end
 
@@ -96,11 +96,11 @@ end
 
 scaleshiftdomain(f::Fun,sc,sh)=setdomain(f,sc*domain(f)+sh)
 
-/{λ,DD,RR}(c::Number,f::Fun{Ultraspherical{λ,DD,RR}}) = c/Fun(f,Chebyshev(domain(f)))
-/{DD,RR}(c::Number,f::Fun{Jacobi{DD,RR}}) = c/Fun(f,Chebyshev(domain(f)))
+/(c::Number,f::Fun{Ultraspherical{λ,DD,RR}}) where {λ,DD,RR} = c/Fun(f,Chebyshev(domain(f)))
+/(c::Number,f::Fun{Jacobi{DD,RR}}) where {DD,RR} = c/Fun(f,Chebyshev(domain(f)))
 
-/{C<:Chebyshev}(c::Number,f::Fun{C})=setdomain(c/setcanonicaldomain(f),domain(f))
-function /{DD<:Segment,RR}(c::Number,f::Fun{Chebyshev{DD,RR}})
+/(c::Number,f::Fun{C}) where {C<:Chebyshev}=setdomain(c/setcanonicaldomain(f),domain(f))
+function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:Segment,RR}
     fc = setcanonicaldomain(f)
     d=domain(f)
     # if domain f is small then the pts get projected in
@@ -158,7 +158,7 @@ function /{DD<:Segment,RR}(c::Number,f::Fun{Chebyshev{DD,RR}})
     end
 end
 
-function ^{C<:Chebyshev}(f::Fun{C},k::Float64)
+function ^(f::Fun{C},k::Float64) where C<:Chebyshev
     # Need to think what to do if this is ever not the case..
     sp = space(f)
     fc = setdomain(f,Segment()) #Project to interval
@@ -189,14 +189,14 @@ end
 ^(f::Fun{Jacobi},k::Float64) = Fun(f,Chebyshev)^k
 
 # Default is just try solving ODE
-function ^{S,T}(f::Fun{S,T},β)
+function ^(f::Fun{S,T},β) where {S,T}
     A=Derivative()-β*differentiate(f)/f
     B=Evaluation(first(domain(f)))
     [B,A]\first(f)^β
 end
 
-sqrt{S,T}(f::Fun{S,T}) = f^0.5
-cbrt{S,T}(f::Fun{S,T}) = f^(1/3)
+sqrt(f::Fun{S,T}) where {S,T} = f^0.5
+cbrt(f::Fun{S,T}) where {S,T} = f^(1/3)
 
 ## We use \ as the Fun constructor might miss isolated features
 
@@ -212,7 +212,7 @@ log(f::Fun) = cumsum(differentiate(f)/f)+log(first(f))
 
 # project first to [-1,1] to avoid issues with
 # complex derivative
-function log{US<:Union{Ultraspherical,Chebyshev}}(f::Fun{US})
+function log(f::Fun{US}) where US<:Union{Ultraspherical,Chebyshev}
     if domain(f)==Segment()
         r = sort(roots(f))
         #TODO divideatroots
@@ -261,7 +261,7 @@ function log{US<:Union{Ultraspherical,Chebyshev}}(f::Fun{US})
 end
 
 
-function log{T<:Real,D,R}(f::Fun{Fourier{D,R},T})
+function log(f::Fun{Fourier{D,R},T}) where {T<:Real,D,R}
     if isreal(domain(f))
         cumsum(differentiate(f)/f)+log(first(f))
     else
@@ -302,7 +302,7 @@ for (op,ODE,RHS,growth) in ((:(exp),"D-f'","0",:(real)),
     L,R = parse(ODE),parse(RHS)
     @eval begin
         # depice before doing op
-        $op{PW<:Union{PiecewiseSpace,ContinuousSpace}}(f::Fun{PW}) =
+        $op(f::Fun{PW}) where {PW<:Union{PiecewiseSpace,ContinuousSpace}} =
             Fun(map(f->$op(f),components(f)),PiecewiseSpace)
 
         # We remove the MappedSpace
@@ -310,7 +310,7 @@ for (op,ODE,RHS,growth) in ((:(exp),"D-f'","0",:(real)),
         #     g=exp(Fun(f.coefficients,space(f).space))
         #     Fun(g.coefficients,MappedSpace(domain(f),space(g)))
         # end
-        function $op{S,T}(fin::Fun{S,T})
+        function $op(fin::Fun{S,T}) where {S,T}
             f=setcanonicaldomain(fin)  # removes possible issues with roots
 
             xmax,opfxmax,opmax=specialfunctionnormalizationpoint($op,$growth,f)
@@ -329,7 +329,7 @@ end
 
 # JacobiWeight explodes, we want to ensure the solution incorporates the fact
 # that exp decays rapidly
-function exp{JW<:JacobiWeight}(f::Fun{JW})
+function exp(f::Fun{JW}) where JW<:JacobiWeight
     if !isa(domain(f),Segment)
         # project first to get better derivative behaviour
         return setdomain(exp(setdomain(f,Segment())),domain(f))
@@ -406,7 +406,7 @@ for (op,ODE,RHS,growth) in ((:(erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
                             (:(airybiprime),"f'*D^2-f''*D-f*f'^3","airybi(f)*f'^3",:(imag)))
     L,R = parse(ODE),parse(RHS)
     @eval begin
-        function $op{S,T}(fin::Fun{S,T})
+        function $op(fin::Fun{S,T}) where {S,T}
             f=setcanonicaldomain(fin)
 
             g=chop($growth(f),eps(T))
@@ -444,7 +444,7 @@ for (op,ODE,RHS,growth) in ((:(hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^
                             (:(hankelh2x),"f^2*f'*D^2+((-2im*f^2+f)*f'^2-f^2*f'')*D+(-im*f-ν^2)*f'^3","0",:(imag)))
     L,R = parse(ODE),parse(RHS)
     @eval begin
-        function $op{S<:Union{Ultraspherical,Chebyshev},T}(ν,fin::Fun{S,T})
+        function $op(ν,fin::Fun{S,T}) where {S<:Union{Ultraspherical,Chebyshev},T}
             f=setcanonicaldomain(fin)
 
             g=chop($growth(f),eps(T))
@@ -536,7 +536,7 @@ for op in (:(expm1),:(log1p),:(lfact),:(sinc),:(cosc),
            :(eta),:(zeta),:(gamma),:(lgamma),
            :(polygamma),:(invdigamma),:(digamma),:(trigamma))
     @eval begin
-        $op{S,T}(f::Fun{S,T})=Fun(x->$op(f(x)),domain(f))
+        $op(f::Fun{S,T}) where {S,T}=Fun(x->$op(f(x)),domain(f))
     end
 end
 
@@ -622,9 +622,9 @@ end
 ## PIecewiseSpace
 # map over components
 
-/{S<:PiecewiseSpace}(c::Number,f::Fun{S}) = Fun(map(f->c/f,components(f)),PiecewiseSpace)
-^{S<:PiecewiseSpace}(f::Fun{S},c::Integer) = Fun(map(f->f^c,components(f)),PiecewiseSpace)
-^{S<:PiecewiseSpace}(f::Fun{S},c::Number) = Fun(map(f->f^c,components(f)),PiecewiseSpace)
+/(c::Number,f::Fun{S}) where {S<:PiecewiseSpace} = Fun(map(f->c/f,components(f)),PiecewiseSpace)
+^(f::Fun{S},c::Integer) where {S<:PiecewiseSpace} = Fun(map(f->f^c,components(f)),PiecewiseSpace)
+^(f::Fun{S},c::Number) where {S<:PiecewiseSpace} = Fun(map(f->f^c,components(f)),PiecewiseSpace)
 
 
 
@@ -632,7 +632,7 @@ for OP in (:(abs),:(sign),:(log))
     @eval begin
         $OP(f::Fun{PiecewiseSpace{S,DD,RR},T}) where {S,DD,RR<:Real,T<:Real} =
             Fun(map($OP,components(f)),PiecewiseSpace)
-        $OP{S,DD<:UnivariateDomain,RR}(f::Fun{PiecewiseSpace{S,DD,RR}}) = Fun(map($OP,components(f)),PiecewiseSpace)
+        $OP(f::Fun{PiecewiseSpace{S,DD,RR}}) where {S,DD<:UnivariateDomain,RR} = Fun(map($OP,components(f)),PiecewiseSpace)
     end
 end
 
@@ -640,10 +640,10 @@ end
 
 for OP in (:(abs),:(sign))
     # ambiguity warnings
-    @eval $OP{S<:PointSpace,T<:Real}(f::Fun{S,T})=Fun(space(f),map($OP,f.coefficients))
+    @eval $OP(f::Fun{S,T}) where {S<:PointSpace,T<:Real}=Fun(space(f),map($OP,f.coefficients))
 end
 for OP in (:(exp),:(abs),:(sign))
-    @eval $OP{S<:PointSpace}(f::Fun{S})=Fun(space(f),map($OP,f.coefficients))
+    @eval $OP(f::Fun{S}) where {S<:PointSpace}=Fun(space(f),map($OP,f.coefficients))
 end
 
 
@@ -688,42 +688,42 @@ end
 # ambiguity
 for OP in (:(Base.abs),)
     @eval begin
-        $OP{CS<:ConstantSpace,T<:Complex}(z::Fun{CS,T}) =
+        $OP(z::Fun{CS,T}) where {CS<:ConstantSpace,T<:Complex} =
             Fun($OP(Number(z)),space(z))
-        $OP{CS<:ConstantSpace,T<:Real}(z::Fun{CS,T}) =
+        $OP(z::Fun{CS,T}) where {CS<:ConstantSpace,T<:Real} =
             Fun($OP(Number(z)),space(z))
-        $OP{CS<:ConstantSpace,T}(z::Fun{CS,T}) =
+        $OP(z::Fun{CS,T}) where {CS<:ConstantSpace,T} =
             Fun($OP(Number(z)),space(z))
     end
 end
 
 for OP in (:(Base.max),:(Base.min))
     @eval begin
-        $OP{CS1<:ConstantSpace,CS2<:ConstantSpace,T<:Real,V<:Real}(a::Fun{CS1,T},b::Fun{CS2,V}) =
+        $OP(a::Fun{CS1,T},b::Fun{CS2,V}) where {CS1<:ConstantSpace,CS2<:ConstantSpace,T<:Real,V<:Real} =
             Fun($OP(Number(a),Number(b)),space(a) ∪ space(b))
-        $OP{CS<:ConstantSpace,T<:Real}(a::Fun{CS,T},b::Real) =
+        $OP(a::Fun{CS,T},b::Real) where {CS<:ConstantSpace,T<:Real} =
             Fun($OP(Number(a),b),space(a))
-        $OP{CS<:ConstantSpace,T<:Real}(a::Real,b::Fun{CS,T}) =
+        $OP(a::Real,b::Fun{CS,T}) where {CS<:ConstantSpace,T<:Real} =
             Fun($OP(a,Number(b)),space(b))
     end
 end
 
 for OP in (:<,:(Base.isless),:(<=),:>,:(>=))
     @eval begin
-        $OP{CS<:ConstantSpace}(a::Fun{CS},b::Fun{CS}) = $OP(Number(a),Number(b))
-        $OP{CS<:ConstantSpace}(a::Fun{CS},b::Number) = $OP(Number(a),b)
-        $OP{CS<:ConstantSpace}(a::Number,b::Fun{CS}) = $OP(a,Number(b))
+        $OP(a::Fun{CS},b::Fun{CS}) where {CS<:ConstantSpace} = $OP(Number(a),Number(b))
+        $OP(a::Fun{CS},b::Number) where {CS<:ConstantSpace} = $OP(Number(a),b)
+        $OP(a::Number,b::Fun{CS}) where {CS<:ConstantSpace} = $OP(a,Number(b))
     end
 end
 
 # from DualNumbers
 for (funsym, exp) in Calculus.symbolic_derivatives_1arg()
     @eval begin
-        $(funsym){CS<:ConstantSpace,T<:Real}(z::Fun{CS,T}) =
+        $(funsym)(z::Fun{CS,T}) where {CS<:ConstantSpace,T<:Real} =
             Fun($(funsym)(Number(z)),space(z))
-        $(funsym){CS<:ConstantSpace,T<:Complex}(z::Fun{CS,T}) =
+        $(funsym)(z::Fun{CS,T}) where {CS<:ConstantSpace,T<:Complex} =
             Fun($(funsym)(Number(z)),space(z))
-        $(funsym){CS<:ConstantSpace}(z::Fun{CS}) =
+        $(funsym)(z::Fun{CS}) where {CS<:ConstantSpace} =
             Fun($(funsym)(Number(z)),space(z))
     end
 end

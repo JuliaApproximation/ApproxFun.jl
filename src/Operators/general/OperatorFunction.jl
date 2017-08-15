@@ -27,7 +27,7 @@ function getindex(OF::ConcreteOperatorFunction,k::Integer,j::Integer)
     end
 end
 
-function convert{T}(::Type{Operator{T}},D::ConcreteOperatorFunction)
+function convert(::Type{Operator{T}},D::ConcreteOperatorFunction) where T
     if T==eltype(D)
         D
     else

@@ -13,18 +13,18 @@ Fun(d::Space)=Fun(identity,d)
 
 ## Chebyshev & Legendre polynomials
 
-chebyshevt{T<:Number}(n::Int,d::Segment{T}) = Fun(Chebyshev(d),[zeros(T,n);one(T)])
-chebyshevu{T<:Number}(n::Int,d::Segment{T}) =
+chebyshevt(n::Int,d::Segment{T}) where {T<:Number} = Fun(Chebyshev(d),[zeros(T,n);one(T)])
+chebyshevu(n::Int,d::Segment{T}) where {T<:Number} =
     mod(n,2) == 1 ? Fun(Chebyshev(d),interlace(zeros(T,div(n+2,2)),2ones(T,div(n+2,2)))) :
                     Fun(Chebyshev(d),interlace(2ones(T,div(n+2,2)),zeros(T,div(n+2,2)))[1:n+1]-[one(T);zeros(T,n)])
-legendre{T<:Number}(n::Int,d::Segment{T}) = Fun(Legendre(d),[zeros(T,n);one(T)])
+legendre(n::Int,d::Segment{T}) where {T<:Number} = Fun(Legendre(d),[zeros(T,n);one(T)])
 
 for poly in (:chebyshevt,:chebyshevu,:legendre)
     @eval begin
-        $poly{T<:Number}(n::Int,a::T,b::T) = $poly(n,Segment(a,b))
-        $poly{T<:Number}(::Type{T},n::Int) = $poly(n,Segment{T}())
+        $poly(n::Int,a::T,b::T) where {T<:Number} = $poly(n,Segment(a,b))
+        $poly(::Type{T},n::Int) where {T<:Number} = $poly(n,Segment{T}())
         $poly(n::Int) = $poly(Float64,n)
-        $poly{T<:Number}(n::Range,d::Segment{T}) = map(i->$poly(i,d),n)
+        $poly(n::Range,d::Segment{T}) where {T<:Number} = map(i->$poly(i,d),n)
     end
 end
 
@@ -54,8 +54,8 @@ for OP in (:Σ,:∮,:⨍,:⨎)
 end
 
 ∇(F::MultivariateFun) = grad(F)
-Base.dot{M<:MultivariateFun}(∇::Function,F::Vector{M}) = div(F)
-Base.cross{M<:MultivariateFun}(∇::Function,F::Vector{M}) = curl(F)
+Base.dot(∇::Function,F::Vector{M}) where {M<:MultivariateFun} = div(F)
+Base.cross(∇::Function,F::Vector{M}) where {M<:MultivariateFun} = curl(F)
 
 
 ## Domains

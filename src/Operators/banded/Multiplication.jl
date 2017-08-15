@@ -9,7 +9,7 @@ struct ConcreteMultiplication{D<:Space,S<:Space,T} <: Multiplication{D,S,T}
     ConcreteMultiplication{D,S,T}(f::Fun{D,T},sp::S) where {D,S,T} = new{D,S,T}(f,sp)
 end
 
-function ConcreteMultiplication{V,D,T}(::Type{V},f::Fun{D,T},sp::Space)
+function ConcreteMultiplication(::Type{V},f::Fun{D,T},sp::Space) where {V,D,T}
     if !domainscompatible(space(f),sp)
         error("Domain mismatch: cannot multiply function on $(domain(f)) to function on $(domain(sp))")
     end
@@ -18,7 +18,7 @@ function ConcreteMultiplication{V,D,T}(::Type{V},f::Fun{D,T},sp::Space)
 end
 
 
-function ConcreteMultiplication{D,T}(f::Fun{D,T},sp::Space)
+function ConcreteMultiplication(f::Fun{D,T},sp::Space) where {D,T}
     if !domainscompatible(space(f),sp)
         error("Domain mismatch: cannot multiply function on $(domain(f)) to function on $(domain(sp))")
     end
@@ -50,7 +50,7 @@ Multiplication(c::Number) = Multiplication(Fun(c) )
 Multiplication(S::Space,f::Fun) = Multiplication(f,S)
 
 
-function convert{S,V,T}(::Type{Operator{T}},C::ConcreteMultiplication{S,V})
+function convert(::Type{Operator{T}},C::ConcreteMultiplication{S,V}) where {S,V,T}
     if T==eltype(C)
         C
     else
@@ -58,15 +58,15 @@ function convert{S,V,T}(::Type{Operator{T}},C::ConcreteMultiplication{S,V})
     end
 end
 
-domainspace{D,S,T}(M::ConcreteMultiplication{D,S,T}) = M.space
+domainspace(M::ConcreteMultiplication{D,S,T}) where {D,S,T} = M.space
 domain(T::ConcreteMultiplication) = domain(T.f)
 
 
 ## Default implementation: try converting to space of M.f
 
 # avoid ambiguity
-rangespace{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T}) = UnsetSpace()
-getindex{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T},k::Integer,j::Integer) =
+rangespace(D::ConcreteMultiplication{F,UnsetSpace,T}) where {F,T} = UnsetSpace()
+getindex(D::ConcreteMultiplication{F,UnsetSpace,T},k::Integer,j::Integer) where {F,T} =
     error("No range space attached to Multiplication")
 
 
@@ -77,13 +77,13 @@ getindex{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T},k::Integer,j::Integer) =
 ##multiplication can always be promoted, range space is allowed to change
 promotedomainspace(D::Multiplication,sp::UnsetSpace) = D
 promotedomainspace(D::Multiplication,sp::Space) = Multiplication(D.f,sp)
-promoterangespace{P}(D::ConcreteMultiplication{P,UnsetSpace},sp::UnsetSpace) = D
-promoterangespace{P}(D::ConcreteMultiplication{P,UnsetSpace},sp::Space) =
+promoterangespace(D::ConcreteMultiplication{P,UnsetSpace},sp::UnsetSpace) where {P} = D
+promoterangespace(D::ConcreteMultiplication{P,UnsetSpace},sp::Space) where {P} =
     promoterangespace(Multiplication(D.f,ConstantSpace(domain(sp))), sp)
 
-choosedomainspace{D}(M::ConcreteMultiplication{D,UnsetSpace},::UnsetSpace) = space(M.f)
+choosedomainspace(M::ConcreteMultiplication{D,UnsetSpace},::UnsetSpace) where {D} = space(M.f)
 # we assume multiplication maps spaces to themselves
-choosedomainspace{D}(M::ConcreteMultiplication{D,UnsetSpace},sp::Space) = sp
+choosedomainspace(M::ConcreteMultiplication{D,UnsetSpace},sp::Space) where {D} = sp
 
 
 Base.diagm(a::Fun) = Multiplication(a)
@@ -93,12 +93,12 @@ struct MultiplicationWrapper{D<:Space,S<:Space,O<:Operator,T} <: Multiplication{
     op::O
 end
 
-MultiplicationWrapper{D<:Space,V}(T::Type,f::Fun{D,V},op::Operator) = MultiplicationWrapper{D,typeof(domainspace(op)),typeof(op),T}(f,op)
-MultiplicationWrapper{D<:Space,V}(f::Fun{D,V},op::Operator) = MultiplicationWrapper(eltype(op),f,op)
+MultiplicationWrapper(T::Type,f::Fun{D,V},op::Operator) where {D<:Space,V} = MultiplicationWrapper{D,typeof(domainspace(op)),typeof(op),T}(f,op)
+MultiplicationWrapper(f::Fun{D,V},op::Operator) where {D<:Space,V} = MultiplicationWrapper(eltype(op),f,op)
 
 @wrapper MultiplicationWrapper
 
-function convert{TT,S,V,O,T}(::Type{Operator{TT}},C::MultiplicationWrapper{S,V,O,T})
+function convert(::Type{Operator{TT}},C::MultiplicationWrapper{S,V,O,T}) where {TT,S,V,O,T}
     if TT==T
         C
     else
@@ -117,7 +117,7 @@ hasfasttransformtimes(f,g)=spacescompatible(f,g) && hasfasttransform(f) && hasfa
 
 
 # This should be overriden whenever the multiplication space is different
-function *{T,N,S,V}(f::Fun{S,T},g::Fun{V,N})
+function *(f::Fun{S,T},g::Fun{V,N}) where {T,N,S,V}
     # When the spaces differ we promote and multiply
     if domainscompatible(space(f),space(g))
         m,n = ncoefficients(f),ncoefficients(g)

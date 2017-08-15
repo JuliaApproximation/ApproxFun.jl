@@ -10,7 +10,7 @@ end
 
 # Grow cached operator
 #
-function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BandedBlockBandedMatrix{T,RI,DI}},::Colon,col::Integer)
+function resizedata!(B::CachedOperator{T,BandedBlockBandedMatrix{T,RI,DI}},::Colon,col::Integer) where {T<:Number,RI,DI}
     if col > size(B,2)
         throw(ArgumentError("Cannot resize beyound size of operator"))
     end
@@ -39,7 +39,7 @@ function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BandedBlockBandedMatri
     B
 end
 
-function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BandedBlockBandedMatrix{T,RI,DI}},n::Integer,m::Integer)
+function resizedata!(B::CachedOperator{T,BandedBlockBandedMatrix{T,RI,DI}},n::Integer,m::Integer) where {T<:Number,RI,DI}
     resizedata!(B,:,m)
     if n < B.datasize[1]
         return B

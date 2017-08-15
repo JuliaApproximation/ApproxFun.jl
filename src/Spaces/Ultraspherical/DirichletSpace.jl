@@ -18,7 +18,7 @@ ChebyshevDirichlet{l,r}() where {l,r} =
 ChebyshevDirichlet{l,r}(d::Domain) where {l,r} =
     ChebyshevDirichlet{l,r,typeof(d),real(prectype(d))}(d)
 
-spacescompatible{l,r,D,R}(a::ChebyshevDirichlet{l,r,D,R},b::ChebyshevDirichlet{l,r,D,R}) =
+spacescompatible(a::ChebyshevDirichlet{l,r,D,R},b::ChebyshevDirichlet{l,r,D,R}) where {l,r,D,R} =
     domainscompatible(a,b)
 
 ChebyshevDirichlet() = ChebyshevDirichlet{1,1,Segment{Float64},Float64}()
@@ -29,7 +29,7 @@ ZeroChebyshevDirichlet() =
 
 canonicalspace(S::ChebyshevDirichlet) = Chebyshev(domain(S))
 
-setdomain{l,r}(S::ChebyshevDirichlet{l,r},d::Domain) = ChebyshevDirichlet{l,r}(d)
+setdomain(S::ChebyshevDirichlet{l,r},d::Domain) where {l,r} = ChebyshevDirichlet{l,r}(d)
 
 
 # These are used to make sure ChebyshevDirichlet comes first
@@ -97,24 +97,24 @@ coefficients(v::AbstractVector,::ChebyshevDirichlet{0,1},::Chebyshev)=idirichlet
 coefficients(v::AbstractVector,::ChebyshevDirichlet{1,0},::Chebyshev)=idirichlettransform!(false,copy(v))
 
 # recurrence
-recα{T}(::Type{T},::ChebyshevDirichlet{1,1},n) = zero(T)
-recβ{T}(::Type{T},::ChebyshevDirichlet{1,1},n) = n==1 ? one(T) : one(T)/2
-recγ{T}(::Type{T},::ChebyshevDirichlet{1,1},n) = n==2 ? one(T) : (n==3 ? zero(T) : one(T)/2)
+recα(::Type{T},::ChebyshevDirichlet{1,1},n) where {T} = zero(T)
+recβ(::Type{T},::ChebyshevDirichlet{1,1},n) where {T} = n==1 ? one(T) : one(T)/2
+recγ(::Type{T},::ChebyshevDirichlet{1,1},n) where {T} = n==2 ? one(T) : (n==3 ? zero(T) : one(T)/2)
 
 ## Dirichlet Conversion operators
 
 Conversion(D::ChebyshevDirichlet,C::Chebyshev)=ConcreteConversion(D,C)
 
-getindex{D,R,CC<:Chebyshev,T}(C::ConcreteConversion{ChebyshevDirichlet{1,0,D,R},CC,T},k::Integer,j::Integer) =
+getindex(C::ConcreteConversion{ChebyshevDirichlet{1,0,D,R},CC,T},k::Integer,j::Integer) where {D,R,CC<:Chebyshev,T} =
     j==k || j==k+1 ? one(T) : zero(T)
 
-getindex{D,R,CC<:Chebyshev,T}(C::ConcreteConversion{ChebyshevDirichlet{0,1,D,R},CC,T},k::Integer,j::Integer) =
+getindex(C::ConcreteConversion{ChebyshevDirichlet{0,1,D,R},CC,T},k::Integer,j::Integer) where {D,R,CC<:Chebyshev,T} =
     j==k ? one(T) : ( j==k+1? -one(T) : zero(eltype(C)))
 
-getindex{D,R,CC<:Chebyshev,T}(C::ConcreteConversion{ChebyshevDirichlet{1,1,D,R},CC,T},k::Integer,j::Integer) =
+getindex(C::ConcreteConversion{ChebyshevDirichlet{1,1,D,R},CC,T},k::Integer,j::Integer) where {D,R,CC<:Chebyshev,T} =
     j==k ? one(T) : ( j==k+2? -one(T) : zero(eltype(C)))
 
-function getindex{D,R,CC<:Chebyshev,T}(C::ConcreteConversion{ChebyshevDirichlet{2,2,D,R},CC,T},k::Integer,j::Integer)
+function getindex(C::ConcreteConversion{ChebyshevDirichlet{2,2,D,R},CC,T},k::Integer,j::Integer) where {D,R,CC<:Chebyshev,T}
     if j==k
         one(T)
     elseif j==k+4
@@ -127,10 +127,10 @@ function getindex{D,R,CC<:Chebyshev,T}(C::ConcreteConversion{ChebyshevDirichlet{
 end
 
 
-bandinds{D,R,C<:Chebyshev}(::ConcreteConversion{ChebyshevDirichlet{1,0,D,R},C})=0,1
-bandinds{D,R,C<:Chebyshev}(::ConcreteConversion{ChebyshevDirichlet{0,1,D,R},C})=0,1
-bandinds{D,R,C<:Chebyshev}(::ConcreteConversion{ChebyshevDirichlet{1,1,D,R},C})=0,2
-bandinds{D,R,C<:Chebyshev}(::ConcreteConversion{ChebyshevDirichlet{2,2,D,R},C})=0,4
+bandinds(::ConcreteConversion{ChebyshevDirichlet{1,0,D,R},C}) where {D,R,C<:Chebyshev}=0,1
+bandinds(::ConcreteConversion{ChebyshevDirichlet{0,1,D,R},C}) where {D,R,C<:Chebyshev}=0,1
+bandinds(::ConcreteConversion{ChebyshevDirichlet{1,1,D,R},C}) where {D,R,C<:Chebyshev}=0,2
+bandinds(::ConcreteConversion{ChebyshevDirichlet{2,2,D,R},C}) where {D,R,C<:Chebyshev}=0,4
 
 conversion_rule(b::ChebyshevDirichlet,a::Chebyshev)=b
 
@@ -147,14 +147,14 @@ conversion_rule(b::ChebyshevDirichlet,a::Chebyshev)=b
 ## Evaluation Functional
 
 
-bandinds{D,R}(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(first)}) = 0,0
-bandinds{D,R}(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(last)}) = 0,∞
-bandinds{D,R}(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(first)}) = 0,∞
-bandinds{D,R}(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(last)}) = 0,0
-bandinds{D,R}(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(first)}) = 0,1
-bandinds{D,R}(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(last)}) = 0,1
+bandinds(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(first)}) where {D,R} = 0,0
+bandinds(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(last)}) where {D,R} = 0,∞
+bandinds(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(first)}) where {D,R} = 0,∞
+bandinds(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(last)}) where {D,R} = 0,0
+bandinds(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(first)}) where {D,R} = 0,1
+bandinds(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(last)}) where {D,R} = 0,1
 
-function getindex{D,R}(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(first)},kr::Range)
+function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(first)},kr::Range) where {D,R}
     d = domain(B)
 
     if B.order == 0
@@ -164,7 +164,7 @@ function getindex{D,R}(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(
     end
 end
 
-function getindex{D,R}(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(last)},kr::Range)
+function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(last)},kr::Range) where {D,R}
     d = domain(B)
 
     if B.order == 0
@@ -174,7 +174,7 @@ function getindex{D,R}(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(
     end
 end
 
-function getindex{D,R}(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(first)},kr::Range)
+function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(first)},kr::Range) where {D,R}
     S = Space(domain(B))
 
     if B.order == 0
@@ -184,7 +184,7 @@ function getindex{D,R}(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(
     end
 end
 
-function getindex{D,R}(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(last)},kr::Range)
+function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(last)},kr::Range) where {D,R}
     S = Space(domain(B))
 
 
@@ -196,7 +196,7 @@ function getindex{D,R}(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(
 end
 
 
-function getindex{D,R}(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(first)},kr::Range)
+function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(first)},kr::Range) where {D,R}
     S = Space(domain(B))
 
     if B.order == 0
@@ -206,7 +206,7 @@ function getindex{D,R}(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(
     end
 end
 
-function getindex{D,R}(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(last)},kr::Range)
+function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(last)},kr::Range) where {D,R}
     S = Space(domain(B))
 
     if B.order == 0

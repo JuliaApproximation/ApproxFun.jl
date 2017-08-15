@@ -3,12 +3,12 @@
 
 ## Calculus
 
-Base.sum{C<:Chebyshev,DD,RR}(f::Fun{JacobiWeight{C,DD,RR}})=sum(setdomain(f,canonicaldomain(f))*fromcanonicalD(f))
-linesum{C<:Chebyshev,DD,RR}(f::Fun{JacobiWeight{C,DD,RR}})=linesum(setdomain(f,canonicaldomain(f))*abs(fromcanonicalD(f)))
+Base.sum(f::Fun{JacobiWeight{C,DD,RR}}) where {C<:Chebyshev,DD,RR}=sum(setdomain(f,canonicaldomain(f))*fromcanonicalD(f))
+linesum(f::Fun{JacobiWeight{C,DD,RR}}) where {C<:Chebyshev,DD,RR}=linesum(setdomain(f,canonicaldomain(f))*abs(fromcanonicalD(f)))
 
 for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:arclength))
     @eval begin
-        function $Func{C<:Chebyshev,DD<:Segment,RR}(f::Fun{JacobiWeight{C,DD,RR}})
+        function $Func(f::Fun{JacobiWeight{C,DD,RR}}) where {C<:Chebyshev,DD<:Segment,RR}
             tol=1e-10
             d,β,α,n=domain(f),f.space.β,f.space.α,ncoefficients(f)
             g=Fun(space(f).space,f.coefficients)
@@ -39,7 +39,7 @@ for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:arclength))
                 return 0.5*$Len(d)*dotu(f.coefficients,c)
             end
         end
-        $Func{PS<:PolynomialSpace,DD,RR}(f::Fun{JacobiWeight{PS,DD,RR}}) = $Func(Fun(f,
+        $Func(f::Fun{JacobiWeight{PS,DD,RR}}) where {PS<:PolynomialSpace,DD,RR} = $Func(Fun(f,
                                                                        JacobiWeight(space(f).β,
                                                                                     space(f).α,
                                                                                     Chebyshev(domain(f)))))
@@ -47,7 +47,7 @@ for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:arclength))
 end
 
 
-function differentiate{SS,DD<:Segment,RR}(f::Fun{JacobiWeight{SS,DD,RR}})
+function differentiate(f::Fun{JacobiWeight{SS,DD,RR}}) where {SS,DD<:Segment,RR}
     S=f.space
     d=domain(f)
     ff=Fun(S.space,f.coefficients)
@@ -77,7 +77,7 @@ end
 
 
 
-function integrate{SS,DD<:Segment,RR}(f::Fun{JacobiWeight{SS,DD,RR}})
+function integrate(f::Fun{JacobiWeight{SS,DD,RR}}) where {SS,DD<:Segment,RR}
     S=space(f)
     # we integrate by solving u'=f
     D=Derivative(S)
@@ -127,7 +127,7 @@ function integrate{SS,DD<:Segment,RR}(f::Fun{JacobiWeight{SS,DD,RR}})
     end
 end
 
-function Base.cumsum{SS,DD<:Segment,RR}(f::Fun{JacobiWeight{SS,DD,RR}})
+function Base.cumsum(f::Fun{JacobiWeight{SS,DD,RR}}) where {SS,DD<:Segment,RR}
     g=integrate(f)
     S=space(f)
 
@@ -143,7 +143,7 @@ end
 ## Operators
 
 
-function jacobiweightDerivative{SS,DDD<:Segment}(S::JacobiWeight{SS,DDD})
+function jacobiweightDerivative(S::JacobiWeight{SS,DDD}) where {SS,DDD<:Segment}
     d=domain(S)
 
     if d!=Segment()
@@ -179,9 +179,9 @@ function jacobiweightDerivative{SS,DDD<:Segment}(S::JacobiWeight{SS,DDD})
     end
 end
 
-Derivative{SS,DDD<:Segment}(S::JacobiWeight{SS,DDD}) = jacobiweightDerivative(S)
+Derivative(S::JacobiWeight{SS,DDD}) where {SS,DDD<:Segment} = jacobiweightDerivative(S)
 
-function Derivative{SS,DD<:Segment}(S::JacobiWeight{SS,DD},k::Integer)
+function Derivative(S::JacobiWeight{SS,DD},k::Integer) where {SS,DD<:Segment}
     if k==1
         Derivative(S)
     else
@@ -197,7 +197,7 @@ end
 
 #Left multiplication. Here, S is considered the domainspace and we determine rangespace accordingly.
 
-function Multiplication{S1,S2,DD<:IntervalDomain,RR,T}(f::Fun{JacobiWeight{S1,DD,RR},T},S::JacobiWeight{S2,DD,RR})
+function Multiplication(f::Fun{JacobiWeight{S1,DD,RR},T},S::JacobiWeight{S2,DD,RR}) where {S1,S2,DD<:IntervalDomain,RR,T}
     M=Multiplication(Fun(space(f).space,f.coefficients),S.space)
     if space(f).β+S.β==space(f).α+S.α==0
         rsp=rangespace(M)
@@ -207,13 +207,13 @@ function Multiplication{S1,S2,DD<:IntervalDomain,RR,T}(f::Fun{JacobiWeight{S1,DD
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
 end
 
-function Multiplication{D,T,SS,DD<:IntervalDomain}(f::Fun{D,T},S::JacobiWeight{SS,DD})
+function Multiplication(f::Fun{D,T},S::JacobiWeight{SS,DD}) where {D,T,SS,DD<:IntervalDomain}
     M=Multiplication(f,S.space)
     rsp=JacobiWeight(S.β,S.α,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
 end
 
-function Multiplication{SS,T,ID<:IntervalDomain,RR}(f::Fun{JacobiWeight{SS,ID,RR},T},S::PolynomialSpace{ID})
+function Multiplication(f::Fun{JacobiWeight{SS,ID,RR},T},S::PolynomialSpace{ID}) where {SS,T,ID<:IntervalDomain,RR}
     M=Multiplication(Fun(space(f).space,f.coefficients),S)
     rsp=JacobiWeight(space(f).β,space(f).α,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
@@ -221,13 +221,13 @@ end
 
 #Right multiplication. Here, S is considered the rangespace and we determine domainspace accordingly.
 
-function Multiplication{DD<:IntervalDomain,RR,SS,S2,T}(S::JacobiWeight{SS,DD,RR},f::Fun{JacobiWeight{S2,DD,RR},T})
+function Multiplication(S::JacobiWeight{SS,DD,RR},f::Fun{JacobiWeight{S2,DD,RR},T}) where {DD<:IntervalDomain,RR,SS,S2,T}
     M=Multiplication(Fun(space(f).space,f.coefficients),S.space)
     dsp=canonicalspace(JacobiWeight(S.β-space(f).β,S.α-space(f).α,rangespace(M)))
     MultiplicationWrapper(f,SpaceOperator(M,dsp,S))
 end
 
-function Multiplication{D,SS,DD<:IntervalDomain,T}(S::JacobiWeight{SS,DD},f::Fun{D,T})
+function Multiplication(S::JacobiWeight{SS,DD},f::Fun{D,T}) where {D,SS,DD<:IntervalDomain,T}
     M=Multiplication(f,S.space)
     dsp=JacobiWeight(S.β,S.α,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,dsp,S))
@@ -253,20 +253,20 @@ for (OPrule,OP) in ((:maxspace_rule,:maxspace),(:union_rule,:union))
             end
             NoSpace()
         end
-        $OPrule{D<:IntervalDomain}(A::JacobiWeight,B::Space{D}) = $OPrule(A,JacobiWeight(0.,0.,B))
+        $OPrule(A::JacobiWeight,B::Space{D}) where {D<:IntervalDomain} = $OPrule(A,JacobiWeight(0.,0.,B))
     end
 end
 
 
 for FUNC in (:hasconversion,:isconvertible)
     @eval begin
-        $FUNC{S1,S2,D<:IntervalDomain}(A::JacobiWeight{S1,D},B::JacobiWeight{S2,D}) =
+        $FUNC(A::JacobiWeight{S1,D},B::JacobiWeight{S2,D}) where {S1,S2,D<:IntervalDomain} =
             isapproxinteger(A.β-B.β) &&
             isapproxinteger(A.α-B.α) && A.β ≥ B.β && A.α ≥ B.α && $FUNC(A.space,B.space)
 
-        $FUNC{S,D<:IntervalDomain}(A::JacobiWeight{S,D},B::Space{D}) =
+        $FUNC(A::JacobiWeight{S,D},B::Space{D}) where {S,D<:IntervalDomain} =
             $FUNC(A,JacobiWeight(0.,0.,B))
-        $FUNC{S,D<:IntervalDomain}(B::Space{D},A::JacobiWeight{S,D}) =
+        $FUNC(B::Space{D},A::JacobiWeight{S,D}) where {S,D<:IntervalDomain} =
             $FUNC(JacobiWeight(0.,0.,B),A)
     end
 end
@@ -283,11 +283,11 @@ function conversion_rule(A::JacobiWeight,B::JacobiWeight)
     end
 end
 
-conversion_rule{D<:IntervalDomain}(A::JacobiWeight,B::Space{D}) = conversion_type(A,JacobiWeight(0,0,B))
+conversion_rule(A::JacobiWeight,B::Space{D}) where {D<:IntervalDomain} = conversion_type(A,JacobiWeight(0,0,B))
 
 
 # override defaultConversion instead of Conversion to avoid ambiguity errors
-function defaultConversion{JS1,JS2,DD<:IntervalDomain}(A::JacobiWeight{JS1,DD},B::JacobiWeight{JS2,DD})
+function defaultConversion(A::JacobiWeight{JS1,DD},B::JacobiWeight{JS2,DD}) where {JS1,JS2,DD<:IntervalDomain}
     @assert isapproxinteger(A.β-B.β) && isapproxinteger(A.α-B.α)
 
     if isapprox(A.β,B.β) && isapprox(A.α,B.α)
@@ -316,11 +316,11 @@ function defaultConversion{JS1,JS2,DD<:IntervalDomain}(A::JacobiWeight{JS1,DD},B
     end
 end
 
-defaultConversion{JS,D<:IntervalDomain,R<:Real}(A::Space{D,R},B::JacobiWeight{JS,D})=ConversionWrapper(
+defaultConversion(A::Space{D,R},B::JacobiWeight{JS,D}) where {JS,D<:IntervalDomain,R<:Real}=ConversionWrapper(
     SpaceOperator(
         Conversion(JacobiWeight(0,0,A),B),
         A,B))
-defaultConversion{JS,D<:IntervalDomain,R<:Real}(A::JacobiWeight{JS,D},B::Space{D,R})=ConversionWrapper(
+defaultConversion(A::JacobiWeight{JS,D},B::Space{D,R}) where {JS,D<:IntervalDomain,R<:Real}=ConversionWrapper(
     SpaceOperator(
         Conversion(A,JacobiWeight(0,0,B)),
         A,B))
@@ -395,7 +395,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             end
         end
 
-        function getindex{LT,D<:Segment,R,T}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D,R},D,R},T},kr::Range)
+        function getindex(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D,R},D,R},T},kr::Range) where {LT,D<:Segment,R,T}
             λ = order(domainspace(Σ).space)
             dsp = domainspace(Σ)
             d = domain(Σ)
@@ -419,7 +419,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
         end
 
 
-        function getindex{D<:Segment,R,T}(Σ::$ConcFunc{JacobiWeight{Chebyshev{D,R},D,R},T},k::Integer)
+        function getindex(Σ::$ConcFunc{JacobiWeight{Chebyshev{D,R},D,R},T},k::Integer) where {D<:Segment,R,T}
             dsp = domainspace(Σ)
             d = domain(Σ)
             C = $Len(d)/2
@@ -431,7 +431,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             end
         end
 
-        function getindex{D<:Segment,R,T}(Σ::$ConcFunc{JacobiWeight{Chebyshev{D,R},D,R},T},kr::Range)
+        function getindex(Σ::$ConcFunc{JacobiWeight{Chebyshev{D,R},D,R},T},kr::Range) where {D<:Segment,R,T}
             dsp = domainspace(Σ)
             d = domain(Σ)
             C = $Len(d)/2
@@ -443,7 +443,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             end
         end
 
-        function bandinds{D<:Segment,R}(Σ::$ConcFunc{JacobiWeight{Chebyshev{D,R},D,R}})
+        function bandinds(Σ::$ConcFunc{JacobiWeight{Chebyshev{D,R},D,R}}) where {D<:Segment,R}
             β,α = domainspace(Σ).β,domainspace(Σ).α
             if β==α && isapproxinteger(β-0.5) && 0 ≤ ceil(Int,β)
                 0,2ceil(Int,β)

@@ -29,14 +29,14 @@ UnionDomain(d1::Domain,d2::Domain) = UnionDomain((d1,d2))
 canonicaldomain(d::UnionDomain) = d  # we could map all to canonical, but then there would be overlap
 
 isambiguous(d::UnionDomain) = isempty(d.domains)
-convert{DD,T}(::Type{UnionDomain{DD,T}},::AnyDomain) =
+convert(::Type{UnionDomain{DD,T}},::AnyDomain) where {DD,T} =
     UnionDomain{DD,T}(map(D->D(AnyDomain()),DD.parameters))
-convert{IT<:UnionDomain}(::Type{IT},::AnyDomain) = UnionDomain(tuple())
+convert(::Type{IT},::AnyDomain) where {IT<:UnionDomain} = UnionDomain(tuple())
 
 
 
 Base.union(d::Domain) = d
-function Base.union{D<:Domain}(d::AbstractVector{D})
+function Base.union(d::AbstractVector{D}) where D<:Domain
     isempty(d) && return EmptyDomain()
     length(d)==1 && return d[1]
     UnionDomain(d)

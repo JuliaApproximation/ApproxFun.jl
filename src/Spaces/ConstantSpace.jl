@@ -38,11 +38,11 @@ macro containsconstants(SP)
         ApproxFun.union_rule(A::(ApproxFun.ConstantSpace),B::$SP) = B
         Base.promote_rule(A::Type{<:(ApproxFun.ConstantSpace)},B::Type{<:($SP)}) = B
 
-        Base.promote_rule{T<:Number,S<:$SP,V,VV}(::Type{ApproxFun.Fun{S,V,VV}},::Type{T}) =
+        Base.promote_rule(::Type{ApproxFun.Fun{S,V,VV}},::Type{T}) where {T<:Number,S<:$SP,V,VV} =
             ApproxFun.VFun{S,promote_type(V,T)}
-        Base.promote_rule{T<:Number,S<:$SP}(::Type{ApproxFun.Fun{S}},::Type{T}) = ApproxFun.VFun{S,T}
-        Base.promote_rule{T,S<:$SP,V,VV,VT}(::Type{ApproxFun.Fun{S,V,VV}},
-                          ::Type{Fun{ApproxFun.ConstantSpace{ApproxFun.AnyDomain},T,VT}}) =
+        Base.promote_rule(::Type{ApproxFun.Fun{S}},::Type{T}) where {T<:Number,S<:$SP} = ApproxFun.VFun{S,T}
+        Base.promote_rule(::Type{ApproxFun.Fun{S,V,VV}},
+        ::Type{Fun{ApproxFun.ConstantSpace{ApproxFun.AnyDomain},T,VT}}) where {T,S<:$SP,V,VV,VT} =
             ApproxFun.VFun{S,promote_type(V,T)}
     end
 end
@@ -55,7 +55,7 @@ Fun(c::Number,d::ConstantSpace) = Fun(d,[c])
 dimension(::ConstantSpace) = 1
 
 #TODO: Change
-setdomain{CS<:AnyDomain}(f::Fun{CS},d::Domain) = Number(f)*ones(d)
+setdomain(f::Fun{CS},d::Domain) where {CS<:AnyDomain} = Number(f)*ones(d)
 
 canonicalspace(C::ConstantSpace) = C
 spacescompatible(a::ConstantSpace,b::ConstantSpace)=domainscompatible(a,b)
@@ -67,15 +67,15 @@ evaluate(f::AbstractVector,::ConstantSpace,x...)=f[1]
 evaluate(f::AbstractVector,::ZeroSpace,x...)=zero(eltype(f))
 
 
-convert{CS<:ConstantSpace,T<:Number}(::Type{T},f::Fun{CS}) =
+convert(::Type{T},f::Fun{CS}) where {CS<:ConstantSpace,T<:Number} =
     convert(T,f.coefficients[1])
 
 # promoting numbers to Fun
 # override promote_rule if the space type can represent constants
-Base.promote_rule{CS<:ConstantSpace,T<:Number}(::Type{Fun{CS}},::Type{T}) = Fun{CS,T}
-Base.promote_rule{CS<:ConstantSpace,T<:Number,V}(::Type{Fun{CS,V}},::Type{T}) =
+Base.promote_rule(::Type{Fun{CS}},::Type{T}) where {CS<:ConstantSpace,T<:Number} = Fun{CS,T}
+Base.promote_rule(::Type{Fun{CS,V}},::Type{T}) where {CS<:ConstantSpace,T<:Number,V} =
     Fun{CS,promote_type(T,V)}
-Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T}) = Fun
+Base.promote_rule(::Type{IF},::Type{T}) where {T<:Number,IF<:Fun} = Fun
 
 
 # we know multiplication by constants preserves types
@@ -111,13 +111,13 @@ union_rule(A::ConstantSpace,B::Space) = ConstantSpace(domain(B))⊕B
 ## Special Multiplication and Conversion for constantspace
 
 #  TODO: this is a special work around but really we want it to be blocks
-Conversion{D<:BivariateDomain}(a::ConstantSpace,b::Space{D}) = ConcreteConversion{typeof(a),typeof(b),
+Conversion(a::ConstantSpace,b::Space{D}) where {D<:BivariateDomain} = ConcreteConversion{typeof(a),typeof(b),
         promote_type(real(prectype(a)),real(prectype(b)))}(a,b)
 
 Conversion(a::ConstantSpace,b::Space) = ConcreteConversion(a,b)
-bandinds{CS<:ConstantSpace,S<:Space}(C::ConcreteConversion{CS,S}) =
+bandinds(C::ConcreteConversion{CS,S}) where {CS<:ConstantSpace,S<:Space} =
     1-ncoefficients(ones(rangespace(C))),0
-function getindex{CS<:ConstantSpace,S<:Space,T}(C::ConcreteConversion{CS,S,T},k::Integer,j::Integer)
+function getindex(C::ConcreteConversion{CS,S,T},k::Integer,j::Integer) where {CS<:ConstantSpace,S<:Space,T}
     if j != 1
         throw(BoundsError())
     end
@@ -143,41 +143,41 @@ coefficients(f::AbstractVector,sp::ConstantSpace,ts::Space) = f[1]*ones(ts).coef
 # this is identity operator, but we don't use MultiplicationWrapper to avoid
 # ambiguity errors
 
-defaultMultiplication{CS<:ConstantSpace}(f::Fun{CS},b::ConstantSpace) =
+defaultMultiplication(f::Fun{CS},b::ConstantSpace) where {CS<:ConstantSpace} =
     ConcreteMultiplication(f,b)
-defaultMultiplication{CS<:ConstantSpace}(f::Fun{CS},b::Space) =
+defaultMultiplication(f::Fun{CS},b::Space) where {CS<:ConstantSpace} =
     ConcreteMultiplication(f,b)
 defaultMultiplication(f::Fun,b::ConstantSpace) = ConcreteMultiplication(f,b)
 
-bandinds{CS1<:ConstantSpace,CS2<:ConstantSpace,T}(D::ConcreteMultiplication{CS1,CS2,T}) =
+bandinds(D::ConcreteMultiplication{CS1,CS2,T}) where {CS1<:ConstantSpace,CS2<:ConstantSpace,T} =
     0,0
-getindex{CS1<:ConstantSpace,CS2<:ConstantSpace,T}(D::ConcreteMultiplication{CS1,CS2,T},k::Integer,j::Integer) =
+getindex(D::ConcreteMultiplication{CS1,CS2,T},k::Integer,j::Integer) where {CS1<:ConstantSpace,CS2<:ConstantSpace,T} =
     k==j==1?T(D.f.coefficients[1]):one(T)
 
-rangespace{CS1<:ConstantSpace,CS2<:ConstantSpace,T}(D::ConcreteMultiplication{CS1,CS2,T}) =
+rangespace(D::ConcreteMultiplication{CS1,CS2,T}) where {CS1<:ConstantSpace,CS2<:ConstantSpace,T} =
     D.space
 
 
-rangespace{F<:ConstantSpace,T}(D::ConcreteMultiplication{F,UnsetSpace,T}) =
+rangespace(D::ConcreteMultiplication{F,UnsetSpace,T}) where {F<:ConstantSpace,T} =
     UnsetSpace()
-bandinds{F<:ConstantSpace,T}(D::ConcreteMultiplication{F,UnsetSpace,T}) =
+bandinds(D::ConcreteMultiplication{F,UnsetSpace,T}) where {F<:ConstantSpace,T} =
     (-∞,∞)
-getindex{F<:ConstantSpace,T}(D::ConcreteMultiplication{F,UnsetSpace,T},k::Integer,j::Integer) =
+getindex(D::ConcreteMultiplication{F,UnsetSpace,T},k::Integer,j::Integer) where {F<:ConstantSpace,T} =
     error("No range space attached to Multiplication")
 
 
 
-bandinds{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{CS,F,T}) = 0,0
-getindex{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{CS,F,T},k::Integer,j::Integer) =
+bandinds(D::ConcreteMultiplication{CS,F,T}) where {CS<:ConstantSpace,F<:Space,T} = 0,0
+getindex(D::ConcreteMultiplication{CS,F,T},k::Integer,j::Integer) where {CS<:ConstantSpace,F<:Space,T} =
     k==j?T(D.f):zero(T)
-rangespace{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{CS,F,T}) = D.space
+rangespace(D::ConcreteMultiplication{CS,F,T}) where {CS<:ConstantSpace,F<:Space,T} = D.space
 
 
-bandinds{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T}) = 1-ncoefficients(D.f),0
-function getindex{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T},k::Integer,j::Integer)
+bandinds(D::ConcreteMultiplication{F,CS,T}) where {CS<:ConstantSpace,F<:Space,T} = 1-ncoefficients(D.f),0
+function getindex(D::ConcreteMultiplication{F,CS,T},k::Integer,j::Integer) where {CS<:ConstantSpace,F<:Space,T}
     k≤ncoefficients(D.f) && j==1?T(D.f.coefficients[k]):zero(T)
 end
-rangespace{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T}) = space(D.f)
+rangespace(D::ConcreteMultiplication{F,CS,T}) where {CS<:ConstantSpace,F<:Space,T} = space(D.f)
 
 
 
@@ -189,7 +189,7 @@ end
 
 
 for op = (:*,:/)
-    @eval $op{CS<:ConstantSpace}(f::Fun,c::Fun{CS}) = f*convert(Number,c)
+    @eval $op(f::Fun,c::Fun{CS}) where {CS<:ConstantSpace} = f*convert(Number,c)
 end
 
 
@@ -198,7 +198,7 @@ end
 union_rule(a::TensorSpace,b::ConstantSpace{AnyDomain})=TensorSpace(map(sp->union(sp,b),a.spaces))
 ## Special spaces
 
-function convert{TS<:TensorSpace,T<:Number}(::Type{T},f::Fun{TS})
+function convert(::Type{T},f::Fun{TS}) where {TS<:TensorSpace,T<:Number}
     if all(sp->isa(sp,ConstantSpace),space(f).spaces)
         convert(T,f.coefficients[1])
     else
@@ -214,14 +214,14 @@ isconstspace(sp::TensorSpace) = all(isconstspace,sp.spaces)
 
 
 # Supports constants in operators
-promoterangespace{CS<:ConstantSpace}(M::ConcreteMultiplication{CS,UnsetSpace},
-                                                ps::UnsetSpace) = M
-promoterangespace{CS<:ConstantSpace}(M::ConcreteMultiplication{CS,UnsetSpace},
-                                                ps::Space) =
+promoterangespace(M::ConcreteMultiplication{CS,UnsetSpace},
+                             ps::UnsetSpace) where {CS<:ConstantSpace} = M
+promoterangespace(M::ConcreteMultiplication{CS,UnsetSpace},
+                             ps::Space) where {CS<:ConstantSpace} =
                         promoterangespace(Multiplication(M.f,space(M.f)),ps)
 
 # Possible hack: we try uing constant space for [1 Operator()] \ z.
-choosedomainspace{D<:ConstantSpace}(M::ConcreteMultiplication{D,UnsetSpace},sp::UnsetSpace) = space(M.f)
-choosedomainspace{D<:ConstantSpace}(M::ConcreteMultiplication{D,UnsetSpace},sp::Space) = space(M.f)
+choosedomainspace(M::ConcreteMultiplication{D,UnsetSpace},sp::UnsetSpace) where {D<:ConstantSpace} = space(M.f)
+choosedomainspace(M::ConcreteMultiplication{D,UnsetSpace},sp::Space) where {D<:ConstantSpace} = space(M.f)
 
-Base.isfinite{CS<:ConstantSpace}(f::Fun{CS}) = isfinite(Number(f))
+Base.isfinite(f::Fun{CS}) where {CS<:ConstantSpace} = isfinite(Number(f))

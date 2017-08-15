@@ -26,18 +26,18 @@ canonicaldomain(::Laguerre) = Ray()
 domain(::Laguerre) = Ray()
 tocanonical(::Laguerre,x) = x
 
-@inline laguerrerecα{T}(::Type{T},α,k) = T(2k+α-1)
-@inline laguerrerecβ{T}(::Type{T},::,k) = T(-k)
-@inline laguerrerecγ{T}(::Type{T},α,k) = T(-(k-1+α))
+@inline laguerrerecα(::Type{T},α,k) where {T} = T(2k+α-1)
+@inline laguerrerecβ(::Type{T},::,k) where {T} = T(-k)
+@inline laguerrerecγ(::Type{T},α,k) where {T} = T(-(k-1+α))
 
 
-@inline laguerrerecA{T}(::Type{T},::,k) = T(-1/(k+1))
-@inline laguerrerecB{T}(::Type{T},α,k) = T((2k+α+1)/(k+1))
-@inline laguerrerecC{T}(::Type{T},α,k) = T((k+α)/(k+1))
+@inline laguerrerecA(::Type{T},::,k) where {T} = T(-1/(k+1))
+@inline laguerrerecB(::Type{T},α,k) where {T} = T((2k+α+1)/(k+1))
+@inline laguerrerecC(::Type{T},α,k) where {T} = T((k+α)/(k+1))
 
 for (REC,JREC) in ((:recα,:laguerrerecα),(:recβ,:laguerrerecβ),(:recγ,:laguerrerecγ),
                    (:recA,:laguerrerecA),(:recB,:laguerrerecB),(:recC,:laguerrerecC))
-    @eval @inline $REC{T}(::Type{T},sp::Laguerre,k) = $JREC(T,sp.α,k)
+    @eval @inline $REC(::Type{T},sp::Laguerre,k) where {T} = $JREC(T,sp.α,k)
 end
 
 
@@ -45,7 +45,7 @@ identity_fun(L::Laguerre) = Fun(L,[1+L.α,-1.0])
 
 
 
-function laguerrel{T}(::Type{T},r::Range,α,x)
+function laguerrel(::Type{T},r::Range,α,x) where T
     if isempty(r)
         T[]
     else
@@ -67,18 +67,18 @@ end
 
 laguerrel(r::Range,α,x) = laguerrel(promote_type(typeof(α),typeof(x)),r,α,x)
 
-laguerrel{T}(::Type{T},n::Integer,α,v) = laguerrel(T,n:n,α,v)[1]
+laguerrel(::Type{T},n::Integer,α,v) where {T} = laguerrel(T,n:n,α,v)[1]
 laguerrel(n::Integer,α,v) = laguerrel(n:n,α,v)[1]
-laguerrel{T}(::Type{T},n::Range,α,v::AbstractVector) = transpose(hcat(map(x->laguerrel(T,n,α,x),v)...))
+laguerrel(::Type{T},n::Range,α,v::AbstractVector) where {T} = transpose(hcat(map(x->laguerrel(T,n,α,x),v)...))
 laguerrel(n::Range,α,v::AbstractVector) = transpose(hcat(map(x->laguerrel(n,α,x),v)...))
-laguerrel{T}(::Type{T},n::Integer,α,v::AbstractVector) = map(x->laguerrel(T,n,α,x),v)
+laguerrel(::Type{T},n::Integer,α,v::AbstractVector) where {T} = map(x->laguerrel(T,n,α,x),v)
 laguerrel(n::Integer,α,v::AbstractVector) = map(x->laguerrel(n,α,x),v)
-laguerrel{T}(::Type{T},n::Integer,S::Laguerre,v::AbstractVector) = laguerrel(T,n,S.a,S.b,v)
-laguerrel{T}(::Type{T},n::Range,S::Laguerre,v::AbstractVector) = laguerrel(T,n,S.a,S.b,v)
-laguerrel{T}(::Type{T},n,S::Laguerre,v::AbstractVector) = laguerrel(T,n,S.a,S.b,v)
-laguerrel{T}(::Type{T},n::Integer,S::Laguerre,v) = laguerrel(T,n,S.a,S.b,v)
-laguerrel{T}(::Type{T},n::Range,S::Laguerre,v) = laguerrel(T,n,S.a,S.b,v)
-laguerrel{T}(::Type{T},n,S::Laguerre,v) = laguerrel(T,n,S.a,S.b,v)
+laguerrel(::Type{T},n::Integer,S::Laguerre,v::AbstractVector) where {T} = laguerrel(T,n,S.a,S.b,v)
+laguerrel(::Type{T},n::Range,S::Laguerre,v::AbstractVector) where {T} = laguerrel(T,n,S.a,S.b,v)
+laguerrel(::Type{T},n,S::Laguerre,v::AbstractVector) where {T} = laguerrel(T,n,S.a,S.b,v)
+laguerrel(::Type{T},n::Integer,S::Laguerre,v) where {T} = laguerrel(T,n,S.a,S.b,v)
+laguerrel(::Type{T},n::Range,S::Laguerre,v) where {T} = laguerrel(T,n,S.a,S.b,v)
+laguerrel(::Type{T},n,S::Laguerre,v) where {T} = laguerrel(T,n,S.a,S.b,v)
 laguerrel(n::Integer,S::Laguerre,v::AbstractVector) = laguerrel(n,S.a,S.b,v)
 laguerrel(n::Range,S::Laguerre,v::AbstractVector) = laguerrel(n,S.a,S.b,v)
 laguerrel(n,S::Laguerre,v::AbstractVector) = laguerrel(n,S.a,S.b,v)
@@ -187,7 +187,7 @@ function conversion_rule(A::LaguerreWeight,B::LaguerreWeight)
 end
 
 
-conversion_rule{D<:Ray}(A::LaguerreWeight,B::Space{D}) = conversion_type(A,LaguerreWeight(0,0,B))
+conversion_rule(A::LaguerreWeight,B::Space{D}) where {D<:Ray} = conversion_type(A,LaguerreWeight(0,0,B))
 
 
 function Conversion(A::LaguerreWeight,B::LaguerreWeight)
@@ -219,14 +219,14 @@ function Conversion(A::LaguerreWeight,B::LaguerreWeight)
 end
 
 
-Conversion{D<:Ray}(A::ConstantSpace{D},B::LaguerreWeight) = error("Cannot convert constants to LaguerreWeight.")
+Conversion(A::ConstantSpace{D},B::LaguerreWeight) where {D<:Ray} = error("Cannot convert constants to LaguerreWeight.")
 Conversion(a::SubSpace{S,IT,DD,RR},b::S) where {S<:LaguerreWeight,IT,DD<:Ray,RR} =
     ConcreteConversion(a,b)
-Conversion{D<:Ray,RR<:Real}(A::Space{D,RR},B::LaguerreWeight) = ConversionWrapper(
+Conversion(A::Space{D,RR},B::LaguerreWeight) where {D<:Ray,RR<:Real} = ConversionWrapper(
     SpaceOperator(
         Conversion(LaguerreWeight(0,0,A),B),
         A,B))
-Conversion{D<:Ray,RR<:Real}(A::LaguerreWeight,B::Space{D,RR}) = ConversionWrapper(
+Conversion(A::LaguerreWeight,B::Space{D,RR}) where {D<:Ray,RR<:Real} = ConversionWrapper(
     SpaceOperator(
         Conversion(A,LaguerreWeight(0,0,B)),
         A,B))

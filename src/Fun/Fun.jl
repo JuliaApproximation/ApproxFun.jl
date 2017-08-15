@@ -8,7 +8,7 @@ include("Space.jl")
 ##  Constructors
 
 
-type Fun{S,T,VT}
+mutable struct Fun{S,T,VT}
     space::S
     coefficients::VT
     function Fun{S,T,VT}(sp::S,coeff::VT) where {S,T,VT}
@@ -42,7 +42,7 @@ function coefficients(f::Fun,msp::Space)
         coefficients(f.coefficients,space(f),msp)
     end
 end
-coefficients{T<:Space}(f::Fun,::Type{T}) = coefficients(f,T(domain(f)))
+coefficients(f::Fun,::Type{T}) where {T<:Space} = coefficients(f,T(domain(f)))
 coefficients(f::Fun) = f.coefficients
 coefficients(c::Number,sp::Space) = Fun(c,sp).coefficients
 
@@ -83,9 +83,9 @@ convert(::Type{Fun{S,T}},f::Fun{S}) where {T,S} =
 
 convert(::Type{VFun{S,T}},x::Number) where {T,S} =
     x==0 ? zeros(T,S(AnyDomain())) : x*ones(T,S(AnyDomain()))
-convert{S}(::Type{Fun{S}},x::Number) =
+convert(::Type{Fun{S}},x::Number) where {S} =
     x==0 ? zeros(S(AnyDomain())) : x*ones(S(AnyDomain()))
-convert{IF<:Fun}(::Type{IF},x::Number) = convert(IF,Fun(x))
+convert(::Type{IF},x::Number) where {IF<:Fun} = convert(IF,Fun(x))
 
 # if we are promoting, we need to change to a VFun
 Base.promote_rule(::Type{Fun{S,T,VT1}},::Type{Fun{S,V,VT2}}) where {T,V,S,VT1,VT2} =
@@ -113,17 +113,17 @@ Base.promote_op(::typeof(Base.LinAlg.matprod),::Type{NN},::Type{Fun{S,T,VT}}) wh
 
 
 Base.zero(::Type{Fun}) = Fun(0.)
-Base.zero{T,S<:Space,VT}(::Type{Fun{S,T,VT}}) = zeros(T,S(AnyDomain()))
-Base.one{T,S<:Space,VT}(::Type{Fun{S,T,VT}}) = ones(T,S(AnyDomain()))
+Base.zero(::Type{Fun{S,T,VT}}) where {T,S<:Space,VT} = zeros(T,S(AnyDomain()))
+Base.one(::Type{Fun{S,T,VT}}) where {T,S<:Space,VT} = ones(T,S(AnyDomain()))
 for op in (:(Base.zeros),:(Base.ones))
-    @eval ($op){S,T}(f::Fun{S,T}) = $op(T,f.space)
+    @eval ($op)(f::Fun{S,T}) where {S,T} = $op(T,f.space)
 end
 
 Base.zero(f::Fun)=zeros(f)
 Base.one(f::Fun)=ones(f)
 
-Base.eltype{S,T}(::Fun{S,T}) = T
-Base.eltype{S,T,VT}(::Type{Fun{S,T,VT}}) = T
+Base.eltype(::Fun{S,T}) where {S,T} = T
+Base.eltype(::Type{Fun{S,T,VT}}) where {S,T,VT} = T
 
 #supports broadcasting and scalar iterator
 Base.size(f::Fun,k...) = size(space(f),k...)
@@ -151,7 +151,7 @@ setspace(f::Fun,s::Space) = Fun(s,f.coefficients)
 
 
 domain(f::Fun) = domain(f.space)
-domain{T<:Fun}(v::AbstractMatrix{T}) = map(domain,v)
+domain(v::AbstractMatrix{T}) where {T<:Fun} = map(domain,v)
 
 
 setdomain(f::Fun,d::Domain) = Fun(setdomain(space(f),d),f.coefficients)
@@ -192,7 +192,7 @@ evaluate(f::Fun,x,y,z...) = evaluate(f.coefficients,f.space,Vec(x,y,z...))
 (f::Fun)(x...) = evaluate(f,x...)
 
 for op in (:(Base.first),:(Base.last))
-    @eval $op{S,T}(f::Fun{S,T}) = f($op(domain(f)))
+    @eval $op(f::Fun{S,T}) where {S,T} = f($op(domain(f)))
 end
 
 
@@ -274,7 +274,7 @@ for op in (:+,:-)
                 $op(Fun(f,m),Fun(g,m)) # convert to same space
             end
         end
-        $op{S,T<:Number}(f::Fun{S,T},c::T) = c==0?f:$op(f,Fun(c))
+        $op(f::Fun{S,T},c::T) where {S,T<:Number} = c==0?f:$op(f,Fun(c))
         $op(f::Fun,c::Number) = $op(f,Fun(c))
         $op(f::Fun,c::UniformScaling) = $op(f,c.λ)
         $op(c::UniformScaling,f::Fun) = $op(c.λ,f)
@@ -402,8 +402,8 @@ end
 
 Base.conj(f::Fun) = error("Override conj for $(typeof(f))")
 
-Base.abs2{S<:RealSpace,T<:Real}(f::Fun{S,T}) = f^2
-Base.abs2{S<:RealSpace,T<:Complex}(f::Fun{S,T}) = real(f)^2+imag(f)^2
+Base.abs2(f::Fun{S,T}) where {S<:RealSpace,T<:Real} = f^2
+Base.abs2(f::Fun{S,T}) where {S<:RealSpace,T<:Complex} = real(f)^2+imag(f)^2
 Base.abs2(f::Fun)=f*conj(f)
 
 ##  integration
@@ -436,7 +436,7 @@ Base.rtoldefault(x::Union{T,Type{T}}, y::Union{S,Type{S}}) where {T<:Union{Numbe
     Base.rtoldefault(eltype(x),eltype(y))
 
 
-function Base.isapprox{S1,S2,T,S}(f::Fun{S1,T},g::Fun{S2,S};rtol::Real=Base.rtoldefault(T,S), atol::Real=0, norm::Function=coefficientnorm)
+function Base.isapprox(f::Fun{S1,T},g::Fun{S2,S};rtol::Real=Base.rtoldefault(T,S), atol::Real=0, norm::Function=coefficientnorm) where {S1,S2,T,S}
     if spacescompatible(f,g)
         d = norm(f - g)
         if isfinite(d)

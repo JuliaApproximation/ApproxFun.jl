@@ -4,7 +4,7 @@ CachedOperator(::Type{Matrix},op::Operator;padding::Bool=false) =
 
 # Grow cached operator
 
-function resizedata!{T<:Number}(B::CachedOperator{T,Matrix{T}},n::Integer,m::Integer)
+function resizedata!(B::CachedOperator{T,Matrix{T}},n::Integer,m::Integer) where T<:Number
     if n > size(B,1) || m > size(B,2)
         throw(ArgumentError("Cannot resize beyound size of operator"))
     end
@@ -41,8 +41,8 @@ end
 # Apply Householder
 
 
-function Ac_mul_Bpars{RR,T}(A::QROperatorQ{QROperator{RR,Matrix{T},T},T},
-                            B::AbstractVector{T},tolerance,maxlength)
+function Ac_mul_Bpars(A::QROperatorQ{QROperator{RR,Matrix{T},T},T},
+                      B::AbstractVector{T},tolerance,maxlength) where {RR,T}
     if length(B) > A.QR.ncols
         # upper triangularize extra columns to prepare for \
         resizedata!(A.QR,:,length(B)+size(A.QR.H,1)+10)
@@ -83,9 +83,9 @@ end
 
 # BLAS apply Q
 
-function Ac_mul_Bpars{RR,T<:BlasFloat}(A::QROperatorQ{QROperator{RR,Matrix{T},T},T},
-                                        B::AbstractVector{T},
-                                        tolerance,maxlength)
+function Ac_mul_Bpars(A::QROperatorQ{QROperator{RR,Matrix{T},T},T},
+                       B::AbstractVector{T},
+                       tolerance,maxlength) where {RR,T<:BlasFloat}
     if length(B) > A.QR.ncols
         # upper triangularize extra columns to prepare for \
         resizedata!(A.QR,:,length(B)+size(A.QR.H,1)+10)

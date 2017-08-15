@@ -10,18 +10,18 @@ SplineSpace{m}(d::PiecewiseSegment{T}) where {m,T} = SplineSpace{m,T,real(eltype
 SplineSpace{m}(d::AbstractVector) where {m} = SplineSpace{m}(PiecewiseSegment(sort(d)))
 
 const HeavisideSpace{T,R} = SplineSpace{0,T,R}
-dimension{λ}(h::SplineSpace{λ}) = length(h.domain.points)+λ-1
+dimension(h::SplineSpace{λ}) where {λ} = length(h.domain.points)+λ-1
 
 convert(::Type{HeavisideSpace},d::PiecewiseSegment) = HeavisideSpace{eltype(d)}(d)
 
 convert(::Type{HeavisideSpace},d::AbstractVector) =
     HeavisideSpace(PiecewiseSegment(sort(d)))
 
-spacescompatible{λ}(a::SplineSpace{λ},b::SplineSpace{λ}) = domainscompatible(a,b)
+spacescompatible(a::SplineSpace{λ},b::SplineSpace{λ}) where {λ} = domainscompatible(a,b)
 canonicalspace(sp::HeavisideSpace) = PiecewiseSpace(map(Chebyshev,components(domain(sp))))
 
 
-function evaluate{T<:Real,R}(f::Fun{HeavisideSpace{T,R}},x::Real)
+function evaluate(f::Fun{HeavisideSpace{T,R}},x::Real) where {T<:Real,R}
     p = domain(f).points
     c = f.coefficients
     for k=1:length(p)-1
@@ -33,7 +33,7 @@ function evaluate{T<:Real,R}(f::Fun{HeavisideSpace{T,R}},x::Real)
 end
 
 
-function evaluate{T<:Real,R}(f::Fun{SplineSpace{1,T,R}},x::Real)
+function evaluate(f::Fun{SplineSpace{1,T,R}},x::Real) where {T<:Real,R}
     p = domain(f).points
     c = f.coefficients
     for k=1:length(p)-1
@@ -62,7 +62,7 @@ for λ = [0,1]
     end
 end
 
-conversion_rule{k,PS<:PolynomialSpace}(sp::HeavisideSpace,sp2::PiecewiseSpace{NTuple{k,PS}}) = sp
+conversion_rule(sp::HeavisideSpace,sp2::PiecewiseSpace{NTuple{k,PS}}) where {k,PS<:PolynomialSpace} = sp
 
 
 Conversion(a::HeavisideSpace,b::PiecewiseSpace{NTuple{kk,CC},DD,RR}) where {kk,CC<:PolynomialSpace,DD<:UnivariateDomain,RR<:Real} =
@@ -74,11 +74,11 @@ getindex(C::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},DD,RR}},k::Intege
     k ≤ dimension(domainspace(C)) && j==k? one(eltype(C)) : zero(eltype(C))
 
 
-bandinds{HS<:HeavisideSpace}(D::ConcreteDerivative{HS})=-1,0
+bandinds(D::ConcreteDerivative{HS}) where {HS<:HeavisideSpace}=-1,0
 
-rangespace{HS<:HeavisideSpace}(D::ConcreteDerivative{HS})=DiracSpace(domain(D).points)
+rangespace(D::ConcreteDerivative{HS}) where {HS<:HeavisideSpace}=DiracSpace(domain(D).points)
 
-function getindex{HS<:HeavisideSpace}(D::ConcreteDerivative{HS},k::Integer,j::Integer)
+function getindex(D::ConcreteDerivative{HS},k::Integer,j::Integer) where HS<:HeavisideSpace
     n=ncomponents(domain(D))
     if k≤n && j==k
         one(eltype(D))
@@ -89,8 +89,8 @@ function getindex{HS<:HeavisideSpace}(D::ConcreteDerivative{HS},k::Integer,j::In
     end
 end
 
-Base.sum{HS<:HeavisideSpace}(f::Fun{HS}) = dotu(f.coefficients,diff(space(f).domain.points))
-function Base.sum{T,R}(f::Fun{SplineSpace{1,T,R}})
+Base.sum(f::Fun{HS}) where {HS<:HeavisideSpace} = dotu(f.coefficients,diff(space(f).domain.points))
+function Base.sum(f::Fun{SplineSpace{1,T,R}}) where {T,R}
     vals=pad(f.coefficients,dimension(space(f)))
     dfs=diff(space(f).domain.points)
     ret=vals[1]*dfs[1]/2
@@ -102,10 +102,10 @@ function Base.sum{T,R}(f::Fun{SplineSpace{1,T,R}})
 end
 
 
-differentiate{T,R}(f::Fun{SplineSpace{1,T,R}}) =
+differentiate(f::Fun{SplineSpace{1,T,R}}) where {T,R} =
     Fun(HeavisideSpace(space(f).domain),
         diff(pad(f.coefficients,dimension(space(f))))./diff(space(f).domain.points))
 
-integrate{T,R}(f::Fun{HeavisideSpace{T,R}}) =
+integrate(f::Fun{HeavisideSpace{T,R}}) where {T,R} =
     Fun(SplineSpace{1,T,R}(space(f).domain),
         [0;cumsum(f.coefficients).*diff(space(f).domain.points)])

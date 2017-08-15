@@ -48,7 +48,7 @@ convert(::Type{Space},d::ClosedInterval) = Space(Domain(d))
 
 Base.issubset(a::PeriodicInterval,b::Segment) = Segment(a.a,a.b)⊆b
 Base.issubset(a::Segment,b::PeriodicInterval) = PeriodicInterval(a.a,a.b)⊆b
-Base.issubset{T<:Real}(a::Segment{T},b::PiecewiseSegment{T}) =
+Base.issubset(a::Segment{T},b::PiecewiseSegment{T}) where {T<:Real} =
     a⊆Segment(first(b.points),last(b.points))
 Base.issubset(a::Segment,b::Line) = first(a)∈b && last(a)∈b
 
@@ -82,8 +82,8 @@ end
 
 # sort
 
-Base.isless{T1<:Real,T2<:Real}(d1::Segment{T1},d2::Ray{false,T2}) = d1 ≤ d2.center
-Base.isless{T1<:Real,T2<:Real}(d2::Ray{true,T2},d1::Segment{T1}) = d2.center ≤ d1
+Base.isless(d1::Segment{T1},d2::Ray{false,T2}) where {T1<:Real,T2<:Real} = d1 ≤ d2.center
+Base.isless(d2::Ray{true,T2},d1::Segment{T1}) where {T1<:Real,T2<:Real} = d2.center ≤ d1
 
 
 # ^

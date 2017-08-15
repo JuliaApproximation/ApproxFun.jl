@@ -22,11 +22,11 @@ end
 
 
 Segment() = Segment{Float64}()
-Segment{IT1<:Integer,IT2<:Integer}(a::Complex{IT1},b::Complex{IT2}) =
+Segment(a::Complex{IT1},b::Complex{IT2}) where {IT1<:Integer,IT2<:Integer} =
 	Segment(Complex128(a),Complex128(b)) #convenience method
 Segment(a::Integer,b::Integer) = Segment(Float64(a),Float64(b)) #convenience method
-Segment{IT<:Integer}(a::Complex{IT},b) = Segment(Complex128(a),b) #convenience method
-Segment{IT<:Integer}(a,b::Complex{IT}) = Segment(a,Complex128(b)) #convenience method
+Segment(a::Complex{IT},b) where {IT<:Integer} = Segment(Complex128(a),b) #convenience method
+Segment(a,b::Complex{IT}) where {IT<:Integer} = Segment(a,Complex128(b)) #convenience method
 Segment(a,b) = Segment{promote_type(typeof(a),typeof(b))}(a,b)
 Segment(a::Tuple,b::Tuple) = Segment(Vec(a...),Vec(b...))
 
@@ -49,13 +49,13 @@ represents the set `{x : a ≤ x ≤ b}`.
 """
 Interval
 
-convert{T<:Number}(::Type{Segment{T}}, d::Segment) = Segment{T}(d.a,d.b)
+convert(::Type{Segment{T}}, d::Segment) where {T<:Number} = Segment{T}(d.a,d.b)
 convert(::Type{Segment},d::ClosedInterval) = Segment(d.left,d.right)
 
-AnySegment{T}(::Type{T}) = Segment{T}(NaN,NaN)
+AnySegment(::Type{T}) where {T} = Segment{T}(NaN,NaN)
 AnySegment() = AnySegment(Float64)
 isambiguous(d::Segment) = all(isnan(d.a)) && all(isnan(d.b))
-convert{T<:Number}(::Type{Segment{T}},::AnyDomain) = AnySegment(T)
+convert(::Type{Segment{T}},::AnyDomain) where {T<:Number} = AnySegment(T)
 convert(::Type{Segment},::AnyDomain) = AnySegment()
 
 
@@ -74,13 +74,13 @@ Base.issubset(a::Segment,b::Segment) = first(a)∈b && last(a)∈b
 
 mobius(S::Space,x...) = mobius(domain(S),x...)
 
-tocanonical{T}(d::Segment{T},x) = 2norm(x-d.a)/arclength(d)-1
-tocanonical{T<:Complex}(d::Segment{T},x::Number) = 2norm(x-d.a)/arclength(d)-1
+tocanonical(d::Segment{T},x) where {T} = 2norm(x-d.a)/arclength(d)-1
+tocanonical(d::Segment{T},x::Number) where {T<:Complex} = 2norm(x-d.a)/arclength(d)-1
 mobius(d::Segment,x) = (d.a + d.b - 2x)/(d.a - d.b)
-tocanonical{T<:Real}(d::Segment{T},x) = mobius(d,x)
-tocanonicalD{T<:Real}(d::Segment{T},x) = 2/(d.b- d.a)
-fromcanonical{T<:Number}(d::Segment{T},x) = (d.a + d.b)/2 + (d.b - d.a)x/2
-fromcanonical{T<:Vec}(d::Segment{T},x) = (d.a + d.b)/2 + (d.b - d.a)x/2
+tocanonical(d::Segment{T},x) where {T<:Real} = mobius(d,x)
+tocanonicalD(d::Segment{T},x) where {T<:Real} = 2/(d.b- d.a)
+fromcanonical(d::Segment{T},x) where {T<:Number} = (d.a + d.b)/2 + (d.b - d.a)x/2
+fromcanonical(d::Segment{T},x) where {T<:Vec} = (d.a + d.b)/2 + (d.b - d.a)x/2
 fromcanonicalD(d::Segment,x) = (d.b- d.a) / 2
 
 
@@ -122,7 +122,7 @@ Base.sqrt(d::Segment)=Segment(sqrt(d.a),sqrt(d.b))
 
 Base.reverse(d::Segment)=Segment(d.b,d.a)
 
-function Base.intersect{T<:Real,V<:Real}(a::Segment{T},b::Segment{V})
+function Base.intersect(a::Segment{T},b::Segment{V}) where {T<:Real,V<:Real}
     if first(a) > last(a)
         intersect(reverse(a),b)
     elseif first(b) > last(b)
@@ -141,7 +141,7 @@ function Base.intersect{T<:Real,V<:Real}(a::Segment{T},b::Segment{V})
 end
 
 
-function Base.setdiff{T<:Real,V<:Real}(a::Segment{T},b::Segment{V})
+function Base.setdiff(a::Segment{T},b::Segment{V}) where {T<:Real,V<:Real}
     # ensure a/b are well-ordered
     if first(a) > last(a)
         intersect(reverse(a),b)
@@ -175,6 +175,6 @@ end
 
 
 ## sort
-Base.isless{T1<:Real,T2<:Real}(d1::Segment{T1},d2::Segment{T2})=d1≤first(d2)&&d1≤last(d2)
-Base.isless{T<:Real}(d1::Segment{T},x::Real)=first(d1)≤x && last(d1)≤x
-Base.isless{T<:Real}(x::Real,d1::Segment{T})=x≤first(d1) && x≤last(d1)
+Base.isless(d1::Segment{T1},d2::Segment{T2}) where {T1<:Real,T2<:Real}=d1≤first(d2)&&d1≤last(d2)
+Base.isless(d1::Segment{T},x::Real) where {T<:Real}=first(d1)≤x && last(d1)≤x
+Base.isless(x::Real,d1::Segment{T}) where {T<:Real}=x≤first(d1) && x≤last(d1)

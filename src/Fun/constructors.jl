@@ -3,18 +3,18 @@ struct F <: Function
 end
 (f::F)(args...) = f.f(args...)
 
-valsdomain_type_promote{T<:Complex}(::Type{T},::Type{T})=T,T
-valsdomain_type_promote{T<:Real}(::Type{T},::Type{T})=T,T
+valsdomain_type_promote(::Type{T},::Type{T}) where {T<:Complex}=T,T
+valsdomain_type_promote(::Type{T},::Type{T}) where {T<:Real}=T,T
 valsdomain_type_promote(::Type{Int},::Type{Int})=Float64,Int
-valsdomain_type_promote{T<:Real,V<:Real}(::Type{T},::Type{Complex{V}})=promote_type(T,V),Complex{promote_type(T,V)}
-valsdomain_type_promote{T<:Real,V<:Real}(::Type{Complex{T}},::Type{V})=Complex{promote_type(T,V)},promote_type(T,V)
-valsdomain_type_promote{T<:Integer}(::Type{T},::Type{Int})=Float64,Int
-valsdomain_type_promote{T<:Real}(::Type{T},::Type{Int})=T,Int
-valsdomain_type_promote{T<:Complex}(::Type{T},::Type{Int})=T,Int
-valsdomain_type_promote{T<:Integer,V<:Real}(::Type{T},::Type{V})=valsdomain_type_promote(Float64,V)
-valsdomain_type_promote{T<:Integer,V<:Complex}(::Type{T},::Type{V})=valsdomain_type_promote(Float64,V)
-valsdomain_type_promote{T<:Real}(::Type{T},::Type{Vector{T}})=T,Vector{T}
-valsdomain_type_promote{T,V}(::Type{T},::Type{V})=promote_type(T,V),promote_type(T,V)
+valsdomain_type_promote(::Type{T},::Type{Complex{V}}) where {T<:Real,V<:Real}=promote_type(T,V),Complex{promote_type(T,V)}
+valsdomain_type_promote(::Type{Complex{T}},::Type{V}) where {T<:Real,V<:Real}=Complex{promote_type(T,V)},promote_type(T,V)
+valsdomain_type_promote(::Type{T},::Type{Int}) where {T<:Integer}=Float64,Int
+valsdomain_type_promote(::Type{T},::Type{Int}) where {T<:Real}=T,Int
+valsdomain_type_promote(::Type{T},::Type{Int}) where {T<:Complex}=T,Int
+valsdomain_type_promote(::Type{T},::Type{V}) where {T<:Integer,V<:Real}=valsdomain_type_promote(Float64,V)
+valsdomain_type_promote(::Type{T},::Type{V}) where {T<:Integer,V<:Complex}=valsdomain_type_promote(Float64,V)
+valsdomain_type_promote(::Type{T},::Type{Vector{T}}) where {T<:Real}=T,Vector{T}
+valsdomain_type_promote(::Type{T},::Type{V}) where {T,V}=promote_type(T,V),promote_type(T,V)
 
 
 
@@ -43,14 +43,14 @@ function choosefuneltype(ftype,Td)
 end
 
 # last argument is whether to splat or not
-defaultFun{T,ReComp}(::Type{T},f,d::Space{ReComp},pts::AbstractVector,::Type{Val{true}}) =
+defaultFun(::Type{T},f,d::Space{ReComp},pts::AbstractVector,::Type{Val{true}}) where {T,ReComp} =
     Fun(d,transform(d,T[f(x...) for x in pts]))
 
-defaultFun{T,ReComp}(::Type{T},f,d::Space{ReComp},pts::AbstractVector,::Type{Val{false}}) =
+defaultFun(::Type{T},f,d::Space{ReComp},pts::AbstractVector,::Type{Val{false}}) where {T,ReComp} =
     Fun(d,transform(d,T[f(x) for x in pts]))
 
 
-function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer,::Type{Val{false}})
+function defaultFun(f,d::Space{ReComp},n::Integer,::Type{Val{false}}) where ReComp
     pts=points(d, n)
     f1=f(pts[1])
     if isa(f1,AbstractArray) && size(d) ≠ size(f1)
@@ -62,7 +62,7 @@ function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer,::Type{Val{false}})
     defaultFun(Tprom,f,d,pts,Val{false})
 end
 
-function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer,::Type{Val{true}})
+function defaultFun(f,d::Space{ReComp},n::Integer,::Type{Val{true}}) where ReComp
     pts=points(d, n)
     f1=f(pts[1]...)
     if isa(f1,AbstractArray) && size(d) ≠ size(f1)
@@ -74,17 +74,17 @@ function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer,::Type{Val{true}})
     defaultFun(Tprom,f,d,pts,Val{true})
 end
 
-defaultFun{ReComp}(f::F,d::Space{ReComp},n::Integer) = defaultFun(f,d,n,Val{!hasnumargs(f.f,1)})
+defaultFun(f::F,d::Space{ReComp},n::Integer) where {ReComp} = defaultFun(f,d,n,Val{!hasnumargs(f.f,1)})
 
 
-Fun{ReComp}(f::Function,d::Space{ReComp},n::Integer) = Fun(F(f),d,n)
-Fun{ReComp}(f::F,d::Space{ReComp},n::Integer) = defaultFun(f,d,n)
+Fun(f::Function,d::Space{ReComp},n::Integer) where {ReComp} = Fun(F(f),d,n)
+Fun(f::F,d::Space{ReComp},n::Integer) where {ReComp} = defaultFun(f,d,n)
 
 # the following is to avoid ambiguity
 # Fun(f::Fun,d) should be equivalent to Fun(x->f(x),d)
 #TODO: fall back to Fun(x->f(x),d) if conversion not implemented?
 Fun(f::Fun,d::Space) = Fun(d,coefficients(f,d))
-Fun{T<:Space}(f::Fun,::Type{T}) = Fun(f,T(domain(f)))
+Fun(f::Fun,::Type{T}) where {T<:Space} = Fun(f,T(domain(f)))
 
 
 
@@ -98,7 +98,7 @@ Fun(f::Function,T::Type,n::Integer) = Fun(F(f),T(),n)
 Fun(f,T::Type,n::Integer) = Fun(f,T(),n)
 
 Fun(f::AbstractVector,d::Domain) = Fun(f,Space(d))
-Fun{T<:Number}(d::Domain,f::AbstractVector{T}) = Fun(Space(d),f)
+Fun(d::Domain,f::AbstractVector{T}) where {T<:Number} = Fun(Space(d),f)
 Fun(d::Domain,f::AbstractVector) = Fun(Space(d),f)
 
 
@@ -107,19 +107,19 @@ Fun(f,d::Domain,n) = Fun(f,Space(d),n)
 
 
 # We do zero special since zero exists even when one doesn't
-Fun{T<:Space}(c::Number,::Type{T}) = c==0?zeros(T(AnyDomain())):c*ones(T(AnyDomain()))
+Fun(c::Number,::Type{T}) where {T<:Space} = c==0?zeros(T(AnyDomain())):c*ones(T(AnyDomain()))
 Fun(c::Number,d::Domain) = c==0?c*zeros(d):c*ones(d)
 Fun(c::Number,d::Space) = c==0?c*zeros(prectype(d),d):c*ones(prectype(d),d)
 
 
 ## List constructor
 
-Fun{T<:Domain}(c::Number,dl::AbstractVector{T}) = Fun(c,UnionDomain(dl))
-Fun{T<:Domain}(f::Function,dl::AbstractVector{T}) = Fun(F(f),UnionDomain(dl))
-Fun{T<:Domain}(f::Type,dl::AbstractVector{T}) = Fun(f,UnionDomain(dl))
-Fun{T<:Domain}(f::Domain,dl::AbstractVector{T}) = Fun(f,UnionDomain(dl))
-Fun{T<:Domain}(f,dl::AbstractVector{T}) = Fun(f,UnionDomain(dl))
-Fun{T<:Domain}(f,dl::AbstractVector{T},n::Integer) = Fun(f,UnionDomain(dl),n)
+Fun(c::Number,dl::AbstractVector{T}) where {T<:Domain} = Fun(c,UnionDomain(dl))
+Fun(f::Function,dl::AbstractVector{T}) where {T<:Domain} = Fun(F(f),UnionDomain(dl))
+Fun(f::Type,dl::AbstractVector{T}) where {T<:Domain} = Fun(f,UnionDomain(dl))
+Fun(f::Domain,dl::AbstractVector{T}) where {T<:Domain} = Fun(f,UnionDomain(dl))
+Fun(f,dl::AbstractVector{T}) where {T<:Domain} = Fun(f,UnionDomain(dl))
+Fun(f,dl::AbstractVector{T},n::Integer) where {T<:Domain} = Fun(f,UnionDomain(dl),n)
 
 ## Adaptive constructors
 
@@ -241,13 +241,13 @@ Fun(f::Fun,d::Domain;opts...) = Fun(f,Space((d ∪ domain(f)) ∩ d);opts...)
 Fun(T::Type,n::Integer) = Fun(T(),n)
 Fun(f,n::Integer) = Fun(f,Interval(),n)
 Fun(f,d::ClosedInterval,n::Integer) = Fun(f,Domain(d),n)
-Fun{M<:Number}(d::ClosedInterval,cfs::AbstractVector{M}) = Fun(Domain(d),1.0*cfs)
+Fun(d::ClosedInterval,cfs::AbstractVector{M}) where {M<:Number} = Fun(Domain(d),1.0*cfs)
 Fun(f::Function,d::ClosedInterval) = Fun(F(f),Domain(d))
 Fun(f::Type,d::ClosedInterval) = Fun(f,Domain(d))
 Fun(f,d::ClosedInterval) = Fun(f,Domain(d))
 Fun(f::Number,d::ClosedInterval) = Fun(f,Domain(d))
 Fun(d::ClosedInterval) = Fun(Domain(d))
 
-Fun{TT<:Number}(T::Type,d::AbstractVector{TT}) = Fun(T(),d)
+Fun(T::Type,d::AbstractVector{TT}) where {TT<:Number} = Fun(T(),d)
 
 Fun(f::Fun{SequenceSpace},s::Space) = Fun(s,f.coefficients)

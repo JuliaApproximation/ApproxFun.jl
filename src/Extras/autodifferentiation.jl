@@ -55,7 +55,7 @@ Base.last(d::DualFun) = DualFun(last(d.f),Evaluation(rangespace(d.J),last)*d.J)
 jacobian(d::DualFun)=d.J
 
 
-Base.promote_rule{DF<:DualFun,T<:Number}(::Type{DF},::Type{T})=DualFun
+Base.promote_rule(::Type{DF},::Type{T}) where {DF<:DualFun,T<:Number}=DualFun
 convert(::Type{DualFun},b::Number)=DualFun(b,0)
 
 

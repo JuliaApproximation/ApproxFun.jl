@@ -7,7 +7,7 @@ export PlusOperator, TimesOperator, A_mul_B_coefficients
 struct PlusOperator{T,BI} <: Operator{T}
     ops::Vector{Operator{T}}
     bandinds::BI
-    function (::Type{PlusOperator{T,BI}}){T,BI}(opsin::Vector{Operator{T}},bi::BI)
+    function PlusOperator{T,BI}(opsin::Vector{Operator{T}},bi::BI) where {T,BI}
         n,m=size(first(opsin))
         for k=2:length(opsin)
             @assert size(opsin[k],1)==n && size(opsin[k],2)==m
@@ -19,7 +19,7 @@ end
 Base.size(P::PlusOperator,k::Integer) = size(first(P.ops),k)
 
 
-PlusOperator{T,UT,VT}(opsin::Vector{Operator{T}},bi::Tuple{UT,VT}) =
+PlusOperator(opsin::Vector{Operator{T}},bi::Tuple{UT,VT}) where {T,UT,VT} =
     PlusOperator{T,typeof(bi)}(opsin,bi)
 
 bandinds(P::PlusOperator) = P.bandinds
@@ -48,7 +48,7 @@ function PlusOperator(ops::Vector)
     PlusOperator(ops,(b1,b2))
 end
 
-function convert{T}(::Type{Operator{T}},P::PlusOperator)
+function convert(::Type{Operator{T}},P::PlusOperator) where T
     if T==eltype(P)
         P
     else
@@ -56,7 +56,7 @@ function convert{T}(::Type{Operator{T}},P::PlusOperator)
     end
 end
 
-function promoteplus{T}(opsin::Vector{Operator{T}})
+function promoteplus(opsin::Vector{Operator{T}}) where T
     ops=Vector{Operator{T}}()
     # prune zero ops
     for op in opsin
@@ -97,7 +97,7 @@ domain(P::PlusOperator) = commondomain(P.ops)
 Base.stride(P::PlusOperator)=mapreduce(stride,gcd,P.ops)
 
 
-function getindex{T}(P::PlusOperator{T},k::Integer...)
+function getindex(P::PlusOperator{T},k::Integer...) where T
     ret=P.ops[1][k...]::T
     for j=2:length(P.ops)
         ret+=P.ops[j][k...]::T
@@ -108,13 +108,13 @@ end
 
 for TYP in (:RaggedMatrix,:Matrix,:BandedMatrix,
             :BlockBandedMatrix,:BandedBlockBandedMatrix)
-    @eval convert{T,PP<:PlusOperator}(::Type{$TYP},P::SubOperator{T,PP,Tuple{UnitRange{Block},UnitRange{Block}}}) =
+    @eval convert(::Type{$TYP},P::SubOperator{T,PP,Tuple{UnitRange{Block},UnitRange{Block}}}) where {T,PP<:PlusOperator} =
         convert_axpy!($TYP,P)   # use axpy! to copy
-    @eval convert{T,PP<:PlusOperator}(::Type{$TYP},P::SubOperator{T,PP}) =
+    @eval convert(::Type{$TYP},P::SubOperator{T,PP}) where {T,PP<:PlusOperator} =
         convert_axpy!($TYP,P)   # use axpy! to copy
 end
 
-function BLAS.axpy!{T,PP<:PlusOperator}(α,P::SubOperator{T,PP},A::AbstractMatrix)
+function BLAS.axpy!(α,P::SubOperator{T,PP},A::AbstractMatrix) where {T,PP<:PlusOperator}
     for op in parent(P).ops
         BLAS.axpy!(α,view(op,P.indexes[1],P.indexes[2]),A)
     end
@@ -159,9 +159,9 @@ end
 struct ConstantTimesOperator{B,T} <: Operator{T}
     λ::T
     op::B
-    (::Type{ConstantTimesOperator{B,T}}){B,T}(c,op) = new{B,T}(c,op)
+    ConstantTimesOperator{B,T}(c,op) where {B,T} = new{B,T}(c,op)
 end
-function ConstantTimesOperator{TT<:Number}(c::Number,op::Operator{TT})
+function ConstantTimesOperator(c::Number,op::Operator{TT}) where TT<:Number
     T=promote_type(typeof(c),eltype(op))
     B=convert(Operator{T},op)
     ConstantTimesOperator{typeof(B),T}(T(c),B)
@@ -173,7 +173,7 @@ ConstantTimesOperator(c::Number,op::ConstantTimesOperator) =
 @wrapperstructure ConstantTimesOperator
 @wrapperspaces ConstantTimesOperator
 
-convert{T<:Number}(::Type{T},C::ConstantTimesOperator) = T(C.λ)*convert(T,C.op)
+convert(::Type{T},C::ConstantTimesOperator) where {T<:Number} = T(C.λ)*convert(T,C.op)
 
 choosedomainspace(C::ConstantTimesOperator,sp::Space) = choosedomainspace(C.op,sp)
 
@@ -183,7 +183,7 @@ for OP in (:promotedomainspace,:promoterangespace),SP in (:UnsetSpace,:Space)
 end
 
 
-function convert{T}(::Type{Operator{T}},C::ConstantTimesOperator)
+function convert(::Type{Operator{T}},C::ConstantTimesOperator) where T
     if T==eltype(C)
         C
     else
@@ -200,15 +200,15 @@ for (TYP,ZERS) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
                    (:RaggedMatrix,:rzeros),(:BlockBandedMatrix,:bbzeros))
     @eval begin
         # avoid ambiugity
-        convert{T,OP<:ConstantTimesOperator}(::Type{$TYP},
-                                                  S::SubOperator{T,OP,Tuple{UnitRange{Block},UnitRange{Block}}}) =
+        convert(::Type{$TYP},
+                     S::SubOperator{T,OP,Tuple{UnitRange{Block},UnitRange{Block}}}) where {T,OP<:ConstantTimesOperator} =
             convert_axpy!($TYP,S)
-        convert{T,OP<:ConstantTimesOperator}(::Type{$TYP},S::SubOperator{T,OP}) =
+        convert(::Type{$TYP},S::SubOperator{T,OP}) where {T,OP<:ConstantTimesOperator} =
             convert_axpy!($TYP,S)
     end
 end
 
-BLAS.axpy!{T,OP<:ConstantTimesOperator}(α,S::SubOperator{T,OP},A::AbstractMatrix) =
+BLAS.axpy!(α,S::SubOperator{T,OP},A::AbstractMatrix) where {T,OP<:ConstantTimesOperator} =
     unwrap_axpy!(α*parent(S).λ,S,A)
 
 
@@ -219,7 +219,7 @@ struct TimesOperator{T,BI} <: Operator{T}
     ops::Vector{Operator{T}}
     bandinds::BI
 
-    function (::Type{TimesOperator{T,BI}}){T,BI}(ops::Vector{Operator{T}},bi::BI)
+    function TimesOperator{T,BI}(ops::Vector{Operator{T}},bi::BI) where {T,BI}
         # check compatible
         for k=1:length(ops)-1
             @assert size(ops[k],2) == size(ops[k+1],1)
@@ -262,11 +262,11 @@ end
 
 bandindssum(P) = (bandindssum(P,1),bandindssum(P,2))
 
-TimesOperator{T,N1,N2}(ops::Vector{Operator{T}},bi::Tuple{N1,N2}) =
+TimesOperator(ops::Vector{Operator{T}},bi::Tuple{N1,N2}) where {T,N1,N2} =
     TimesOperator{T,typeof(bi)}(ops,bi)
 
-TimesOperator{T}(ops::Vector{Operator{T}}) = TimesOperator(ops,bandindssum(ops))
-TimesOperator{OT<:Operator}(ops::Vector{OT}) =
+TimesOperator(ops::Vector{Operator{T}}) where {T} = TimesOperator(ops,bandindssum(ops))
+TimesOperator(ops::Vector{OT}) where {OT<:Operator} =
     TimesOperator(convert(Vector{Operator{eltype(OT)}},ops),bandindssum(ops))
 
 TimesOperator(A::TimesOperator,B::TimesOperator) =
@@ -281,7 +281,7 @@ TimesOperator(A::Operator,B::Operator) =
 
 ==(A::TimesOperator,B::TimesOperator)=A.ops==B.ops
 
-function convert{T}(::Type{Operator{T}},P::TimesOperator)
+function convert(::Type{Operator{T}},P::TimesOperator) where T
     if T==eltype(P)
         P
     else
@@ -291,7 +291,7 @@ end
 
 
 
-function promotetimes{B<:Operator}(opsin::Vector{B},dsp)
+function promotetimes(opsin::Vector{B},dsp) where B<:Operator
     ops=Vector{Operator{mapreduce(eltype,promote_type,opsin)}}(0)
 
     for k=length(opsin):-1:1
@@ -319,7 +319,7 @@ function promotetimes{B<:Operator}(opsin::Vector{B},dsp)
     end
 end
 
-promotetimes{B<:Operator}(opsin::Vector{B})=promotetimes(opsin,domainspace(last(opsin)))
+promotetimes(opsin::Vector{B}) where {B<:Operator}=promotetimes(opsin,domainspace(last(opsin)))
 
 
 
@@ -378,8 +378,8 @@ for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
                     (:BandedBlockBandedMatrix,:bbbzeros),
                     (:BlockBandedMatrix,:bbzeros),
                     (:RaggedMatrix,:rzeros))
-    @eval function convert{T,TO<:TimesOperator}(::Type{$STyp},
-                        S::SubOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
+    @eval function convert(::Type{$STyp},
+   S::SubOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,TO<:TimesOperator}
         P=parent(S)
         kr,jr=parentindexes(S)
 
@@ -438,8 +438,8 @@ end
 
 for (STyp,Zer) in ((:BandedBlockBandedMatrix,:bbbzeros),
                     (:BlockBandedMatrix,:bbzeros))
-    @eval function convert{T,TO<:TimesOperator}(::Type{$STyp},
-                        S::SubOperator{T,TO,Tuple{UnitRange{Block},UnitRange{Block}}})
+    @eval function convert(::Type{$STyp},
+   S::SubOperator{T,TO,Tuple{UnitRange{Block},UnitRange{Block}}}) where {T,TO<:TimesOperator}
         P=parent(S)
         KR,JR=parentindexes(S)
 
@@ -531,11 +531,11 @@ end
 
 # Conversions we always assume are intentional: no need to promote
 
-*{TO1<:TimesOperator,TO<:TimesOperator}(A::ConversionWrapper{TO1},B::ConversionWrapper{TO}) =
+*(A::ConversionWrapper{TO1},B::ConversionWrapper{TO}) where {TO1<:TimesOperator,TO<:TimesOperator} =
     ConversionWrapper(TimesOperator(A.op,B.op))
-*{TO<:TimesOperator}(A::ConversionWrapper{TO},B::Conversion) =
+*(A::ConversionWrapper{TO},B::Conversion) where {TO<:TimesOperator} =
     ConversionWrapper(TimesOperator(A.op,B))
-*{TO<:TimesOperator}(A::Conversion,B::ConversionWrapper{TO}) =
+*(A::Conversion,B::ConversionWrapper{TO}) where {TO<:TimesOperator} =
     ConversionWrapper(TimesOperator(A,B.op))
 
 *(A::Conversion,B::Conversion) = ConversionWrapper(TimesOperator(A,B))
@@ -627,7 +627,7 @@ A_mul_B_coefficients(A::PlusOperator,b::Fun) =
 ## promotedomain
 
 
-function promotedomainspace{T}(P::PlusOperator{T},sp::Space,cursp::Space)
+function promotedomainspace(P::PlusOperator{T},sp::Space,cursp::Space) where T
     if sp==cursp
         P
     else

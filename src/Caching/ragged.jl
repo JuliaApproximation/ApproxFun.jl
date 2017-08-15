@@ -4,7 +4,7 @@ CachedOperator(::Type{RaggedMatrix},op::Operator;padding::Bool=false) =
 
 ## Grow cached operator
 
-function resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},::Colon,n::Integer)
+function resizedata!(B::CachedOperator{T,RaggedMatrix{T}},::Colon,n::Integer) where T<:Number
     if n > size(B,2)
         throw(ArgumentError("Cannot resize beyond size of operator"))
     end
@@ -50,7 +50,7 @@ function resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},::Colon,n::
     B
 end
 
-function resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},n::Integer,m::Integer)
+function resizedata!(B::CachedOperator{T,RaggedMatrix{T}},n::Integer,m::Integer) where T<:Number
     resizedata!(B,:,m)
     B.data.m = max(B.data.m,n)   # make sure we have at least n rows
 
@@ -60,12 +60,12 @@ end
 
 ## Grow QR
 
-QROperator{T}(R::CachedOperator{T,RaggedMatrix{T}}) =
+QROperator(R::CachedOperator{T,RaggedMatrix{T}}) where {T} =
     QROperator(R,RaggedMatrix(T,0,Int[]),0)
 
-function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
-                                                                 MM,DS,RS,BI}},
-                        ::Colon,col)
+function resizedata!(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
+                                                  MM,DS,RS,BI}},
+         ::Colon,col) where {T,MM,DS,RS,BI}
     if col ≤ QR.ncols
         return QR
     end
@@ -126,9 +126,9 @@ end
 # BLAS versions, requires BlasFloat
 
 
-function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
-                                                                 MM,DS,RS,BI}},
-                        ::Colon,col)
+function resizedata!(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
+                                       MM,DS,RS,BI}},
+::Colon,col) where {T<:BlasFloat,MM,DS,RS,BI}
     if col ≤ QR.ncols
         return QR
     end
@@ -229,8 +229,8 @@ end
 ## Apply Q
 
 
-function Ac_mul_Bpars{RR,T}(A::QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T},
-                            B::AbstractVector{T},tolerance,maxlength)
+function Ac_mul_Bpars(A::QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T},
+                      B::AbstractVector{T},tolerance,maxlength) where {RR,T}
     if length(B) > A.QR.ncols
         # upper triangularize extra columns to prepare for \
         resizedata!(A.QR,:,length(B)+size(A.QR.H,1)+10)
@@ -275,8 +275,8 @@ end
 
 # BLAS apply Q
 
-function Ac_mul_Bpars{RR,T<:BlasFloat}(A::QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T},
-                            B::AbstractVector{T},tolerance,maxlength)
+function Ac_mul_Bpars(A::QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T},
+           B::AbstractVector{T},tolerance,maxlength) where {RR,T<:BlasFloat}
     if length(B) > A.QR.ncols
         # upper triangularize extra columns to prepare for \
         resizedata!(A.QR,:,length(B)+size(A.QR.H,1)+10)

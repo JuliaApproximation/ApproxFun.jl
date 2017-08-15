@@ -1,6 +1,6 @@
 # Represents a block banded matrix with banded blocks
 #   similar to BandedMatrix{BandedMatrix{T}}
-type BandedBlockBandedMatrix{T,RI,CI} <: AbstractBlockBandedMatrix{T,BandedMatrix{T}}
+mutable struct BandedBlockBandedMatrix{T,RI,CI} <: AbstractBlockBandedMatrix{T,BandedMatrix{T}}
     data::Matrix{T}
 
     l::Int  # block lower bandwidth
@@ -14,7 +14,7 @@ type BandedBlockBandedMatrix{T,RI,CI} <: AbstractBlockBandedMatrix{T,BandedMatri
     rowblocks::Vector{Int}
     colblocks::Vector{Int}
 
-    function (::Type{BandedBlockBandedMatrix{T,RI,CI}}){T,RI,CI}(data::Matrix{T},l,u,λ,μ,rows,cols)
+    function BandedBlockBandedMatrix{T,RI,CI}(data::Matrix{T},l,u,λ,μ,rows,cols) where {T,RI,CI}
         if (size(data,1) ≠ λ+μ+1  && !(size(data,1) == 0 && -λ > μ)) ||
             (size(data,2) ≠ (l+u+1)*sum(cols) && !(size(data,2) == 0 && -l > u))
             error("Data matrix must have number rows equal to number of bands")
@@ -27,12 +27,12 @@ end
 BandedBlockBandedMatrix(data::Matrix,l,u,λ,μ,rows,cols) =
     BandedBlockBandedMatrix{eltype(data),typeof(rows),typeof(cols)}(data,l,u,λ,μ,rows,cols)
 
-BandedBlockBandedMatrix{T}(::Type{T},l,u,λ,μ,rows,cols) =
+BandedBlockBandedMatrix(::Type{T},l,u,λ,μ,rows,cols) where {T} =
     BandedBlockBandedMatrix(Matrix{T}(max(0,λ+μ+1),max(0,(l+u+1)*sum(cols))),l,u,λ,μ,rows,cols)
 
 for FUNC in (:zeros,:rand,:ones)
     BFUNC = parse("bbb"*string(FUNC))
-    @eval function $BFUNC{T}(::Type{T},l,u,λ,μ,rows,cols)
+    @eval function $BFUNC(::Type{T},l,u,λ,μ,rows,cols) where T
         data = $FUNC(T,max(0,λ+μ+1),max(0,(l+u+1)*sum(cols)))::Matrix{T}
         BandedBlockBandedMatrix(data,l,u,λ,μ,rows,cols)
     end
@@ -84,9 +84,9 @@ const SubBandedBlockBandedRange{T,BBM<:BandedBlockBandedMatrix} = SubArray{T,2,B
 const BLASBandedMatrix2{T,A,I} = Union{BandedBlockBandedBlock{T,A,I},BandedMatrices.BLASBandedMatrix{T}}
 
 isbandedblockbanded(::SubBandedBlockBandedRange) = true
-isbandedblockbanded{T,BBM<:BandedBlockBandedMatrix}(::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}},false}) = true
+isbandedblockbanded(::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}},false}) where {T,BBM<:BandedBlockBandedMatrix} = true
 
-BandedMatrices.isbanded{T,U,V}(::BandedBlockBandedBlock{T,U,V}) = true
+BandedMatrices.isbanded(::BandedBlockBandedBlock{T,U,V}) where {T,U,V} = true
 
 function Base.view(A::BandedBlockBandedMatrix,K::Union{Block,SubBlock},J::Union{Block,SubBlock})
     m = A.cols[block(J).K]
@@ -97,7 +97,7 @@ end
 
 
 
-function subblockbandinds{T,BBM<:BandedBlockBandedMatrix}(S::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}},false},k)
+function subblockbandinds(S::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}},false},k) where {T,BBM<:BandedBlockBandedMatrix}
     P = parent(S)
     kr,jr = parentindexes(S)
     if k == 1
@@ -125,12 +125,12 @@ end
 
 ## Bandedmatrix support
 
-@inline BandedMatrices.leadingdimension{T,U,V}(S::BandedBlockBandedBlock{T,U,V}) = stride(parent(S).data,2)
-BandedMatrices.bandwidth{T,U,V}(S::BandedBlockBandedBlock{T,U,V}, k::Int) = k==1 ? parent(S).λ : parent(S).μ
+@inline BandedMatrices.leadingdimension(S::BandedBlockBandedBlock{T,U,V}) where {T,U,V} = stride(parent(S).data,2)
+BandedMatrices.bandwidth(S::BandedBlockBandedBlock{T,U,V}, k::Int) where {T,U,V} = k==1 ? parent(S).λ : parent(S).μ
 
 
-@inline BandedMatrices.leadingdimension{T,U,V}(S::BandedBlockBandedSubBlock{T,U,V}) = stride(parent(S).data,2)
-function BandedMatrices.bandwidth{T,U,V}(S::BandedBlockBandedSubBlock{T,U,V}, k::Int)
+@inline BandedMatrices.leadingdimension(S::BandedBlockBandedSubBlock{T,U,V}) where {T,U,V} = stride(parent(S).data,2)
+function BandedMatrices.bandwidth(S::BandedBlockBandedSubBlock{T,U,V}, k::Int) where {T,U,V}
     sh = first(parentindexes(S)[1].sub)-first(parentindexes(S)[2].sub)
     k==1 ? parent(S).λ-sh : parent(S).μ+sh
 end
@@ -145,7 +145,7 @@ subblockbandinds(K::BandedBlockBandedMatrix,k::Integer) = k==1 ? -K.λ : K.μ
 
 
 
-@inline function inbands_getindex{T,U,V}(S::BandedBlockBandedBlock{T,U,V}, k::Int, j::Int)
+@inline function inbands_getindex(S::BandedBlockBandedBlock{T,U,V}, k::Int, j::Int) where {T,U,V}
     A = parent(S)
     col = S.offset1 # first col of current block
     u=A.μ
@@ -153,7 +153,7 @@ subblockbandinds(K::BandedBlockBandedMatrix,k::Integer) = k==1 ? -K.λ : K.μ
     A.data[u + k - j + 1, j_sh]
 end
 
-@inline function inbands_setindex!{T,U,V}(S::BandedBlockBandedBlock{T,U,V}, v, k::Int, j::Int)
+@inline function inbands_setindex!(S::BandedBlockBandedBlock{T,U,V}, v, k::Int, j::Int) where {T,U,V}
     A = parent(S)
     col = S.offset1 # first col of current block
     u=A.μ
@@ -162,7 +162,7 @@ end
     v
 end
 
-@inline function inbands_getindex{T,U,V}(S::BandedBlockBandedSubBlock{T,U,V}, k::Int, j::Int)
+@inline function inbands_getindex(S::BandedBlockBandedSubBlock{T,U,V}, k::Int, j::Int) where {T,U,V}
     A = parent(S)
     col = S.offset1 # first col of current block
     u=A.μ
@@ -172,7 +172,7 @@ end
     A.data[u + k - j + 1, j_sh]
 end
 
-@inline function inbands_setindex!{T,U,V}(S::BandedBlockBandedSubBlock{T,U,V}, v, k::Int, j::Int)
+@inline function inbands_setindex!(S::BandedBlockBandedSubBlock{T,U,V}, v, k::Int, j::Int) where {T,U,V}
     A = parent(S)
     col = S.offset1 # first col of current block
     u=A.μ
@@ -184,13 +184,13 @@ end
 end
 
 
-function getindex{T,U,V}(S::BandedBlockBandedBlock{T,U,V}, k::Int, j::Int)
+function getindex(S::BandedBlockBandedBlock{T,U,V}, k::Int, j::Int) where {T,U,V}
     A = parent(S)
     col = S.offset1 # first col of current block
     BandedMatrices.banded_getindex(view(A.data,:,col:col+S.stride1-1),A.λ,A.μ,k,j)
 end
 
-function setindex!{T,U,V}(S::BandedBlockBandedBlock{T,U,V}, v, k::Int, j::Int)
+function setindex!(S::BandedBlockBandedBlock{T,U,V}, v, k::Int, j::Int) where {T,U,V}
     A = parent(S)
     col = S.offset1 # first col of current block
     BandedMatrices.banded_setindex!(view(A.data,:,col:col+S.stride1-1),A.λ,A.μ,v,k,j)
@@ -205,20 +205,20 @@ getindex(A::BandedBlockBandedMatrix,kr::UnitRange{Int},jr::UnitRange{Int}) =
 
 
 
-BLAS.axpy!{T,U,V,T2,U2,V2}(α,A::BandedBlockBandedBlock{T,U,V},B::BandedBlockBandedBlock{T2,U2,V2}) =
+BLAS.axpy!(α,A::BandedBlockBandedBlock{T,U,V},B::BandedBlockBandedBlock{T2,U2,V2}) where {T,U,V,T2,U2,V2} =
     BandedMatrices.banded_generic_axpy!(α,A,B)
 
-BLAS.axpy!{T,U,V,T2,U2,V2}(α,A::BandedBlockBandedSubBlock{T,U,V},B::BandedBlockBandedBlock{T2,U2,V2}) =
+BLAS.axpy!(α,A::BandedBlockBandedSubBlock{T,U,V},B::BandedBlockBandedBlock{T2,U2,V2}) where {T,U,V,T2,U2,V2} =
     BandedMatrices.banded_generic_axpy!(α,A,B)
 
-BLAS.axpy!{T,U,V,T2,U2,V2}(α,A::BandedBlockBandedSubBlock{T,U,V},B::BandedBlockBandedSubBlock{T2,U2,V2}) =
+BLAS.axpy!(α,A::BandedBlockBandedSubBlock{T,U,V},B::BandedBlockBandedSubBlock{T2,U2,V2}) where {T,U,V,T2,U2,V2} =
     BandedMatrices.banded_generic_axpy!(α,A,B)
 
 
-BLAS.axpy!{T,U,V}(α,A::BandedBlockBandedBlock{T,U,V},B::SubBandedBlockSubBlock) =
+BLAS.axpy!(α,A::BandedBlockBandedBlock{T,U,V},B::SubBandedBlockSubBlock) where {T,U,V} =
     BandedMatrices.banded_dense_axpy!(α,A,blockview(B))
 
-BLAS.axpy!{T,U,V}(α,A::BandedBlockBandedBlock{T,U,V},B::AbstractMatrix) =
+BLAS.axpy!(α,A::BandedBlockBandedBlock{T,U,V},B::AbstractMatrix) where {T,U,V} =
     BandedMatrices.banded_dense_axpy!(α,A,B)
 
 Base.BLAS.axpy!(α,A::SubBandedBlockBandedRange,Y::SubBandedBlockBandedRange) = block_axpy!(α,A,Y)
@@ -230,14 +230,14 @@ Base.BLAS.axpy!(α,A::SubBandedBlockRange,Y::SubBandedBlockBandedRange) = block_
 
 ## Convert routines
 
-function convert{T,U,V}(::Type{BandedMatrix{T}},S::BandedBlockBandedBlock{T,U,V})
+function convert(::Type{BandedMatrix{T}},S::BandedBlockBandedBlock{T,U,V}) where {T,U,V}
     A = parent(S)
     K = parentindexes(S)[1]
     col = S.offset1 # first col of current block
     BandedMatrix(A.data[:,col:col+S.stride1-1],A.rows[K.K],A.λ,A.μ)
 end
 
-function Base.pointer{T<:BlasFloat,U,V}(S::BandedBlockBandedBlock{T,U,V})
+function Base.pointer(S::BandedBlockBandedBlock{T,U,V}) where {T<:BlasFloat,U,V}
     A = parent(S)
     K,J = parentindexes(S)
     if K.K < J.K-A.u || K.K > J.K+A.l
@@ -251,47 +251,47 @@ function Base.pointer{T<:BlasFloat,U,V}(S::BandedBlockBandedBlock{T,U,V})
     p+(col-1)*st*sz
 end
 
-leadingdimension{T<:BlasFloat,U,V}(B::BandedBlockBandedSubBlock{T,U,V}) =
+leadingdimension(B::BandedBlockBandedSubBlock{T,U,V}) where {T<:BlasFloat,U,V} =
     stride(parent(B).data,2)
 
-function Base.pointer{T<:BlasFloat,U,V}(B::BandedBlockBandedSubBlock{T,U,V})
+function Base.pointer(B::BandedBlockBandedSubBlock{T,U,V}) where {T<:BlasFloat,U,V}
     p = pointer(parentblock(B))
     p+leadingdimension(B)*(first(parentindexes(B)[2].sub)-1)*sizeof(T)
 end
 
 
-*{T,U,V}(A::BandedBlockBandedBlock{T,U,V},B::BandedBlockBandedBlock{T,U,V}) = BandedMatrices.banded_A_mul_B(A,b)
-*{T,U,V}(A::BandedBlockBandedBlock{T,U,V},b::AbstractVector{T}) =
+*(A::BandedBlockBandedBlock{T,U,V},B::BandedBlockBandedBlock{T,U,V}) where {T,U,V} = BandedMatrices.banded_A_mul_B(A,b)
+*(A::BandedBlockBandedBlock{T,U,V},b::AbstractVector{T}) where {T,U,V} =
     BandedMatrices.banded_A_mul_B!(Vector{T}(size(A,1)),A,b)
 
 
-Base.A_mul_B!{T,U,V}(c::AbstractVector,A::BandedBlockBandedBlock{T,U,V},b::AbstractVector) =
+Base.A_mul_B!(c::AbstractVector,A::BandedBlockBandedBlock{T,U,V},b::AbstractVector) where {T,U,V} =
     BandedMatrices.banded_A_mul_B!(c,A,b)
 
-αA_mul_B_plus_βC!{T,U,V}(α,A::BandedBlockBandedBlock{T,U,V},x::AbstractVector,β,y::AbstractVector) =
+αA_mul_B_plus_βC!(α,A::BandedBlockBandedBlock{T,U,V},x::AbstractVector,β,y::AbstractVector) where {T,U,V} =
     BandedMatrices.gbmv!('N',α,A,x,β,y)
 
-αA_mul_B_plus_βC!{T,U,V}(α,A::BandedBlockBandedSubBlock{T,U,V},x::AbstractVector,β,y::AbstractVector) =
+αA_mul_B_plus_βC!(α,A::BandedBlockBandedSubBlock{T,U,V},x::AbstractVector,β,y::AbstractVector) where {T,U,V} =
     BandedMatrices.gbmv!('N',α,A,x,β,y)
 
 
-αA_mul_B_plus_βC!{T,U,V}(α,A::BLASBandedMatrix2{T,U,V},B::BLASBandedMatrix2{T,U,V},β,C::BLASBandedMatrix2{T,U,V}) =
+αA_mul_B_plus_βC!(α,A::BLASBandedMatrix2{T,U,V},B::BLASBandedMatrix2{T,U,V},β,C::BLASBandedMatrix2{T,U,V}) where {T,U,V} =
     BandedMatrices.gbmm!('N','N',α,A,B,β,C)
 
 
-αA_mul_B_plus_βC!{T,BBM<:BandedBlockBandedMatrix}(α,A::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}},false},
-                                                  x::AbstractVector,β,y::AbstractVector) =
+αA_mul_B_plus_βC!(α,A::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}},false},
+                  x::AbstractVector,β,y::AbstractVector) where {T,BBM<:BandedBlockBandedMatrix} =
     blockmatrix_αA_mul_B_plus_βC!(α,A,x,β,y)
 
-Base.A_mul_B!{T,BBM<:BandedBlockBandedMatrix}(y::Vector,A::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}},false},b::Vector) =
+Base.A_mul_B!(y::Vector,A::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}},false},b::Vector) where {T,BBM<:BandedBlockBandedMatrix} =
     αA_mul_B_plus_βC!(one(eltype(A)),A,b,zero(eltype(y)),y)
 
 ## Algebra
 
 
 
-function *{T<:Number,V<:Number}(A::BandedBlockBandedMatrix{T},
-                                B::BandedBlockBandedMatrix{V})
+function *(A::BandedBlockBandedMatrix{T},
+           B::BandedBlockBandedMatrix{V}) where {T<:Number,V<:Number}
     if A.cols ≠ B.rows
         # diagonal matrices can be converted
         if isdiag(B) && size(A,2) == size(B,1) == size(B,2)

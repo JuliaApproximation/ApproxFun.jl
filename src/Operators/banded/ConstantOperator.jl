@@ -3,13 +3,13 @@ export ConstantOperator, IdentityOperator, BasisFunctional
 struct ConstantOperator{T,DS} <: Operator{T}
     λ::T
     space::DS
-    (::Type{ConstantOperator{T,DS}}){T,DS}(c::Number,sp::DS) = new{T,DS}(convert(T,c),sp)
-    (::Type{ConstantOperator{T,DS}}){T,DS}(L::UniformScaling,sp::DS) = new{T,DS}(convert(T,L.λ),sp)
+    ConstantOperator{T,DS}(c::Number,sp::DS) where {T,DS} = new{T,DS}(convert(T,c),sp)
+    ConstantOperator{T,DS}(L::UniformScaling,sp::DS) where {T,DS} = new{T,DS}(convert(T,L.λ),sp)
 end
 
 
-ConstantOperator{T}(::Type{T},c,sp::Space) = ConstantOperator{T,typeof(sp)}(c,sp)
-ConstantOperator{T}(::Type{T},c) = ConstantOperator(T,c,UnsetSpace())
+ConstantOperator(::Type{T},c,sp::Space) where {T} = ConstantOperator{T,typeof(sp)}(c,sp)
+ConstantOperator(::Type{T},c) where {T} = ConstantOperator(T,c,UnsetSpace())
 ConstantOperator(c::Number,sp::Space) = ConstantOperator(typeof(c),c,sp)
 ConstantOperator(c::Number) = ConstantOperator(typeof(c),c)
 ConstantOperator(L::UniformScaling) = ConstantOperator(L.λ)
@@ -36,7 +36,7 @@ getindex(C::ConstantOperator,k::Integer,j::Integer) =
 
 ==(C1::ConstantOperator,C2::ConstantOperator) = C1.λ==C2.λ
 
-function convert{T}(::Type{Operator{T}},C::ConstantOperator)
+function convert(::Type{Operator{T}},C::ConstantOperator) where T
     if T == eltype(C)
         C
     else
@@ -46,9 +46,9 @@ end
 
 # zero needs to be different since it can take a space to
 # a ConstantSpace, in creating functionals
-convert{T}(::Type{Operator{T}},x::Number) =
+convert(::Type{Operator{T}},x::Number) where {T} =
     x==0 ? ZeroOperator(T) : Multiplication(T(x))
-convert{T}(::Type{Operator{T}},L::UniformScaling) =
+convert(::Type{Operator{T}},L::UniformScaling) where {T} =
     ConstantOperator(T,L.λ)
 
 convert(::Type{Operator},n::Number) = Operator{typeof(n)}(n)
@@ -74,10 +74,10 @@ BasisFunctional(k) = BasisFunctional{Float64}(k)
 bandinds(B::BasisFunctional) = 0,B.k-1
 domainspace(B::BasisFunctional) = ℓ⁰
 
-convert{T}(::Type{Operator{T}},B::BasisFunctional) = BasisFunctional{T}(B.k)
+convert(::Type{Operator{T}},B::BasisFunctional) where {T} = BasisFunctional{T}(B.k)
 
-Base.getindex{T}(op::BasisFunctional{T},k::Integer) = (k==op.k)?one(T):zero(T)
-Base.getindex{T}(op::BasisFunctional{T},k::Range) = convert(Vector{T},k.==op.k)
+Base.getindex(op::BasisFunctional{T},k::Integer) where {T} = (k==op.k)?one(T):zero(T)
+Base.getindex(op::BasisFunctional{T},k::Range) where {T} = convert(Vector{T},k.==op.k)
 
 struct FillFunctional{T} <: Operator{T}
     λ::T
@@ -97,15 +97,15 @@ struct ZeroOperator{T,S,V} <: Operator{T}
     rangespace::V
 end
 
-ZeroOperator{T}(::Type{T},d::Space,v::Space) = ZeroOperator{T,typeof(d),typeof(v)}(d,v)
-ZeroOperator{T}(::Type{T},S::Space) = ZeroOperator(T,S,ZeroSpace(S))
+ZeroOperator(::Type{T},d::Space,v::Space) where {T} = ZeroOperator{T,typeof(d),typeof(v)}(d,v)
+ZeroOperator(::Type{T},S::Space) where {T} = ZeroOperator(T,S,ZeroSpace(S))
 ZeroOperator(d::Space,v::Space) = ZeroOperator(Float64,d,v)
 ZeroOperator(S::Space) = ZeroOperator(S,ZeroSpace(S))
 ZeroOperator() = ZeroOperator(UnsetSpace(),UnsetSpace())
-ZeroOperator{T}(::Type{T}) = ZeroOperator(T,UnsetSpace(),UnsetSpace())
+ZeroOperator(::Type{T}) where {T} = ZeroOperator(T,UnsetSpace(),UnsetSpace())
 
 
-convert{T}(::Type{Operator{T}},Z::ZeroOperator) =
+convert(::Type{Operator{T}},Z::ZeroOperator) where {T} =
     ZeroOperator(T,Z.domainspace,Z.rangespace)
 
 
@@ -141,9 +141,9 @@ iszeroop(::ZeroOperator) = true
 iszeroop(A::ConstantOperator) = A.λ==0.0
 iszeroop(A) = false
 
-convert{T<:Number}(::Type{T},::ZeroOperator) = zero(T)
-convert{T<:Number}(::Type{T},C::ConstantOperator) = convert(T,C.λ)
-convert{T<:Number}(::Type{T},S::SpaceOperator) = convert(T,S.op)
+convert(::Type{T},::ZeroOperator) where {T<:Number} = zero(T)
+convert(::Type{T},C::ConstantOperator) where {T<:Number} = convert(T,C.λ)
+convert(::Type{T},S::SpaceOperator) where {T<:Number} = convert(T,S.op)
 
 
 
@@ -151,5 +151,5 @@ convert{T<:Number}(::Type{T},S::SpaceOperator) = convert(T,S.op)
 ## Special case for ZeroOperator
 for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzeros),
                     (:BlockBandedMatrix,:bbzeros))
-    @eval convert{T,ZO<:ZeroOperator}(::Type{$TYP},S::SubOperator{T,ZO}) = $ZER(S)
+    @eval convert(::Type{$TYP},S::SubOperator{T,ZO}) where {T,ZO<:ZeroOperator} = $ZER(S)
 end

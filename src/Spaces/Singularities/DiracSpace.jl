@@ -72,7 +72,7 @@ Space(d::Point) = PointSpace(d)
 identity_fun(S::PointSpace) = Fun(S,S.points)
 identity_fun(S::DiracSpace) = Fun(PointSpace(S.points),S.points)
 transform(S::PointSpace,v::AbstractVector,plan...) = v
-values{S<:PointSpace}(f::Fun{S}) = coefficient(f,:)
+values(f::Fun{S}) where {S<:PointSpace} = coefficient(f,:)
 
 function evaluate(f::AbstractVector,PS::PointSpace,x::Number)
     p = findfirst(y->isapprox(x,y),PS.points)
@@ -83,7 +83,7 @@ function evaluate(f::AbstractVector,PS::PointSpace,x::Number)
     end
 end
 
-Base.sum{DS<:DiracSpace}(f::Fun{DS})=sum(f.coefficients[1:dimension(space(f))])
+Base.sum(f::Fun{DS}) where {DS<:DiracSpace}=sum(f.coefficients[1:dimension(space(f))])
 
 
 
@@ -91,7 +91,7 @@ DiracDelta(x::Number)=Fun(DiracSpace(x),[1.])
 DiracDelta()=DiracDelta(0.)
 
 
-function Base.cumsum{S<:DiracSpace,T<:Real}(f::Fun{S},d::Segment{T})
+function Base.cumsum(f::Fun{S},d::Segment{T}) where {S<:DiracSpace,T<:Real}
     pts=space(f).points
     @assert pts ==sort(pts)
     cfs=cumsum(f.coefficients)
@@ -126,35 +126,35 @@ end
 # end
 
 
-function Multiplication{PS<:PointSpace}(f::Fun{PS},PS2::PointSpace)
+function Multiplication(f::Fun{PS},PS2::PointSpace) where PS<:PointSpace
     @assert space(f).points==PS2.points
     FiniteOperator(diagm(values(f)),PS2,PS2)
 end
 
-function Multiplication{PS<:PointSpace}(f::Fun{PS},DS::DiracSpace)
+function Multiplication(f::Fun{PS},DS::DiracSpace) where PS<:PointSpace
     @assert space(f).points==DS.points
     FiniteOperator(diagm(values(f)),DS,DS)
 end
 
-function Multiplication{DS<:DiracSpace}(f::Fun{DS},PS::PointSpace)
+function Multiplication(f::Fun{DS},PS::PointSpace) where DS<:DiracSpace
     @assert space(f).points==PS.points
     FiniteOperator(diagm(coefficient(f,:)),PS,space(f))
 end
 
-function coefficienttimes{PS<:PointSpace,DS<:DiracSpace}(f::Fun{PS},g::Fun{DS})
+function coefficienttimes(f::Fun{PS},g::Fun{DS}) where {PS<:PointSpace,DS<:DiracSpace}
     @assert space(f).points==space(g).points
     Fun(space(g),f.coefficients.*g.coefficients)
 end
 
-function coefficienttimes{PS<:PointSpace,DS<:DiracSpace}(f::Fun{DS},g::Fun{PS})
+function coefficienttimes(f::Fun{DS},g::Fun{PS}) where {PS<:PointSpace,DS<:DiracSpace}
     @assert space(f).points==space(g).points
     Fun(space(f),f.coefficients.*g.coefficients)
 end
 
-function coefficienttimes{PS<:PointSpace,PS2<:PointSpace}(f::Fun{PS},g::Fun{PS2})
+function coefficienttimes(f::Fun{PS},g::Fun{PS2}) where {PS<:PointSpace,PS2<:PointSpace}
     @assert space(f).points==space(g).points
     Fun(space(g),f.coefficients.*g.coefficients)
 end
 
-/{PS<:PointSpace}(f::Fun,g::Fun{PS}) = f*inv(g)
-Base.inv{PS<:PointSpace}(f::Fun{PS}) = Fun(space(f),1./f.coefficients)
+/(f::Fun,g::Fun{PS}) where {PS<:PointSpace} = f*inv(g)
+Base.inv(f::Fun{PS}) where {PS<:PointSpace} = Fun(space(f),1./f.coefficients)

@@ -221,21 +221,21 @@ Dirichlet(S::TensorSpace{Tuple{ChebyshevDirichlet{1,1,Segment{T},R1},
                                   ChebyshevDirichlet{1,1,Segment{T},R2}}},k) where {T,R1,R2} =
     k == 0 ? ConcreteDirichlet(S,0) : tensor_Dirichlet(S,k)
 
-Dirichlet{T<:Real}(d::ProductDomain{Tuple{Segment{T},Segment{T}}}) =
+Dirichlet(d::ProductDomain{Tuple{Segment{T},Segment{T}}}) where {T<:Real} =
     Dirichlet(ChebyshevDirichlet{1,1}(factor(d,1))*ChebyshevDirichlet{1,1}(factor(d,2)))
 
-isblockbanded{CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR}(::Dirichlet{TensorSpace{Tuple{CD,CD},DD,RR}}) =
+isblockbanded(::Dirichlet{TensorSpace{Tuple{CD,CD},DD,RR}}) where {CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR} =
     true
 
-blockbandinds{CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR}(::Dirichlet{TensorSpace{Tuple{CD,CD},DD,RR}}) =
+blockbandinds(::Dirichlet{TensorSpace{Tuple{CD,CD},DD,RR}}) where {CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR} =
     (0,2)
 
-colstop{CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR}(B::Dirichlet{TensorSpace{Tuple{CD,CD},DD,RR}},j::Integer) =
+colstop(B::Dirichlet{TensorSpace{Tuple{CD,CD},DD,RR}},j::Integer) where {CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR} =
     j ≤ 3 ? 4 : 4(block(domainspace(B),j).K-1)
 
 
-function getindex{CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR}(B::ConcreteDirichlet{TensorSpace{Tuple{CD,CD},DD,RR}},
-                                             k::Integer,j::Integer)
+function getindex(B::ConcreteDirichlet{TensorSpace{Tuple{CD,CD},DD,RR}},
+k::Integer,j::Integer) where {CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR}
     T = eltype(B)
     ds = domainspace(B)
     rs = rangespace(B)
@@ -281,10 +281,10 @@ function getindex{CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR}(B::ConcreteDiri
 end
 
 
-function convert{T,CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR,CSP,TT}(::Type{BlockBandedMatrix},
-                            S::SubOperator{T,ConcreteDirichlet{TensorSpace{Tuple{CD,CD},DD,RR},
-                                                                CSP,TT},
-                                            Tuple{UnitRange{Int},UnitRange{Int}}})
+function convert(::Type{BlockBandedMatrix},
+S::SubOperator{T,ConcreteDirichlet{TensorSpace{Tuple{CD,CD},DD,RR},
+        CSP,TT},
+Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR,CSP,TT}
     P=parent(S)
     ret=bbzeros(S)
     kr,jr=parentindexes(S)
