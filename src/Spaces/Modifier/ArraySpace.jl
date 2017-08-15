@@ -42,18 +42,18 @@ for OP in (:(Base.length),:(Base.start),:(Base.endof),:(Base.size))
     end
 end
 
-for OP in (:(Base.getindex),:(Base.next),:(Base.done),:(Base.stride),:(Base.size))
+for OP in (:(getindex),:(Base.next),:(Base.done),:(Base.stride),:(Base.size))
     @eval $OP(S::ArraySpace,k) = $OP(components(S),k)
 end
 
 
 #support tuple set
 for OP in (:(Base.done),:(Base.stride))
-    @eval $OP{SS<:ArraySpace}(f::Fun{SS},k) = $OP(space(f),k)
+    @eval $OP(f::Fun{<:ArraySpace},k) = $OP(space(f),k)
 end
 
-getindex(f,k...) = component(f,k...)
-Base.next{SS<:ArraySpace}(f::Fun{SS},k)=f[k],k+1
+getindex(f::ArraySpace,k...) = component(f,k...)
+Base.next(f::Fun{<:ArraySpace},k)=f[k],k+1
 
 
 Base.reshape(AS::ArraySpace,k...) = ArraySpace(reshape(AS.spaces,k...))

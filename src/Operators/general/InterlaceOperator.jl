@@ -455,7 +455,7 @@ operators(A::Operator) = [A]
 
 Base.vcat(A::MatrixInterlaceOperator...) =
     InterlaceOperator(vcat(map(operators,A)...))
-function Base.vcat(A::OperatorTypes...)
+function _vcat(A::OperatorTypes...)
     Av = Vector{Operator{mapreduce(eltype,promote_type,A)}}()
     for a in A
         if a isa VectorInterlaceOperator
@@ -467,10 +467,12 @@ function Base.vcat(A::OperatorTypes...)
     InterlaceOperator(vnocat(Av...))
 end
 
+
+
 Base.hcat(A::Union{VectorInterlaceOperator,MatrixInterlaceOperator}...) =
     InterlaceOperator(hcat(map(A->A.ops,A)...))
-Base.hcat(A::OperatorTypes...) = InterlaceOperator(hnocat(A...))
-function Base.hvcat(rows::Tuple{Vararg{Int}},as::OperatorTypes...)
+_hcat(A::OperatorTypes...) = InterlaceOperator(hnocat(A...))
+function _hvcat(rows::Tuple{Vararg{Int}},as::OperatorTypes...)
     # Based on Base
     nbr = length(rows)  # number of block rows
     rs = Array{Any,1}(nbr)
@@ -481,6 +483,21 @@ function Base.hvcat(rows::Tuple{Vararg{Int}},as::OperatorTypes...)
     end
     vcat(rs...)
 end
+
+Base.vcat(A::Operator, B::OperatorTypes...) = _vcat(A, B...)
+Base.hcat(A::Operator, B::OperatorTypes...) = _hcat(A, B...)
+Base.hvcat(rows::Tuple{Vararg{Int}}, A::Operator, B::OperatorTypes...) =
+    _hvcat(rows, A, B...)
+
+Base.vcat(C::Union{Fun,Number,UniformScaling}, A::Operator, B::OperatorTypes...) = _vcat(C, A, B...)
+Base.hcat(C::Union{Fun,Number,UniformScaling}, A::Operator, B::OperatorTypes...) = _hcat(C, A, B...)
+Base.hvcat(rows::Tuple{Vararg{Int}}, C::Union{Fun,Number,UniformScaling}, A::Operator, B::OperatorTypes...) =
+    _hvcat(rows, C, A, B...)
+
+Base.vcat(D::Union{Fun,Number,UniformScaling}, C::Union{Fun,Number,UniformScaling}, A::Operator, B::OperatorTypes...) = _vcat(D, C, A, B...)
+Base.hcat(D::Union{Fun,Number,UniformScaling}, C::Union{Fun,Number,UniformScaling}, A::Operator, B::OperatorTypes...) = _hcat(D, C, A, B...)
+Base.hvcat(rows::Tuple{Vararg{Int}}, D::Union{Fun,Number,UniformScaling}, C::Union{Fun,Number,UniformScaling}, A::Operator, B::OperatorTypes...) =
+    _hvcat(rows, D, C, A, B...)
 
 
 ## Convert Matrix operator to operators

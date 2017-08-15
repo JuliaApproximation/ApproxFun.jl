@@ -286,7 +286,7 @@ end
 
 component_coefficients(sp::Space,cfs,k) = component_coefficients(interlacer(sp),cfs,k)
 
-component{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer) =
+component(f::Fun{<:DirectSumSpace},k::Integer) =
     Fun(component(space(f),k),component_coefficients(space(f),f.coefficients,k))
 
 
