@@ -834,7 +834,7 @@ mutable struct CachedIterator{T,IT,ST}
     state::ST
     length::Int
 
-    (::Type{CachedIterator{T,IT,ST}}){T_,IT_,ST_}(it::IT) where {T_,IT_,ST_, T,IT,ST} = new{T,IT,ST}(it,Vector{T}(),start(it),0)
+    CachedIterator{T,IT,ST}(it::IT) where {T,IT,ST} = new{T,IT,ST}(it,Vector{T}(),start(it),0)
 end
 
 CachedIterator(it) = CachedIterator{eltype(it),typeof(it),typeof(start(it))}(it)

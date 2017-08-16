@@ -40,14 +40,14 @@ struct UltrasphericalPlan{CT,FT}
     chebplan::CT
     cheb2legplan::FT
 
-    (::Type{UltrasphericalPlan{CT,FT}}){CT_,FT_}(cp,c2lp) where {CT_,FT_, CT,FT} = new{CT,FT}(cp,c2lp)
+    UltrasphericalPlan{CT,FT}(cp,c2lp) where {CT,FT} = new{CT,FT}(cp,c2lp)
 end
 
 struct UltrasphericalIPlan{CT,FT}
     chebiplan::CT
     leg2chebplan::FT
 
-    (::Type{UltrasphericalIPlan{CT,FT}}){CT_,FT_}(cp,c2lp) where {CT_,FT_, CT,FT} = new{CT,FT}(cp,c2lp)
+    UltrasphericalIPlan{CT,FT}(cp,c2lp) where {CT,FT} = new{CT,FT}(cp,c2lp)
 end
 
 function UltrasphericalPlan(λ::Number,vals)
