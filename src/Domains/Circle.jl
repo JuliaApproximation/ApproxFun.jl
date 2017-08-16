@@ -23,46 +23,46 @@ end
 Circle(c::Number,r::Real,o::Bool) = Circle{typeof(c),typeof(r),Complex{typeof(r)}}(c,r,o)
 Circle(c::Vec,r::Real,o::Bool) = Circle{typeof(c),typeof(r),typeof(c)}(c,r,o)
 
-Circle{T1,T2,V<:Real}(::Type{T1},c::T2,r::V,o::Bool) = Circle(convert(promote_type(T1,T2,V),c),
+Circle(::Type{T1},c::T2,r::V,o::Bool) where {T1,T2,V<:Real} = Circle(convert(promote_type(T1,T2,V),c),
 															  convert(promote_type(real(T1),real(T2),V),r),o)
-Circle{T1<:Number}(::Type{T1},c,r::Bool) = Circle(T1,c,r)
-Circle{T1<:Number}(::Type{T1},c,r::Real) = Circle(T1,c,r)
+Circle(::Type{T1},c,r::Bool) where {T1<:Number} = Circle(T1,c,r)
+Circle(::Type{T1},c,r::Real) where {T1<:Number} = Circle(T1,c,r)
 Circle(c,r::Real) = Circle(c,r,true)
 Circle(r::Real) = Circle(zero(r),r)
 Circle(r::Int) = Circle(Float64,0.,r)
 Circle(a::Tuple,r::Real) = Circle(Vec(a...),r)
 
-Circle{V<:Real}(::Type{V}) = Circle(one(V))
+Circle(::Type{V}) where {V<:Real} = Circle(one(V))
 Circle() = Circle(1.0)
 
 
 
-isambiguous{T<:Number}(d::Circle{T}) = isnan(d.center) && isnan(d.radius)
-isambiguous{T<:Vec}(d::Circle{T}) = all(isnan,d.center) && isnan(d.radius)
-convert{T<:Number,V<:Real}(::Type{Circle{T,V}},::AnyDomain) = Circle{T,V}(NaN,NaN)
-convert{IT<:Circle}(::Type{IT},::AnyDomain) = Circle(NaN,NaN)
+isambiguous(d::Circle{T}) where {T<:Number} = isnan(d.center) && isnan(d.radius)
+isambiguous(d::Circle{T}) where {T<:Vec} = all(isnan,d.center) && isnan(d.radius)
+convert(::Type{Circle{T,V}},::AnyDomain) where {T<:Number,V<:Real} = Circle{T,V}(NaN,NaN)
+convert(::Type{IT},::AnyDomain) where {IT<:Circle} = Circle(NaN,NaN)
 
 
-function tocanonical{T<:Number}(d::Circle{T},ζ)
+function tocanonical(d::Circle{T},ζ) where T<:Number
     v=mappoint(d,Circle(),ζ)
     atan2(imag(v)-0.0,real(v))  # -0.0 to get branch cut right
 end
 
-function tocanonical{T<:Vec}(d::Circle{T},ζ)
+function tocanonical(d::Circle{T},ζ) where T<:Vec
     v=mappoint(d,Circle((0.0,0.0),1.0),ζ)
     atan2(v[2]-0.0,v[1])  # -0.0 to get branch cut right
 end
 
 
-fromcanonical{T<:Number,V<:Real}(d::Circle{T,V,Complex{V}},θ) =
+fromcanonical(d::Circle{T,V,Complex{V}},θ) where {T<:Number,V<:Real} =
 	d.radius*exp((d.orientation?1:-1)*1.0im*θ) + d.center
-fromcanonicalD{T<:Number}(d::Circle{T},θ) =
+fromcanonicalD(d::Circle{T},θ) where {T<:Number} =
 	(d.orientation?1:-1)*d.radius*1.0im*exp((d.orientation?1:-1)*1.0im*θ)
 
 
-fromcanonical{T<:Vec}(d::Circle{T},θ::Number) =
+fromcanonical(d::Circle{T},θ::Number) where {T<:Vec} =
 	d.radius*Vec(cos((d.orientation?1:-1)*θ),sin((d.orientation?1:-1)*θ)) + d.center
-fromcanonicalD{T<:Vec}(d::Circle{T},θ::Number) =
+fromcanonicalD(d::Circle{T},θ::Number) where {T<:Vec} =
 	d.radius*(d.orientation?1:-1)*Vec(-sin((d.orientation?1:-1)*θ),cos((d.orientation?1:-1)*θ))
 
 
@@ -76,10 +76,10 @@ complexlength(d::Circle) = (d.orientation?1:-1)*im*arclength(d)  #TODO: why?
 
 
 
-mappoint{T<:Vec,V<:Number}(d1::Circle{T},d2::Circle{V},z) =
+mappoint(d1::Circle{T},d2::Circle{V},z) where {T<:Vec,V<:Number} =
 	mappoint(Circle(complex(d1.center...),d1.radius),d2,z[1]+im*z[2])
 
-mappoint{T<:Number,V<:Vec}(d1::Circle{T},d2::Circle{V},z) =
+mappoint(d1::Circle{T},d2::Circle{V},z) where {T<:Number,V<:Vec} =
 	mappoint(Circle(Vec(d1.center...),d1.radius),d2,Vec(real(z),imag(z)))
 
 function mappoint(d1::Circle,d2::Circle,z)

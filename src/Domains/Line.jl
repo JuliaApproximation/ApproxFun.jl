@@ -23,22 +23,22 @@ struct Line{angle,T<:Number} <: IntervalDomain{T}
     β::Float64
 
     #TODO get this inner constructor working again.
-    (::Type{Line{angle,T}}){angle,T}(c,α,β) = new{angle,T}(c,α,β)
-    (::Type{Line{angle,T}}){angle,T}(c) = new{angle,T}(c,-1.,-1.)
-    (::Type{Line{angle,T}}){angle,T}() = new{angle,T}(zero(T),-1.,-1.)
+    Line{angle,T}(c,α,β) where {angle,T} = new{angle,T}(c,α,β)
+    Line{angle,T}(c) where {angle,T} = new{angle,T}(c,-1.,-1.)
+    Line{angle,T}() where {angle,T} = new{angle,T}(zero(T),-1.,-1.)
 end
 
 const RealLine{T} = Union{Line{false,T},Line{true,T}}
 
-(::Type{Line{a}}){a}(c,α,β) = Line{a,typeof(c)}(c,α,β)
-(::Type{Line{a}}){a}(c::Number) = Line{a,typeof(c)}(c)
-(::Type{Line{a}}){a}() = Line{a,Float64}()
+Line{a}(c,α,β) where {a} = Line{a,typeof(c)}(c,α,β)
+Line{a}(c::Number) where {a} = Line{a,typeof(c)}(c)
+Line{a}() where {a} = Line{a,Float64}()
 
-Base.angle{a}(d::Line{a}) = a*π
+Base.angle(d::Line{a}) where {a} = a*π
 
 Base.reverse(d::Line{true}) = Line{false}(d.center,d.β,d.α)
 Base.reverse(d::Line{false}) = Line{true}(d.center,d.β,d.α)
-Base.reverse{a}(d::Line{a}) = Line{a-1}(d.center,d.β,d.α)
+Base.reverse(d::Line{a}) where {a} = Line{a-1}(d.center,d.β,d.α)
 
 # ensure the angle is always in (-1,1]
 Line(c,a,α,β) = Line{mod(a/π-1,-2)+1,typeof(c)}(c,α,β)
@@ -50,8 +50,8 @@ Line() = Line(false)
 
 
 isambiguous(d::Line)=isnan(d.center)
-convert{a,T<:Number}(::Type{Line{a,T}},::AnyDomain)=Line{a,T}(NaN)
-convert{IT<:Line}(::Type{IT},::AnyDomain)=Line(NaN,NaN)
+convert(::Type{Line{a,T}},::AnyDomain) where {a,T<:Number}=Line{a,T}(NaN)
+convert(::Type{IT},::AnyDomain) where {IT<:Line}=Line(NaN,NaN)
 
 ## Map interval
 
@@ -130,7 +130,7 @@ invfromcanonicalD(d::Line{true},x) = -line_invfromcanonicalD(d.α,d.β,x)
 
 
 
-=={a}(d::Line{a},m::Line{a}) = d.center == m.center && d.β == m.β &&d.α == m.α
+==(d::Line{a},m::Line{a}) where {a} = d.center == m.center && d.β == m.β &&d.α == m.α
 
 
 
@@ -141,8 +141,8 @@ invfromcanonicalD(d::Line{true},x) = -line_invfromcanonicalD(d.α,d.β,x)
 *(d::Line,c::Number) = c*d
 for OP in (:+,:-)
     @eval begin
-        $OP{a}(c::Number,d::Line{a}) = Line{a}($OP(c,d.center),d.α,d.β)
-        $OP{a}(d::Line{a},c::Number) = Line{a}($OP(d.center,c),d.α,d.β)
+        $OP(c::Number,d::Line{a}) where {a} = Line{a}($OP(c,d.center),d.α,d.β)
+        $OP(d::Line{a},c::Number) where {a} = Line{a}($OP(d.center,c),d.α,d.β)
     end
 end
 
@@ -158,13 +158,13 @@ end
 struct PeriodicLine{angle,T} <: PeriodicDomain{Float64}
     center::T
     L::Float64
-    (::Type{PeriodicLine{angle,T}}){angle,T}(c,L) = new{angle,T}(c,L)
-    (::Type{PeriodicLine{angle,T}}){angle,T}(c) = new{angle,T}(c,1.)
-    (::Type{PeriodicLine{angle,T}}){angle,T}(d::PeriodicLine) = new{angle,T}(d.center,d.L)
-    (::Type{PeriodicLine{angle,T}}){angle,T}() = new{angle,T}(0.,1.)
+    PeriodicLine{angle,T}(c,L) where {angle,T} = new{angle,T}(c,L)
+    PeriodicLine{angle,T}(c) where {angle,T} = new{angle,T}(c,1.)
+    PeriodicLine{angle,T}(d::PeriodicLine) where {angle,T} = new{angle,T}(d.center,d.L)
+    PeriodicLine{angle,T}() where {angle,T} = new{angle,T}(0.,1.)
 end
 
-convert{a}(::Type{PeriodicLine{a}},c,L) = PeriodicLine{a,typeof(c)}(c,L)
+convert(::Type{PeriodicLine{a}},c,L) where {a} = PeriodicLine{a,typeof(c)}(c,L)
 
 
 PeriodicLine(c,a) = PeriodicLine{a/π,eltype(c)}(c,1.)
@@ -172,24 +172,24 @@ PeriodicLine() = PeriodicLine{false,Float64}(0.,1.)
 PeriodicLine(b::Bool) = PeriodicLine{b,Float64}()
 
 isambiguous(d::PeriodicLine) = isnan(d.center) && isnan(d.angle)
-convert{T<:Number,TT}(::Type{PeriodicLine{T,TT}},::AnyDomain) = PeriodicLine{T,TT}(NaN,NaN)
-convert{IT<:PeriodicLine}(::Type{IT},::AnyDomain) = PeriodicLine(NaN,NaN)
+convert(::Type{PeriodicLine{T,TT}},::AnyDomain) where {T<:Number,TT} = PeriodicLine{T,TT}(NaN,NaN)
+convert(::Type{IT},::AnyDomain) where {IT<:PeriodicLine} = PeriodicLine(NaN,NaN)
 
-Base.angle{a}(d::PeriodicLine{a})=a*π
+Base.angle(d::PeriodicLine{a}) where {a}=a*π
 
 Base.reverse(d::PeriodicLine{true})=PeriodicLine{false}(d.center,d.L)
 Base.reverse(d::PeriodicLine{false})=PeriodicLine{true}(d.center,d.L)
-Base.reverse{a}(d::PeriodicLine{a})=PeriodicLine{a-1}(d.center,d.L)
+Base.reverse(d::PeriodicLine{a}) where {a}=PeriodicLine{a-1}(d.center,d.L)
 
 tocanonical(d::PeriodicLine{false},x)= 2atan((x-d.center)/d.L)
 fromcanonical(d::PeriodicLine{false},v::AbstractArray) =
     eltype(d)[fromcanonical(d,vk) for vk in v]
 fromcanonical(d::PeriodicLine{false},θ)=d.L*tan(θ/2) + d.center
 
-tocanonical{a}(d::PeriodicLine{a},x)=tocanonical(PeriodicLine{false,Float64}(0.,d.L),exp(-π*im*a)*(x-d.center))
-fromcanonical{a}(d::PeriodicLine{a},v::AbstractArray) =
+tocanonical(d::PeriodicLine{a},x) where {a}=tocanonical(PeriodicLine{false,Float64}(0.,d.L),exp(-π*im*a)*(x-d.center))
+fromcanonical(d::PeriodicLine{a},v::AbstractArray) where {a} =
     [fromcanonical(d,vk) for vk in v]
-fromcanonical{a}(d::PeriodicLine{a},x) =
+fromcanonical(d::PeriodicLine{a},x) where {a} =
     exp(π*im*a)*fromcanonical(PeriodicLine{false,Float64}(0.,d.L),x)+d.center
 
 
@@ -210,8 +210,8 @@ end
 *(d::PeriodicLine,c::Number)=c*d
 for OP in (:+,:-)
     @eval begin
-        $OP{a,T}(c::Number,d::PeriodicLine{a,T})=PeriodicLine{a,promote_type(eltype(c),T)}($OP(c,d.center),d.L)
-        $OP{a,T}(d::PeriodicLine{a,T},c::Number)=PeriodicLine{a,promote_type(eltype(c),T)}($OP(d.center,c),d.L)
+        $OP(c::Number,d::PeriodicLine{a,T}) where {a,T}=PeriodicLine{a,promote_type(eltype(c),T)}($OP(c,d.center),d.L)
+        $OP(d::PeriodicLine{a,T},c::Number) where {a,T}=PeriodicLine{a,promote_type(eltype(c),T)}($OP(d.center,c),d.L)
     end
 end
 

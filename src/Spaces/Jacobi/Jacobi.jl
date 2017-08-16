@@ -28,15 +28,15 @@ function Ultraspherical(J::Jacobi)
     end
 end
 
-Base.promote_rule{D,R1,R2}(::Type{Jacobi{D,R1}},::Type{Jacobi{D,R2}}) =
+Base.promote_rule(::Type{Jacobi{D,R1}},::Type{Jacobi{D,R2}}) where {D,R1,R2} =
     Jacobi{D,promote_type(R1,R2)}
-convert{D,R1,R2}(::Type{Jacobi{D,R1}},J::Jacobi{D,R2}) =
+convert(::Type{Jacobi{D,R1}},J::Jacobi{D,R2}) where {D,R1,R2} =
     Jacobi{D,R1}(J.b,J.a,J.domain)
 
 const WeightedJacobi{D,R} = JacobiWeight{Jacobi{D,R},D,R}
 
-(::Type{WeightedJacobi})(β,α,d::Domain) = JacobiWeight(β,α,Jacobi(β,α,d))
-(::Type{WeightedJacobi})(β,α) = JacobiWeight(β,α,Jacobi(β,α))
+WeightedJacobi(β,α,d::Domain) = JacobiWeight(β,α,Jacobi(β,α,d))
+WeightedJacobi(β,α) = JacobiWeight(β,α,Jacobi(β,α))
 
 spacescompatible(a::Jacobi,b::Jacobi) = a.a ≈ b.a && a.b ≈ b.b
 
@@ -67,17 +67,17 @@ end
 # x p_{n-1} =γ_n p_{n-2} + α_n p_{n-1} +  p_n β_n
 #####
 
-@inline jacobirecγ{T}(::Type{T},α,β,k) = jacobirecC(T,α,β,k-1)/jacobirecA(T,α,β,k-1)
-@inline jacobirecα{T}(::Type{T},α,β,k) = -jacobirecB(T,α,β,k-1)/jacobirecA(T,α,β,k-1)
-@inline jacobirecβ{T}(::Type{T},α,β,k) = 1/jacobirecA(T,α,β,k-1)
+@inline jacobirecγ(::Type{T},α,β,k) where {T} = jacobirecC(T,α,β,k-1)/jacobirecA(T,α,β,k-1)
+@inline jacobirecα(::Type{T},α,β,k) where {T} = -jacobirecB(T,α,β,k-1)/jacobirecA(T,α,β,k-1)
+@inline jacobirecβ(::Type{T},α,β,k) where {T} = 1/jacobirecA(T,α,β,k-1)
 
 for (REC,JREC) in ((:recα,:jacobirecα),(:recβ,:jacobirecβ),(:recγ,:jacobirecγ),
                    (:recA,:jacobirecA),(:recB,:jacobirecB),(:recC,:jacobirecC))
-    @eval @inline $REC{T}(::Type{T},sp::Jacobi,k) = $JREC(T,sp.a,sp.b,k)::T
+    @eval @inline $REC(::Type{T},sp::Jacobi,k) where {T} = $JREC(T,sp.a,sp.b,k)::T
 end
 
 
-function jacobip{T}(::Type{T},r::Range,α,β,x::Number)
+function jacobip(::Type{T},r::Range,α,β,x::Number) where T
     if x==1 && α==0
         ones(T,length(r))
     elseif x==-1 && β==0
@@ -103,9 +103,9 @@ end
 
 jacobip(r::Range,α,β,x::Number) = jacobip(promote_type(typeof(α),typeof(β),typeof(x)),r,α,β,x)
 
-jacobip{T}(::Type{T},n::Integer,α,β,v) = jacobip(T,n:n,α,β,v)[1]
+jacobip(::Type{T},n::Integer,α,β,v) where {T} = jacobip(T,n:n,α,β,v)[1]
 jacobip(n::Integer,α,β,v) = jacobip(n:n,α,β,v)[1]
-jacobip{T}(::Type{T},n,S::Jacobi,v) = jacobip(T,n,S.a,S.b,v)
+jacobip(::Type{T},n,S::Jacobi,v) where {T} = jacobip(T,n,S.a,S.b,v)
 jacobip(n,S::Jacobi,v) = jacobip(n,S.a,S.b,v)
 
 
@@ -118,7 +118,7 @@ include("JacobiOperators.jl")
 
 
 for op in (:(Base.ones),:(Base.zeros))
-    @eval ($op){T<:Number}(::Type{T},S::Jacobi)=Fun(S,($op)(T,1))
+    @eval ($op)(::Type{T},S::Jacobi) where {T<:Number}=Fun(S,($op)(T,1))
     @eval ($op)(S::Jacobi)=Fun(S,($op)(1))
 end
 
@@ -137,7 +137,7 @@ setdomain(S::Jacobi,d::Domain)=Jacobi(S.b,S.a,d)
 
 # O(min(m,n)) Jacobi conjugated inner product
 
-function conjugatedinnerproduct{S,V}(sp::Jacobi,u::AbstractVector{S},v::AbstractVector{V})
+function conjugatedinnerproduct(sp::Jacobi,u::AbstractVector{S},v::AbstractVector{V}) where {S,V}
     T,mn = promote_type(S,V),min(length(u),length(v))
     α,β = sp.a,sp.b
     if mn > 1

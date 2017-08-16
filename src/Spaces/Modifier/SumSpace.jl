@@ -155,7 +155,7 @@ setdomain(A::PiecewiseSpace,d::UnionDomain) =
 
 
 
-function spacescompatible{S<:DirectSumSpace}(A::S,B::S)
+function spacescompatible(A::S,B::S) where S<:DirectSumSpace
     if ncomponents(A) != ncomponents(B)
         false
     else
@@ -169,7 +169,7 @@ function spacescompatible{S<:DirectSumSpace}(A::S,B::S)
     end
 end
 
-function Base.promote_rule{SV,D,R,V,T<:Number,VV}(::Type{Fun{SumSpace{SV,D,R},V,VV}},::Type{T})
+function Base.promote_rule(::Type{Fun{SumSpace{SV,D,R},V,VV}},::Type{T}) where {SV,D,R,V,T<:Number,VV}
     for k=1:length(SV.parameters)
         pt=promote_type(VFun{SV.parameters[k],V},T)
         if pt != Fun
@@ -180,10 +180,10 @@ function Base.promote_rule{SV,D,R,V,T<:Number,VV}(::Type{Fun{SumSpace{SV,D,R},V,
     Fun
 end
 
-Base.promote_rule{SV,D,R,T<:Number}(::Type{Fun{SumSpace{SV,D,R}}},::Type{T}) =
+Base.promote_rule(::Type{Fun{SumSpace{SV,D,R}}},::Type{T}) where {SV,D,R,T<:Number} =
     promote_rule(VFun{SumSpace{SV,D,R},Float64},T)
 
-function Base.promote_rule{SV,D,R,V,VV,T<:Number}(::Type{Fun{PiecewiseSpace{SV,D,R},V,VV}},::Type{T})
+function Base.promote_rule(::Type{Fun{PiecewiseSpace{SV,D,R},V,VV}},::Type{T}) where {SV,D,R,V,VV,T<:Number}
     # if any doesn't support promoting, just leave unpromoted
 
     newfsp=map(s->promote_type(VFun{s,V},T),SV.parameters)
@@ -195,7 +195,7 @@ function Base.promote_rule{SV,D,R,V,VV,T<:Number}(::Type{Fun{PiecewiseSpace{SV,D
     end
 end
 
-Base.promote_rule{SV,D,R,T<:Number}(::Type{Fun{PiecewiseSpace{SV,D,R}}},::Type{T}) =
+Base.promote_rule(::Type{Fun{PiecewiseSpace{SV,D,R}}},::Type{T}) where {SV,D,R,T<:Number} =
     promote_rule(VFun{PiecewiseSpace{SV,D,R},Float64},T)
 
 
@@ -295,8 +295,8 @@ component(f::Fun{<:DirectSumSpace},k::Integer) =
 
 for OP in (:(Base.last),:(Base.first))
     @eval begin
-        $OP{SS<:SumSpace}(f::Fun{SS}) = mapreduce($OP,+,components(f))
-        $OP{SS<:PiecewiseSpace}(f::Fun{SS}) = $OP($OP(components(f)))
+        $OP(f::Fun{SS}) where {SS<:SumSpace} = mapreduce($OP,+,components(f))
+        $OP(f::Fun{SS}) where {SS<:PiecewiseSpace} = $OP($OP(components(f)))
     end
 end
 
@@ -336,7 +336,7 @@ end
 ## calculus
 for TYP in (:SumSpace,:PiecewiseSpace)
     for OP in (:differentiate,:integrate)
-        @eval function $OP{D<:$TYP,T}(f::Fun{D,T})
+        @eval function $OP(f::Fun{D,T}) where {D<:$TYP,T}
             fs = map($OP,components(f))
             sp = $TYP(map(space,fs))
             Fun(sp,interlace(fs,sp))
@@ -356,7 +356,7 @@ end
 
 
 
-@eval function Base.cumsum{D<:SumSpace,T}(f::Fun{D,T})
+@eval function Base.cumsum(f::Fun{D,T}) where {D<:SumSpace,T}
     fs=map(cumsum,components(f))
     sp=SumSpace(map(space,fs))
     Fun(sp,interlace(fs,sp))
@@ -364,10 +364,10 @@ end
 
 
 for TYP in (:SumSpace,:PiecewiseSpace), OP in (:(Base.sum),:linesum)
-    @eval $OP{V<:$TYP}(f::Fun{V}) = mapreduce($OP,+,components(f))
+    @eval $OP(f::Fun{V}) where {V<:$TYP} = mapreduce($OP,+,components(f))
 end
 
-function Base.cumsum{V<:PiecewiseSpace}(f::Fun{V})
+function Base.cumsum(f::Fun{V}) where V<:PiecewiseSpace
     vf=components(f)
     r=zero(eltype(f))
     for k=1:length(vf)
@@ -377,21 +377,21 @@ function Base.cumsum{V<:PiecewiseSpace}(f::Fun{V})
     Fun(vf,PiecewiseSpace)
 end
 
-Base.cumsum{V<:PiecewiseSpace}(f::Fun{V},d::Domain) =
+Base.cumsum(f::Fun{V},d::Domain) where {V<:PiecewiseSpace} =
     mapreduce(g->cumsum(g,d),+,components(f))
 
 
 
-bilinearform{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) =
+bilinearform(f::Fun{S},g::Fun{V}) where {S<:PiecewiseSpace,V<:PiecewiseSpace} =
     sum(map(bilinearform,components(f),components(g)))
-linebilinearform{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) =
+linebilinearform(f::Fun{S},g::Fun{V}) where {S<:PiecewiseSpace,V<:PiecewiseSpace} =
     sum(map(linebilinearform,components(f),components(g)))
 
 # assume first domain has 1 as a basis element
 
 
 
-function Base.ones{T<:Number}(::Type{T},S::SumSpace)
+function Base.ones(::Type{T},S::SumSpace) where T<:Number
     @assert ncomponents(S) == 2
     if isconvertible(ConstantSpace(),component(S,1))
         ones(T,component(S,1)) ⊕ zeros(T,component(S,2))
@@ -402,7 +402,7 @@ end
 
 Base.ones(S::SumSpace) = ones(Float64,S)
 
-Base.ones{T<:Number,SS,V}(::Type{T},S::PiecewiseSpace{SS,V}) =
+Base.ones(::Type{T},S::PiecewiseSpace{SS,V}) where {T<:Number,SS,V} =
     Fun(map(ones,components(S)),PiecewiseSpace)
 Base.ones(S::PiecewiseSpace) = ones(Float64,S)
 
@@ -411,7 +411,7 @@ identity_fun(S::PiecewiseSpace) = Fun(map(identity_fun,S.spaces),PiecewiseSpace)
 
 
 # interlace coefficients according to iterator
-function interlace{T,V<:AbstractVector}(::Type{T},v::AbstractVector{V},it::BlockInterlacer)
+function interlace(::Type{T},v::AbstractVector{V},it::BlockInterlacer) where {T,V<:AbstractVector}
     ret=Array{T}(0)
     N=mapreduce(length,max,v)
     cnts = Vector(map(length,v))  # convert to Vector to ensure mutable
@@ -431,13 +431,13 @@ function interlace{T,V<:AbstractVector}(::Type{T},v::AbstractVector{V},it::Block
     ret
 end
 
-interlace{V<:AbstractVector}(v::AbstractVector{V},it::BlockInterlacer) =
+interlace(v::AbstractVector{V},it::BlockInterlacer) where {V<:AbstractVector} =
     interlace(mapreduce(eltype,promote_type,v),v,it)
 
-interlace{V<:AbstractVector}(v::AbstractVector{V},sp::DirectSumSpace) =
+interlace(v::AbstractVector{V},sp::DirectSumSpace) where {V<:AbstractVector} =
     interlace(v,interlacer(sp))
 
-interlace{F<:Fun}(v::AbstractVector{F},sp::DirectSumSpace) =
+interlace(v::AbstractVector{F},sp::DirectSumSpace) where {F<:Fun} =
     interlace(map(coefficients,v),sp)
 
 
@@ -456,9 +456,9 @@ function interlace(v::Union{Tuple,Vector{Any}},sp::DirectSumSpace)
     interlace(V,sp)
 end
 
-components{S<:DirectSumSpace}(f::Fun{S}) = Fun[component(f,j) for j=1:ncomponents(f)]
+components(f::Fun{S}) where {S<:DirectSumSpace} = Fun[component(f,j) for j=1:ncomponents(f)]
 
-function Fun{F<:Fun}(v::AbstractVector{F},::Type{PiecewiseSpace})
+function Fun(v::AbstractVector{F},::Type{PiecewiseSpace}) where F<:Fun
     sp = PiecewiseSpace(map(space,v))
     Fun(sp,interlace(v,sp))
 end
@@ -488,7 +488,7 @@ plan_itransform(sp::PiecewiseSpace,vals::AbstractVector) =
 
 
 
-function *{PS<:PiecewiseSpace,T}(P::TransformPlan{T,PS,false},vals::AbstractVector{T})
+function *(P::TransformPlan{T,PS,false},vals::AbstractVector{T}) where {PS<:PiecewiseSpace,T}
     S=components(P.space)
     n=length(vals)
     K=length(S)
@@ -514,7 +514,7 @@ function *{PS<:PiecewiseSpace,T}(P::TransformPlan{T,PS,false},vals::AbstractVect
     interlace(M,P.space)
 end
 
-*{T,PS<:PiecewiseSpace}(P::ITransformPlan{T,PS,false},cfs::AbstractVector{T}) =
+*(P::ITransformPlan{T,PS,false},cfs::AbstractVector{T}) where {T,PS<:PiecewiseSpace} =
     vcat([itransform(P.space.spaces[j],component(Fun(P.space,cfs),j).coefficients) for j=1:ncomponents(P.space)]...)
 
 

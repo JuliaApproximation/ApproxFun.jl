@@ -1,6 +1,6 @@
 ## Caches
 
-function CachedOperator{T}(io::InterlaceOperator{T,1};padding::Bool=false)
+function CachedOperator(io::InterlaceOperator{T,1};padding::Bool=false) where T
     ds=domainspace(io)
     rs=rangespace(io)
 
@@ -77,7 +77,7 @@ function CachedOperator{T}(io::InterlaceOperator{T,1};padding::Bool=false)
 end
 
 
-function CachedOperator{T}(io::InterlaceOperator{T,2};padding::Bool=false)
+function CachedOperator(io::InterlaceOperator{T,2};padding::Bool=false) where T
     ds=domainspace(io)
     rs=rangespace(io)
     di=io.domaininterlacer
@@ -174,9 +174,9 @@ end
 
 # Grow cached interlace operator
 
-function resizedata!{T<:Number,DS,RS,DI,RI,BI}(co::CachedOperator{T,AlmostBandedMatrix{T},
-                                                        InterlaceOperator{T,1,DS,RS,DI,RI,BI}},
-                                     n::Integer,::Colon)
+function resizedata!(co::CachedOperator{T,AlmostBandedMatrix{T},
+                              InterlaceOperator{T,1,DS,RS,DI,RI,BI}},
+           n::Integer,::Colon) where {T<:Number,DS,RS,DI,RI,BI}
     if n ≤ co.datasize[1]
         return co
     end
@@ -210,9 +210,9 @@ end
 
 
 
-function resizedata!{T<:Number,DS,RS,DI,RI,BI}(co::CachedOperator{T,AlmostBandedMatrix{T},
-                                                        InterlaceOperator{T,2,DS,RS,DI,RI,BI}},
-                                     n::Integer,::Colon)
+function resizedata!(co::CachedOperator{T,AlmostBandedMatrix{T},
+                              InterlaceOperator{T,2,DS,RS,DI,RI,BI}},
+           n::Integer,::Colon) where {T<:Number,DS,RS,DI,RI,BI}
     if n ≤ co.datasize[1]
         return co
     end
@@ -258,14 +258,14 @@ function resizedata!{T<:Number,DS,RS,DI,RI,BI}(co::CachedOperator{T,AlmostBanded
 end
 
 
-resizedata!{T<:Number,DS,RS,DI,RI,BI}(co::CachedOperator{T,AlmostBandedMatrix{T},
-                                                        InterlaceOperator{T,1,DS,RS,DI,RI,BI}},
-                     n::Integer,m::Integer) = resizedata!(co,max(n,m+bandwidth(co.data.bands,1)),:)
+resizedata!(co::CachedOperator{T,AlmostBandedMatrix{T},
+                              InterlaceOperator{T,1,DS,RS,DI,RI,BI}},
+n::Integer,m::Integer) where {T<:Number,DS,RS,DI,RI,BI} = resizedata!(co,max(n,m+bandwidth(co.data.bands,1)),:)
 
 
-resizedata!{T<:Number,DS,RS,DI,RI,BI}(co::CachedOperator{T,AlmostBandedMatrix{T},
-                                                         InterlaceOperator{T,2,DS,RS,DI,RI,BI}},
-                      n::Integer,m::Integer) = resizedata!(co,max(n,m+bandwidth(co.data.bands,1)),:)
+resizedata!(co::CachedOperator{T,AlmostBandedMatrix{T},
+                               InterlaceOperator{T,2,DS,RS,DI,RI,BI}},
+n::Integer,m::Integer) where {T<:Number,DS,RS,DI,RI,BI} = resizedata!(co,max(n,m+bandwidth(co.data.bands,1)),:)
 
 
 
@@ -276,16 +276,16 @@ resizedata!{T<:Number,DS,RS,DI,RI,BI}(co::CachedOperator{T,AlmostBandedMatrix{T}
 ## QR
 
 
-function QROperator{T}(R::CachedOperator{T,AlmostBandedMatrix{T}})
+function QROperator(R::CachedOperator{T,AlmostBandedMatrix{T}}) where T
     M = R.data.bands.l+1   # number of diag+subdiagonal bands
     H = Matrix{T}(M,100)
     QROperator(R,H,0)
 end
 
 
-function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,AlmostBandedMatrix{T},
-                                                                 MM,DS,RS,BI}},
-                        ::Colon,col)
+function resizedata!(QR::QROperator{CachedOperator{T,AlmostBandedMatrix{T},
+                                                  MM,DS,RS,BI}},
+         ::Colon,col) where {T,MM,DS,RS,BI}
     if col ≤ QR.ncols
         return QR
     end
@@ -349,9 +349,9 @@ end
 
 # BLAS versions, requires BlasFloat
 
-function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,AlmostBandedMatrix{T},
-                                                                 MM,DS,RS,BI}},
-                        ::Colon,col)
+function resizedata!(QR::QROperator{CachedOperator{T,AlmostBandedMatrix{T},
+                                       MM,DS,RS,BI}},
+::Colon,col) where {T<:BlasFloat,MM,DS,RS,BI}
     if col ≤ QR.ncols
         return QR
     end

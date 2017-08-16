@@ -5,7 +5,7 @@
 
 for TYP in (:PiecewiseSpace,:ArraySpace)
     @eval begin
-        function promotedomainspace{T}(A::InterlaceOperator{T,2},sp::$TYP)
+        function promotedomainspace(A::InterlaceOperator{T,2},sp::$TYP) where T
             if domainspace(A) == sp
                 return A
             end
@@ -65,7 +65,7 @@ Evaluation(S::SumSpace,x,order) =
         InterlaceOperator(RowVector(vnocat(map(s->Evaluation(s,x,order),components(S))...)),SumSpace))
 
 
-ToeplitzOperator{S,RR,V,DD}(G::Fun{MatrixSpace{S,DD,RR},V}) = interlace(map(ToeplitzOperator,Array(G)))
+ToeplitzOperator(G::Fun{MatrixSpace{S,DD,RR},V}) where {S,RR,V,DD} = interlace(map(ToeplitzOperator,Array(G)))
 
 ## Sum Space
 
@@ -204,7 +204,7 @@ choosedomainspace(M::CalculusOperator{UnsetSpace},sp::SumSpace)=mapreduce(s->cho
 
 ## Multiplcation for Array*Vector
 
-function Multiplication{S,DD,RR,S2,DD2,RR2}(f::Fun{MatrixSpace{S,DD,RR}},sp::VectorSpace{S2,DD2,RR2})
+function Multiplication(f::Fun{MatrixSpace{S,DD,RR}},sp::VectorSpace{S2,DD2,RR2}) where {S,DD,RR,S2,DD2,RR2}
     @assert size(space(f),2)==length(sp)
     m=Array(f)
     MultiplicationWrapper(f,interlace(Operator{promote_type(eltype(f),prectype(sp))}[Multiplication(m[k,j],sp[j]) for k=1:size(m,1),j=1:size(m,2)]))
@@ -215,7 +215,7 @@ end
 
 ## Multiply components
 
-function Multiplication{PW<:PiecewiseSpace}(f::Fun{PW},sp::PiecewiseSpace)
+function Multiplication(f::Fun{PW},sp::PiecewiseSpace) where PW<:PiecewiseSpace
     p=perm(domain(f).domains,domain(sp).domains)  # sort f
     vf=components(f)[p]
 
@@ -230,12 +230,12 @@ Multiplication(f::Fun,sp::SumSpace) =
 
 # we override coefficienttimes to split the multiplication down to components as union may combine spaes
 
-coefficienttimes{S1<:SumSpace,S2<:SumSpace}(f::Fun{S1},g::Fun{S2}) = mapreduce(ff->ff*g,+,components(f))
-coefficienttimes{S1<:SumSpace}(f::Fun{S1},g::Fun) = mapreduce(ff->ff*g,+,components(f))
-coefficienttimes{S2<:SumSpace}(f::Fun,g::Fun{S2}) = mapreduce(gg->f*gg,+,components(g))
+coefficienttimes(f::Fun{S1},g::Fun{S2}) where {S1<:SumSpace,S2<:SumSpace} = mapreduce(ff->ff*g,+,components(f))
+coefficienttimes(f::Fun{S1},g::Fun) where {S1<:SumSpace} = mapreduce(ff->ff*g,+,components(f))
+coefficienttimes(f::Fun,g::Fun{S2}) where {S2<:SumSpace} = mapreduce(gg->f*gg,+,components(g))
 
 
-coefficienttimes{S1<:PiecewiseSpace,S2<:PiecewiseSpace}(f::Fun{S1},g::Fun{S2}) =
+coefficienttimes(f::Fun{S1},g::Fun{S2}) where {S1<:PiecewiseSpace,S2<:PiecewiseSpace} =
     Fun(map(coefficienttimes,components(f),components(g)),PiecewiseSpace)
 
 
@@ -256,16 +256,16 @@ DefiniteLineIntegral(sp::PiecewiseSpace) =
 
 ## TensorSpace of two PiecewiseSpaces
 
-Base.getindex{PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace}(d::TensorSpace{Tuple{PWS1,PWS2}},i::Integer,j::Integer) =
+Base.getindex(d::TensorSpace{Tuple{PWS1,PWS2}},i::Integer,j::Integer) where {PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace} =
     d[1][i]⊗d[2][j]
-Base.getindex{PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace}(d::TensorSpace{Tuple{PWS1,PWS2}},i::Range,j::Range) =
+Base.getindex(d::TensorSpace{Tuple{PWS1,PWS2}},i::Range,j::Range) where {PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace} =
     PiecewiseSpace(d[1][i])⊗PiecewiseSpace(d[2][j])
 
 ## ProductFun
 
 ##  Piecewise
 
-function components{PS<:PiecewiseSpace}(U::ProductFun{PS})
+function components(U::ProductFun{PS}) where PS<:PiecewiseSpace
     ps=space(U,1)
     sp2=space(U,2)
     m=length(ps)

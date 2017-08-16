@@ -20,7 +20,7 @@ convert(::Type{Operator{T}},F::FiniteOperator) where {T} =
     FiniteOperator(convert(AbstractMatrix{T},F.matrix),F.domainspace,F.rangespace)::Operator{T}
 
 
-Base.promote_rule{OT<:Operator,MT<:AbstractMatrix}(::Type{OT},::Type{MT}) = Operator{promote_type(eltype(OT),eltype(MT))}
+Base.promote_rule(::Type{OT},::Type{MT}) where {OT<:Operator,MT<:AbstractMatrix} = Operator{promote_type(eltype(OT),eltype(MT))}
 
 convert(::Type{Operator{T}},M::AbstractMatrix{<:Number}) where {T} = FiniteOperator(AbstractMatrix{T}(M))
 convert(::Type{Operator},M::AbstractMatrix{<:Number}) = Operator{eltype(M)}(M)
@@ -48,7 +48,7 @@ function getindex(F::FiniteOperator,k::Integer)
     end
 end
 
-function convert{AT<:BandedMatrix,T}(::Type{BandedMatrix},S::SubOperator{T,FiniteOperator{AT,T}})
+function convert(::Type{BandedMatrix},S::SubOperator{T,FiniteOperator{AT,T}}) where {AT<:BandedMatrix,T}
     kr,jr=parentindexes(S)
     if last(kr[1]) ≤ size(S.matrix,1) &&
         last(jr[2]) ≤ size(S.matrix,2)

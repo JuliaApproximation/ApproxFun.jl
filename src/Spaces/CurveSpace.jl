@@ -1,8 +1,8 @@
 ## CurveSpace
 
 
-Space{S<:Fourier}(d::PeriodicCurve{S})=Fourier(d)
-Space{S<:Laurent}(d::PeriodicCurve{S})=Laurent(d)
+Space(d::PeriodicCurve{S}) where {S<:Fourier}=Fourier(d)
+Space(d::PeriodicCurve{S}) where {S<:Laurent}=Laurent(d)
 
 #TODO: Make type stable
 convert(::Type{Curve},f::Fun)=isa(domain(f),IntervalDomain)?IntervalCurve(f):PeriodicCurve(f)
@@ -35,19 +35,19 @@ const Bézier = Bernstein # option+e e gives é
 Bernstein{O}() where {O} = Bernstein{O,Float64,Float64}()
 Bernstein{O}(d::Domain) where {O} = Bernstein{O,eltype(d),real(prectype(d))}(d)
 
-order{O}(::Bernstein{O}) = O
-order{O,T,R}(::Type{Bernstein{O,T,R}}) = O
-dimension{O}(::Bernstein{O}) = O+1
-dimension{O,T,R}(::Type{Bernstein{O,T,R}}) = O+1
+order(::Bernstein{O}) where {O} = O
+order(::Type{Bernstein{O,T,R}}) where {O,T,R} = O
+dimension(::Bernstein{O}) where {O} = O+1
+dimension(::Type{Bernstein{O,T,R}}) where {O,T,R} = O+1
 
 canonicalspace(B::Bernstein) = Chebyshev(domain(B))
-canonicaldomain{O,T}(B::Bernstein{O,T}) = Segment{T}()
+canonicaldomain(B::Bernstein{O,T}) where {O,T} = Segment{T}()
 
-spacescompatible{O,T}(a::Bernstein{O,T},b::Bernstein{O,T})=domainscompatible(a,b)
+spacescompatible(a::Bernstein{O,T},b::Bernstein{O,T}) where {O,T}=domainscompatible(a,b)
 
-setdomain{O}(S::Bernstein{O},d::Domain)=Bernstein{O}(d)
+setdomain(S::Bernstein{O},d::Domain) where {O}=Bernstein{O}(d)
 
-identity_fun{order,T}(B::Bernstein{order,T})=Fun(B,collect(-one(T):2one(T)/order:one(T)))
+identity_fun(B::Bernstein{order,T}) where {order,T}=Fun(B,collect(-one(T):2one(T)/order:one(T)))
 
 evaluate(f::AbstractVector,S::Bernstein,z) = decasteljau(f,S,tocanonical(S,z))
 
@@ -81,7 +81,7 @@ function decasteljau(f::AbstractVector,S::Bernstein,z::AbstractVector)
     ret
 end
 
-splitbernstein{B<:Bernstein,T}(f::Fun{B,T},z) = splitbernstein(coefficients(f),space(f),z)
+splitbernstein(f::Fun{B,T},z) where {B<:Bernstein,T} = splitbernstein(coefficients(f),space(f),z)
 
 function splitbernstein(f::AbstractVector,S::Bernstein,z)
     β,omz,opz = copy(f),one(z)-z,one(z)+z

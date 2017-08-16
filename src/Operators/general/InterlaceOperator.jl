@@ -15,9 +15,9 @@ end
 
 
 
-domainscompatible{T<:Operator}(A::AbstractMatrix{T}) = domainscompatible(map(domainspace,A))
+domainscompatible(A::AbstractMatrix{T}) where {T<:Operator} = domainscompatible(map(domainspace,A))
 
-function spacescompatible{T<:Operator}(A::AbstractMatrix{T})
+function spacescompatible(A::AbstractMatrix{T}) where T<:Operator
     for k=1:size(A,1)
         if !spacescompatible(map(rangespace,A[k,:]))
             return false
@@ -31,9 +31,9 @@ function spacescompatible{T<:Operator}(A::AbstractMatrix{T})
     true
 end
 
-spacescompatible{T<:Operator}(A::AbstractVector{T}) = spacescompatible(map(domainspace,A))
+spacescompatible(A::AbstractVector{T}) where {T<:Operator} = spacescompatible(map(domainspace,A))
 
-function domainspace{T<:Operator}(A::AbstractMatrix{T})
+function domainspace(A::AbstractMatrix{T}) where T<:Operator
     if !spacescompatible(A)
         error("Cannot construct domainspace for $A as spaces are not compatible")
     end
@@ -42,7 +42,7 @@ function domainspace{T<:Operator}(A::AbstractMatrix{T})
     Space(spl)
 end
 
-function rangespace{T<:Operator}(A::AbstractVector{T})
+function rangespace(A::AbstractVector{T}) where T<:Operator
     if !spacescompatible(A)
         error("Cannot construct rangespace for $A as domain spaces are not compatible")
     end
@@ -51,9 +51,9 @@ function rangespace{T<:Operator}(A::AbstractVector{T})
     Space(spl)
 end
 
-promotespaces{T<:Operator}(A::AbstractMatrix{T}) = promotespaces(Matrix(A))
+promotespaces(A::AbstractMatrix{T}) where {T<:Operator} = promotespaces(Matrix(A))
 
-function promotespaces{T<:Operator}(A::Matrix{T})
+function promotespaces(A::Matrix{T}) where T<:Operator
     isempty(A) && return A
     ret = similar(A) #TODO: promote might have different Array type
     for j=1:size(A,2)
@@ -87,11 +87,11 @@ const VectorInterlaceOperator = InterlaceOperator{T,1,DS,RS} where {T,DS,RS<:Spa
 const MatrixInterlaceOperator = InterlaceOperator{T,2,DS,RS} where {T,DS,RS<:Space{D,R}} where {D,R<:AbstractVector}
 
 
-InterlaceOperator{T,p}(ops::Array{T,p},ds,rs,di,ri,bi) =
+InterlaceOperator(ops::Array{T,p},ds,rs,di,ri,bi) where {T,p} =
     InterlaceOperator{T,p,typeof(ds),typeof(rs),
                         typeof(di),typeof(ri),typeof(bi)}(ops,ds,rs,di,ri,bi)
 
-function InterlaceOperator{T}(ops::AbstractMatrix{Operator{T}},ds::Space,rs::Space)
+function InterlaceOperator(ops::AbstractMatrix{Operator{T}},ds::Space,rs::Space) where T
     # calculate bandinds TODO: generalize
     p=size(ops,1)
     dsi = interlacer(ds)
@@ -122,7 +122,7 @@ function InterlaceOperator{T}(ops::AbstractMatrix{Operator{T}},ds::Space,rs::Spa
 end
 
 
-function InterlaceOperator{T}(ops::Vector{Operator{T}},ds::Space,rs::Space)
+function InterlaceOperator(ops::Vector{Operator{T}},ds::Space,rs::Space) where T
     # calculate bandinds
     p=size(ops,1)
     if all(isbanded,ops)
@@ -174,22 +174,22 @@ end
 
 
 
-InterlaceOperator{T,DS<:Space}(opsin::AbstractMatrix{Operator{T}},::Type{DS}) =
+InterlaceOperator(opsin::AbstractMatrix{Operator{T}},::Type{DS}) where {T,DS<:Space} =
     InterlaceOperator(opsin,DS,DS)
 
 InterlaceOperator(opsin::AbstractMatrix,S...) =
     InterlaceOperator(Matrix{Operator{mapreduce(eltype,promote_type,opsin)}}(promotespaces(opsin)),S...)
 
-function InterlaceOperator{T}(opsin::Vector{Operator{T}})
+function InterlaceOperator(opsin::Vector{Operator{T}}) where T
     ops=promotedomainspace(opsin)
     InterlaceOperator(ops,domainspace(first(ops)),rangespace(ops))
 end
 
-InterlaceOperator{T,p}(ops::AbstractArray{T,p}) =
+InterlaceOperator(ops::AbstractArray{T,p}) where {T,p} =
     InterlaceOperator(Array{Operator{mapreduce(eltype,promote_type,ops)},p}(ops))
 
 
-function convert{T}(::Type{Operator{T}},S::InterlaceOperator)
+function convert(::Type{Operator{T}},S::InterlaceOperator) where T
     if T == eltype(S)
         S
     else
@@ -223,7 +223,7 @@ end
 
 
 
-function colstop{T}(M::InterlaceOperator{T},j::Integer)
+function colstop(M::InterlaceOperator{T},j::Integer) where T
 #    b=bandwidth(M,1)
     if isbandedbelow(M)
         min(j+bandwidth(M,1)::Int,size(M,1))::Int
@@ -255,12 +255,12 @@ function getindex(op::InterlaceOperator{T,2},k::Integer,j::Integer) where {T}
 end
 
 # the domain is not interlaced
-function getindex{T}(op::InterlaceOperator{T,1},k::Integer,j::Integer)
+function getindex(op::InterlaceOperator{T,1},k::Integer,j::Integer) where T
     N,K = op.rangeinterlacer[k]
     op.ops[N][K,j]::T
 end
 
-function getindex{T}(op::InterlaceOperator{T},k::Integer)
+function getindex(op::InterlaceOperator{T},k::Integer) where T
     if size(op,1) == 1
         op[1,k]
     elseif size(op,2) == 1
@@ -273,7 +273,7 @@ end
 
 findsub(cr,ν) = find(x->x[1]==ν,cr)
 
-function getindex{T}(L::InterlaceOperator{T},kr::UnitRange)
+function getindex(L::InterlaceOperator{T},kr::UnitRange) where T
     ret=zeros(T,length(kr))
 
     if size(L,1) == 1
@@ -330,9 +330,9 @@ end
 for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzeros),
                     (:BlockBandedMatrix,:bbzeros))
     @eval begin
-        function convert{SS,PS,DI,RI,BI,T}(::Type{$TYP},
-                                S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI},
-                                              Tuple{UnitRange{Int},UnitRange{Int}}})
+        function convert(::Type{$TYP},
+              S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI},
+                            Tuple{UnitRange{Int},UnitRange{Int}}}) where {SS,PS,DI,RI,BI,T}
             kr,jr=parentindexes(S)
             L=parent(S)
 
@@ -355,9 +355,9 @@ for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzero
             ret
         end
 
-        function convert{SS,PS,DI,RI,BI,T}(::Type{$TYP},
-                              S::SubOperator{T,InterlaceOperator{T,2,SS,PS,DI,RI,BI},
-                                        Tuple{UnitRange{Int},UnitRange{Int}}})
+        function convert(::Type{$TYP},
+            S::SubOperator{T,InterlaceOperator{T,2,SS,PS,DI,RI,BI},
+                      Tuple{UnitRange{Int},UnitRange{Int}}}) where {SS,PS,DI,RI,BI,T}
             kr,jr=parentindexes(S)
             L=parent(S)
 
@@ -422,9 +422,9 @@ function blockbanded_interlace_convert!(S,ret)
 end
 
 for d in (:1,:2)
-    @eval convert{SS,PS,DI,RI,BI,T}(::Type{BlockBandedMatrix},
-                            S::SubOperator{T,InterlaceOperator{T,$d,SS,PS,DI,RI,BI},
-                                            Tuple{UnitRange{Block},UnitRange{Block}}}) =
+    @eval convert(::Type{BlockBandedMatrix},
+          S::SubOperator{T,InterlaceOperator{T,$d,SS,PS,DI,RI,BI},
+                          Tuple{UnitRange{Block},UnitRange{Block}}}) where {SS,PS,DI,RI,BI,T} =
     blockbanded_interlace_convert!(S,bbzeros(S))
 end
 
@@ -439,11 +439,11 @@ rangespace(IO::InterlaceOperator) = IO.rangespace
 iscolop(op) = isconstop(op)
 iscolop(::Multiplication) = true
 
-promotedomainspace{T}(A::InterlaceOperator{T,1},sp::Space) =
+promotedomainspace(A::InterlaceOperator{T,1},sp::Space) where {T} =
     InterlaceOperator(map(op->promotedomainspace(op,sp),A.ops))
 
 
-interlace{T<:Operator}(A::AbstractArray{T}) = InterlaceOperator(A)
+interlace(A::AbstractArray{T}) where {T<:Operator} = InterlaceOperator(A)
 
 const OperatorTypes = Union{Operator,Fun,Number,UniformScaling}
 
@@ -502,7 +502,7 @@ Base.hvcat(rows::Tuple{Vararg{Int}}, D::Union{Fun,Number,UniformScaling}, C::Uni
 
 ## Convert Matrix operator to operators
 
-convert{OO<:Operator}(::Type{Operator},M::AbstractArray{OO}) = InterlaceOperator(M)
+convert(::Type{Operator},M::AbstractArray{OO}) where {OO<:Operator} = InterlaceOperator(M)
 
 
 
@@ -530,9 +530,9 @@ function interlace_choosedomainspace(ops,rs::Space)
 end
 
 
-choosedomainspace{T}(A::InterlaceOperator{T,1},rs::Space) =
+choosedomainspace(A::InterlaceOperator{T,1},rs::Space) where {T} =
     interlace_choosedomainspace(A.ops,rs)
 
 
-choosedomainspace{T}(A::InterlaceOperator{T,2},rs::Space) =
+choosedomainspace(A::InterlaceOperator{T,2},rs::Space) where {T} =
     Space([interlace_choosedomainspace(A.ops[:,k],rs) for k=1:size(A.ops,2)])

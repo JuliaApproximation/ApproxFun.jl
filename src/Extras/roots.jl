@@ -29,7 +29,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-function complexroots{C<:Chebyshev}(f::Fun{C})
+function complexroots(f::Fun{C}) where C<:Chebyshev
     if ncoefficients(f)==0 || (ncoefficients(f)==1 && isapprox(f.coefficients[1],0))
         throw(ArgumentError("Tried to take roots of a zero function."))
     elseif ncoefficients(f)==1
@@ -67,7 +67,7 @@ roots(f::Fun{<:Chebyshev}) = fromcanonical.(f,roots(setcanonicaldomain(f)))
 
 
 for (BF,FF) in ((BigFloat,Float64),(Complex{BigFloat},Complex128))
-    @eval function roots{C<:Chebyshev}( f::Fun{C,$BF} )
+    @eval function roots( f::Fun{C,$BF} ) where C<:Chebyshev
     # FIND THE ROOTS OF AN IFUN.
 
         d = domain(f)
@@ -96,7 +96,7 @@ for (BF,FF) in ((BigFloat,Float64),(Complex{BigFloat},Complex128))
 end
 
 
-function roots{C<:Chebyshev,TT<:Union{Float64,Complex128}}( f::Fun{C,TT} )
+function roots( f::Fun{C,TT} ) where {C<:Chebyshev,TT<:Union{Float64,Complex128}}
 # FIND THE ROOTS OF AN IFUN.
     if iszero(f)
         throw(ArgumentError("Tried to take roots of a zero function."))
@@ -129,7 +129,7 @@ end
 
 
 
-function colleague_matrix{T<:Number}( c::Vector{T} )
+function colleague_matrix( c::Vector{T} ) where T<:Number
 #TODO: This is command isn't typed correctly
 # COMPUTE THE ROOTS OF A LOW DEGREE POLYNOMIAL BY USING THE COLLEAGUE MATRIX:
     n = length(c) - 1
@@ -186,9 +186,9 @@ function PruneOptions( r, htol::Float64 )
     return r
 end
 
-rootsunit_coeffs{T<:Number}(c::Vector{T}, htol::Float64) =
+rootsunit_coeffs(c::Vector{T}, htol::Float64) where {T<:Number} =
     rootsunit_coeffs(c,htol,ClenshawPlan(T,Chebyshev(),length(c),length(c)))
-function rootsunit_coeffs{S,T<:Number}(c::Vector{T}, htol::Float64,clplan::ClenshawPlan{S,T})
+function rootsunit_coeffs(c::Vector{T}, htol::Float64,clplan::ClenshawPlan{S,T}) where {S,T<:Number}
 # Computes the roots of the polynomial given by the coefficients c on the unit interval.
 
 
@@ -250,7 +250,7 @@ function rootsunit_coeffs{S,T<:Number}(c::Vector{T}, htol::Float64,clplan::Clens
 end
 
 
-extremal_args{S<:PiecewiseSpace}(f::Fun{S}) = cat(1,[extremal_args(fp) for fp in components(f)]...)
+extremal_args(f::Fun{S}) where {S<:PiecewiseSpace} = cat(1,[extremal_args(fp) for fp in components(f)]...)
 
 
 function extremal_args(f::Fun)
@@ -271,7 +271,7 @@ function extremal_args(f::Fun)
 end
 
 for op in (:(Base.maximum),:(Base.minimum),:(Base.extrema),:(Base.maxabs),:(Base.minabs))
-    @eval function $op{S<:RealSpace,T<:Real}(f::Fun{S,T})
+    @eval function $op(f::Fun{S,T}) where {S<:RealSpace,T<:Real}
         pts = extremal_args(f)
 
         $op(f.(pts))
@@ -302,7 +302,7 @@ Base.extrema(f::Fun{PiecewiseSpace{SV,DD,RR},T}) where {SV,DD<:UnionDomain,RR<:R
 
 for op in (:(Base.indmax),:(Base.indmin))
     @eval begin
-        function $op{S<:RealSpace,T<:Real}(f::Fun{S,T})
+        function $op(f::Fun{S,T}) where {S<:RealSpace,T<:Real}
             # need to check for zero as extremal_args is not defined otherwise
             iszero(f) && return first(domain(f))
             # the following avoids warning when differentiate(f)==0
@@ -311,7 +311,7 @@ for op in (:(Base.indmax),:(Base.indmin))
             pts[$op(real(f.(pts)))]
         end
 
-        function $op{S,T}(f::Fun{S,T})
+        function $op(f::Fun{S,T}) where {S,T}
             # need to check for zero as extremal_args is not defined otherwise
             iszero(f) && return first(domain(f))
             # the following avoids warning when differentiate(f)==0
@@ -325,7 +325,7 @@ end
 
 for op in (:(Base.findmax),:(Base.findmin))
     @eval begin
-        function $op{S<:RealSpace,T<:Real}(f::Fun{S,T})
+        function $op(f::Fun{S,T}) where {S<:RealSpace,T<:Real}
             # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
             ext,ind = $op(f(pts))
@@ -339,7 +339,7 @@ end
 ## Root finding for Laurent expansion
 
 
-function companion_matrix{T}(c::Vector{T})
+function companion_matrix(c::Vector{T}) where T
     n=length(c)-1
 
     if n==0
@@ -370,11 +370,11 @@ end
 #         end
 #     end
 # else
-complexroots{T<:Union{Float64,Complex128}}(cfs::Vector{T}) =
+complexroots(cfs::Vector{T}) where {T<:Union{Float64,Complex128}} =
     hesseneigvals(companion_matrix(chop(cfs,10eps())))
 # end
 
-function complexroots{T<:Union{BigFloat,Complex{BigFloat}}}(cfs::Vector{T})
+function complexroots(cfs::Vector{T}) where T<:Union{BigFloat,Complex{BigFloat}}
     a = Fun(Taylor(Circle(BigFloat)),cfs)
     ap = a'
     rts = Array{Complex{BigFloat}}(complexroots(Vector{Complex128}(cfs)))
@@ -387,14 +387,14 @@ end
 
 complexroots(neg::Vector,pos::Vector) =
     complexroots([flipdim(chop(neg,10eps()),1);pos])
-complexroots{DD,RR}(f::Fun{Laurent{DD,RR}}) =
+complexroots(f::Fun{Laurent{DD,RR}}) where {DD,RR} =
     mappoint(Circle(),domain(f),complexroots(f.coefficients[2:2:end],f.coefficients[1:2:end]))
-complexroots{DD,RR}(f::Fun{Taylor{DD,RR}}) =
+complexroots(f::Fun{Taylor{DD,RR}}) where {DD,RR} =
     mappoint(Circle(),domain(f),complexroots(f.coefficients))
 
 
 
-function roots{DD,RR}(f::Fun{Laurent{DD,RR}})
+function roots(f::Fun{Laurent{DD,RR}}) where {DD,RR}
     irts=filter!(z->in(z,Circle()),complexroots(Fun(Laurent(Circle()),f.coefficients)))
     if length(irts)==0
         Complex{Float64}[]
@@ -409,9 +409,9 @@ function roots{DD,RR}(f::Fun{Laurent{DD,RR}})
 end
 
 
-roots{D,R}(f::Fun{Fourier{D,R}}) = roots(Fun(f,Laurent))
+roots(f::Fun{Fourier{D,R}}) where {D,R} = roots(Fun(f,Laurent))
 
-function roots{P<:PiecewiseSpace}(f::Fun{P})
+function roots(f::Fun{P}) where P<:PiecewiseSpace
     rts=mapreduce(roots,vcat,components(f))
     k=1
     while k < length(rts)
@@ -430,7 +430,7 @@ end
 
 # Add endpoints for JacobiWeight
 # TODO: what about cancellation?
-function roots{S<:JacobiWeight,T}(f::Fun{S,T})
+function roots(f::Fun{S,T}) where {S<:JacobiWeight,T}
     sp=space(f)
     d=domain(sp)
     rts=roots(Fun(sp.space,f.coefficients))
@@ -446,4 +446,4 @@ end
 
 ## PointSpace
 
-roots{S<:PointSpace,T}(f::Fun{S,T}) = space(f).points[values(f) .== 0]
+roots(f::Fun{S,T}) where {S<:PointSpace,T} = space(f).points[values(f) .== 0]

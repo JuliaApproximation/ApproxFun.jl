@@ -7,7 +7,7 @@ struct ReOperator{O,T} <: Operator{T}
 end
 
 ReOperator(op)=ReOperator{typeof(op),Float64}(op)
-convert{T}(::Type{Operator{T}},R::ReOperator) = ReOperator{typeof(R.op),T}(R.op)
+convert(::Type{Operator{T}},R::ReOperator) where {T} = ReOperator{typeof(R.op),T}(R.op)
 
 @wrapperstructure ReOperator
 @wrapperspaces ReOperator
@@ -16,7 +16,7 @@ convert{T}(::Type{Operator{T}},R::ReOperator) = ReOperator{typeof(R.op),T}(R.op)
 
 
 
-getindex{O,T}(RI::ReOperator{O,T},k::Integer,j::Integer) =
+getindex(RI::ReOperator{O,T},k::Integer,j::Integer) where {O,T} =
     T(real(RI.op[k,j]))
 
 choosedomainspace(R::ReOperator,sp::Space) = choosedomainspace(R.op,sp)

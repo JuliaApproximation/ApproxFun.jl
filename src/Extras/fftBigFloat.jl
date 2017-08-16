@@ -1,5 +1,5 @@
 # This is a Cooley-Tukey FFT algorithm for any number type.
-function fft_pow2{F}(x::Vector{F})
+function fft_pow2(x::Vector{F}) where F
     n = length(x)
     T = mapreduce(eltype,promote_type,x)
     @assert ispow2(n)

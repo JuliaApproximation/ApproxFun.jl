@@ -46,13 +46,13 @@ A_ldiv_B_coefficients(A::Operator,b;kwds...) = A_ldiv_B_coefficients(qrfact(A),b
 #TODO: Remove these when interlace is automatic
 for TYP in (:Vector,:Matrix)
     @eval begin
-        \{OO<:Operator}(A::$TYP{OO},b::StridedVecOrMat;kwds...) =
+        \(A::$TYP{OO},b::StridedVecOrMat;kwds...) where {OO<:Operator} =
             \(interlace(A),b;kwds...)
-        \{OO<:Operator}(A::$TYP{OO},b::AbstractVecOrMat;kwds...) =
+        \(A::$TYP{OO},b::AbstractVecOrMat;kwds...) where {OO<:Operator} =
             \(interlace(A),b;kwds...)
-        \{OO<:Operator}(A::$TYP{OO},b::Fun;kwds...) =
+        \(A::$TYP{OO},b::Fun;kwds...) where {OO<:Operator} =
             \(interlace(A),b;kwds...)
     end
 end
-A_ldiv_B_coefficients{OO<:Operator}(A::AbstractArray{OO},b;kwds...) =
+A_ldiv_B_coefficients(A::AbstractArray{OO},b;kwds...) where {OO<:Operator} =
     A_ldiv_B_coefficients(interlace(A),b;kwds...)

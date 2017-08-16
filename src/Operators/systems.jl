@@ -2,7 +2,7 @@
 
 for op in (:Derivative,:Integral)
     @eval begin
-        function ($op){T<:IntervalDomain}(d::AbstractVector{T})
+        function ($op)(d::AbstractVector{T}) where T<:IntervalDomain
             n=length(d)
             R=zeros(Operator{mapreduce(eltype,promote_type,d)},n,n)
             for k=1:n
@@ -17,7 +17,7 @@ end
 
 
 
-function Evaluation{T<:IntervalDomain}(d::AbstractVector{T},x...)
+function Evaluation(d::AbstractVector{T},x...) where T<:IntervalDomain
     n=length(d)
     R=zeros(Operator{mapreduce(eltype,promote_type,d)},n,n)
     for k=1:n
@@ -40,7 +40,7 @@ function Base.diagm(d::AbstractVector{T}) where {T<:Operator}
 end
 
 ##TODO: unify with other blkdiag
-function Base.blkdiag{T<:Operator}(d1::AbstractVector{T},d2::AbstractVector{T})
+function Base.blkdiag(d1::AbstractVector{T},d2::AbstractVector{T}) where T<:Operator
   if isempty(d1)&&isempty(d2)
     error("Empty blkdiag")
   end
@@ -64,6 +64,6 @@ Base.blkdiag(a::Operator,b::Operator) = blkdiag(Operator{promote_type(eltype(a),
 
 ## broadcase
 
-broadcast{N<:Number}(::typeof(*),A::AbstractArray{N},D::Operator) =
+broadcast(::typeof(*),A::AbstractArray{N},D::Operator) where {N<:Number} =
     Operator{promote_type(N,eltype(D))}[A[k,j]*D for k=1:size(A,1),j=1:size(A,2)]
-broadcast{N<:Number}(::typeof(*),D::Operator,A::AbstractArray{N})=A.*D
+broadcast(::typeof(*),D::Operator,A::AbstractArray{N}) where {N<:Number}=A.*D

@@ -6,7 +6,7 @@ export clenshaw, @clenshaw
 # that have the same length
 ##
 
-type ClenshawPlan{S,T}
+mutable struct ClenshawPlan{S,T}
     sp::S
     bk::Vector{T}
     bk1::Vector{T}
@@ -16,7 +16,7 @@ type ClenshawPlan{S,T}
     C::Vector{T}
 end
 
-function ClenshawPlan{T}(::Type{T},sp,N::Int,n::Int)
+function ClenshawPlan(::Type{T},sp,N::Int,n::Int) where T
     A = T[recA(T,sp,k) for k=0:N-1]
     B = T[recB(T,sp,k) for k=0:N-1]
     C = T[recC(T,sp,k) for k=1:N]
@@ -58,7 +58,7 @@ for TYP in (:AbstractVector,:AbstractMatrix)
 end
 
 
-function clenshaw{S,V}(c::AbstractVector,x::AbstractVector,plan::ClenshawPlan{S,V})
+function clenshaw(c::AbstractVector,x::AbstractVector,plan::ClenshawPlan{S,V}) where {S,V}
     N,n = length(c),length(x)
     if isempty(c)
         return zeros(V,length(x))
@@ -96,7 +96,7 @@ end
 #Clenshaw routine for many Funs, x is a vector of same number of funs
 #each fun is a column
 
-function clenshaw{S,V}(c::AbstractMatrix,x,plan::ClenshawPlan{S,V})
+function clenshaw(c::AbstractMatrix,x,plan::ClenshawPlan{S,V}) where {S,V}
     N,n = size(c)
     if isempty(c)
         return zeros(V,n)
@@ -132,7 +132,7 @@ function clenshaw{S,V}(c::AbstractMatrix,x,plan::ClenshawPlan{S,V})
     bk
 end
 
-function clenshaw{S,V}(c::AbstractMatrix,x::AbstractVector,plan::ClenshawPlan{S,V})
+function clenshaw(c::AbstractMatrix,x::AbstractVector,plan::ClenshawPlan{S,V}) where {S,V}
     N,n = size(c)
     @assert n == length(x)
     if isempty(c)
@@ -172,7 +172,7 @@ end
 
 # overwrite x
 
-function clenshaw!{S,V}(c::AbstractVector,x::AbstractVector,plan::ClenshawPlan{S,V})
+function clenshaw!(c::AbstractVector,x::AbstractVector,plan::ClenshawPlan{S,V}) where {S,V}
     N,n = length(c),length(x)
     if isempty(c)
         for k=1:n

@@ -1,14 +1,14 @@
 # We need to implement some functionality for the ApproxFun constructor to work
-real{T}(::Type{Dual{T}}) = Dual{ApproxFun.real(T)}
+real(::Type{Dual{T}}) where {T} = Dual{ApproxFun.real(T)}
 
 # Dual number support. Should there be realpart and dualpart of Space and Domain?
-DualNumbers.realpart{S,T<:Dual}(f::Fun{S,T}) = Fun(space(f),realpart(coefficients(f)))
-DualNumbers.dualpart{S,T<:Dual}(f::Fun{S,T}) = Fun(space(f),dualpart(coefficients(f)))
+DualNumbers.realpart(f::Fun{S,T}) where {S,T<:Dual} = Fun(space(f),realpart(coefficients(f)))
+DualNumbers.dualpart(f::Fun{S,T}) where {S,T<:Dual} = Fun(space(f),dualpart(coefficients(f)))
 
 
-DualNumbers.realpart{DD<:Dual}(d::Segment{DD}) = Segment(realpart(d.a),realpart(d.b))
-Base.in{DD<:Dual}(x::Number,d::Segment{DD}) = in(x,realpart(d))
-Base.in{DD<:Dual}(x::Dual,d::Segment{DD}) = in(realpart(x),d)
+DualNumbers.realpart(d::Segment{DD}) where {DD<:Dual} = Segment(realpart(d.a),realpart(d.b))
+Base.in(x::Number,d::Segment{DD}) where {DD<:Dual} = in(x,realpart(d))
+Base.in(x::Dual,d::Segment{DD}) where {DD<:Dual} = in(realpart(x),d)
 
 
 # for QR Factorization.  These have been submitted to DualNumbers
@@ -20,29 +20,29 @@ flipsign(x::Dual, y) = dual(flipsign(realpart(x), y), flipsign(epsilon(x), y))
 
 
 
-valsdomain_type_promote{T<:Real,V<:Real}(::Type{Dual{T}},::Type{V}) =
+valsdomain_type_promote(::Type{Dual{T}},::Type{V}) where {T<:Real,V<:Real} =
     Dual{promote_type(T,V)},promote_type(T,V)
-valsdomain_type_promote{T<:Complex,V<:Real}(::Type{Dual{T}},::Type{V}) =
+valsdomain_type_promote(::Type{Dual{T}},::Type{V}) where {T<:Complex,V<:Real} =
     Dual{promote_type(T,V)},promote_type(real(T),V)
-valsdomain_type_promote{T<:Real,V<:Real}(::Type{Dual{T}},::Type{Complex{V}}) =
+valsdomain_type_promote(::Type{Dual{T}},::Type{Complex{V}}) where {T<:Real,V<:Real} =
     Dual{promote_type(T,V)},Complex{promote_type(T,V)}
-valsdomain_type_promote{T<:Complex,V<:Real}(::Type{Dual{T}},::Type{Complex{V}}) =
+valsdomain_type_promote(::Type{Dual{T}},::Type{Complex{V}}) where {T<:Complex,V<:Real} =
     Dual{promote_type(T,Complex{V})},Complex{promote_type(real(T),V)}
 
 
-plan_chebyshevtransform!{T<:Dual}(x::Vector{T};kind::Integer=1) =
+plan_chebyshevtransform!(x::Vector{T};kind::Integer=1) where {T<:Dual} =
     error("In-place variant not implemented for Dual")
 
-plan_ichebyshevtransform!{T<:Dual}(x::Vector{T};kind::Integer=1) =
+plan_ichebyshevtransform!(x::Vector{T};kind::Integer=1) where {T<:Dual} =
     error("In-place variant not implemented for Dual")
 
 
-function plan_chebyshevtransform{D<:Dual}(v::Vector{D};kind::Integer=1)
+function plan_chebyshevtransform(v::Vector{D};kind::Integer=1) where D<:Dual
     plan = plan_chebyshevtransform(realpart.(v);kind=kind)
     ChebyshevTransformPlan{D,kind,false,typeof(plan)}(plan)
 end
 
-function plan_ichebyshevtransform{D<:Dual}(v::Vector{D};kind::Integer=1)
+function plan_ichebyshevtransform(v::Vector{D};kind::Integer=1) where D<:Dual
     plan = plan_ichebyshevtransform(realpart.(v);kind=kind)
     IChebyshevTransformPlan{D,kind,false,typeof(plan)}(plan)
 end
@@ -50,18 +50,18 @@ end
 
 
 
-*{k,D<:Dual}(P::ChebyshevTransformPlan{D,k,false},v::Vector{D}) =
+*(P::ChebyshevTransformPlan{D,k,false},v::Vector{D}) where {k,D<:Dual} =
     dual.(P.plan*realpart.(v),P.plan*dualpart.(v))
 
 #TODO: Hardy{false}
 for (OP,TransPlan) in ((:plan_transform,:TransformPlan),(:plan_itransform,:ITransformPlan)),
         TYP in  (:Fourier,:Laurent,:SinSpace)
     @eval begin
-        function $OP{T<:Dual,D<:Domain}(sp::$TYP{D},x::Vector{T})
+        function $OP(sp::$TYP{D},x::Vector{T}) where {T<:Dual,D<:Domain}
             plan = $OP(sp,realpart.(x))
             $TransPlan{T,typeof(sp),false,typeof(plan)}(sp,plan)
         end
-        *{T<:Dual,D<:Domain}(P::$TransPlan{T,$TYP{D},false},x::Vector{T}) =
+        *(P::$TransPlan{T,$TYP{D},false},x::Vector{T}) where {T<:Dual,D<:Domain} =
             dual(P.plan*realpart.(x),P.plan*dualpart.(x))
     end
 end
@@ -70,7 +70,7 @@ chop!(f::Fun,d::Dual)=chop!(f,realpart(d))
 
 
 
-function simplifycfs!{DD<:Dual}(cfs::Vector{DD},tol::Float64=4E-16)
+function simplifycfs!(cfs::Vector{DD},tol::Float64=4E-16) where DD<:Dual
     for k=length(cfs):-2:2
         if maximum(abs,realpart.(cfs[k-1:k])) > maximum(abs,dualpart.(cfs[k-1:k]))*tol
             return resize!(cfs,k)

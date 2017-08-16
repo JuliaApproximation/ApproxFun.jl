@@ -46,7 +46,7 @@ Base.hvcat(rows::Tuple{Vararg{Int}},v::FunTypes...) = Fun(hvnocat(rows,v...))
 
 
 
-function Fun{F<:Fun}(v::AbstractVector{F})
+function Fun(v::AbstractVector{F}) where F<:Fun
     S = Space(space.(v))
     Fun(S,interlace(v,S))
 end
@@ -134,7 +134,7 @@ norm(A::VectorFun,p::Number) = norm(norm.(Array(A)),p)
 
 ## Vector of fun routines
 
-function coefficientmatrix{N,F}(::Type{N},f::AbstractVector{F},o...)
+function coefficientmatrix(::Type{N},f::AbstractVector{F},o...) where {N,F}
     if isempty(f)
         return Matrix{N}(0,0)
     end
@@ -149,14 +149,14 @@ function coefficientmatrix{N,F}(::Type{N},f::AbstractVector{F},o...)
 end
 
 
-scalarorfuntype{S,T<:Number}(::Fun{S,T}) = T
-scalarorfuntype{T<:Number}(::T) = T
-scalarorfuntype{T<:Number}(b::AbstractVector{T}) = T
+scalarorfuntype(::Fun{S,T}) where {S,T<:Number} = T
+scalarorfuntype(::T) where {T<:Number} = T
+scalarorfuntype(b::AbstractVector{T}) where {T<:Number} = T
 scalarorfuntype(b::AbstractVector{Any}) = promote_type(map(scalarorfuntype,b)...)
-scalarorfuntype{F<:Fun}(b::AbstractVector{F}) = promote_type(map(scalarorfuntype,b)...)
+scalarorfuntype(b::AbstractVector{F}) where {F<:Fun} = promote_type(map(scalarorfuntype,b)...)
 
 
-coefficientmatrix{F<:Fun}(Q::AbstractVector{F},o...)=coefficientmatrix(scalarorfuntype(Q),Q,o...)
+coefficientmatrix(Q::AbstractVector{F},o...) where {F<:Fun}=coefficientmatrix(scalarorfuntype(Q),Q,o...)
 coefficientmatrix(Q::AbstractVector{Any})=(@assert isempty(Q); zeros(0,0))
 
 
@@ -186,7 +186,7 @@ end
 
 
 #TODO: fix for complex
-evaluate{T<:Fun}(A::AbstractArray{T},x::Number) =
+evaluate(A::AbstractArray{T},x::Number) where {T<:Fun} =
     typeof(first(A)(x))[Akj(x) for Akj in A]
 
 

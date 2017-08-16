@@ -14,12 +14,12 @@ bandinds(::DiagonalOperator)=0,0
 
 
 
-Base.Tridiagonal{T}(J::TridiagonalOperator{T},n::Integer)=Tridiagonal(T[J.γ(k) for k=2:n],
+Base.Tridiagonal(J::TridiagonalOperator{T},n::Integer) where {T}=Tridiagonal(T[J.γ(k) for k=2:n],
 T[J.α(k) for k=1:n],
 T[J.β(k) for k=1:n-1])
 
 
-function symmetrize{T}(J::TridiagonalOperator{T},n::Integer)
+function symmetrize(J::TridiagonalOperator{T},n::Integer) where T
     d=Array{T}(n)
     d[1]=1
     for k=2:n

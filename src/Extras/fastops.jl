@@ -70,9 +70,9 @@ diagindrow(S::SubOperator) = diagindrow(S,parentindexes(S)[1],parentindexes(S)[2
 # Conversions
 #####
 
-function convert{T,DD,RR}(::Type{BandedMatrix},
-                        S::SubOperator{T,ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR},T},
-                                       Tuple{UnitRange{Int},UnitRange{Int}}})
+function convert(::Type{BandedMatrix},
+               S::SubOperator{T,ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR},T},
+                              Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,DD,RR}
     # we can assume order is 1
     ret = BandedMatrix(eltype(S),size(S,1),size(S,2),bandwidth(S,1),bandwidth(S,2))
     kr,jr = parentindexes(S)
@@ -92,8 +92,8 @@ function convert{T,DD,RR}(::Type{BandedMatrix},
     ret
 end
 
-function convert{T,LT,DD,RR}(::Type{BandedMatrix},S::SubOperator{T,ConcreteConversion{Ultraspherical{LT,DD,RR},Ultraspherical{LT,DD,RR},T},
-                                                                              Tuple{UnitRange{Int},UnitRange{Int}}})
+function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteConversion{Ultraspherical{LT,DD,RR},Ultraspherical{LT,DD,RR},T},
+                                                                  Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,LT,DD,RR}
 
     n,m = size(S)
     ret = BandedMatrix(eltype(S),n,m,bandwidth(S,1),bandwidth(S,2))
@@ -122,8 +122,8 @@ end
 
 
 
-function convert{T,K,DD,RR}(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Chebyshev{DD,RR},K,T},
-                                                                Tuple{UnitRange{Int},UnitRange{Int}}})
+function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Chebyshev{DD,RR},K,T},
+                                                     Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,K,DD,RR}
 
     n,m = size(S)
     ret = BandedMatrix(eltype(S),n,m,bandwidth(S,1),bandwidth(S,2))
@@ -144,8 +144,8 @@ function convert{T,K,DD,RR}(::Type{BandedMatrix},S::SubOperator{T,ConcreteDeriva
 end
 
 
-function convert{T,K,DD,RR,LT}(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Ultraspherical{LT,DD,RR},K,T},
-                                                                Tuple{UnitRange{Int},UnitRange{Int}}})
+function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Ultraspherical{LT,DD,RR},K,T},
+                                                  Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,K,DD,RR,LT}
     n,m = size(S)
     ret = BandedMatrix(eltype(S),n,m,bandwidth(S,1),bandwidth(S,2))
     kr,jr = parentindexes(S)

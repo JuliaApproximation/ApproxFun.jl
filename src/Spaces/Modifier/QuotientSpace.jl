@@ -41,11 +41,11 @@ QuotientSpace(bcs::Operator) = QuotientSpace(domainspace(bcs), bcs)
 domain(QS::QuotientSpace) = domain(QS.space)
 dimension(QS::QuotientSpace) = dimension(QS.space)
 
-Conversion{SP<:Space}(Q::QuotientSpace{SP}, S::SP) = ConcreteConversion(Q, S)
+Conversion(Q::QuotientSpace{SP}, S::SP) where {SP<:Space} = ConcreteConversion(Q, S)
 
-bandinds{SP,O,DD,T,RT}(C::ConcreteConversion{QuotientSpace{SP,O,DD,T,RT},SP}) = 0, size(C.domainspace.A, 1)
+bandinds(C::ConcreteConversion{QuotientSpace{SP,O,DD,T,RT},SP}) where {SP,O,DD,T,RT} = 0, size(C.domainspace.A, 1)
 
-function getindex{SP,O,DD,T,RT}(C::ConcreteConversion{QuotientSpace{SP,O,DD,T,RT},SP}, i::Integer, j::Integer)
+function getindex(C::ConcreteConversion{QuotientSpace{SP,O,DD,T,RT},SP}, i::Integer, j::Integer) where {SP,O,DD,T,RT}
     sp = domainspace(C)
     n = size(sp.A, 1)
     A = sp.A

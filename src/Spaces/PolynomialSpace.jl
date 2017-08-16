@@ -5,10 +5,10 @@ abstract type PolynomialSpace{D,R} <: Space{D,R} end
 
 @containsconstants PolynomialSpace
 
-Multiplication{U<:PolynomialSpace}(f::Fun{U},sp::PolynomialSpace) = ConcreteMultiplication(f,sp)
-bandinds{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V}) =
+Multiplication(f::Fun{U},sp::PolynomialSpace) where {U<:PolynomialSpace} = ConcreteMultiplication(f,sp)
+bandinds(M::ConcreteMultiplication{U,V}) where {U<:PolynomialSpace,V<:PolynomialSpace} =
     (1-ncoefficients(M.f),ncoefficients(M.f)-1)
-rangespace{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V}) = domainspace(M)
+rangespace(M::ConcreteMultiplication{U,V}) where {U<:PolynomialSpace,V<:PolynomialSpace} = domainspace(M)
 
 
 
@@ -48,7 +48,7 @@ end
 
 Recurrence(sp) = Recurrence{typeof(sp),rangetype(sp)}(sp)
 
-convert{T,S}(::Type{Operator{T}},J::Recurrence{S}) = Recurrence{S,T}(J.space)
+convert(::Type{Operator{T}},J::Recurrence{S}) where {T,S} = Recurrence{S,T}(J.space)
 
 domainspace(R::Recurrence) = R.space
 rangespace(R::Recurrence) = R.space
@@ -59,7 +59,7 @@ rangespace(R::Recurrence) = R.space
 #       x p_{n-1} =γ_n p_{n-2} + α_n p_{n-1} +  p_n β_n
 #####
 
-function getindex{S,T}(R::Recurrence{S,T},k::Integer,j::Integer)
+function getindex(R::Recurrence{S,T},k::Integer,j::Integer) where {S,T}
     if j==k-1
         recβ(T,R.space,k-1)
     elseif j==k
@@ -83,7 +83,7 @@ end
 JacobiZ(sp::PolynomialSpace,z) =
     (T = promote_type(prectype(sp),typeof(z)); JacobiZ{typeof(sp),T}(sp,T(z)))
 
-convert{T,S}(::Type{Operator{T}},J::JacobiZ{S}) = JacobiZ{S,T}(J.space,J.z)
+convert(::Type{Operator{T}},J::JacobiZ{S}) where {T,S} = JacobiZ{S,T}(J.space,J.z)
 
 domainspace(::JacobiZ) = ℓ⁰
 rangespace(::JacobiZ) = ℓ⁰
@@ -93,7 +93,7 @@ rangespace(::JacobiZ) = ℓ⁰
 #       x p_{n-1} =γ_n p_{n-2} + α_n p_{n-1} +  p_n β_n
 #####
 
-function getindex{S,T}(J::JacobiZ{S,T},k::Integer,j::Integer)
+function getindex(J::JacobiZ{S,T},k::Integer,j::Integer) where {S,T}
     if j==k-1
         recγ(T,J.space,k)
     elseif j==k
@@ -119,7 +119,7 @@ end
 #####
 
 
-getindex{PS<:PolynomialSpace,T,C<:PolynomialSpace}(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) = M[k:k,j:j][1,1]
+getindex(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) where {PS<:PolynomialSpace,T,C<:PolynomialSpace} = M[k:k,j:j][1,1]
 
 
 # Fast C = α.*A.*B .+ β.*C
@@ -173,9 +173,9 @@ end
 
 
 
-function convert{PS<:PolynomialSpace,T,C<:PolynomialSpace}(::Type{BandedMatrix},
-                                                                S::SubOperator{T,ConcreteMultiplication{C,PS,T},
-                                                                               Tuple{UnitRange{Int},UnitRange{Int}}})
+function convert(::Type{BandedMatrix},
+                      S::SubOperator{T,ConcreteMultiplication{C,PS,T},
+                                     Tuple{UnitRange{Int},UnitRange{Int}}}) where {PS<:PolynomialSpace,T,C<:PolynomialSpace}
     M=parent(S)
     kr,jr=parentindexes(S)
     f=M.f
@@ -245,7 +245,7 @@ end
 ## All polynomial spaces can be converted provided spaces match
 
 isconvertible(a::PolynomialSpace,b::PolynomialSpace) = domain(a)==domain(b)
-union_rule{D}(a::PolynomialSpace{D},b::PolynomialSpace{D}) =
+union_rule(a::PolynomialSpace{D},b::PolynomialSpace{D}) where {D} =
     domainscompatible(a,b)?(a<b?a:b):NoSpace()   # the union of two polys is always a poly
 
 
@@ -277,7 +277,7 @@ end
 
 # evaluate polynomial
 # indexing starts from 0
-function forwardrecurrence{T}(::Type{T},S::Space,r::Range,x::Number)
+function forwardrecurrence(::Type{T},S::Space,r::Range,x::Number) where T
     if isempty(r)
         return T[]
     end
@@ -309,14 +309,14 @@ function Evaluation(S::PolynomialSpace,x,order)
 end
 
 
-function getindex{J<:PolynomialSpace}(op::ConcreteEvaluation{J,typeof(first)},kr::Range)
+function getindex(op::ConcreteEvaluation{J,typeof(first)},kr::Range) where J<:PolynomialSpace
     sp=op.space
     T=eltype(op)
 
     forwardrecurrence(T,sp,kr-1,-one(T))
 end
 
-function getindex{J<:PolynomialSpace}(op::ConcreteEvaluation{J,typeof(last)},kr::Range)
+function getindex(op::ConcreteEvaluation{J,typeof(last)},kr::Range) where J<:PolynomialSpace
     sp=op.space
     T=eltype(op)
 
@@ -324,7 +324,7 @@ function getindex{J<:PolynomialSpace}(op::ConcreteEvaluation{J,typeof(last)},kr:
 end
 
 
-function getindex{J<:PolynomialSpace,TT<:Number}(op::ConcreteEvaluation{J,TT},kr::Range)
+function getindex(op::ConcreteEvaluation{J,TT},kr::Range) where {J<:PolynomialSpace,TT<:Number}
     sp=op.space
     T=eltype(op)
     x=op.x

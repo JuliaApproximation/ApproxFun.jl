@@ -107,14 +107,14 @@ function backend_testfunctional(A)
 end
 
 # Check that the tests pass after conversion as well
-function testfunctional{T<:Real}(A::Operator{T})
+function testfunctional(A::Operator{T}) where T<:Real
     backend_testfunctional(A)
     backend_testfunctional(Operator{Float64}(A))
     backend_testfunctional(Operator{Float32}(A))
     backend_testfunctional(Operator{Complex128}(A))
 end
 
-function testfunctional{T<:Complex}(A::Operator{T})
+function testfunctional(A::Operator{T}) where T<:Complex
     backend_testfunctional(A)
     backend_testfunctional(Operator{Complex64}(A))
     backend_testfunctional(Operator{Complex128}(A))
@@ -158,14 +158,14 @@ function backend_testinfoperator(A)
 end
 
 # Check that the tests pass after conversion as well
-function testinfoperator{T<:Real}(A::Operator{T})
+function testinfoperator(A::Operator{T}) where T<:Real
     backend_testinfoperator(A)
     backend_testinfoperator(Operator{Float64}(A))
     backend_testinfoperator(Operator{Float32}(A))
     backend_testinfoperator(Operator{Complex128}(A))
 end
 
-function testinfoperator{T<:Complex}(A::Operator{T})
+function testinfoperator(A::Operator{T}) where T<:Complex
     backend_testinfoperator(A)
     backend_testinfoperator(Operator{Complex64}(A))
     backend_testinfoperator(Operator{Complex128}(A))

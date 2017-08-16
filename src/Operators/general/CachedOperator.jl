@@ -8,7 +8,7 @@ export cache
 
 ## CachedOperator
 
-type CachedOperator{T<:Number,DM<:AbstractMatrix,M<:Operator,DS,RS,BI} <: Operator{T}
+mutable struct CachedOperator{T<:Number,DM<:AbstractMatrix,M<:Operator,DS,RS,BI} <: Operator{T}
     op::M
     data::DM
     datasize::Tuple{Int,Int}
@@ -53,18 +53,18 @@ doc"""
 Caches the entries of an operator, to speed up multiplying a Fun by the operator.
 """
 cache(O::Operator;kwds...) = CachedOperator(O;kwds...)
-cache{MT<:AbstractMatrix}(::Type{MT},O::Operator;kwds...) = CachedOperator(MT,O;kwds...)
+cache(::Type{MT},O::Operator;kwds...) where {MT<:AbstractMatrix} = CachedOperator(MT,O;kwds...)
 
-convert{T}(::Type{Operator{T}},S::CachedOperator{T}) = S
-convert{T}(::Type{Operator{T}},S::CachedOperator) =
+convert(::Type{Operator{T}},S::CachedOperator{T}) where {T} = S
+convert(::Type{Operator{T}},S::CachedOperator) where {T} =
     CachedOperator(Operator{T}(S.op),AbstractMatrix{T}(S.data),
                     S.datasize,S.domainspace,S.rangespace,S.bandinds)
 
 
 domainspace(C::CachedOperator) = C.domainspace
 rangespace(C::CachedOperator) = C.rangespace
-bandinds{T<:Number,BM<:BandedMatrix,M<:Operator}(C::CachedOperator{T,BM,M}) = C.bandinds
-blockbandinds{T<:Number,BM<:BandedMatrix,M<:Operator}(C::CachedOperator{T,BM,M}) = C.bandinds
+bandinds(C::CachedOperator{T,BM,M}) where {T<:Number,BM<:BandedMatrix,M<:Operator} = C.bandinds
+blockbandinds(C::CachedOperator{T,BM,M}) where {T<:Number,BM<:BandedMatrix,M<:Operator} = C.bandinds
 
 
 # TODO: cache this information as well
@@ -104,7 +104,7 @@ resizedata!(B::CachedOperator,::Colon,m::Integer) = resizedata!(B,size(B,1),m)
 resizedata!(B::CachedOperator,n::Integer,::Colon) = resizedata!(B,n,size(B,2))
 
 
-function A_mul_B_coefficients{T<:Number}(B::CachedOperator,v::AbstractVector{T})
+function A_mul_B_coefficients(B::CachedOperator,v::AbstractVector{T}) where T<:Number
     resizedata!(B,:,length(v))
 
     B.data*pad(v,size(B.data,2))

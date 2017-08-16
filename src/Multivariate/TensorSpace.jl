@@ -5,7 +5,7 @@ export TensorSpace, ⊗, ProductSpace, factor, factors, nfactors
 abstract type AbstractProductSpace{SV,DD,RR} <: Space{DD,RR} end
 
 
-spacetype{SV}(::AbstractProductSpace{SV},k) = SV.parameters[k]
+spacetype(::AbstractProductSpace{SV},k) where {SV} = SV.parameters[k]
 
 
 ##### Tensorizer
@@ -27,14 +27,14 @@ end
 const TrivialTensorizer{d} = Tensorizer{NTuple{d,Repeated{Bool}}}
 
 Base.eltype(a::Tensorizer) = NTuple{length(a.blocks),Int}
-Base.eltype{d,T}(::Tensorizer{NTuple{d,T}}) = NTuple{d,Int}
+Base.eltype(::Tensorizer{NTuple{d,T}}) where {d,T} = NTuple{d,Int}
 dimensions(a::Tensorizer) = map(sum,a.blocks)
 Base.length(a::Tensorizer) = mapreduce(sum,*,a.blocks)
 
 # (blockrow,blockcol), (subrow,subcol), (rowshift,colshift), (numblockrows,numblockcols), (itemssofar, length)
-Base.start{AA,BB}(a::Tensorizer{Tuple{AA,BB}}) = (1,1), (1,1), (0,0), (a.blocks[1][1],a.blocks[2][1]), (0,length(a))
+Base.start(a::Tensorizer{Tuple{AA,BB}}) where {AA,BB} = (1,1), (1,1), (0,0), (a.blocks[1][1],a.blocks[2][1]), (0,length(a))
 
-function Base.next{AA,BB}(a::Tensorizer{Tuple{AA,BB}},st)
+function Base.next(a::Tensorizer{Tuple{AA,BB}},st) where {AA,BB}
     (K,J), (k,j), (rsh,csh), (n,m), (i,tot) = st
     ret = k+rsh,j+csh
     if k==n && j==m  # end of block
@@ -77,7 +77,7 @@ function Base.findfirst(::TrivialTensorizer{2},kj::Tuple{Int,Int})
     end
 end
 
-function Base.findfirst{S,T}(sp::Tensorizer{Tuple{Repeated{S},Repeated{T}}},kj::Tuple{Int,Int})
+function Base.findfirst(sp::Tensorizer{Tuple{Repeated{S},Repeated{T}}},kj::Tuple{Int,Int}) where {S,T}
     k,j=kj
 
     if k > 0 && j > 0
@@ -151,7 +151,7 @@ function getindex(it::TrivialTensorizer{2},n::Integer)
 end
 
 # could be cleaned up using blocks
-function getindex{S,T}(it::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Integer)
+function getindex(it::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Integer) where {S,T}
     a,b = it.blocks[1].x,it.blocks[2].x
     nb1,nr = fldmod(n-1,a*b) # nb1 = "nb" - 1, i.e. using zero-base
     m1=block(it,n).K-1
@@ -180,7 +180,7 @@ blockrange(it,K::UnitRange{Block}) = blockstart(it,K[1]):blockstop(it,K[end])
 subblock2tensor(rt::TrivialTensorizer{2},K,k) =
     (k,K.K-k+1)
 
-subblock2tensor{II}(rt::CachedIterator{II,TrivialTensorizer{2}},K,k) =
+subblock2tensor(rt::CachedIterator{II,TrivialTensorizer{2}},K,k) where {II} =
     (k,K.K-k+1)
 
 
@@ -306,7 +306,7 @@ TensorSpace(sp::Tuple) =
 dimension(sp::TensorSpace) = mapreduce(dimension,*,sp.spaces)
 
 for OP in (:spacescompatible,:(==))
-    @eval $OP{SV,D,R}(A::TensorSpace{SV,D,R},B::TensorSpace{SV,D,R}) =
+    @eval $OP(A::TensorSpace{SV,D,R},B::TensorSpace{SV,D,R}) where {SV,D,R} =
         all(Bool[$OP(A.spaces[k],B.spaces[k]) for k=1:length(A.spaces)])
 end
 
@@ -363,7 +363,7 @@ ProductSpace(spacesx::Vector,spacey) =
                 mapreduce(s->eltype(domain(s)),promote_type,sp)}(spacesx,spacey)
 
 # TODO: This is a weird definition
-⊗{S<:Space}(A::Vector{S},B::Space) = ProductSpace(A,B)
+⊗(A::Vector{S},B::Space) where {S<:Space} = ProductSpace(A,B)
 domain(f::ProductSpace) = domain(f.spacesx[1])*domain(f.spacesy)
 
 
@@ -387,7 +387,7 @@ plan_transform!(S::TensorSpace,M::AbstractMatrix) = TransformPlan(S,((plan_trans
                                                              Val{true})
 
 
-function *{SS<:TensorSpace,TT}(T::TransformPlan{TT,SS,true},M::AbstractMatrix)
+function *(T::TransformPlan{TT,SS,true},M::AbstractMatrix) where {SS<:TensorSpace,TT}
     n=size(M,1)
 
     for k=1:size(M,2)
@@ -399,13 +399,13 @@ function *{SS<:TensorSpace,TT}(T::TransformPlan{TT,SS,true},M::AbstractMatrix)
     M
 end
 
-function *{SS<:TensorSpace,TT}(T::TransformPlan{TT,SS,true},v::AbstractVector)
+function *(T::TransformPlan{TT,SS,true},v::AbstractVector) where {SS<:TensorSpace,TT}
     N,M = T.plan[1][2],T.plan[2][2]
     V=reshape(v,N,M)
     fromtensor(T.space,T*V)
 end
 
-function *{SS<:TensorSpace,TT}(T::TransformPlan{TT,SS,false},v::AbstractVector)
+function *(T::TransformPlan{TT,SS,false},v::AbstractVector) where {SS<:TensorSpace,TT}
     P = TransformPlan(T.space,T.plan,Val{true})
     P*copy(v)
 end
@@ -472,7 +472,7 @@ function itransform!(S::AbstractProductSpace,M::AbstractMatrix)
 end
 
 
-function transform!{T}(S::TensorSpace,M::AbstractMatrix{T})
+function transform!(S::TensorSpace,M::AbstractMatrix{T}) where T
     n=size(M,1)
 
     ## The order matters!!
@@ -498,7 +498,7 @@ end
 
 
 
-function transform!{T}(S::AbstractProductSpace,M::AbstractMatrix{T})
+function transform!(S::AbstractProductSpace,M::AbstractMatrix{T}) where T
     n=size(M,1)
 
     ## The order matters!!

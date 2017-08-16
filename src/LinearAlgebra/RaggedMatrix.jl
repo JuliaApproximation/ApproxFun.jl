@@ -6,11 +6,11 @@ getindex(A::AbstractMatrix,k::Integer,::Type{FiniteRange}) = A[k,1:rowstop(A,k)]
 
 const ⤓ = FiniteRange
 
-type RaggedMatrix{T} <: AbstractMatrix{T}
+mutable struct RaggedMatrix{T} <: AbstractMatrix{T}
     data::Vector{T} # a Vector of non-zero entries
     cols::Vector{Int} # a Vector specifying the first index of each column
     m::Int #Number of rows
-    function (::Type{RaggedMatrix{T}}){T}(data::Vector{T},cols::Vector{Int},m::Int)
+    function RaggedMatrix{T}(data::Vector{T},cols::Vector{Int},m::Int) where T
         # make sure the cols are monitonically increasing
         @assert 1==cols[1]
         for j=1:length(cols)-1
@@ -39,7 +39,7 @@ Base.size(A::RaggedMatrix) = (A.m,length(A.cols)-1)
 colstart(A::RaggedMatrix,j::Integer) = 1
 colstop(A::RaggedMatrix,j::Integer) = min(A.cols[j+1]-A.cols[j],size(A,1))
 
-Base.IndexStyle{RM<:RaggedMatrix}(::Type{RM}) = IndexCartesian()
+Base.IndexStyle(::Type{RM}) where {RM<:RaggedMatrix} = IndexCartesian()
 
 function getindex(A::RaggedMatrix,k::Int,j::Int)
     if k>size(A,1) || k < 1 || j>size(A,2) || j < 1
@@ -105,11 +105,11 @@ end
 
 convert(::Type{RaggedMatrix},B::AbstractMatrix) = RaggedMatrix{eltype(B)}(B)
 
-Base.similar{T}(B::RaggedMatrix,::Type{T}) = RaggedMatrix(Vector{T}(length(B.data)),copy(B.cols),B.m)
+Base.similar(B::RaggedMatrix,::Type{T}) where {T} = RaggedMatrix(Vector{T}(length(B.data)),copy(B.cols),B.m)
 
 for (op,bop) in ((:(Base.rand),:rrand),(:(Base.zeros),:rzeros),(:(Base.ones),:rones))
     @eval begin
-        $bop{T}(::Type{T},m::Int,colns::AbstractVector{Int}) =
+        $bop(::Type{T},m::Int,colns::AbstractVector{Int}) where {T} =
             RaggedMatrix($op(T,sum(colns)),[1;1+cumsum(colns)],m)
         $bop(m::Int,colns::AbstractVector{Int}) = $bop(Float64,m,colns)
     end
@@ -155,13 +155,13 @@ function BLAS.axpy!(a,X::RaggedMatrix,Y::RaggedMatrix)
     Y
 end
 
-colstop{T}(X::SubArray{T,2,RaggedMatrix{T},Tuple{UnitRange{Int},UnitRange{Int}}},
-        j::Integer) = min(colstop(parent(X),j + first(parentindexes(X)[2])-1) -
+colstop(X::SubArray{T,2,RaggedMatrix{T},Tuple{UnitRange{Int},UnitRange{Int}}},
+     j::Integer) where {T} = min(colstop(parent(X),j + first(parentindexes(X)[2])-1) -
                                             first(parentindexes(X)[1]) + 1,
                             size(X,1))
 
-function BLAS.axpy!{T}(a,X::RaggedMatrix,
-                       Y::SubArray{T,2,RaggedMatrix{T},Tuple{UnitRange{Int},UnitRange{Int}}})
+function BLAS.axpy!(a,X::RaggedMatrix,
+                    Y::SubArray{T,2,RaggedMatrix{T},Tuple{UnitRange{Int},UnitRange{Int}}}) where T
     if size(X) ≠ size(Y)
         throw(BoundsError())
     end

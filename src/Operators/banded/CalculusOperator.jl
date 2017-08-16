@@ -51,7 +51,7 @@ macro calculus_operator(Op)
         $Op(x...) = $DefaultOp(x...)
         $ConcOp(S::Space) = $ConcOp(S,1)
 
-        function Base.convert{T}(::Type{Operator{T}},D::$ConcOp)
+        function Base.convert(::Type{Operator{T}},D::$ConcOp) where T
             if T==eltype(D)
                 D
             else
@@ -63,7 +63,7 @@ macro calculus_operator(Op)
             $WrappOp{typeof(op),typeof(domainspace(op)),typeof(order),eltype(op)}(op,order)
         $WrappOp(op::Operator) = $WrappOp(op,1)
 
-        function Base.convert{T}(::Type{Operator{T}},D::$WrappOp)
+        function Base.convert(::Type{Operator{T}},D::$WrappOp) where T
             if T==eltype(D)
                 D
             else
@@ -77,9 +77,9 @@ macro calculus_operator(Op)
         ApproxFun.domain(D::$ConcOp) = domain(D.space)
         ApproxFun.domainspace(D::$ConcOp) = D.space
 
-        Base.getindex{OT,T}(::$ConcOp{UnsetSpace,OT,T},k::Integer,j::Integer) =
+        Base.getindex(::$ConcOp{UnsetSpace,OT,T},k::Integer,j::Integer) where {OT,T} =
             error("Spaces cannot be inferred for operator")
-        ApproxFun.rangespace{T}(D::$ConcOp{UnsetSpace,T}) = UnsetSpace()
+        ApproxFun.rangespace(D::$ConcOp{UnsetSpace,T}) where {T} = UnsetSpace()
 
         #promoting domain space is allowed to change range space
         # for integration, we fall back on existing conversion for now

@@ -90,7 +90,7 @@ end
 # the default is a  ArraySpace, but support is there for PiecewiseSpace
 # for bcs
 for TYP in (:PiecewiseSpace,:VectorSpace)
-    @eval function LowRankPertOperator{OT<:Operator}(A::AbstractVector{OT},::Type{$TYP})
+    @eval function LowRankPertOperator(A::AbstractVector{OT},::Type{$TYP}) where OT<:Operator
         A=promotedomainspace(A)
         for k=1:length(A)-1
             @assert isafunctional(A[k])
@@ -104,9 +104,9 @@ for TYP in (:PiecewiseSpace,:VectorSpace)
     end
 end
 
-LowRankPertOperator{OT<:Operator}(A::AbstractVector{OT})=LowRankPertOperator(A,VectorSpace)
+LowRankPertOperator(A::AbstractVector{OT}) where {OT<:Operator}=LowRankPertOperator(A,VectorSpace)
 
-function LowRankOperator{FT<:Operator}(Bin::AbstractVector{FT},::Type{PiecewiseSpace})
+function LowRankOperator(Bin::AbstractVector{FT},::Type{PiecewiseSpace}) where FT<:Operator
     B=promotedomainspace(Bin)
     rsp=PiecewiseSpace(map(rangespace,B))
     LowRankOperator(
@@ -114,7 +114,7 @@ function LowRankOperator{FT<:Operator}(Bin::AbstractVector{FT},::Type{PiecewiseS
         B)
 end
 
-function LowRankOperator{FT<:Operator}(Bin::AbstractVector{FT},::Type{VectorSpace})
+function LowRankOperator(Bin::AbstractVector{FT},::Type{VectorSpace}) where FT<:Operator
     B=promotedomainspace(Bin)
     rsp=Space([map(rangespace,B);ZeroSpace()])  #TODO: Why the hack?
     LowRankOperator(
@@ -124,4 +124,4 @@ end
 
 
 
-LowRankOperator{FT<:Operator}(Bin::AbstractVector{FT}) = LowRankOperator(Bin,VectorSpace)
+LowRankOperator(Bin::AbstractVector{FT}) where {FT<:Operator} = LowRankOperator(Bin,VectorSpace)

@@ -26,7 +26,7 @@ Space(d::Segment) = Chebyshev(d)
 
 setdomain(S::Chebyshev,d::Domain) = Chebyshev(d)
 
-Base.ones{T<:Number}(::Type{T},S::Chebyshev) = Fun(S,ones(T,1))
+Base.ones(::Type{T},S::Chebyshev) where {T<:Number} = Fun(S,ones(T,1))
 Base.ones(S::Chebyshev) = Fun(S,ones(1))
 
 function Base.first(f::Fun{<:Chebyshev})
@@ -81,11 +81,11 @@ function clenshaw(::Chebyshev,c::AbstractVector,x)
     muladd(x/2,bk1,c[1]-bk2)
 end
 
-clenshaw{S<:Chebyshev,V}(c::AbstractVector,x::AbstractVector,plan::ClenshawPlan{S,V})=
+clenshaw(c::AbstractVector,x::AbstractVector,plan::ClenshawPlan{S,V}) where {S<:Chebyshev,V}=
     clenshaw(c,collect(x),plan)
 
 #TODO: This modifies x, which is not threadsafe
-function clenshaw{S<:Chebyshev,V}(c::AbstractVector,x::Vector,plan::ClenshawPlan{S,V})
+function clenshaw(c::AbstractVector,x::Vector,plan::ClenshawPlan{S,V}) where {S<:Chebyshev,V}
     N,n = length(c),length(x)
     if isempty(c)
         return zeros(V,n)
@@ -118,7 +118,7 @@ function clenshaw{S<:Chebyshev,V}(c::AbstractVector,x::Vector,plan::ClenshawPlan
     bk
 end
 
-function clenshaw{S<:Chebyshev,T<:Number}(c::AbstractMatrix{T},x::T,plan::ClenshawPlan{S,T})
+function clenshaw(c::AbstractMatrix{T},x::T,plan::ClenshawPlan{S,T}) where {S<:Chebyshev,T<:Number}
     bk=plan.bk
     bk1=plan.bk1
     bk2=plan.bk2
@@ -148,7 +148,7 @@ function clenshaw{S<:Chebyshev,T<:Number}(c::AbstractMatrix{T},x::T,plan::Clensh
     bk
 end
 
-function clenshaw{S<:Chebyshev,T<:Number}(c::AbstractMatrix{T},x::AbstractVector{T},plan::ClenshawPlan{S,T})
+function clenshaw(c::AbstractMatrix{T},x::AbstractVector{T},plan::ClenshawPlan{S,T}) where {S<:Chebyshev,T<:Number}
     bk=plan.bk
     bk1=plan.bk1
     bk2=plan.bk2
@@ -181,7 +181,7 @@ end
 
 # overwrite x
 
-function clenshaw!{S<:Chebyshev,V}(c::AbstractVector,x::AbstractVector,plan::ClenshawPlan{S,V})
+function clenshaw!(c::AbstractVector,x::AbstractVector,plan::ClenshawPlan{S,V}) where {S<:Chebyshev,V}
     N,n = length(c),length(x)
 
     if isempty(c)
@@ -220,9 +220,9 @@ end
 
 
 # diff T -> U, then convert U -> T
-integrate{D<:Segment,R}(f::Fun{Chebyshev{D,R}}) =
+integrate(f::Fun{Chebyshev{D,R}}) where {D<:Segment,R} =
     Fun(f.space,fromcanonicalD(f,0)*ultraint!(ultraconversion(f.coefficients)))
-differentiate{D<:Segment,R}(f::Fun{Chebyshev{D,R}}) =
+differentiate(f::Fun{Chebyshev{D,R}}) where {D<:Segment,R} =
     Fun(f.space,1/fromcanonicalD(f,0)*ultraiconversion(ultradiff(f.coefficients)))
 
 ## identity_fun
@@ -233,7 +233,7 @@ differentiate{D<:Segment,R}(f::Fun{Chebyshev{D,R}}) =
 
 ## Multivariate
 
-function points{D,R}(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},N)
+function points(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},N) where {D,R}
     if domain(S) == Segment()^2
         pts=paduapoints(real(prectype(D)),Int(cld(-3+sqrt(1+8N),2)))
         T=eltype(pts)
@@ -247,28 +247,28 @@ function points{D,R}(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},N)
     end
 end
 
-plan_transform{D,R}(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector) =
+plan_transform(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector) where {D,R} =
     plan_paduatransform!(v,Val{false})
 
-transform{D,R}(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector,
-             plan=plan_transform(S,v)) = plan*copy(v)
+transform(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector,
+        plan=plan_transform(S,v)) where {D,R} = plan*copy(v)
 
-plan_itransform{D,R}(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector) =
+plan_itransform(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector) where {D,R} =
      plan_ipaduatransform!(eltype(v),sum(1:nblocks(Fun(S,v))),Val{false})
 
-itransform{D,R}(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector,
-              plan=plan_itransform(S,v)) = plan*pad(v,sum(1:nblocks(Fun(S,v))))
+itransform(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector,
+         plan=plan_itransform(S,v)) where {D,R} = plan*pad(v,sum(1:nblocks(Fun(S,v))))
 
 
 #TODO: adaptive
 for op in (:(Base.sin),:(Base.cos))
-    @eval ($op){S<:Chebyshev,V<:Chebyshev}(f::ProductFun{S,V}) =
+    @eval ($op)(f::ProductFun{S,V}) where {S<:Chebyshev,V<:Chebyshev} =
         ProductFun(chebyshevtransform($op.(values(f))),space(f))
 end
 
 
 
-reverseorientation{C<:Chebyshev}(f::Fun{C}) =
+reverseorientation(f::Fun{C}) where {C<:Chebyshev} =
     Fun(Chebyshev(reverse(domain(f))),alternatesign!(copy(f.coefficients)))
 
 

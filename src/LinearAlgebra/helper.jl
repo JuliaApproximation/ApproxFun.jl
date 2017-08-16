@@ -3,7 +3,7 @@ import Base.chop
 
 # Used for spaces not defined yet
 struct UnsetNumber <: Number  end
-Base.promote_rule{N<:Number}(::Type{UnsetNumber},::Type{N}) = N
+Base.promote_rule(::Type{UnsetNumber},::Type{N}) where {N<:Number} = N
 
 # Test the number of arguments a function takes
 hasnumargs(f,k) = applicable(f,zeros(k)...)
@@ -18,7 +18,7 @@ isapprox_atol(a::Vec,b::Vec,atol::Real=0;kwds...) = isapprox_atol([a...],[b...],
 function isapprox_atol(x::Number, y::Number, atol::Real=0; rtol::Real=Base.rtoldefault(x,y))
     x == y || (isfinite(x) && isfinite(y) && abs(x-y) <= atol + rtol*max(abs(x), abs(y)))
 end
-function isapprox_atol{T<:Number,S<:Number}(x::AbstractArray{T}, y::AbstractArray{S},atol::Real=0; rtol::Real=Base.rtoldefault(T,S), norm::Function=vecnorm)
+function isapprox_atol(x::AbstractArray{T}, y::AbstractArray{S},atol::Real=0; rtol::Real=Base.rtoldefault(T,S), norm::Function=vecnorm) where {T<:Number,S<:Number}
     d = norm(x - y)
     if isfinite(d)
         return d <= atol + rtol*max(norm(x), norm(y))
@@ -36,12 +36,12 @@ isapproxinteger(x) = isapprox(x,round(Int,x))  || isapprox(x+1,round(Int,x+1))
 # which we override for default julia types
 real(x...) = Base.real(x...)
 real(::Type{UnsetNumber}) = UnsetNumber
-real{T<:Real}(::Type{T}) = T
-real{T<:Real}(::Type{Complex{T}}) = T
-real{T<:Real,n}(::Type{Array{T,n}}) = Array{T,n}
-real{T<:Complex,n}(::Type{Array{T,n}}) = Array{real(T),n}
-real{N,T<:Real}(::Type{Vec{N,T}}) = Vec{N,T}
-real{N,T<:Complex}(::Type{Vec{N,T}}) = Vec{N,real(T)}
+real(::Type{T}) where {T<:Real} = T
+real(::Type{Complex{T}}) where {T<:Real} = T
+real(::Type{Array{T,n}}) where {T<:Real,n} = Array{T,n}
+real(::Type{Array{T,n}}) where {T<:Complex,n} = Array{real(T),n}
+real(::Type{Vec{N,T}}) where {N,T<:Real} = Vec{N,T}
+real(::Type{Vec{N,T}}) where {N,T<:Complex} = Vec{N,real(T)}
 
 
 eps(x...) = Base.eps(x...)
@@ -54,8 +54,8 @@ eps(z::Complex{T}) where {T<:Real} = eps(abs(z))
 eps(::Type{Dual{Complex{T}}}) where {T<:Real} = eps(real(T))
 eps(z::Dual{Complex{T}}) where {T<:Real} = eps(abs(z))
 
-eps{T<:Number}(::Type{Vector{T}}) = eps(T)
-eps{k,T<:Number}(::Type{Vec{k,T}}) = eps(T)
+eps(::Type{Vector{T}}) where {T<:Number} = eps(T)
+eps(::Type{Vec{k,T}}) where {k,T<:Number} = eps(T)
 
 
 isnan(x) = Base.isnan(x)
@@ -71,12 +71,12 @@ muladd(a::Number,b::Number,c::Number) = Base.muladd(a,b,c)
 
 
 for TYP in (:Float64,:Float32,:Complex128,:Complex64)
-    @eval scal!{T<:$TYP}(n::Integer,cst::$TYP,ret::DenseArray{T},k::Integer) =
+    @eval scal!(n::Integer,cst::$TYP,ret::DenseArray{T},k::Integer) where {T<:$TYP} =
             BLAS.scal!(n,cst,ret,k)
 end
 
 
-scal!{T<:BlasFloat}(n::Integer,cst::BlasFloat,ret::DenseArray{T},k::Integer) =
+scal!(n::Integer,cst::BlasFloat,ret::DenseArray{T},k::Integer) where {T<:BlasFloat} =
     BLAS.scal!(n,T(cst),ret,k)
 
 function scal!(n::Integer,cst::Number,ret::AbstractArray,k::Integer)
@@ -188,7 +188,7 @@ function unsafe_resize!(W::AbstractMatrix,n::Integer,m::Integer)
 end
 
 
-function pad!{T}(f::AbstractVector{T},n::Integer)
+function pad!(f::AbstractVector{T},n::Integer) where T
 	if n > length(f)
 		append!(f,zeros(T,n - length(f)))
 	else
@@ -197,7 +197,7 @@ function pad!{T}(f::AbstractVector{T},n::Integer)
 end
 
 
-function pad{T}(f::AbstractVector{T},n::Integer)
+function pad(f::AbstractVector{T},n::Integer) where T
 	if n > length(f)
 	   ret=Vector{T}(n)
 	   ret[1:length(f)]=f
@@ -324,7 +324,7 @@ function interlace(v::Union{Vector{Any},Tuple})
     interlace(b)
 end
 
-function interlace{S<:Number,V<:Number}(a::AbstractVector{S},b::AbstractVector{V})
+function interlace(a::AbstractVector{S},b::AbstractVector{V}) where {S<:Number,V<:Number}
     na=length(a);nb=length(b)
     T=promote_type(S,V)
     if nb≥na
@@ -461,7 +461,7 @@ slnorm(m::AbstractMatrix,kr::Range,jr::Integer) = slnorm(m,kr,jr:jr)
 slnorm(m::AbstractMatrix,kr::Integer,jr::Range) = slnorm(m,kr:kr,jr)
 
 
-function slnorm{T}(B::BandedMatrix{T},r::Range,::Colon)
+function slnorm(B::BandedMatrix{T},r::Range,::Colon) where T
     ret = zero(real(T))
     m=size(B,2)
     for k=r
@@ -492,10 +492,10 @@ const ∞ = Infinity()
 
 Base.isinf(::Infinity) = true
 Base.isfinite(::Infinity) = false
-Base.sign{B<:Integer}(y::Infinity{B}) = mod(y.angle,2)==0?1:-1
+Base.sign(y::Infinity{B}) where {B<:Integer} = mod(y.angle,2)==0?1:-1
 Base.angle(x::Infinity) = π*x.angle
 
-function Base.show{B<:Integer}(io::IO, y::Infinity{B})
+function Base.show(io::IO, y::Infinity{B}) where B<:Integer
     if sign(y) == 1
         print(io, "∞")
     else
@@ -517,9 +517,9 @@ Base.isless(x::Number,y::Infinity{Bool}) = y.angle && (x ≠ ∞)
 Base.isless(x::Infinity{Bool},y::Number) = !x.angle && (y ≠ -∞)
 
 
--{B<:Integer}(y::Infinity{B}) = sign(y)==1?Infinity(one(B)):Infinity(zero(B))
+-(y::Infinity{B}) where {B<:Integer} = sign(y)==1?Infinity(one(B)):Infinity(zero(B))
 
-function +{B}(x::Infinity{B},y::Infinity{B})
+function +(x::Infinity{B},y::Infinity{B}) where B
     if x.angle != y.angle
         error("Angles must be the same to add ∞")
     end
@@ -554,24 +554,24 @@ for OP in (:fld,:cld,:div)
   @eval Base.$OP(y::Infinity,a::Number) = y*(1/sign(a))
 end
 
-Base.min{B<:Integer}(x::Infinity{B},y::Infinity{B}) = sign(x)==-1?x:y
-Base.max{B<:Integer}(x::Infinity{B},::Infinity{B}) = sign(x)==1?x:y
-Base.min{B<:Integer}(x::Real,y::Infinity{B}) = sign(y)==1?x:y
-Base.min{B<:Integer}(x::Infinity{B},y::Real) = min(y,x)
-Base.max{B<:Integer}(x::Real,y::Infinity{B}) = sign(y)==1?y:x
-Base.max{B<:Integer}(x::Infinity{B},y::Real) = max(y,x)
+Base.min(x::Infinity{B},y::Infinity{B}) where {B<:Integer} = sign(x)==-1?x:y
+Base.max(x::Infinity{B},::Infinity{B}) where {B<:Integer} = sign(x)==1?x:y
+Base.min(x::Real,y::Infinity{B}) where {B<:Integer} = sign(y)==1?x:y
+Base.min(x::Infinity{B},y::Real) where {B<:Integer} = min(y,x)
+Base.max(x::Real,y::Infinity{B}) where {B<:Integer} = sign(y)==1?y:x
+Base.max(x::Infinity{B},y::Real) where {B<:Integer} = max(y,x)
 
 for OP in (:<,:<=)
     @eval begin
-        $OP{B<:Integer}(x::Real,y::Infinity{B}) = sign(y)==1
-        $OP{B<:Integer}(y::Infinity{B},x::Real) = sign(y)==-1
+        $OP(x::Real,y::Infinity{B}) where {B<:Integer} = sign(y)==1
+        $OP(y::Infinity{B},x::Real) where {B<:Integer} = sign(y)==-1
     end
 end
 
 for OP in (:>,:>=)
     @eval begin
-        $OP{B<:Integer}(x::Real,y::Infinity{B}) = sign(y)==-1
-        $OP{B<:Integer}(y::Infinity{B},x::Real) = sign(y)==1
+        $OP(x::Real,y::Infinity{B}) where {B<:Integer} = sign(y)==-1
+        $OP(y::Infinity{B},x::Real) where {B<:Integer} = sign(y)==1
     end
 end
 
@@ -581,7 +581,7 @@ end
 struct Take{I,T} <: AbstractVector{T}
     xs::I
     n::Int
-    function (::Type{Take{I,T}}){I,T}(xs,n)
+    function Take{I,T}(xs,n) where {I,T}
         @assert n ≤ length(xs)
         new{I,T}(xs,n)
     end
@@ -616,7 +616,7 @@ julia> collect(take(a,3))
 """
 take(xs, n::Int) = Take(xs, n)
 
-eltype{I}(::Type{Take{I}}) = eltype(I)
+eltype(::Type{Take{I}}) where {I} = eltype(I)
 Base.length(t::Take) = t.n
 Base.size(t::Take) = (length(t),)
 start(it::Take) = (it.n, start(it.xs))
@@ -657,9 +657,9 @@ pad(it::Take,n::Integer) = pad!(collect(it),n)
 
 abstract type AbstractRepeated{T} end
 
-Base.eltype{T}(::Type{AbstractRepeated{T}}) = T
-Base.eltype{R<:AbstractRepeated}(::Type{R}) = eltype(super(R))
-Base.eltype{T}(::AbstractRepeated{T}) = T
+Base.eltype(::Type{AbstractRepeated{T}}) where {T} = T
+Base.eltype(::Type{R}) where {R<:AbstractRepeated} = eltype(super(R))
+Base.eltype(::AbstractRepeated{T}) where {T} = T
 
 Base.step(::AbstractRepeated) = 0
 
@@ -676,18 +676,18 @@ getindex(it::AbstractRepeated,k::Range) = take(it,length(k))
 Base.maximum(r::AbstractRepeated) = value(r)
 Base.minimum(r::AbstractRepeated) = value(r)
 
-Base.sum{AR<:AbstractRepeated}(it::Take{AR}) = it.n*value(it.xs)
+Base.sum(it::Take{AR}) where {AR<:AbstractRepeated} = it.n*value(it.xs)
 
 struct ZeroRepeated{T} <: AbstractRepeated{T} end
 
-ZeroRepeated{T}(::Type{T}) = ZeroRepeated{T}()
+ZeroRepeated(::Type{T}) where {T} = ZeroRepeated{T}()
 
-value{T}(::ZeroRepeated{T}) = zero(T)
+value(::ZeroRepeated{T}) where {T} = zero(T)
 Base.sum(r::ZeroRepeated) = value(r)
 
 struct Repeated{T} <: AbstractRepeated{T}
     x::T
-    function (::Type{Repeated{T}}){T}(x::T)
+    function Repeated{T}(x::T) where T
         # TODO: Add ZeroRepeated type.
         if x == zero(T)
             error("Zero repeated not supported to maintain type stability")
@@ -733,9 +733,9 @@ countfrom(start::Number)               = UnitCount(start)
 countfrom()                            = UnitCount(1)
 
 
-Base.eltype{S}(::Type{AbstractCount{S}}) = S
-Base.eltype{AS<:AbstractCount}(::Type{AS}) = eltype(supertype(AS))
-Base.eltype{S}(::AbstractCount{S}) = S
+Base.eltype(::Type{AbstractCount{S}}) where {S} = S
+Base.eltype(::Type{AS}) where {AS<:AbstractCount} = eltype(supertype(AS))
+Base.eltype(::AbstractCount{S}) where {S} = S
 
 Base.step(it::Count) = it.step
 Base.step(it::UnitCount) = 1
@@ -755,17 +755,17 @@ reindex(V, idxs::Tuple{AbstractCount, Vararg{Any}}, subidxs::Tuple{Any, Vararg{A
     (Base.@_propagate_inbounds_meta; (idxs[1][subidxs[1]], reindex(V, tail(idxs), tail(subidxs))...))
 
 # special functions
-Base.maximum{S<:Real}(it::UnitCount{S}) = ∞
-Base.minimum{S<:Real}(it::UnitCount{S}) = it.start
+Base.maximum(it::UnitCount{S}) where {S<:Real} = ∞
+Base.minimum(it::UnitCount{S}) where {S<:Real} = it.start
 
-Base.maximum{S<:Real}(it::Count{S}) = it.step > 0 ? ∞ : it.start
-Base.minimum{S<:Real}(it::Count{S}) = it.step < 0 ? -∞ : it.start
+Base.maximum(it::Count{S}) where {S<:Real} = it.step > 0 ? ∞ : it.start
+Base.minimum(it::Count{S}) where {S<:Real} = it.step < 0 ? -∞ : it.start
 
 Base.sum(it::UnitCount) = ∞
 Base.sum(it::Count) = it.step > 0 ? ∞ : -∞
 
-Base.last{S<:Real}(it::UnitCount{S}) = ∞
-Base.last{S<:Real}(it::Count{S}) =
+Base.last(it::UnitCount{S}) where {S<:Real} = ∞
+Base.last(it::Count{S}) where {S<:Real} =
     it.step > 0 ? ∞ : (it.step < 0 ? -∞ : error("zero step not supported"))
 
 
@@ -798,7 +798,7 @@ struct CumSumIterator{CC}
     iterator::CC
 end
 
-Base.eltype{S}(::Type{CumSumIterator{S}}) = eltype(S)
+Base.eltype(::Type{CumSumIterator{S}}) where {S} = eltype(S)
 Base.eltype(CC::CumSumIterator) = eltype(CC.iterator)
 
 Base.start(it::CumSumIterator) = (0,start(it.iterator))
@@ -811,8 +811,8 @@ Base.done(it::CumSumIterator, state) = done(it.iterator,state[2])
 
 Base.length(it::CumSumIterator) = length(it.iterator)
 
-getindex{AC<:UnitCount}(it::CumSumIterator{AC},k) = it.iterator.start*k + ((k*(k-1))÷2)
-getindex{AC<:Count}(it::CumSumIterator{AC},k) = it.iterator.start*k + step(it.iterator)*((k*(k-1))÷2)
+getindex(it::CumSumIterator{AC},k) where {AC<:UnitCount} = it.iterator.start*k + ((k*(k-1))÷2)
+getindex(it::CumSumIterator{AC},k) where {AC<:Count} = it.iterator.start*k + step(it.iterator)*((k*(k-1))÷2)
 
 
 
@@ -828,13 +828,13 @@ columnrange(A,row::Integer) = max(1,row+bandinds(A,1)):row+bandinds(A,2)
 
 
 ## Store iterator
-type CachedIterator{T,IT,ST}
+mutable struct CachedIterator{T,IT,ST}
     iterator::IT
     storage::Vector{T}
     state::ST
     length::Int
 
-    (::Type{CachedIterator{T,IT,ST}}){T,IT,ST}(it::IT) = new{T,IT,ST}(it,Vector{T}(),start(it),0)
+    CachedIterator{T,IT,ST}(it::IT) where {T,IT,ST} = new{T,IT,ST}(it,Vector{T}(),start(it),0)
 end
 
 CachedIterator(it) = CachedIterator{eltype(it),typeof(it),typeof(start(it))}(it)
@@ -861,7 +861,7 @@ function Base.resize!(it::CachedIterator,n::Integer)
 end
 
 
-Base.eltype{T}(it::CachedIterator{T}) = T
+Base.eltype(it::CachedIterator{T}) where {T} = T
 Base.start(it::CachedIterator) = 1
 Base.next(it::CachedIterator,st::Int) = (it[st],st+1)
 Base.done(it::CachedIterator,st::Int) = st == it.length + 1 &&
@@ -900,7 +900,7 @@ Base.length(A::CachedIterator) = length(A.iterator)
 
 
 # The following don't need caching
-cache{T<:Number}(A::AbstractVector{T}) = A
+cache(A::AbstractVector{T}) where {T<:Number} = A
 cache(A::Range) = A
 cache(A::AbstractCount) = A
 

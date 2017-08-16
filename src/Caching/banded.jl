@@ -10,7 +10,7 @@ end
 ## Grow cached operator
 
 
-function resizedata!{T<:Number}(B::CachedOperator{T,BandedMatrix{T}},n::Integer,::Colon)
+function resizedata!(B::CachedOperator{T,BandedMatrix{T}},n::Integer,::Colon) where T<:Number
     if n > size(B,1)
         throw(ArgumentError("Cannot resize beyound size of operator"))
     end
@@ -28,22 +28,22 @@ function resizedata!{T<:Number}(B::CachedOperator{T,BandedMatrix{T}},n::Integer,
     B
 end
 
-resizedata!{T<:Number}(B::CachedOperator{T,BandedMatrix{T}},n::Integer,m::Integer) =
+resizedata!(B::CachedOperator{T,BandedMatrix{T}},n::Integer,m::Integer) where {T<:Number} =
     resizedata!(B,n,:)
 
 
 ## Grow QR
 
-function QROperator{T}(R::CachedOperator{T,BandedMatrix{T}})
+function QROperator(R::CachedOperator{T,BandedMatrix{T}}) where T
     M = R.data.l+1   # number of diag+subdiagonal bands
     H = Array{T}(M,100)
     QROperator(R,H,0)
 end
 
 
-function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,BandedMatrix{T},
-                                                                 MM,DS,RS,BI}},
-                        ::Colon,col)
+function resizedata!(QR::QROperator{CachedOperator{T,BandedMatrix{T},
+                                                  MM,DS,RS,BI}},
+         ::Colon,col) where {T,MM,DS,RS,BI}
     if col ≤ QR.ncols
         return QR
     end
@@ -94,9 +94,9 @@ end
 
 
 
-function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,BandedMatrix{T},
-                                                                 MM,DS,RS,BI}},
-                        ::Colon,col)
+function resizedata!(QR::QROperator{CachedOperator{T,BandedMatrix{T},
+                                       MM,DS,RS,BI}},
+::Colon,col) where {T<:BlasFloat,MM,DS,RS,BI}
     if col ≤ QR.ncols
         return QR
     end

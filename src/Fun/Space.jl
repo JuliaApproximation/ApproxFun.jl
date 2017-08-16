@@ -25,15 +25,15 @@ const RealUnivariateSpace = RealSpace{D,R} where {D<:UnivariateDomain,R<:Real}
 
 
 
-Base.eltype{T}(S::Space{T}) = error("Eltype has been changed to domaintype, rangetype or prectype")
-Base.eltype{D,R}(::Type{Space{D,R}}) = error("Eltype has been changed to domaintype, rangetype or prectype")
+Base.eltype(S::Space{T}) where {T} = error("Eltype has been changed to domaintype, rangetype or prectype")
+Base.eltype(::Type{Space{D,R}}) where {D,R} = error("Eltype has been changed to domaintype, rangetype or prectype")
 
-domaintype{D,R}(::Space{D,R}) = D
-domaintype{D,R}(::Type{Space{D,R}}) = D
-domaintype{FT<:Space}(::Type{FT}) = domaintype(supertype(FT))
-rangetype{D,R}(::Space{D,R}) = R
-rangetype{D,R}(::Type{Space{D,R}}) = R
-rangetype{FT<:Space}(::Type{FT}) = rangetype(supertype(FT))
+domaintype(::Space{D,R}) where {D,R} = D
+domaintype(::Type{Space{D,R}}) where {D,R} = D
+domaintype(::Type{FT}) where {FT<:Space} = domaintype(supertype(FT))
+rangetype(::Space{D,R}) where {D,R} = R
+rangetype(::Type{Space{D,R}}) where {D,R} = R
+rangetype(::Type{FT}) where {FT<:Space} = rangetype(supertype(FT))
 
 domaindimension(sp::Space) = dimension(domain(sp))
 dimension(::Space) = ∞  # We assume infinite-dimensional spaces
@@ -63,14 +63,14 @@ blocklengths(S::Space) = repeated(true,dimension(S))
 nblocks(S::Space) = length(blocklengths(S))
 block(S::Space,k) = Block(k)
 
-Space{D<:Number}(d::AbstractVector{D}) = Space(convert(Domain,d))
+Space(d::AbstractVector{D}) where {D<:Number} = Space(convert(Domain,d))
 
 
 abstract type AmbiguousSpace <: Space{AnyDomain,UnsetNumber} end
 domain(::AmbiguousSpace) = AnyDomain()
 
 
-function setdomain{D<:Domain}(sp::Space{D},d::D)
+function setdomain(sp::Space{D},d::D) where D<:Domain
     S = typeof(sp)
     @assert length(fieldnames(S))==1
     S(d)
@@ -114,7 +114,7 @@ canonicaldomain(S::Space) = canonicaldomain(domain(S))
 
 # Check whether spaces are the same, override when you need to check parameters
 # This is used in place of == to support AnyDomain
-spacescompatible{D<:Space}(f::D,g::D) = error("Override spacescompatible for "*string(D))
+spacescompatible(f::D,g::D) where {D<:Space} = error("Override spacescompatible for "*string(D))
 spacescompatible(::UnsetSpace,::UnsetSpace) = true
 spacescompatible(::NoSpace,::NoSpace) = true
 spacescompatible(f,g) = false
@@ -309,10 +309,10 @@ isconvertible(a,b) = hasconversion(a,b)
 
 coefficients(f,sp1,sp2,sp3) = coefficients(coefficients(f,sp1,sp2),sp2,sp3)
 
-coefficients{T1<:Space,T2<:Space}(f::AbstractVector,::Type{T1},::Type{T2}) =
+coefficients(f::AbstractVector,::Type{T1},::Type{T2}) where {T1<:Space,T2<:Space} =
     coefficients(f,T1(),T2())
-coefficients{T1<:Space}(f::AbstractVector,::Type{T1},sp2::Space) = coefficients(f,T1(),sp2)
-coefficients{T2<:Space}(f::AbstractVector,sp1::Space,::Type{T2}) = coefficients(f,sp1,T2())
+coefficients(f::AbstractVector,::Type{T1},sp2::Space) where {T1<:Space} = coefficients(f,T1(),sp2)
+coefficients(f::AbstractVector,sp1::Space,::Type{T2}) where {T2<:Space} = coefficients(f,sp1,T2())
 
 ## coefficients defaults to calling Conversion, otherwise it tries to pipe through Chebyshev
 
@@ -362,13 +362,13 @@ coefficients(f,a,b) = defaultcoefficients(f,a,b)
 
 ## TODO: remove zeros
 Base.zero(S::Space) = zeros(S)
-Base.zero{T<:Number}(::Type{T},S::Space) = zeros(T,S)
-Base.zeros{T<:Number}(::Type{T},S::Space) = Fun(S,zeros(T,1))
+Base.zero(::Type{T},S::Space) where {T<:Number} = zeros(T,S)
+Base.zeros(::Type{T},S::Space) where {T<:Number} = Fun(S,zeros(T,1))
 Base.zeros(S::Space) = Fun(S,zeros(1))
 
 # catch all
 Base.ones(S::Space) = Fun(x->1.0,S)
-Base.ones{T<:Number}(::Type{T},S::Space) = Fun(x->one(T),S)
+Base.ones(::Type{T},S::Space) where {T<:Number} = Fun(x->one(T),S)
 
 identity_fun(S::Space) = identity_fun(domain(S))
 
@@ -407,7 +407,7 @@ for Typ in (:TransformPlan,:ITransformPlan)
             space::SP
             plan::PL
         end
-        $Typ{inplace}(space,plan,::Type{Val{inplace}}) =
+        $Typ(space,plan,::Type{Val{inplace}}) where {inplace} =
             $Typ{eltype(plan),typeof(space),inplace,typeof(plan)}(space,plan)
     end
 end
@@ -421,7 +421,7 @@ for Typ in (:CanonicalTransformPlan,:ICanonicalTransformPlan)
         end
         $Typ(space,plan,csp) =
             $Typ{eltype(plan),typeof(space),typeof(plan),typeof(csp)}(space,plan,csp)
-        $Typ{T}(::Type{T},space,plan,csp) =
+        $Typ(::Type{T},space,plan,csp) where {T} =
             $Typ{T,typeof(space),typeof(plan),typeof(csp)}(space,plan,csp)
     end
 end

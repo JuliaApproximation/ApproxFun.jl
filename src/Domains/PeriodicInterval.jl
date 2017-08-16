@@ -11,8 +11,8 @@ represents a periodic interval from `a` to `b`, that is, the point
 struct PeriodicInterval{T} <: PeriodicDomain{T}
     a::T
     b::T
-    (::Type{PeriodicInterval{T}}){T}() = new{T}(0,2convert(T,π))
-    (::Type{PeriodicInterval{T}}){T}(a,b) = new{T}(a,b)
+    PeriodicInterval{T}() where {T} = new{T}(0,2convert(T,π))
+    PeriodicInterval{T}(a,b) where {T} = new{T}(a,b)
 end
 
 PeriodicInterval()=PeriodicInterval{Float64}()
@@ -30,12 +30,12 @@ Segment(d::PeriodicInterval) = Segment(d.a,d.b)
 Interval(d::PeriodicInterval) = Interval(d.a,d.b)
 PeriodicInterval(d::Segment) = PeriodicInterval(d.a,d.b)
 
-convert{T<:Number}(::Type{PeriodicInterval{T}}, d::PeriodicInterval) = PeriodicInterval{T}(d.a,d.b)
+convert(::Type{PeriodicInterval{T}}, d::PeriodicInterval) where {T<:Number} = PeriodicInterval{T}(d.a,d.b)
 
 isambiguous(d::PeriodicInterval) = all(isnan(d.a)) && all(isnan(d.b))
-convert{T<:Number}(::Type{PeriodicInterval{T}},::AnyDomain) = PeriodicInterval{T}(NaN,NaN)
-convert{d,T}(::Type{PeriodicInterval{Vec{d,T}}},::AnyDomain) = PeriodicInterval(Vec(fill(NaN,d)...),Vec(fill(NaN,d)...))
-convert{T}(::Type{PeriodicInterval{T}},::AnyDomain) = PeriodicInterval(nan(T),nan(T))
+convert(::Type{PeriodicInterval{T}},::AnyDomain) where {T<:Number} = PeriodicInterval{T}(NaN,NaN)
+convert(::Type{PeriodicInterval{Vec{d,T}}},::AnyDomain) where {d,T} = PeriodicInterval(Vec(fill(NaN,d)...),Vec(fill(NaN,d)...))
+convert(::Type{PeriodicInterval{T}},::AnyDomain) where {T} = PeriodicInterval(nan(T),nan(T))
 
 
 ## Information
@@ -50,8 +50,8 @@ Base.issubset(a::PeriodicInterval,b::PeriodicInterval) = first(a)∈b && (a.b∈
 ## Map periodic interval
 
 
-tocanonical{T}(d::PeriodicInterval{T},x) = π*(tocanonical(Segment(d),x)+1)
-tocanonicalD{T}(d::PeriodicInterval{T},x) = π*tocanonicalD(Segment(d),x)
+tocanonical(d::PeriodicInterval{T},x) where {T} = π*(tocanonical(Segment(d),x)+1)
+tocanonicalD(d::PeriodicInterval{T},x) where {T} = π*tocanonicalD(Segment(d),x)
 fromcanonical(d::PeriodicInterval,θ) = fromcanonical(Segment(d),θ/π-1)
 fromcanonicalD(d::PeriodicInterval,θ) = fromcanonicalD(Segment(d),θ/π-1)/π
 

@@ -39,7 +39,7 @@ end
 
 canonicaldomain(c::Curve) = domain(c.curve)
 
-fromcanonical{S<:Space,T<:Number}(c::Curve{S,T},x) = c.curve(x)
+fromcanonical(c::Curve{S,T},x) where {S<:Space,T<:Number} = c.curve(x)
 function tocanonical(c::Curve,x)
     rts=roots(c.curve-x)
     @assert length(rts)==1
@@ -62,8 +62,8 @@ end
 Base.reverse(d::Curve) = Curve(reverseorientation(d.curve))
 
 isambiguous(d::Curve) = ncoefficients(d.curve)==0 && isambiguous(domain(d.curve))
-convert{S,T}(::Type{IntervalCurve{S,T}},::AnyDomain)=Fun(S(AnyDomain()),[NaN])
-convert{S,T}(::Type{PeriodicCurve{S,T}},::AnyDomain)=Fun(S(AnyDomain()),[NaN])
+convert(::Type{IntervalCurve{S,T}},::AnyDomain) where {S,T}=Fun(S(AnyDomain()),[NaN])
+convert(::Type{PeriodicCurve{S,T}},::AnyDomain) where {S,T}=Fun(S(AnyDomain()),[NaN])
 
 
 arclength(d::Curve) = linesum(ones(d))

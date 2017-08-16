@@ -25,7 +25,7 @@ end
 
 block(sp::SubSpace,k::Integer) = block(sp.space,reindex(sp,sp.indexes,to_index(k))[1])
 
-function blocklengths{DS}(sp::SubSpace{DS,UnitRange{Int}})
+function blocklengths(sp::SubSpace{DS,UnitRange{Int}}) where DS
     N = first(sp.indexes)
     M = last(sp.indexes)
     B1=block(sp.space,N)
@@ -38,7 +38,7 @@ function blocklengths{DS}(sp::SubSpace{DS,UnitRange{Int}})
         M-blockstart(sp.space,B2)+1]
 end
 
-function blocklengths{DS}(sp::SubSpace{DS,UnitCount{Int}})
+function blocklengths(sp::SubSpace{DS,UnitCount{Int}}) where DS
     N = first(sp.indexes)
     B1=block(sp.space,N)
 
@@ -66,12 +66,12 @@ reindex(sp::SubSpace, br::Tuple{AbstractCount{Int}}, ks::Tuple{UnitRange{Block}}
 
 
 ## Block
-blocklengths{DS}(sp::SubSpace{DS,Block}) = [blocklengths(sp.space)[sp.indexes.K]]
-dimension{DS}(sp::SubSpace{DS,Block}) = blocklengths(sp.space)[sp.indexes.K]
+blocklengths(sp::SubSpace{DS,Block}) where {DS} = [blocklengths(sp.space)[sp.indexes.K]]
+dimension(sp::SubSpace{DS,Block}) where {DS} = blocklengths(sp.space)[sp.indexes.K]
 
 
-blocklengths{DS}(sp::SubSpace{DS,UnitRange{Block}}) = blocklengths(sp.space)[Int.(sp.indexes)]
-dimension{DS}(sp::SubSpace{DS,UnitRange{Block}}) = sum(blocklengths(sp.space)[Int.(sp.indexes)])
+blocklengths(sp::SubSpace{DS,UnitRange{Block}}) where {DS} = blocklengths(sp.space)[Int.(sp.indexes)]
+dimension(sp::SubSpace{DS,UnitRange{Block}}) where {DS} = sum(blocklengths(sp.space)[Int.(sp.indexes)])
 
 
 block(::,B::Block) = B
@@ -82,10 +82,10 @@ block(::,B::SubBlock) = B.block
 ##
 
 
-spacescompatible{DS,IT,DD,RR}(S1::SubSpace{DS,IT,DD,RR},S2::SubSpace{DS,IT,DD,RR}) =
+spacescompatible(S1::SubSpace{DS,IT,DD,RR},S2::SubSpace{DS,IT,DD,RR}) where {DS,IT,DD,RR} =
     spacescompatible(S1.space,S2.space) && S1.indexes == S2.indexes
 
-=={DS,IT,DD,RR}(S1::SubSpace{DS,IT,DD,RR},S2::SubSpace{DS,IT,DD,RR}) =
+==(S1::SubSpace{DS,IT,DD,RR},S2::SubSpace{DS,IT,DD,RR}) where {DS,IT,DD,RR} =
     S1.space == S2.space && S1.indexes == S2.indexes
 
 canonicalspace(a::SubSpace) = a.space
@@ -102,11 +102,11 @@ function Conversion(a::S,b::SubSpace{S,IT,DD,RR}) where {S<:Space,IT<:UnitCount{
     ConversionWrapper(SpaceOperator(eye(a),a,b))
 end
 
-bandinds{S,DD,RR}(C::ConcreteConversion{SubSpace{S,UnitCount{Int},DD,RR},S}) =
+bandinds(C::ConcreteConversion{SubSpace{S,UnitCount{Int},DD,RR},S}) where {S,DD,RR} =
     1-first(domainspace(C).indexes),0
 
-getindex{S,IT,DD,RR}(C::ConcreteConversion{SubSpace{S,IT,DD,RR},S},
-                   k::Integer,j::Integer) =
+getindex(C::ConcreteConversion{SubSpace{S,IT,DD,RR},S},
+       k::Integer,j::Integer) where {S,IT,DD,RR} =
     domainspace(C).indexes[j]==k?one(eltype(C)):zero(eltype(C))
 
 
@@ -210,9 +210,9 @@ itransform(sp::SubSpace,cfs::AbstractVector) =
 points(sp::SubSpace,n) = points(sp.space,n)
 
 
-coefficients{DS,IT,TT,SV,DD<:BivariateDomain}(v::AbstractVector,::SubSpace{DS,IT,Segment{Vec{2,TT}}},::TensorSpace{SV,DD}) =
+coefficients(v::AbstractVector,::SubSpace{DS,IT,Segment{Vec{2,TT}}},::TensorSpace{SV,DD}) where {DS,IT,TT,SV,DD<:BivariateDomain} =
     error("Not callable, only defined for ambiguity errors.")
-coefficients{DS,IT,D,SV,DD<:BivariateDomain}(v::AbstractVector,::SubSpace{DS,IT,D},::TensorSpace{SV,DD}) =
+coefficients(v::AbstractVector,::SubSpace{DS,IT,D},::TensorSpace{SV,DD}) where {DS,IT,D,SV,DD<:BivariateDomain} =
     error("Not callable, only defined for ambiguity errors.")
 
 for TYP in (:SumSpace,:PiecewiseSpace,:TensorSpace,:ConstantSpace,:Space) # Resolve conflict

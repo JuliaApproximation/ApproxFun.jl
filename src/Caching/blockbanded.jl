@@ -35,11 +35,11 @@ function diagblockshift(a::Repeated{Int},b::Repeated{Int})
     0
 end
 
-diagblockshift{V1 <: AbstractVector{Int}}(a::Repeated{Int},b::Flatten{Tuple{V1,Repeated{Int}}}) =
+diagblockshift(a::Repeated{Int},b::Flatten{Tuple{V1,Repeated{Int}}}) where {V1 <: AbstractVector{Int}} =
     max(0,-diagblockshift(b,a))
 
 
-function diagblockshift{V1 <: AbstractVector{Int}}(a::Flatten{Tuple{V1,Repeated{Int}}},b::Repeated{Int})
+function diagblockshift(a::Flatten{Tuple{V1,Repeated{Int}}},b::Repeated{Int}) where V1 <: AbstractVector{Int}
     @assert a.it[end].x == b.x
     isempty(a.it[1]) && return diagblockshift(a.it[2],b)
     a1, b1 = a[1],b[1]
@@ -51,8 +51,8 @@ function diagblockshift{V1 <: AbstractVector{Int}}(a::Flatten{Tuple{V1,Repeated{
     return 1+diagblockshift(flatten((a.it[1][2:end],a.it[2])),flatten(([b1-a1],b)))
 end
 
-function diagblockshift{V1 <: AbstractVector{Int},V2 <: AbstractVector{Int}}(a::Flatten{Tuple{V1,Repeated{Int}}},
-                                                                             b::Flatten{Tuple{V2,Repeated{Int}}})
+function diagblockshift(a::Flatten{Tuple{V1,Repeated{Int}}},
+                        b::Flatten{Tuple{V2,Repeated{Int}}}) where {V1 <: AbstractVector{Int},V2 <: AbstractVector{Int}}
     isempty(a.it[1]) && return diagblockshift(a.it[2],b)
     isempty(b.it[1]) && return diagblockshift(a,b.it[2])
     a1, b1 = a[1],b[1]
@@ -83,7 +83,7 @@ end
 
 ## Grow cached operator
 #
-function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BlockBandedMatrix{T,RI,DI}},::Colon,col::Integer)
+function resizedata!(B::CachedOperator{T,BlockBandedMatrix{T,RI,DI}},::Colon,col::Integer) where {T<:Number,RI,DI}
     if col > size(B,2)
         throw(ArgumentError("Cannot resize beyound size of operator"))
     end
@@ -124,7 +124,7 @@ function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BlockBandedMatrix{T,RI
     B
 end
 
-function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BlockBandedMatrix{T,RI,DI}},n::Integer,m::Integer)
+function resizedata!(B::CachedOperator{T,BlockBandedMatrix{T,RI,DI}},n::Integer,m::Integer) where {T<:Number,RI,DI}
     N = block(rangespace(B),n)
     m̃ = blockstart(domainspace(B),N)
     resizedata!(B,:,max(m,m̃))
@@ -134,13 +134,13 @@ end
 ## QR
 # we use a RaggedMatrix to represent the growing lengths of the
 # householder reflections
-QROperator{T,DDS,RRS}(R::CachedOperator{T,BlockBandedMatrix{T,DDS,RRS}}) =
+QROperator(R::CachedOperator{T,BlockBandedMatrix{T,DDS,RRS}}) where {T,DDS,RRS} =
     QROperator(R,RaggedMatrix(T,0,Int[]),0)
 
 
-function resizedata!{T,MM,DS,RS,DDS,RRS,BI}(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T,DDS,RRS},
-                                                                 MM,DS,RS,BI}},
-                        ::Colon,col)
+function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T,DDS,RRS},
+                                          MM,DS,RS,BI}},
+ ::Colon,col) where {T,MM,DS,RS,DDS,RRS,BI}
     if col ≤ QR.ncols
         return QR
     end
@@ -198,9 +198,9 @@ end
 
 
 
-function resizedata!{T<:BlasFloat,MM,DS,RS,DDS,RRS,BI}(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T,DDS,RRS},
-                                                                 MM,DS,RS,BI}},
-                        ::Colon,col)
+function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T,DDS,RRS},
+                               MM,DS,RS,BI}},
+::Colon,col) where {T<:BlasFloat,MM,DS,RS,DDS,RRS,BI}
     if col ≤ QR.ncols
         return QR
     end

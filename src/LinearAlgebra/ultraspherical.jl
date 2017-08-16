@@ -3,7 +3,7 @@ export ultraconversion!,ultraint!
 ## Start of support for UFun
 
 # diff from T -> U
-function ultradiff{T<:Number}(v::AbstractVector{T})
+function ultradiff(v::AbstractVector{T}) where T<:Number
     #polynomial is p(x) = sum ( v[i] * x^(i-1) )
     if length(v)≤1
         w = zeros(T,1)
@@ -20,7 +20,7 @@ end
 #int from U ->T
 
 #TODO: what about missing truncation?
-function ultraint!{T<:Number}(v::AbstractMatrix{T})
+function ultraint!(v::AbstractMatrix{T}) where T<:Number
     for k=size(v,1):-1:2
         for j=1:size(v,2)
             @inbounds v[k,j] = v[k-1,j]/(k-1)
@@ -34,7 +34,7 @@ function ultraint!{T<:Number}(v::AbstractMatrix{T})
     v
 end
 
-function ultraint!{T<:Number}(v::AbstractVector{T})
+function ultraint!(v::AbstractVector{T}) where T<:Number
     resize!(v,length(v)+1)
     @simd for k=length(v):-1:2
         @inbounds v[k] = v[k-1]/(k-1)
@@ -46,7 +46,7 @@ function ultraint!{T<:Number}(v::AbstractVector{T})
 end
 
 # Convert from U -> T
-function ultraiconversion{T<:Number}(v::AbstractVector{T})
+function ultraiconversion(v::AbstractVector{T}) where T<:Number
     n = length(v)
     w = Array{T}(n)
 
@@ -71,7 +71,7 @@ end
 
 
 # Convert T -> U
-function ultraconversion{T<:Number}(v::AbstractVector{T})
+function ultraconversion(v::AbstractVector{T}) where T<:Number
     n = length(v)
     w = Array{T}(n)
 
@@ -94,7 +94,7 @@ function ultraconversion{T<:Number}(v::AbstractVector{T})
     w
 end
 
-function ultraconversion!{T<:Number}(v::AbstractVector{T})
+function ultraconversion!(v::AbstractVector{T}) where T<:Number
     n = length(v) #number of coefficients
 
     if n ≤ 1
@@ -114,7 +114,7 @@ function ultraconversion!{T<:Number}(v::AbstractVector{T})
     v
 end
 
-function ultraconversion!{T<:Number}(v::AbstractMatrix{T})
+function ultraconversion!(v::AbstractMatrix{T}) where T<:Number
     n = size(v)[1] #number of coefficients
     m = size(v)[2] #number of funs
 

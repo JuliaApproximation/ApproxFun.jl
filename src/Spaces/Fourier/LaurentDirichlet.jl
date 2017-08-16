@@ -21,10 +21,10 @@ spacescompatible(a::LaurentDirichlet,b::LaurentDirichlet) = domainscompatible(a,
 canonicalspace(S::LaurentDirichlet) = Laurent(domain(S))
 
 
-Conversion{DD,RR}(a::LaurentDirichlet{DD,RR},b::Laurent{DD,RR}) = ConcreteConversion(a,b)
-bandinds{DD,RR}(::ConcreteConversion{LaurentDirichlet{DD,RR},Laurent{DD,RR}}) = 0,2
+Conversion(a::LaurentDirichlet{DD,RR},b::Laurent{DD,RR}) where {DD,RR} = ConcreteConversion(a,b)
+bandinds(::ConcreteConversion{LaurentDirichlet{DD,RR},Laurent{DD,RR}}) where {DD,RR} = 0,2
 
-function getindex{DD,RR}(C::ConcreteConversion{LaurentDirichlet{DD,RR},Laurent{DD,RR}},k::Integer,j::Integer)
+function getindex(C::ConcreteConversion{LaurentDirichlet{DD,RR},Laurent{DD,RR}},k::Integer,j::Integer) where {DD,RR}
     if k==1 && j==2
         one(eltype(C))
     elseif k==j || j==k+2
@@ -34,21 +34,21 @@ function getindex{DD,RR}(C::ConcreteConversion{LaurentDirichlet{DD,RR},Laurent{D
     end
 end
 
-conversion_rule{DD,RR}(b::LaurentDirichlet,a::Laurent{DD,RR})=b
+conversion_rule(b::LaurentDirichlet,a::Laurent{DD,RR}) where {DD,RR}=b
 
-differentiate{DD,RR}(f::Fun{LaurentDirichlet{DD,RR}}) = differentiate(Fun(f,Laurent))
+differentiate(f::Fun{LaurentDirichlet{DD,RR}}) where {DD,RR} = differentiate(Fun(f,Laurent))
 
 for op in (:+,:-,:*)
     @eval begin
-        $op{DD,RR}(f::Fun{Laurent{DD,RR}},g::Fun{LaurentDirichlet{DD,RR}}) = $op(f,Fun(g,Laurent))
-        $op{DD,RR}(f::Fun{LaurentDirichlet{DD,RR}},g::Fun{Laurent{DD,RR}}) = $op(Fun(f,Laurent),g)
-        $op{DD,RR}(f::Fun{LaurentDirichlet{DD,RR}},g::Fun{LaurentDirichlet{DD,RR}}) = $op(Fun(f,Laurent),Fun(g,Laurent))
+        $op(f::Fun{Laurent{DD,RR}},g::Fun{LaurentDirichlet{DD,RR}}) where {DD,RR} = $op(f,Fun(g,Laurent))
+        $op(f::Fun{LaurentDirichlet{DD,RR}},g::Fun{Laurent{DD,RR}}) where {DD,RR} = $op(Fun(f,Laurent),g)
+        $op(f::Fun{LaurentDirichlet{DD,RR}},g::Fun{LaurentDirichlet{DD,RR}}) where {DD,RR} = $op(Fun(f,Laurent),Fun(g,Laurent))
     end
 end
 
 
-Base.real{DD,RR}(f::Fun{LaurentDirichlet{DD,RR}}) = real(Fun(f,Laurent))
-Base.imag{DD,RR}(f::Fun{LaurentDirichlet{DD,RR}}) = imag(Fun(f,Laurent))
+Base.real(f::Fun{LaurentDirichlet{DD,RR}}) where {DD,RR} = real(Fun(f,Laurent))
+Base.imag(f::Fun{LaurentDirichlet{DD,RR}}) where {DD,RR} = imag(Fun(f,Laurent))
 
 
 coefficients(v::AbstractVector,::Laurent,::LaurentDirichlet) = laurentdirichlettransform!(copy(v))
@@ -98,8 +98,8 @@ spacescompatible(a::CosDirichlet,b::CosDirichlet) = domainscompatible(a,b)
 canonicalspace(S::CosDirichlet)=CosSpace(domain(S))
 
 Conversion(a::CosSpace,b::CosDirichlet) = ConcreteConversion(a,b)
-bandinds{CS<:CosSpace,CD<:CosDirichlet}(::ConcreteConversion{CD,CS})=0,1
-getindex{CS<:CosSpace,CD<:CosDirichlet}(C::ConcreteConversion{CD,CS},k::Integer,j::Integer) =
+bandinds(::ConcreteConversion{CD,CS}) where {CS<:CosSpace,CD<:CosDirichlet}=0,1
+getindex(C::ConcreteConversion{CD,CS},k::Integer,j::Integer) where {CS<:CosSpace,CD<:CosDirichlet} =
     (k==j||j==k+1)?one(eltype(C)):zero(eltype(C))
 
 

@@ -14,7 +14,7 @@ function plotptsvals(f::Fun)
     return points(f),values(f)
 end
 
-function plotptsvals{S<:JacobiWeight}(f::Fun{S})
+function plotptsvals(f::Fun{S}) where S<:JacobiWeight
     f=pad(f,3ncoefficients(f)+50)
     s=space(f)
     pts,vals=points(f),values(f)
@@ -35,32 +35,32 @@ end
 ## Recipes
 
 
-@recipe function f{S,T<:Real}(g::Fun{S,T})
+@recipe function f(g::Fun{S,T}) where {S,T<:Real}
     plotptsvals(g)
 end
-@recipe function f{S,T<:Real}(g::Fun{S,Complex{T}})
+@recipe function f(g::Fun{S,Complex{T}}) where {S,T<:Real}
     x,v=plotptsvals(g)
     x,Vector{T}[real(v),imag(v)]
 end
 
 
-@recipe function f{S,V,T<:Real}(x::Fun{V,T},y::Fun{S,T})
+@recipe function f(x::Fun{V,T},y::Fun{S,T}) where {S,V,T<:Real}
     M=3max(ncoefficients(x),ncoefficients(y))+50
     values(pad(x,M)),values(pad(y,M))
 end
 
 
-@recipe function f{S,T<:Real}(x::AbstractVector{T},g::Fun{S,T})
+@recipe function f(x::AbstractVector{T},g::Fun{S,T}) where {S,T<:Real}
     x,g.(x)
 end
 
-@recipe function f{S,T<:Real}(x::AbstractVector{T},g::Fun{S,Complex{T}})
+@recipe function f(x::AbstractVector{T},g::Fun{S,Complex{T}}) where {S,T<:Real}
     v=g.(x)
     x,Vector{T}[real(v),imag(v)]
 end
 
 
-@recipe function f{F<:Fun}(G::AbstractVector{F})
+@recipe function f(G::AbstractVector{F}) where F<:Fun
     x=Vector{Float64}[]
     v=Vector{Float64}[]
     for g in G
@@ -71,7 +71,7 @@ end
     x,v
 end
 
-@recipe function f{T<:Real,F<:Fun}(x::AbstractVector{T},G::AbstractVector{F})
+@recipe function f(x::AbstractVector{T},G::AbstractVector{F}) where {T<:Real,F<:Fun}
     v=Vector{Float64}[]
     for g in G
         push!(v,g.(x))
@@ -113,7 +113,7 @@ end
 end
 
 
-@recipe function f{F<:Domain}(G::AbstractVector{F})
+@recipe function f(G::AbstractVector{F}) where F<:Domain
     x=Vector{Float64}[]
     v=Vector{Float64}[]
     for g in G
@@ -154,11 +154,11 @@ end
 
 
 
-@recipe function f{S<:ArraySpace,T<:Real}(g::Fun{S,T})
+@recipe function f(g::Fun{S,T}) where {S<:ArraySpace,T<:Real}
     components(g)
 end
 
-@recipe function f{S<:PiecewiseSpace,T<:Real}(g::Fun{S,T})
+@recipe function f(g::Fun{S,T}) where {S<:PiecewiseSpace,T<:Real}
     p=components(g)
     for k=1:length(p)
         @series begin
@@ -170,7 +170,7 @@ end
 
 
 
-@recipe function f{S<:DiracSpace,T<:Real}(g::Fun{S,T})
+@recipe function f(g::Fun{S,T}) where {S<:DiracSpace,T<:Real}
     pts=space(g).points
     n=length(pts)
     ws=pad(g.coefficients,length(pts))
@@ -190,7 +190,7 @@ end
     end
 end
 
-@recipe function f{S<:PointSpace,T<:Real}(g::Fun{S,T})
+@recipe function f(g::Fun{S,T}) where {S<:PointSpace,T<:Real}
     pts=space(g).points
     n=length(pts)
     ws=pad(g.coefficients,length(pts))
@@ -207,7 +207,7 @@ end
 
 
 
-@recipe function f{S<:HeavisideSpace,T<:Real}(g::Fun{S,T})
+@recipe function f(g::Fun{S,T}) where {S<:HeavisideSpace,T<:Real}
     pts=domain(g).points
     n=length(pts)
     ws=pad(g.coefficients,dimension(space(g)))
@@ -258,9 +258,9 @@ end
 ###
 
 
-@recipe function f{S<:UnivariateSpace,
+@recipe function f(g::ProductFun{S,V,SV}) where {S<:UnivariateSpace,
                     V<:UnivariateSpace,
-        SV<:TensorSpace}(g::ProductFun{S,V,SV})
+        SV<:TensorSpace}
     g=chop(g,10e-10)
     g=pad(g,max(size(g,1),20),max(size(g,2),20))
     vals=values(g)
@@ -280,9 +280,9 @@ end
     x[px],y[py],real(vals).'[py,px]
 end
 
-@recipe function f{S<:UnivariateSpace,
+@recipe function f(g::LowRankFun{S,V,SV}) where {S<:UnivariateSpace,
                     V<:UnivariateSpace,
-        SV<:TensorSpace}(g::LowRankFun{S,V,SV})
+        SV<:TensorSpace}
     g=chop(g,10e-10)
     vals=values(g)
 
@@ -309,25 +309,25 @@ end
 end
 
 
-@recipe function f{TS<:BivariateSpace,T<:Real}(g::Fun{TS,T})
+@recipe function f(g::Fun{TS,T}) where {TS<:BivariateSpace,T<:Real}
     g = pad(g,ncoefficients(g)+100)
     pts = points(g)
     seriestype --> :surface
     first.(pts),last.(pts),values(g)
 end
 
-@recipe function f{TS<:AbstractProductSpace,T<:Real}(g::Fun{TS,T})
+@recipe function f(g::Fun{TS,T}) where {TS<:AbstractProductSpace,T<:Real}
     ProductFun(g)
 end
 
-@recipe function f{TS<:AbstractProductSpace,T<:Complex}(g::Fun{TS,T})
+@recipe function f(g::Fun{TS,T}) where {TS<:AbstractProductSpace,T<:Complex}
     ProductFun(g)
 end
 
-@recipe function f{TS<:AbstractProductSpace,T<:Real}(x::AbstractVector,y::AbstractVector,g::Fun{TS,T})
+@recipe function f(x::AbstractVector,y::AbstractVector,g::Fun{TS,T}) where {TS<:AbstractProductSpace,T<:Real}
     x,y,ProductFun(g)
 end
 
-@recipe function f{TS<:AbstractProductSpace,T<:Complex}(x::AbstractVector,y::AbstractVector,g::Fun{TS,T})
+@recipe function f(x::AbstractVector,y::AbstractVector,g::Fun{TS,T}) where {TS<:AbstractProductSpace,T<:Complex}
     x,y,ProductFun(g)
 end
