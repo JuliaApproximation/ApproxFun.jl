@@ -265,3 +265,14 @@ D = Derivative(Laurent())
 
 y = Fun(Circle())
 @test (y^2) ≈ Fun(z->z^2,domain(y))
+
+
+## Test Multiplication
+mySin = Fun(Fourier(),[0,1.0])
+A = Multiplication(mySin,Fourier())
+@test A.op[1,1] == 0
+
+
+mySin = Fun(Fourier(),[0,1])
+A = Multiplication(mySin,Fourier())
+@test A.op[1,1] == 0

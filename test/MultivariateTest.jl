@@ -304,3 +304,12 @@ B=[Dirichlet(factor(d,1))⊗I;I⊗ldirichlet(factor(d,2));I⊗rneumann(factor(d,
 rs = rangespace([B;Δ])
 f = Fun((x,y)->exp(-x^2-y^2),d)
 @test_throws DimensionMismatch coefficients([0.0;0.0;0.0;0.0;f],rs)
+
+
+
+## tensor of mult for Fourier #507
+
+mySin = Fun(Fourier(),[0,1])
+A = Multiplication(mySin,Fourier())
+L = A ⊗ A
+@test L[1,1] == 0

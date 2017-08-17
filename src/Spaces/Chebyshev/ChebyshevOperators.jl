@@ -173,7 +173,9 @@ Base.stride(M::ConcreteMultiplication{U,V}) where {U<:Chebyshev,V<:Chebyshev} =
 function chebmult_getindex(cfs::AbstractVector,k::Integer,j::Integer)
     n=length(cfs)
 
-    ret=zero(eltype(cfs))
+    ret = zero(eltype(cfs))
+
+    n == 0 && return ret
 
     # Toeplitz part
     if k == j

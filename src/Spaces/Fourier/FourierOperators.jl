@@ -263,7 +263,7 @@ rangespace(M::ConcreteMultiplication{Cs,SS}) where {SS<:SinSpace,Cs<:CosSpace} =
 function Multiplication(a::Fun{Fourier{D,R},T},sp::Fourier{D,R}) where {T,D,R}
     d=domain(a)
     c,s=components(a)
-    O=Operator{T}[Multiplication(c,CosSpace(d)) Multiplication(s,SinSpace(d));
+    O=Operator{float(T)}[Multiplication(c,CosSpace(d)) Multiplication(s,SinSpace(d));
                         Multiplication(s,CosSpace(d)) Multiplication(c,SinSpace(d))]
     MultiplicationWrapper(a,InterlaceOperator(O,space(a),sp))
 end
