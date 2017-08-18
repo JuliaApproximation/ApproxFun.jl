@@ -133,9 +133,9 @@ promoterangespace(Z::ZeroOperator,sp::Space) = ZeroOperator(domainspace(Z),sp)
 
 
 
-isconstop(::Union{ZeroOperator,ConstantOperator})=true
-isconstop(S::SpaceOperator)=isconstop(S.op)
-isconstop(::)=false
+isconstop(::Union{ZeroOperator,ConstantOperator}) = true
+isconstop(S::SpaceOperator) = isconstop(S.op)
+isconstop(_) = false
 
 iszeroop(::ZeroOperator) = true
 iszeroop(A::ConstantOperator) = A.λ==0.0

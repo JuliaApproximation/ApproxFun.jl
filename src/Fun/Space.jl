@@ -97,7 +97,7 @@ reverseorientation(S::Space) = setdomain(S,reverse(domain(S)))
 struct UnsetSpace <: AmbiguousSpace end
 struct NoSpace <: AmbiguousSpace end
 
-isambiguous(::) = false
+isambiguous(_) = false
 isambiguous(::Type{UnsetNumber}) = true
 isambiguous(::Type{Array{T}}) where {T} = isambiguous(T)
 isambiguous(sp::Space) = isambiguous(rangetype(sp))

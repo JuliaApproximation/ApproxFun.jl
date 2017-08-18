@@ -111,9 +111,9 @@ end
 
 
 
-hasfasttransform(::)=false
-hasfasttransform(f::Fun)=hasfasttransform(space(f))
-hasfasttransformtimes(f,g)=spacescompatible(f,g) && hasfasttransform(f) && hasfasttransform(g)
+hasfasttransform(_) = false
+hasfasttransform(f::Fun) = hasfasttransform(space(f))
+hasfasttransformtimes(f,g) = spacescompatible(f,g) && hasfasttransform(f) && hasfasttransform(g)
 
 
 # This should be overriden whenever the multiplication space is different

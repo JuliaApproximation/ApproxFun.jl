@@ -68,7 +68,7 @@ end
 
 convert(::Type{BandedMatrix},B::BandedBlockBandedMatrix) = BandedMatrix{eltype(B)}(B)
 
-isbandedblockbanded(::) = false
+isbandedblockbanded(_) = false
 isbandedblockbanded(::BandedBlockBandedMatrix) = true
 
 

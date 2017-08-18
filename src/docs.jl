@@ -43,7 +43,7 @@ doc"""
 
 returns `Fun(f,Chebyshev())`
 """
-Fun(::)
+Fun(f)
 
 doc"""
     Fun()

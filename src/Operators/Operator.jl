@@ -30,7 +30,7 @@ domainspace(A::Operator) = error("Override domainspace for $(typeof(A))")
 domain(A::Operator) = domain(domainspace(A))
 
 
-isconstspace(::) = false
+isconstspace(_) = false
 ## Functionals
 isafunctional(A::Operator) = size(A,1)==1 && isconstspace(rangespace(A))
 
@@ -116,8 +116,8 @@ isbandedabove(A::Operator) = isfinite(bandinds(A,2))
 isbanded(A::Operator) = isbandedbelow(A) && isbandedabove(A)
 
 
-isbandedblockbandedbelow(::) = false
-isbandedblockbandedabove(::) = false
+isbandedblockbandedbelow(_) = false
+isbandedblockbandedabove(_) = false
 
 isbandedblockbanded(A::Operator) = isbandedblockbandedabove(A) && isbandedblockbandedbelow(A)
 
@@ -414,8 +414,8 @@ getindex(B::Operator{BT},f::ProductFun{S,V,SS,T}) where {BT,S,V,SS,T} =
 
 # Convenience for wrapper ops
 unwrap_axpy!(α,P,A) = BLAS.axpy!(α,view(parent(P).op,P.indexes[1],P.indexes[2]),A)
-iswrapper(::) = false
-haswrapperstructure(::) = false
+iswrapper(_) = false
+haswrapperstructure(_) = false
 
 # use this for wrapper operators that have the same structure but
 # not necessarily the same entries

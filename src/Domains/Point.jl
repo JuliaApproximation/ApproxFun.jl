@@ -19,7 +19,7 @@ doc"""
 
 represents a single point at `x`.
 """
-Point(::)
+Point(x)
 
 
 ==(a::Point,b::Point) = (isambiguous(a) && isambiguous(b)) || a.x == b.x

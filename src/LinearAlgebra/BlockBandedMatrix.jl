@@ -278,7 +278,7 @@ Base.BLAS.axpy!(α,A::AllBlockMatrix,Y::AllBlockMatrix) = block_axpy!(α,A,Y)
 
 abstract type AbstractBlockBandedMatrix{T,BT} <: AbstractBlockMatrix{T,BT} end
 
-isblockbanded(::) = false
+isblockbanded(_) = false
 isblockbanded(::AbstractBlockBandedMatrix) = true
 
 
