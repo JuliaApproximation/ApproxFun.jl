@@ -282,14 +282,16 @@ end
 
 
 function Base.conj(f::Fun{Laurent{DD,RR}}) where {DD,RR}
-    cfs=Array{eltype(f)}(iseven(ncoefficients(f))?ncoefficients(f)+1:ncoefficients(f))
-    cfs[1]=conj(f.coefficients[1])
+    ncoefficients(f) == 0 && return f
+
+    cfs = Array{eltype(f)}(iseven(ncoefficients(f))?ncoefficients(f)+1:ncoefficients(f))
+    cfs[1] = conj(f.coefficients[1])
     cfs[ncoefficients(f)] = 0
     for k=2:2:ncoefficients(f)-1
-        cfs[k]=conj(f.coefficients[k+1])
+        cfs[k] = conj(f.coefficients[k+1])
     end
     for k=3:2:ncoefficients(f)+1
-        cfs[k]=conj(f.coefficients[k-1])
+        cfs[k] = conj(f.coefficients[k-1])
     end
     Fun(space(f),cfs)
 end
