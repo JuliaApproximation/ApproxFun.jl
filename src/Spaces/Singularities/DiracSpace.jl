@@ -16,7 +16,13 @@ for TYP in (:DiracSpace,:PointSpace)
         $TYP() = $TYP(Float64[])
         $TYP(point::Number) = $TYP([point])
         $TYP(p::Point)=$TYP(p.x)
+
+
         dimension(d::$TYP)=length(d.points)
+
+        # all points are equal, so only one block
+        blocklengths(C::$TYP) = [length(C.points)]
+        block(C::$TYP,k)::Block = 1
 
         domain(DS::$TYP)=mapreduce(Point,union,DS.points)
         setdomain(DS::$TYP,d::UnionDomain) = $TYP(map(d->d.x,d))
@@ -76,14 +82,15 @@ values(f::Fun{S}) where {S<:PointSpace} = coefficient(f,:)
 
 function evaluate(f::AbstractVector,PS::PointSpace,x::Number)
     p = findfirst(y->isapprox(x,y),PS.points)
-    if p==0
+    if p == 0 || p > length(f)
         zero(eltype(f))
     else
         f[p]
     end
 end
 
-Base.sum(f::Fun{DS}) where {DS<:DiracSpace}=sum(f.coefficients[1:dimension(space(f))])
+Base.sum(f::Fun{DS}) where {DS<:DiracSpace} =
+    sum(f.coefficients[1:dimension(space(f))])
 
 
 

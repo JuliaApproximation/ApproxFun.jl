@@ -6,8 +6,10 @@ x=Fun(identity);
 
 
 x=Fun(identity,-2..2)
-u=sqrt(4-x.^2)/(2π)
-@test u(.1) ≈ sqrt(4-.1^2)/(2π)
+u=sqrt(4-x^2)/(2π)
+
+
+@test u(.1) ≈ sqrt(4-0.1^2)/(2π)
 @test sum(u) ≈ 1
 
 #this call threw an error, which we check
@@ -206,7 +208,16 @@ f=Fun(x->(x-0.1),ApproxFun.PointSpace([0,0.1,1]))
 a=Fun(exp,space(f))
 @test f/a == Fun(x->(x-0.1)*exp(-x),space(f))
 
+f = Fun(space(f),[1.,2.,3.])
+
 g = f + Fun(2..3)
+@test f(0.0) ≈ g(0.0) ≈ 1.0
+@test f(0.1) ≈ g(0.1) ≈ 2.0
+@test f(1.0) ≈ g(1.0) ≈ 3.0
+
+@test g(2.3) ≈ 2.3
+
+
 h = a + Fun(2..3)
 
 # for some reason this test is broken only on Travis

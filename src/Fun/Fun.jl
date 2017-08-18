@@ -322,7 +322,7 @@ for op = (:*,:+)
 end
 
 
-function ^(f::Fun,k::Integer)
+function intpow(f::Fun,k::Integer)
     if k == 0
         ones(space(f))
     elseif k==1
@@ -333,6 +333,8 @@ function ^(f::Fun,k::Integer)
         1/f^(-k)
     end
 end
+
+^(f::Fun,k::Integer) = intpow(f,k)
 
 Base.inv(f::Fun) = 1/f
 

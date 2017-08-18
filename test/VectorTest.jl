@@ -335,12 +335,12 @@ g=Fun(f,Space(PeriodicInterval(-π,π)))
 S1=Chebyshev()^2
 S2=Chebyshev()
 TS=ArraySpace([ConstantSpace(),S1,ConstantSpace(),S2,PointSpace([1.,2.])])
-f=Fun(TS,collect(1:10))
+f=Fun(TS,collect(1:13))
 @test f[1] == Fun(TS[1],[1.])
-@test f[2] == Fun(TS[2],[2.,6.,7.,10.])
+@test f[2] == Fun(TS[2],[2.,7.,8.,10.,11.,12.])
 @test f[3] == Fun(TS[3],[3.])
-@test f[4] == Fun(TS[4],[4.,8.])
-@test f[5] == Fun(TS[5],[5.,9.])
+@test f[4] == Fun(TS[4],[4.,9.,13.])
+@test f[5] == Fun(TS[5],[5.,6.])
 
 ## Operator * Matrix
 f = [Fun(exp) Fun(cos)]

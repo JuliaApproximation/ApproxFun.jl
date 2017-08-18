@@ -158,34 +158,37 @@ function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:Segment,RR}
     end
 end
 
-function ^(f::Fun{C},k::Real) where C<:PolynomialSpace
+^(f::Fun{<:PolynomialSpace},k::Integer) = intpow(f,k)
+function ^(f::Fun{<:PolynomialSpace},k::Real)
     # Need to think what to do if this is ever not the case..
     sp = space(f)
     fc = setdomain(f,Segment()) #Project to interval
+    csp = space(fc)
 
     r = sort(roots(fc))
     #TODO divideatroots
     @assert length(r) <= 2
 
     if length(r) == 0
-        setdomain(Fun(x->fc(x)^k,space(fc)),domain(f))
+        setdomain(Fun(x->fc(x)^k,csp),domain(f))
     elseif length(r) == 1
         @assert isapprox(abs(r[1]),1)
 
         if isapprox(r[1],1.)
-            Fun(JacobiWeight(0.,k,sp),coefficients(divide_singularity(true,fc)^k,sp))
+            Fun(JacobiWeight(0.,k,sp),coefficients(divide_singularity(true,fc)^k,csp))
         else
-            Fun(JacobiWeight(k,0.,sp),coefficients(divide_singularity(false,fc)^k,sp))
+            Fun(JacobiWeight(k,0.,sp),coefficients(divide_singularity(false,fc)^k,csp))
         end
     else
         @assert isapprox(r[1],-1)
         @assert isapprox(r[2],1)
 
-        Fun(JacobiWeight(k,k,sp),coefficients(divide_singularity(fc)^k,sp))
+        Fun(JacobiWeight(k,k,sp),coefficients(divide_singularity(fc)^k,csp))
     end
 end
 
 #TODO: implement
+^(f::Fun{Jacobi},k::Integer) = intpow(f,k)
 ^(f::Fun{Jacobi},k::Real) = Fun(f,Chebyshev)^k
 
 # Default is just try solving ODE

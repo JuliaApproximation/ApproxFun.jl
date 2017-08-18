@@ -37,11 +37,12 @@ function interlacewithzeros(cfs::AbstractVector,k,it)
     n = length(cfs)
 
     ret = Array{eltype(cfs)}(0)
+    n == 0 && return ret
+
     for (K,j) in it
-        if j > n
-            break
-        elseif K == k
+        if K == k
             push!(ret,cfs[j])
+            n == j && break
         else
             push!(ret,0)
         end
