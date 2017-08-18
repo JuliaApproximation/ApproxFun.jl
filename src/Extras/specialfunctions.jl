@@ -158,7 +158,7 @@ function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:Segment,RR}
     end
 end
 
-function ^(f::Fun{C},k::Float64) where C<:Chebyshev
+function ^(f::Fun{C},k::Real) where C<:PolynomialSpace
     # Need to think what to do if this is ever not the case..
     sp = space(f)
     fc = setdomain(f,Segment()) #Project to interval
@@ -168,31 +168,31 @@ function ^(f::Fun{C},k::Float64) where C<:Chebyshev
     @assert length(r) <= 2
 
     if length(r) == 0
-        Fun(sp,Fun(x->fc(x)^k).coefficients)
+        setdomain(Fun(x->fc(x)^k,space(fc)),domain(f))
     elseif length(r) == 1
         @assert isapprox(abs(r[1]),1)
 
         if isapprox(r[1],1.)
-            Fun(JacobiWeight(0.,k,sp),coefficients(divide_singularity(true,fc)^k))
+            Fun(JacobiWeight(0.,k,sp),coefficients(divide_singularity(true,fc)^k,sp))
         else
-            Fun(JacobiWeight(k,0.,sp),coefficients(divide_singularity(false,fc)^k))
+            Fun(JacobiWeight(k,0.,sp),coefficients(divide_singularity(false,fc)^k,sp))
         end
     else
         @assert isapprox(r[1],-1)
         @assert isapprox(r[2],1)
 
-        Fun(JacobiWeight(k,k,sp),coefficients(divide_singularity(fc)^k))
+        Fun(JacobiWeight(k,k,sp),coefficients(divide_singularity(fc)^k,sp))
     end
 end
 
 #TODO: implement
-^(f::Fun{Jacobi},k::Float64) = Fun(f,Chebyshev)^k
+^(f::Fun{Jacobi},k::Real) = Fun(f,Chebyshev)^k
 
 # Default is just try solving ODE
 function ^(f::Fun{S,T},β) where {S,T}
     A=Derivative()-β*differentiate(f)/f
     B=Evaluation(first(domain(f)))
-    [B,A]\first(f)^β
+    [B;A]\[first(f)^β;0]
 end
 
 sqrt(f::Fun{S,T}) where {S,T} = f^0.5
@@ -658,6 +658,8 @@ end
 expα_asy(x) = (exp(x)*(4-3x+x^2)-4-x)/x^3
 expβ_asy(x) = (exp(x)*(x-2)+x+2)/x^3
 expγ_asy(x) = (exp(x)*(4-x)-4-3x-x^2)/x^3
+
+# TODO: General types
 
 expα_taylor(x::Union{Float64,Complex128}) = @evalpoly(x,1/6,1/6,3/40,1/45,5/1008,1/1120,7/51840,1/56700,1/492800,1/4790016,11/566092800,1/605404800,13/100590336000,1/106748928000,1/1580833013760,1/25009272288000,17/7155594141696000,1/7508956815360000)
 expβ_taylor(x::Union{Float64,Complex128}) = @evalpoly(x,1/6,1/12,1/40,1/180,1/1008,1/6720,1/51840,1/453600,1/4435200,1/47900160,1/566092800,1/7264857600,1/100590336000,1/1494484992000,1/23712495206400,1/400148356608000,1/7155594141696000,1/135161222676480000)

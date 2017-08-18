@@ -277,3 +277,13 @@ end
 dom = Domain(0..1) ∪ Domain(2..3)
 @test components(union(JacobiWeight.(-0.5,-0.5,ChebyshevDirichlet{1,1}.(components(dom)))...)) ==
     (JacobiWeight.(-0.5,-0.5,ChebyshevDirichlet{1,1}.(components(dom)))...)
+
+
+
+## Ultraspherical special functions
+
+x = Fun(Ultraspherical(2,0..1))
+sqrt(x)(0.1) ≈ sqrt(0.1)
+
+f = Fun(x->x*exp(x),Ultraspherical(1,0..1))
+sqrt(f(0.1)) ≈ sqrt(f)(0.1)
