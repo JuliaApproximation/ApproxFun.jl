@@ -287,3 +287,23 @@ sqrt(x)(0.1) ≈ sqrt(0.1)
 
 f = Fun(x->x*exp(x),Ultraspherical(1,0..1))
 sqrt(f(0.1)) ≈ sqrt(f)(0.1)
+
+
+## Fast Ultraspherical*Chebyshev
+f = Fun(exp,Ultraspherical(1))
+g = Fun(exp)
+
+
+@test ApproxFun.hasfasttransform(f)
+@test ApproxFun.pointscompatible(f,g)
+@test ApproxFun.hasfasttransformtimes(f,g)
+@test ApproxFun.transformtimes(f,g)(0.1) ≈ exp(0.2)
+
+k=50
+δ = Fun(ApproxFun.PointSpace([2.0]),[1.0])
+f = Fun(x->cos(k*x)) + δ
+g = Fun(x->cos(k*x),Ultraspherical(1)) + δ
+@test domain(f) == domain(g)
+
+@test (f*g)(0.1) ≈ cos(k*0.1)^2
+@test (f*g)(2.0) ≈ 1

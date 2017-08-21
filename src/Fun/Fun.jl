@@ -170,6 +170,7 @@ end
 
 space(f::Fun) = f.space
 spacescompatible(f::Fun,g::Fun) = spacescompatible(space(f),space(g))
+pointscompatible(f::Fun,g::Fun) = pointscompatible(space(f),space(g))
 canonicalspace(f::Fun) = canonicalspace(space(f))
 canonicaldomain(f::Fun) = canonicaldomain(space(f))
 

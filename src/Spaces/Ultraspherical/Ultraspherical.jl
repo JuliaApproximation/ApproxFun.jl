@@ -34,7 +34,8 @@ setdomain(S::Ultraspherical,d::Domain) = Ultraspherical(order(S),d)
 
 
 canonicalspace(S::Ultraspherical) = Chebyshev(domain(S))
-
+pointscompatible(A::Ultraspherical, B::Chebyshev) = domain(A) == domain(B)
+pointscompatible(A::Chebyshev, B::Ultraspherical) = domain(A) == domain(B)
 
 struct UltrasphericalPlan{CT,FT}
     chebplan::CT
