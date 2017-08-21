@@ -114,12 +114,14 @@ canonicaldomain(S::Space) = canonicaldomain(domain(S))
 
 # Check whether spaces are the same, override when you need to check parameters
 # This is used in place of == to support AnyDomain
-spacescompatible(f::D,g::D) where {D<:Space} = error("Override spacescompatible for "*string(D))
+spacescompatible(f::D,g::D) where D<:Space = error("Override spacescompatible for "*string(D))
 spacescompatible(::UnsetSpace,::UnsetSpace) = true
 spacescompatible(::NoSpace,::NoSpace) = true
 spacescompatible(f,g) = false
 ==(A::Space,B::Space) = spacescompatible(A,B)&&domain(A)==domain(B)
 spacesequal(A::Space,B::Space) = A==B
+
+pointscompatible(f,g) = spacescompatible(f,g)
 
 # check a list of spaces for compatibility
 for OP in (:spacescompatible,:domainscompatible,:spacesequal),TYP in (:AbstractArray,:Tuple)
