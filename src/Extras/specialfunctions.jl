@@ -687,20 +687,33 @@ end
 
 
 
-## ConstantSpace default overrides
+## ConstantSpace and PointSpace default overrides
 
+for SP in (:ConstantSpace,:PointSpace)
+    # ambiguity
+    for OP in (:(Base.abs),:(Base.sqrt))
+        @eval begin
+            $OP(z::Fun{<:$SP,<:Complex}) = Fun(space(z),$OP.(coefficients(z)))
+            $OP(z::Fun{<:$SP,<:Real}) = Fun(space(z),$OP.(coeficients(z)))
+            $OP(z::Fun{<:$SP}) = Fun(space(z),$OP.(coefficients(z)))
+        end
+    end
 
-# ambiguity
-for OP in (:(Base.abs),)
-    @eval begin
-        $OP(z::Fun{CS,T}) where {CS<:ConstantSpace,T<:Complex} =
-            Fun($OP(Number(z)),space(z))
-        $OP(z::Fun{CS,T}) where {CS<:ConstantSpace,T<:Real} =
-            Fun($OP(Number(z)),space(z))
-        $OP(z::Fun{CS,T}) where {CS<:ConstantSpace,T} =
-            Fun($OP(Number(z)),space(z))
+    # we need to pad coefficients since 0^0 == 1
+    for OP in (:^,)
+        @eval begin
+            function $OP(z::Fun{<:$SP},k::Integer)
+                k ≠ 0 && return Fun(space(z),$OP.(coefficients(z),k))
+                Fun(space(z),$OP.(pad(coefficients(z),dimension(space(z))),k))
+            end
+            function $OP(z::Fun{<:$SP},k::Number)
+                k ≠ 0 && return Fun(space(z),$OP.(coefficients(z),k))
+                Fun(space(z),$OP.(pad(coefficients(z),dimension(space(z))),k))
+            end
+        end
     end
 end
+
 
 for OP in (:(Base.max),:(Base.min))
     @eval begin
