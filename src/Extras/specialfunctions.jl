@@ -639,17 +639,6 @@ for OP in (:(abs),:(sign),:(log))
     end
 end
 
-## PointSpace
-
-for OP in (:(abs),:(sign))
-    # ambiguity warnings
-    @eval $OP(f::Fun{S,T}) where {S<:PointSpace,T<:Real}=Fun(space(f),map($OP,f.coefficients))
-end
-for OP in (:(exp),:(abs),:(sign))
-    @eval $OP(f::Fun{S}) where {S<:PointSpace}=Fun(space(f),map($OP,f.coefficients))
-end
-
-
 #
 # These formulæ, appearing in Eq. (2.5) of:
 #
@@ -690,11 +679,10 @@ end
 ## ConstantSpace and PointSpace default overrides
 
 for SP in (:ConstantSpace,:PointSpace)
-    # ambiguity
-    for OP in (:(Base.abs),:(Base.sqrt))
+    for OP in (:(abs),:(sign),:(exp),:(sqrt))
         @eval begin
             $OP(z::Fun{<:$SP,<:Complex}) = Fun(space(z),$OP.(coefficients(z)))
-            $OP(z::Fun{<:$SP,<:Real}) = Fun(space(z),$OP.(coeficients(z)))
+            $OP(z::Fun{<:$SP,<:Real}) = Fun(space(z),$OP.(coefficients(z)))
             $OP(z::Fun{<:$SP}) = Fun(space(z),$OP.(coefficients(z)))
         end
     end
@@ -736,6 +724,10 @@ end
 
 # from DualNumbers
 for (funsym, exp) in Calculus.symbolic_derivatives_1arg()
+    funsym == :abs && continue
+    funsym == :sign && continue
+    funsym == :exp && continue
+    funsym == :sqrt && continue
     @eval begin
         $(funsym)(z::Fun{CS,T}) where {CS<:ConstantSpace,T<:Real} =
             Fun($(funsym)(Number(z)),space(z))
