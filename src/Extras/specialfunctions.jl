@@ -41,9 +41,9 @@ for OP in (:sign,:angle)
         if isempty(pts)
             $OP(first(f))*one(f)
         else
-            d_split= d \ pts
-            midpts = [midpoints(d)...]
-            Fun(d_split,$OP.(f.(midpts)))
+            d = d \ pts
+            midpts = collect(midpoints(d))
+            Fun(d, $OP.(f.(midpts)))
         end
     end
 end
