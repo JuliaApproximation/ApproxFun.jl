@@ -197,6 +197,7 @@ Fun(f,JacobiWeight(1.,0.,0..1))
 ## Hermite
 f=Fun(x->x+x^2,Hermite())
 @test f(1.) ≈ 2.
+@test values(f) ≈ points(f)+points(f).^2
 
 D = Derivative(Hermite())
 testbandedoperator(D)
@@ -299,11 +300,20 @@ g = Fun(exp)
 @test ApproxFun.hasfasttransformtimes(f,g)
 @test ApproxFun.transformtimes(f,g)(0.1) ≈ exp(0.2)
 
-k=50
 δ = Fun(ApproxFun.PointSpace([2.0]),[1.0])
-f = Fun(x->cos(k*x)) + δ
-g = Fun(x->cos(k*x),Ultraspherical(1)) + δ
+f = Fun(x->cos(50x)) + δ
+g = Fun(x->cos(50x),Ultraspherical(1)) + δ
 @test domain(f) == domain(g)
 
-@test (f*g)(0.1) ≈ cos(k*0.1)^2
+@test (f*g)(0.1) ≈ cos(50*0.1)^2
 @test (f*g)(2.0) ≈ 1
+
+@test exp(f)(0.1) ≈ exp(cos(50*0.1))
+@test exp(f)(2.0) ≈ exp(1)
+
+@test sign(f)(0.1) ≈ sign(cos(50*0.1))
+@test sign(f)(2.0) ≈ 1
+@test abs(f)(0.1) ≈ abs(cos(50*0.1))
+@test abs(f)(2.0) ≈ 1
+@test angle(f)(0.1) ≈ angle(cos(50*0.1))
+@test angle(f)(2.0) ≈ 0

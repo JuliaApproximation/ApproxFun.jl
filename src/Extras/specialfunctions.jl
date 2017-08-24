@@ -631,7 +631,7 @@ end
 
 
 
-for OP in (:(abs),:(sign),:(log))
+for OP in (:abs,:sign,:log,:angle)
     @eval begin
         $OP(f::Fun{PiecewiseSpace{S,DD,RR},T}) where {S,DD,RR<:Real,T<:Real} =
             Fun(map($OP,components(f)),PiecewiseSpace)
@@ -679,7 +679,7 @@ end
 ## ConstantSpace and PointSpace default overrides
 
 for SP in (:ConstantSpace,:PointSpace)
-    for OP in (:(abs),:(sign),:(exp),:(sqrt))
+    for OP in (:abs,:sign,:exp,:sqrt,:angle)
         @eval begin
             $OP(z::Fun{<:$SP,<:Complex}) = Fun(space(z),$OP.(coefficients(z)))
             $OP(z::Fun{<:$SP,<:Real}) = Fun(space(z),$OP.(coefficients(z)))
