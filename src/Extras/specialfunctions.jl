@@ -28,8 +28,8 @@ function abs(f::Fun)
 end
 
 
-midpoints(d::Segment) = (d.b+d.a)/2
-midpoints(d::UnionDomain) = map(midpoints,d.domains)
+midpoints(d::Segment) = [(d.b+d.a)/2]
+midpoints(d::UnionDomain) = mapreduce(midpoints,vcat,d.domains)
 
 
 for OP in (:sign,:angle)
@@ -42,7 +42,7 @@ for OP in (:sign,:angle)
             $OP(first(f))*one(f)
         else
             d = d \ pts
-            midpts = collect(midpoints(d))
+            midpts = midpoints(d)
             Fun(d, $OP.(f.(midpts)))
         end
     end

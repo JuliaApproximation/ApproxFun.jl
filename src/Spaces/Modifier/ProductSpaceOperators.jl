@@ -102,33 +102,37 @@ for TYP in (:SumSpace,:PiecewiseSpace)
         elseif all(map(hasconversion,v1,v2))
             # we can blocmk convert
             ConversionWrapper(SpaceOperator(
-                InterlaceOperator(Diagonal([map(Conversion,sort1,sort2)...]),$TYP),
+                InterlaceOperator(Diagonal([map(Conversion,v1,v2)...]),$TYP),
                 S1,S2))
         elseif all(map(hasconversion,sort1,sort2))
             # we can blocmk convert
             P1 = SpaceOperator(PermutationOperator(T,v1,sort1),S1,$TYP(sort1))
             P2 = SpaceOperator(PermutationOperator(T,sort2,v2),$TYP(sort2),S2)
             ConversionWrapper(TimesOperator(
-                P2,InterlaceOperator(Diagonal([map(Conversion,sort1,sort2)...]),$TYP),P1))
+                [P2,InterlaceOperator(Diagonal([map(Conversion,sort1,sort2)...]),$TYP),P1]))
         elseif map(canonicalspace,S1.spaces) == map(canonicalspace,S2.spaces)
             error("Not implemented")
-        elseif sort(collect(map(canonicalspace,v1))) == sort(collect(map(canonicalspace,v2)))
-            # we can block convert after permuting
-            P=PermutationOperator(T,
-                                  map(canonicalspace,S1.spaces),
-                                  map(canonicalspace,S2.spaces))
-            ds2=$TYP(S1.spaces[P.perm])
-            ConversionWrapper(TimesOperator(Conversion(ds2,S2),SpaceOperator(P,S1,ds2)))
-        elseif all(map(hasconversion,sort(collect(map(canonicalspace,S1.spaces))),
-                                     sort(collect(map(canonicalspace,S2.spaces)))))
-            #TODO: general case
-            @assert length(S1.spaces)==2
-            ds2=$TYP(S1.spaces[[2,1]])
-            ConversionWrapper(TimesOperator(Conversion(ds2,S2),Conversion(S1,ds2)))
-
         else
-            # we don't know how to convert so go to default
-            defaultConversion(S1,S2)
+            # try sorting canonicalspace
+            csort1 = sort(collect(map(canonicalspace,v1)))
+            csort2 = sort(collect(map(canonicalspace,v2)))
+            if csort1 == csort2
+                # we can block convert after permuting
+                P=PermutationOperator(T,
+                                      map(canonicalspace,v1),
+                                      map(canonicalspace,v2))
+                ds2=$TYP(S1.spaces[P.perm])
+                ConversionWrapper(TimesOperator(Conversion(ds2,S2),SpaceOperator(P,S1,ds2)))
+            elseif all(map(hasconversion,csort1,csort2))
+                C1 = Conversion(S1,$TYP(csort1))
+                C2 = Conversion($TYP(csort1),$TYP(csort2))
+                C3 = Conversion($TYP(csort2),S2)
+
+                ConversionWrapper(TimesOperator([C3,C2,C1]))
+            else
+                # we don't know how to convert so go to default
+                defaultConversion(S1,S2)
+            end
         end
     end
 end

@@ -1,5 +1,5 @@
 using ApproxFun, Base.Test
-    import ApproxFun: ChebyshevDirichlet,Ultraspherical,space,testspace,testbandedoperator,testcalculus,testtransforms
+    import ApproxFun: ChebyshevDirichlet,Ultraspherical,PiecewiseSegment, ContinuousSpace, space,testspace,testbandedoperator,testcalculus,testtransforms
 
 testtransforms(ChebyshevDirichlet{1,1}())
 
@@ -94,8 +94,6 @@ w=2/(sqrt(1-x)*sqrt(1+im*x))
 
 ## ContinuousSpace
 
-import ApproxFun: PiecewiseSegment,ContinuousSpace
-
 d=PiecewiseSegment(1.,2.,3.,4.)
 S=ContinuousSpace(d)
 testtransforms(S;minpoints=3,invertibletransform=false)
@@ -146,6 +144,7 @@ rsp=Legendre(0..1)⊕JacobiWeight(0.5,0.,Jacobi(0.5,0.5,0..1))
 
 
 C=Conversion(dsp,rsp)
+
 f=Fun(dsp,[1.,2.,3.,4.,5.])
 @test f(0.1) ≈ (C*f)(0.1)
 

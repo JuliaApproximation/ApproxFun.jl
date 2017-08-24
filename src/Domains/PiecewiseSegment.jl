@@ -3,7 +3,7 @@ struct PiecewiseSegment{T} <: UnivariateDomain{T}
     PiecewiseSegment{T}(d::Vector{T}) where {T} = new{T}(d)
 end
 PiecewiseSegment(d::AbstractVector) = PiecewiseSegment{eltype(d)}(collect(d))
-PiecewiseSegment(d...) = PiecewiseSegment(collect(d))
+PiecewiseSegment(d...) = PiecewiseSegment(collect(mapreduce(eltype,promote_type,d),d))
 
 function PiecewiseSegment(pcsin::AbstractVector{IT}) where IT<:Segment
     pcs=collect(pcsin)
