@@ -711,4 +711,4 @@ end
 
 
 
-identity_fun(S::TensorSpace) = Fun(xyz->[xyz...],S)
+identity_fun(S::TensorSpace) = Fun(xyz->collect(xyz),S)

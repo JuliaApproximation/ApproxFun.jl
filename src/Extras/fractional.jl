@@ -97,15 +97,15 @@ jacobi_frac_getindex(c::Number,α,μ,k::Integer,j::Integer) =
 
 function LeftIntegral(S::JacobiWeight{Jacobi{DD,RR}},k) where {DD,RR}
     J=S.space
-    @assert S.α==0
-    @assert S.β==J.b
+    @assert S.α ≈ 0
+    @assert S.β ≈ J.b
     ConcreteLeftIntegral(S,k)
 end
 
 function RightIntegral(S::JacobiWeight{Jacobi{DD,RR}},k) where {DD,RR}
     J=S.space
-    @assert S.α==J.a
-    @assert S.β==0
+    @assert S.α ≈ J.a
+    @assert S.β ≈ 0
     ConcreteRightIntegral(S,k)
 end
 

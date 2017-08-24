@@ -77,7 +77,7 @@ Base.setdiff(a::Domain,b::UnionDomain) = mapreduce(d->setdiff(a,d),∩,b.domains
 Base.setdiff(a::UnionDomain,b) = mapreduce(d->setdiff(d,b),∪,a.domains)
 Base.setdiff(a,b::UnionDomain) = mapreduce(d->setdiff(a,d),∩,b.domains)
 
-Base.sort(d::UnionDomain;opts...) = UnionDomain(sort([d.domains...];opts...))
+Base.sort(d::UnionDomain;opts...) = UnionDomain(sort(collect(d.domains);opts...))
 
 
 for op in (:(Base.first),:(Base.last))
@@ -85,7 +85,7 @@ for op in (:(Base.first),:(Base.last))
 end
 
 #support tuple set
-components(d::UnionDomain) = [d.domains...]
+components(d::UnionDomain) = collect(d.domains)
 component(d::UnionDomain,k) = d.domains[k]
 ncomponents(d::UnionDomain) = length(d.domains)
 

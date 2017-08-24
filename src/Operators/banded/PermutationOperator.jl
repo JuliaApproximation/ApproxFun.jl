@@ -29,16 +29,17 @@ function getindex(P::PermutationOperator{T},k::Integer,j::Integer) where T
 end
 
 
-multiplyperm(b,a)=Int[a[bk] for bk in b]
-perm(a::Vector,b::Vector)=multiplyperm(invperm(sortperm(b)),sortperm(a))
-perm(a::Tuple,b::Tuple)=perm([a...],[b...])
+multiplyperm(b,a) = Int[a[bk] for bk in b]
+perm(a::Vector,b::Vector) = multiplyperm(invperm(sortperm(b)),sortperm(a))
+perm(a::Tuple,b::Tuple) = perm(collect(a),collect(b))
 
 # the operator that rearranges a to be b
 function PermutationOperator(::Type{T},a::Vector,b::Vector) where T
-    @assert sort(a)==sort(b)
+    @assert sort(a) == sort(b)
     PermutationOperator{T}(perm(a,b))
 end
-PermutationOperator(::Type{T},a::Tuple,b::Tuple) where {T}=PermutationOperator(T,[a...],[b...])
+PermutationOperator(::Type{T},a::Tuple,b::Tuple) where {T} =
+    PermutationOperator(T,collect(a),collect(b))
 
 
 struct NegateEven{T} <: Operator{T} end

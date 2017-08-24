@@ -10,11 +10,11 @@ hasnumargs(f,k) = applicable(f,zeros(k)...)
 
 
 isapprox(a,b;kwds...) = Base.isapprox(a,b;kwds...)
-isapprox(a::Vec,b::Vec;kwds...) = isapprox([a...],[b...];kwds...)
+isapprox(a::Vec,b::Vec;kwds...) = isapprox(collect(a),collect(b);kwds...)
 
 # fast implementation of isapprox with atol a non-keyword argument in most cases
 isapprox_atol(a,b,atol;kwds...) = isapprox(a,b;atol=atol,kwds...)
-isapprox_atol(a::Vec,b::Vec,atol::Real=0;kwds...) = isapprox_atol([a...],[b...],atol;kwds...)
+isapprox_atol(a::Vec,b::Vec,atol::Real=0;kwds...) = isapprox_atol(collect(a),collect(b),atol;kwds...)
 function isapprox_atol(x::Number, y::Number, atol::Real=0; rtol::Real=Base.rtoldefault(x,y))
     x == y || (isfinite(x) && isfinite(y) && abs(x-y) <= atol + rtol*max(abs(x), abs(y)))
 end

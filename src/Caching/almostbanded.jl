@@ -97,8 +97,8 @@ function CachedOperator(io::InterlaceOperator{T,2};padding::Bool=false) where T
 
 
     # these are the bandwidths if we only had ∞-dimensional operators
-    d∞=find(isinf,[ddims...])
-    r∞=find(isinf,[rdims...])
+    d∞=find(isinf,collect(ddims))
+    r∞=find(isinf,collect(rdims))
     p=length(d∞)
 
     # we only support block size 1 for now
@@ -225,8 +225,8 @@ function resizedata!(co::CachedOperator{T,AlmostBandedMatrix{T},
     ddims=dimensions(di.iterator)
     rdims=dimensions(ri.iterator)
 
-    d∞=find(isinf,[ddims...])
-    r∞=find(isinf,[rdims...])
+    d∞=find(isinf,collect(ddims))
+    r∞=find(isinf,collect(rdims))
     p=length(d∞)
 
     (l,u)=bandwidths(co.data.bands)

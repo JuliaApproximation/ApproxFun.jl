@@ -141,7 +141,7 @@ for TYP in (:SumSpace,:PiecewiseSpace)
         $TYP(A::Space...) = $TYP(A)
         $TYP(sp::AbstractArray) = $TYP(tuple(sp...))
 
-        canonicalspace(A::$TYP) = $TYP(sort([A.spaces...]))
+        canonicalspace(A::$TYP) = $TYP(sort(collect(A.spaces)))
     end
 end
 
@@ -215,7 +215,7 @@ function spacescompatible(A::Tuple,B::Tuple)
         return false
     end
     #assumes domain doesn't impact sorting
-    asort=sort([A...]);bsort=sort([B...])
+    asort=sort(collect(A));bsort=sort(collect(B))
     for k=1:length(asort)
         if !spacescompatible(asort[k],bsort[k])
             return false

@@ -60,7 +60,7 @@ end
 
 Fun(v::AbstractArray{NN}) where {NN<:Number} =
     Fun(v,Space(fill(ConstantSpace(NN),size(v))))
-Fun(v::AbstractArray{Any}) = Fun(Fun.([v...]) :: AbstractArray{<:Fun})
+Fun(v::AbstractArray{Any}) = Fun(Fun.(collect(v)) :: AbstractArray{<:Fun})
 
 Fun(f::ArrayFun,d::Space{D,R}) where {D,R<:AbstractArray} = space(f)==d ? f : Fun(d,coefficients(f,d))
 Fun(f::ArrayFun,d::Space) = Fun(f,Space(fill(d,size(space(f)))))

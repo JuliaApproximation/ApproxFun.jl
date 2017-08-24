@@ -12,7 +12,7 @@ for TYP in (:DiracSpace,:PointSpace)
             $TYP{eltype(points),typeof(d),real(prectype(d))}(points)
         end
 
-        $TYP(points::Tuple) = $TYP([points...])
+        $TYP(points::Tuple) = $TYP(collect(points))
         $TYP() = $TYP(Float64[])
         $TYP(point::Number) = $TYP([point])
         $TYP(p::Point)=$TYP(p.x)

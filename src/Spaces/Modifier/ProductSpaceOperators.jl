@@ -86,33 +86,41 @@ end
 # Sum Space and PiecewiseSpace need to allow permutation of space orders
 for TYP in (:SumSpace,:PiecewiseSpace)
     @eval function Conversion(S1::$TYP,S2::$TYP)
-        if any(s->!isinf(dimension(s)),S1.spaces) || any(s->!isinf(dimension(s)),S2.spaces)
+        v1 = collect(S1.spaces)
+        v2 = collect(S2.spaces)
+
+        sort1 = sort(collect(v1))
+        sort2 = sort(collect(v2))
+
+        T = promote_type(eltype(domain(S1)),eltype(domain(S2)))
+
+        if any(s->!isinf(dimension(s)),v1) || any(s->!isinf(dimension(s)),v2)
             error("Need to implement finite dimensional case")
-        elseif sort([S1.spaces...])==sort([S2.spaces...])
+        elseif sort1 == sort2
             # swaps sumspace order
-            ConversionWrapper(SpaceOperator(
-            PermutationOperator(promote_type(eltype(domain(S1)),eltype(domain(S2))),S1.spaces,S2.spaces),
-                          S1,S2))
-        elseif all(map(hasconversion,S1.spaces,S2.spaces))
+            ConversionWrapper(SpaceOperator(PermutationOperator(T,v1,v2),S1,S2))
+        elseif all(map(hasconversion,v1,v2))
             # we can blocmk convert
-            ConversionWrapper(InterlaceOperator(Diagonal([map(Conversion,S1.spaces,S2.spaces)...]),$TYP))
-        elseif map(canonicalspace,S1.spaces)==map(canonicalspace,S2.spaces)
+            ConversionWrapper(SpaceOperator(
+                InterlaceOperator(Diagonal([map(Conversion,sort1,sort2)...]),$TYP),
+                S1,S2))
+        elseif all(map(hasconversion,sort1,sort2))
+            # we can blocmk convert
+            P1 = SpaceOperator(PermutationOperator(T,v1,sort1),S1,$TYP(sort1))
+            P2 = SpaceOperator(PermutationOperator(T,sort2,v2),$TYP(sort2),S2)
+            ConversionWrapper(TimesOperator(
+                P2,InterlaceOperator(Diagonal([map(Conversion,sort1,sort2)...]),$TYP),P1))
+        elseif map(canonicalspace,S1.spaces) == map(canonicalspace,S2.spaces)
             error("Not implemented")
-        elseif sort([map(canonicalspace,S1.spaces)...])==sort([map(canonicalspace,S2.spaces)...])
+        elseif sort(collect(map(canonicalspace,v1))) == sort(collect(map(canonicalspace,v2)))
             # we can block convert after permuting
-            P=PermutationOperator(promote_type(eltype(domain(S1)),eltype(domain(S2))),
+            P=PermutationOperator(T,
                                   map(canonicalspace,S1.spaces),
                                   map(canonicalspace,S2.spaces))
             ds2=$TYP(S1.spaces[P.perm])
             ConversionWrapper(TimesOperator(Conversion(ds2,S2),SpaceOperator(P,S1,ds2)))
-        elseif all(map(hasconversion,reverse(S1.spaces),S2.spaces))
-            # special case that comes up, especially for two spaces
-            rS1=SumSpace(reverse(S1.spaces))
-            ConversionWrapper(TimesOperator(
-                Conversion(rS1,S2),
-                SpaceOperator(PermutationOperator(length(S1.spaces):-1:1),
-                            S1,rS1)))
-        elseif all(map(hasconversion,sort([map(canonicalspace,S1.spaces)...]),sort([map(canonicalspace,S2.spaces)...])))
+        elseif all(map(hasconversion,sort(collect(map(canonicalspace,S1.spaces))),
+                                     sort(collect(map(canonicalspace,S2.spaces)))))
             #TODO: general case
             @assert length(S1.spaces)==2
             ds2=$TYP(S1.spaces[[2,1]])
@@ -149,7 +157,7 @@ for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspac
                 else
                     $TYP(newspaces)
                 end
-            elseif sort([cs1...]) == sort([cs2...])
+            elseif sort(collect(cs1)) == sort(collect(cs2))
                 # sort S1
                 p=perm(cs1,cs2)
                 $OP($TYP(S1[p]),S2)
