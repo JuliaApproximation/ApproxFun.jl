@@ -15,12 +15,19 @@ end
 UnionDomain(d::Tuple{}) = error("Cannot create UnionDomain with no components")
 UnionDomain(d::Tuple) =
     UnionDomain{typeof(d),mapreduce(eltype,promote_type,d)}(d)
-UnionDomain(d::AbstractVector) = UnionDomain(tuple(d...))
+UnionDomain(d::AbstractVector) = UnionDomain{typeof(d),eltype(d)}(d)
 
 
 UnionDomain(d1::UnionDomain,d2::UnionDomain) = UnionDomain((d1.domains...,d2.domains...))
+UnionDomain(d1::UnionDomain{<:AbstractVector},d2::UnionDomain{<:AbstractVector}) =
+    UnionDomain([d1.domains ; d2.domains])
+
 UnionDomain(d1::Domain,d2::UnionDomain) = UnionDomain((d1,d2.domains...))
 UnionDomain(d1::UnionDomain,d2::Domain) = UnionDomain((d1.domains...,d2))
+UnionDomain(d1::Domain,d2::UnionDomain{<:AbstractVector}) = UnionDomain([d1;d2.domains])
+UnionDomain(d1::UnionDomain{<:AbstractVector},d2::Domain) = UnionDomain([d1.domains;d2])
+
+
 
 UnionDomain(d1::Domain,d2::Domain) = UnionDomain((d1,d2))
 
@@ -92,7 +99,8 @@ ncomponents(d::UnionDomain) = length(d.domains)
 arclength(d::UnionDomain) = mapreduce(arclength,+,d.domains)
 
 ==(d1::UnionDomain,d2::UnionDomain) =
-    ncomponents(d1)==ncomponents(d2) && all(Bool[component(d1,k) == component(d2,k) for k=1:ncomponents(d1)])
+    ncomponents(d1) == ncomponents(d2) &&
+        all(Bool[component(d1,k) == component(d2,k) for k=1:ncomponents(d1)])
 
 
 Base.in(x,d::UnionDomain) = any(a->x∈a,d.domains)
