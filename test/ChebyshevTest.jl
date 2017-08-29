@@ -162,3 +162,17 @@ x=Fun()
 ## Checks #7
 
 @test ncoefficients(Fun(x->sin(400*pi*x),-1..1)) ≤ 1400
+
+
+# Bug from Trogdon
+
+δ = .03 # should be less than 0.03
+
+@test 0. ∈ Domain(1-8.*sqrt(δ)..1+8.*sqrt(δ))
+@test 0.00001 ∈ Domain(1-8.*sqrt(δ)..1+8.*sqrt(δ))
+
+ϕfun = Fun(x -> 1/sqrt(2*pi*δ)*exp(-abs2.(x-1)/(2*δ)), 1-8.*sqrt(δ)..1+8.*sqrt(δ))
+ϕfun(0.00001) ≈ 1/sqrt(2*pi*δ)*exp(-abs2.(0.00001-1)/(2*δ))
+
+iϕfun = 1-cumsum(ϕfun)
+@test iϕfun(0.00001) ≈ 1
