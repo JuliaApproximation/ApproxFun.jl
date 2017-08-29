@@ -24,7 +24,7 @@ for TYP in (:DiracSpace,:PointSpace)
         block(C::$TYP,k)::Block = 1
 
         domain(DS::$TYP) = UnionDomain(Point.(DS.points))
-        setdomain(DS::$TYP,d::UnionDomain) = $TYP(map(d->d.x,d))
+        setdomain(DS::$TYP,d::UnionDomain) = $TYP(map(d->d.x,components(d)))
         points(sp::$TYP,n::Integer)=sp.points[1:n]
 
         spacescompatible(a::$TYP,b::$TYP) = a.points == b.points
