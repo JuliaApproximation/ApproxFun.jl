@@ -163,7 +163,7 @@ end
     for k=1:length(p)
         @series begin
             primary := (k==1)
-            component(p,k)
+            p[k]
         end
     end
 end

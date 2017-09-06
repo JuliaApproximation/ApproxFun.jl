@@ -154,8 +154,9 @@ function Base.view(A::SubOperator,::Type{FiniteRange},jr::AbstractVector{Int})
     cs = (isbanded(A) || isblockbandedbelow(A)) ? colstop(A,maximum(jr)) : mapreduce(j->colstop(A,j),max,jr)
     view(A,1:cs,jr)
 end
-view(A::SubOperator,kr,jr) = view(A.parent,reindex(A,parentindexes(A),(kr,jr))...)
 
+view(A::SubOperator,kr,jr) = view(A.parent,reindex(A,parentindexes(A),(kr,jr))...)
+view(A::SubOperator,kr::AbstractCount,jr::AbstractCount) = view(A.parent,reindex(A,parentindexes(A),(kr,jr))...)
 
 
 bandwidth(S::SubOperator,k::Int) = S.bandwidths[k]

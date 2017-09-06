@@ -764,6 +764,8 @@ Base.minimum(it::Count{S}) where {S<:Real} = it.step < 0 ? -∞ : it.start
 Base.sum(it::UnitCount) = ∞
 Base.sum(it::Count) = it.step > 0 ? ∞ : -∞
 
+@inline Base.first(it::AbstractCount) = it.start
+
 Base.last(it::UnitCount{S}) where {S<:Real} = ∞
 Base.last(it::Count{S}) where {S<:Real} =
     it.step > 0 ? ∞ : (it.step < 0 ? -∞ : error("zero step not supported"))
@@ -791,6 +793,16 @@ function Base.colon(a::Real,st::Real,b::Infinity{Bool})
     end
 end
 
+
+
+Base.intersect(a::UnitCount, b::UnitCount) = UnitCount(max(first(a), first(b)))
+Base.intersect(a::AbstractCount, b::AbstractCount) = error("Not implemented")
+
+Base.intersect(a::UnitCount, b::Range) = intersect(first(a):last(b), b)
+Base.intersect(a::Range, b::UnitCount) = intersect(a, first(b):last(a))
+
+Base.intersect(a::Count, b::Range) = intersect(first(a):step(a):last(b), b)
+Base.intersect(a::Range, b::Count) = intersect(a, first(b):step(b):last(a))
 
 
 

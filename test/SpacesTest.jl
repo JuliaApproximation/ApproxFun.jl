@@ -316,3 +316,11 @@ g = Fun(x->cos(50x),Ultraspherical(1)) + δ
 @test abs(f)(2.0) ≈ 1
 @test angle(f)(0.1) ≈ angle(cos(50*0.1))
 @test angle(f)(2.0) ≈ 0
+
+
+
+## ones for SumSpace
+
+S = Jacobi(0,1) ⊕ JacobiWeight(1/3,0,Jacobi(1/3,2/3)) ⊕ JacobiWeight(2/3,0,Jacobi(2/3,1/3))
+o = ones(S)
+@test o(0.5) == 1

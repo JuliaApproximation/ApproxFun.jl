@@ -392,12 +392,13 @@ linebilinearform(f::Fun{S},g::Fun{V}) where {S<:PiecewiseSpace,V<:PiecewiseSpace
 
 
 function Base.ones(::Type{T},S::SumSpace) where T<:Number
-    @assert ncomponents(S) == 2
-    if isconvertible(ConstantSpace(),component(S,1))
-        ones(T,component(S,1)) ⊕ zeros(T,component(S,2))
-    else
-        zeros(T,component(S,1)) ⊕ ones(T,component(S,2))
+    for sp in components(S)
+        if isconvertible(ConstantSpace(),sp)
+            return Fun(ones(T,sp), S)
+        end
     end
+
+    error("$S does not contain constants")
 end
 
 Base.ones(S::SumSpace) = ones(Float64,S)

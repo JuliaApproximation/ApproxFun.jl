@@ -281,3 +281,11 @@ Z=ApproxFun.ZeroOperator(Chebyshev())
 x = Fun()
 B = [1 ldirichlet()]
 @test (B*[1;x])[1] == Fun(ConstantSpace(ApproxFun.Point(-1.0)),[0.0])
+
+
+
+## views of views
+A = Derivative(Chebyshev()) + I
+B = A[1:2:∞,1:2:∞]
+C = B[2:∞,3:∞]
+@test A[3:2:∞,5:2:∞] == C
