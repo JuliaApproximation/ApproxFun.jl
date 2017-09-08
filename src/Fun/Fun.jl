@@ -31,6 +31,9 @@ function Fun(sp::Space,v::AbstractVector{Any})
     end
 end
 
+
+hasnumargs(f::Fun,k) = domaindimension(f) == k
+
 ##Coefficient routines
 #TODO: domainscompatible?
 
@@ -152,7 +155,7 @@ setspace(f::Fun,s::Space) = Fun(s,f.coefficients)
 
 domain(f::Fun) = domain(f.space)
 domain(v::AbstractMatrix{T}) where {T<:Fun} = map(domain,v)
-
+domaindimension(f::Fun) = domaindimension(f.space)
 
 setdomain(f::Fun,d::Domain) = Fun(setdomain(space(f),d),f.coefficients)
 
@@ -191,6 +194,8 @@ evaluate(f::Fun,x,y,z...) = evaluate(f.coefficients,f.space,Vec(x,y,z...))
 
 
 (f::Fun)(x...) = evaluate(f,x...)
+
+dynamic(f::Fun) = f # Fun's are already dynamic in that they compile by type
 
 for op in (:(Base.first),:(Base.last))
     @eval $op(f::Fun{S,T}) where {S,T} = f($op(domain(f)))

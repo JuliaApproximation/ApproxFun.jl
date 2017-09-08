@@ -13,11 +13,10 @@ end
 
 
 ## Constructors that involve MultivariateFun
+Fun(f::Fun) = f # Fun of Fun should be like a conversion
 
-Fun(f::Function) = Fun(F(f))
-
-function Fun(f::F)
-    if hasnumargs(f.f,1)
+function Fun(f::Function)
+    if hasnumargs(f,1)
         # check for tuple
         try
             f(0)
@@ -31,7 +30,7 @@ function Fun(f::F)
         end
 
         Fun(f,Interval())
-    elseif hasnumargs(f.f,2)
+    elseif hasnumargs(f,2)
             Fun(f,Interval()^2)
     else
         error("Function not defined on interval or square")

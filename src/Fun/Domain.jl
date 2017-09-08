@@ -17,6 +17,9 @@ eltype(::Domain{T}) where {T} = T
 eltype(::Type{Domain{T}}) where {T} = T
 Base.isreal(::Domain{T}) where {T<:Real} = true
 Base.isreal(::Domain{T}) where {T} = false
+
+Base.copy(d::Domain) = d  # all domains are immutable
+
 dimension(::Domain{<:Number}) = 1
 dimension(::Type{Domain{Vec{d,T}}}) where {T,d} = d
 dimension(::Type{DT}) where {DT<:Domain} = dimension(supertype(DT))

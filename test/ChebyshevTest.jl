@@ -125,7 +125,6 @@ f=Fun(x->cos(50acos(x)))
 @test Fun(x->2,10)(.1) ≈ 2
 @test Fun(x->2)(.1) ≈ 2
 
-
 @test Fun(Chebyshev,Float64[]).([0.,1.]) ≈ [0.,0.]
 @test Fun(Chebyshev,[])(0.) ≈ 0.
 @test Fun(x->[1.,0.])(0.) ≈ [1.,0.]

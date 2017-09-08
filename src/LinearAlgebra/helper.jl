@@ -1227,3 +1227,17 @@ macro nocat(x)
     end
     esc(ex)
 end
+
+
+
+## Dynamic functions
+
+struct DFunction <: Function
+    f
+end
+(f::DFunction)(args...) = f.f(args...)
+
+hasnumargs(f::DFunction, k) = hasnumargs(f.f, k)
+
+dynamic(f) = f
+dynamic(f::Function) = DFunction(f) # Assume f has to compile every time

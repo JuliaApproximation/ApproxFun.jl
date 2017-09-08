@@ -44,7 +44,7 @@ end
 
 ## Adaptive construction
 
-function ProductFun(f::F,sp::AbstractProductSpace{Tuple{S,V}};tol=100eps()) where {S<:UnivariateSpace,V<:UnivariateSpace}
+function ProductFun(f::DFunction,sp::AbstractProductSpace{Tuple{S,V}};tol=100eps()) where {S<:UnivariateSpace,V<:UnivariateSpace}
     for n = 50:100:5000
         X = coefficients(ProductFun(f,sp,n,n;tol=tol))
         if size(X,1)<n && size(X,2)<n
@@ -57,14 +57,14 @@ end
 
 ## ProductFun values to coefficients
 
-function ProductFun(f::F,S::AbstractProductSpace,M::Integer,N::Integer;tol=100eps())
+function ProductFun(f::DFunction,S::AbstractProductSpace,M::Integer,N::Integer;tol=100eps())
     xy = checkpoints(S)
     T = promote_type(eltype(f(first(xy)...)),rangetype(S))
     ptsx,ptsy=points(S,M,N)
     vals=T[f(ptsx[k,j],ptsy[k,j]) for k=1:size(ptsx,1), j=1:size(ptsx,2)]
     ProductFun(transform!(S,vals),S;tol=tol,chopping=true)
 end
-ProductFun(f::F,S::TensorSpace) = ProductFun(LowRankFun(f,S))
+ProductFun(f::DFunction,S::TensorSpace) = ProductFun(LowRankFun(f,S))
 
 ProductFun(f,dx::Space,dy::Space)=ProductFun(f,TensorSpace(dx,dy))
 
@@ -73,10 +73,10 @@ ProductFun(f::Function,args...;kwds...) = ProductFun(F(f),args...;kwds...)
 
 ## Domains promoted to Spaces
 
-ProductFun(f::F,D::BivariateDomain,M::Integer,N::Integer)=ProductFun(f,Space(D),M,N)
-ProductFun(f::F,d::Domain)=ProductFun(f,Space(d))
-ProductFun(f::F,dx::UnivariateDomain,dy::UnivariateDomain)=ProductFun(f,Space(dx),Space(dy))
-ProductFun(f::F) = ProductFun(f,Interval(),Interval())
+ProductFun(f::DFunction,D::BivariateDomain,M::Integer,N::Integer)=ProductFun(f,Space(D),M,N)
+ProductFun(f::DFunction,d::Domain)=ProductFun(f,Space(d))
+ProductFun(f::DFunction,dx::UnivariateDomain,dy::UnivariateDomain)=ProductFun(f,Space(dx),Space(dy))
+ProductFun(f::DFunction) = ProductFun(f,Interval(),Interval())
 
 ## Conversion from other 2D Funs
 
@@ -100,7 +100,7 @@ end
 
 ## For specifying spaces by anonymous function
 
-ProductFun(f::F,SF::Function,T::Space,M::Integer,N::Integer)=ProductFun(f,typeof(SF(1))[SF(k) for k=1:N],T,M)
+ProductFun(f::DFunction,SF::Function,T::Space,M::Integer,N::Integer)=ProductFun(f,typeof(SF(1))[SF(k) for k=1:N],T,M)
 
 ## Conversion of a constant to a ProductFun
 

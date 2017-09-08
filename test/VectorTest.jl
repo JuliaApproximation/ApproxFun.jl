@@ -307,8 +307,11 @@ G=Fun(z->[-1 -3; -3 -1]/z +
 @test G[1,1](exp(0.1im)) == G(exp(0.1im))[1,1]
 
 
-F̃ = (G-I)[:,1]
-F=Fun((G-I)[:,1])
+F̃ = Array((G-I)[:,1])
+F = (G-I)[:,1]
+
+@test Fun(F) ≡ F
+
 
 @test F(exp(0.1im)) ≈ [-exp(-0.1im)+1+2exp(0.1im);-3exp(-0.1im)+1+1exp(0.1im)]
 @test Fun(F̃,space(F))(exp(0.1im)) ≈ [-exp(-0.1im)+1+2exp(0.1im);-3exp(-0.1im)+1+1exp(0.1im)]
