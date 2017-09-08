@@ -334,22 +334,9 @@ function defaultcoefficients(f,a,b)
         if spacescompatible(a,csp)# a is csp, so try b
             csp=canonicalspace(b)
         end
-        if spacescompatible(a,csp)||spacescompatible(b,csp)
+        if spacescompatible(a,csp) || spacescompatible(b,csp)
             # b is csp too, so we are stuck, try Fun constructor
-            if domain(b)⊆domain(a)
-                coefficients(Fun(x->Fun(a,f)(x),b))
-            else
-                # we set the value to be zero off the domain of definition
-                # but first ensure that domain(b) has a jump
-                # TODO: this is disabled as it breaks the case of splitting
-                #       one interval into two
-                d=domain(a)
-#                 if !issubcomponent(d,domain(b))
-#                     error("$(d) is not a subcomponent of $(domain(b))")
-#                 end
-
-                coefficients(Fun(x->x∈d?Fun(a,f)(x):zero(Fun(a,f)(x)),b))
-            end
+            coefficients(default_Fun(Fun(a,f),b))
         else
             coefficients(f,a,csp,b)
         end
@@ -377,7 +364,7 @@ identity_fun(S::Space) = identity_fun(domain(S))
 function identity_fun(d::Domain)
     cd=canonicaldomain(d)
     if typeof(d) == typeof(cd)
-        Fun(x->x,d) # fall back to constructor
+        Fun(x->x,d) # fall back to constructor, can't use `identity` as that creates a loop
     else
         # this allows support for singularities, that the constructor doesn't
         sf=fromcanonical(d,Fun(identity,cd))

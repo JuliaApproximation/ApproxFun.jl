@@ -3,6 +3,8 @@ struct F <: Function
 end
 (f::F)(args...) = f.f(args...)
 
+hasnumargs(f::F, k) = hasnumargs(f.f, k)
+
 valsdomain_type_promote(::Type{T},::Type{T}) where {T<:Complex}=T,T
 valsdomain_type_promote(::Type{T},::Type{T}) where {T<:Real}=T,T
 valsdomain_type_promote(::Type{Int},::Type{Int})=Float64,Int
@@ -42,15 +44,17 @@ function choosefuneltype(ftype,Td)
     Tprom
 end
 
+
+# default_Fun is the default constructor, based on evaluation and transforms
 # last argument is whether to splat or not
-defaultFun(::Type{T},f,d::Space{ReComp},pts::AbstractVector,::Type{Val{true}}) where {T,ReComp} =
+default_Fun(::Type{T},f,d::Space{ReComp},pts::AbstractVector,::Type{Val{true}}) where {T,ReComp} =
     Fun(d,transform(d,T[f(x...) for x in pts]))
 
-defaultFun(::Type{T},f,d::Space{ReComp},pts::AbstractVector,::Type{Val{false}}) where {T,ReComp} =
+default_Fun(::Type{T},f,d::Space{ReComp},pts::AbstractVector,::Type{Val{false}}) where {T,ReComp} =
     Fun(d,transform(d,T[f(x) for x in pts]))
 
 
-function defaultFun(f,d::Space{ReComp},n::Integer,::Type{Val{false}}) where ReComp
+function default_Fun(f,d::Space{ReComp},n::Integer,::Type{Val{false}}) where ReComp
     pts=points(d, n)
     f1=f(pts[1])
     if isa(f1,AbstractArray) && size(d) ≠ size(f1)
@@ -59,10 +63,10 @@ function defaultFun(f,d::Space{ReComp},n::Integer,::Type{Val{false}}) where ReCo
 
     # we need 3 eltype calls for the case Interval(Point([1.,1.]))
     Tprom=choosefuneltype(typeof(f1),prectype(domain(d)))
-    defaultFun(Tprom,f,d,pts,Val{false})
+    default_Fun(Tprom,f,d,pts,Val{false})
 end
 
-function defaultFun(f,d::Space{ReComp},n::Integer,::Type{Val{true}}) where ReComp
+function default_Fun(f,d::Space{ReComp},n::Integer,::Type{Val{true}}) where ReComp
     pts=points(d, n)
     f1=f(pts[1]...)
     if isa(f1,AbstractArray) && size(d) ≠ size(f1)
@@ -71,18 +75,18 @@ function defaultFun(f,d::Space{ReComp},n::Integer,::Type{Val{true}}) where ReCom
 
     # we need 3 eltype calls for the case Interval(Point([1.,1.]))
     Tprom=choosefuneltype(typeof(f1),prectype(domain(d)))
-    defaultFun(Tprom,f,d,pts,Val{true})
+    default_Fun(Tprom,f,d,pts,Val{true})
 end
 
-defaultFun(f::F,d::Space{ReComp},n::Integer) where {ReComp} = defaultFun(f,d,n,Val{!hasnumargs(f.f,1)})
+default_Fun(f,d::Space{ReComp},n::Integer) where {ReComp} = default_Fun(f,d,n,Val{!hasnumargs(f,1)})
+default_Fun(f::F,d::Space{ReComp},n::Integer) where {ReComp} = default_Fun(f,d,n,Val{!hasnumargs(f,1)})
 
 
-Fun(f::Function,d::Space{ReComp},n::Integer) where {ReComp} = Fun(F(f),d,n)
-Fun(f::F,d::Space{ReComp},n::Integer) where {ReComp} = defaultFun(f,d,n)
+default_Fun(f::Function,d::Space{ReComp},n::Integer) where {ReComp} = default_Fun(F(f),d,n)
+Fun(f::Union{F,Function},d::Space{ReComp},n::Integer) where {ReComp} = default_Fun(f,d,n)
 
 # the following is to avoid ambiguity
 # Fun(f::Fun,d) should be equivalent to Fun(x->f(x),d)
-#TODO: fall back to Fun(x->f(x),d) if conversion not implemented?
 Fun(f::Fun,d::Space) = Fun(d,coefficients(f,d))
 Fun(f::Fun,::Type{T}) where {T<:Space} = Fun(f,T(domain(f)))
 
@@ -122,18 +126,7 @@ Fun(f,dl::AbstractVector{T}) where {T<:Domain} = Fun(f,UnionDomain(dl))
 Fun(f,dl::AbstractVector{T},n::Integer) where {T<:Domain} = Fun(f,UnionDomain(dl),n)
 
 ## Adaptive constructors
-
-function randomFun(f,d::IntervalDomain)
-    @assert d == Interval()
-
-    #TODO: implement other domains
-
-    Fun(d,chebyshevtransform(randomadaptivebary(f)))
-end
-
-
-
-function zerocfsFun(f, d::Space)
+function default_Fun(f, d::Space)
     #TODO: reuse function values?
     T = real(eltype(domain(d)))
 
@@ -141,7 +134,7 @@ function zerocfsFun(f, d::Space)
     f0=f(first(r))
 
     if isa(f0,AbstractArray) && size(d) ≠ size(f0)
-        return zerocfsFun(f,Space(fill(d,size(f0))))
+        return default_Fun(f,Space(fill(d,size(f0))))
     end
 
     tol =T==Any?20eps():20eps(T)
@@ -152,7 +145,7 @@ function zerocfsFun(f, d::Space)
 
     for logn = 4:20
         #cf = Fun(f, d, 2^logn + 1)
-        cf = defaultFun(f, d, 2^logn)
+        cf = default_Fun(f, d, 2^logn)
         maxabsc = maximum(abs,cf.coefficients)
         if maxabsc == 0 && maxabsfr == 0
             return(zeros(d))
@@ -174,51 +167,23 @@ function zerocfsFun(f, d::Space)
     Fun(f,d,2^21)
 end
 
-
-function abszerocfsFun(f,d::Space)
-    #reuse function values
-    T = eltype(domain(d))
-    if T <: Complex
-        T = T.parameters[1] #get underlying real representation
-    end
-
-    tol = 200eps(T)
-
-    for logn = 4:20
-        #cf = Fun(f, d, 2^logn + 1)
-        cf = Fun(f, d, 2^logn)
-
-        if maximum(abs,cf.coefficients[end-8:end]) < tol
-            return chop!(cf,10eps(T))
-        end
-    end
-
-    warn("Maximum number of coefficients "*string(2^20+1)*" reached")
-
-    Fun(f,d,2^21)
-end
-
-Fun(f::Type, d::Space; method="zerocoefficients") = error("Not impleemnted")
-Fun(f::Function, d::Space; method = "zerocoefficients") = Fun(F(f), d; method = method)
-function Fun(f::F, d::Space; method="zerocoefficients")
+Fun(f::Type, d::Space) = error("Not implemented")
+Fun(f::Function, d::Space) = Fun(F(f), d)
+function Fun(f::F, d::Space)
     T = eltype(domain(d))
 
-    if f.f==identity
+    if f.f == identity
         identity_fun(d)
-    elseif f.f==zero # zero is always defined
+    elseif f.f == zero # zero is always defined
         zeros(T,d)
-    elseif f.f==one
+    elseif f.f == one
         ones(T,d)
     elseif !hasnumargs(f.f,1)  # Splat out Vec
-        Fun(xy->f(xy...),d;method=method)
+        Fun(xy->f(xy...),d)
     elseif !isinf(dimension(d))
         Fun(f,d,dimension(d))  # use exactly dimension number of sample points
-    elseif method == "zerocoefficients"
-        zerocfsFun(f,d)
-    elseif method == "abszerocoefficients"
-        abszerocfsFun(f,d)
     else
-        randomFun(f,d)
+        default_Fun(f,d)
     end
 end
 Fun(f::Type,d::Domain;opts...) = Fun(f,Space(d);opts...)

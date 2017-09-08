@@ -1,7 +1,7 @@
 
 
-export Domain,IntervalDomain,PeriodicDomain,tocanonical,fromcanonical,fromcanonicalD,∂
-export chebyshevpoints,fourierpoints,isambiguous,arclength
+export Domain, IntervalDomain, PeriodicDomain, tocanonical, fromcanonical, fromcanonicalD, ∂
+export chebyshevpoints, fourierpoints, isambiguous, arclength
 export components, component, ncomponents
 
 
@@ -132,13 +132,14 @@ issubcomponent(a::Domain,b::Domain) = a in components(b)
 abstract type PeriodicDomain{T} <: UnivariateDomain{T} end
 
 
-canonicaldomain(::PeriodicDomain)=PeriodicInterval()
+canonicaldomain(::PeriodicDomain) = PeriodicInterval()
+
 
 points(d::PeriodicDomain{T},n::Integer) where {T} =
     fromcanonical.(d, fourierpoints(real(eltype(T)),n))
 
 fourierpoints(n::Integer) = fourierpoints(Float64,n)
-fourierpoints(::Type{T},n::Integer) where {T<:Number}= convert(T,π)*collect(0:2:2n-2)/n
+fourierpoints(::Type{T},n::Integer) where {T<:Number} = convert(T,π)*collect(0:2:2n-2)/n
 
 
 function Base.in(x,d::PeriodicDomain{T}) where T

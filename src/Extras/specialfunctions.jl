@@ -21,9 +21,9 @@ function abs(f::Fun)
 
     if isempty(pts)
         # This makes sure Laurent returns real type
-        real(Fun(x->abs(f(x)),space(f)))
+        real(Fun(abs∘f,space(f)))
     else
-        splitmap(x->abs(f(x)),d,pts)
+        splitmap(abs∘f,d,pts)
     end
 end
 
@@ -170,7 +170,7 @@ function ^(f::Fun{<:PolynomialSpace},k::Real)
     @assert length(r) <= 2
 
     if length(r) == 0
-        setdomain(Fun(x->fc(x)^k,csp),domain(f))
+        setdomain(Fun((x->x^k) ∘ fc,csp),domain(f))  # using ∘ supports fast transforms for fc
     elseif length(r) == 1
         @assert isapprox(abs(r[1]),1)
 
@@ -539,7 +539,7 @@ for op in (:(expm1),:(log1p),:(lfact),:(sinc),:(cosc),
            :(eta),:(zeta),:(gamma),:(lgamma),
            :(polygamma),:(invdigamma),:(digamma),:(trigamma))
     @eval begin
-        $op(f::Fun{S,T}) where {S,T}=Fun(x->$op(f(x)),domain(f))
+        $op(f::Fun{S,T}) where {S,T}=Fun($op ∘ f,domain(f))
     end
 end
 

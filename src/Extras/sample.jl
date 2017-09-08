@@ -210,6 +210,6 @@ function sample(f::Fun{JacobiWeight{SS,DD,RR},Float64},n::Integer) where {SS,DD<
     if space(f).α == 0
         samplecdf(normalizedcumsum(f),n)
     else
-        sample(Fun(x->f(x),JacobiWeight(1,space(f).α,domain(f))),n)
+        sample(default_Fun(f,JacobiWeight(1,space(f).α,domain(f))),n)
     end
 end
