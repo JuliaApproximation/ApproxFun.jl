@@ -8,7 +8,7 @@ include("Space.jl")
 ##  Constructors
 
 
-mutable struct Fun{S,T,VT}
+mutable struct Fun{S,T,VT} <: Function
     space::S
     coefficients::VT
     function Fun{S,T,VT}(sp::S,coeff::VT) where {S,T,VT}
