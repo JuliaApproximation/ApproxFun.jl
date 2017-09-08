@@ -69,6 +69,13 @@ println("Domain tests")
 @test ApproxFun.AnySegment() == ApproxFun.AnySegment()
 @test ApproxFun.Point(NaN) == ApproxFun.Point(NaN)
 
+
+@test ApproxFun.dimension(Domain{Float64}) == 1
+@test ApproxFun.dimension(Segment{Float64}) == 1
+@test ApproxFun.dimension(Interval()) == 1
+@test ApproxFun.dimension(Interval()^2) == 2
+@test ApproxFun.dimension(Interval()^3) == 3
+
 @time include("MatrixTest.jl")
 
 

@@ -148,7 +148,8 @@ f = sin(x^2)
 
 
 f=Fun(exp)
-@test Fun(f,Chebyshev(1..(-1)))(0.1) ≈ f(0.1)
+@test ApproxFun.default_Fun(f, Chebyshev(1 .. -1), ncoefficients(f))(0.1) ≈ exp(0.1)
+@test Fun(f,Chebyshev(1 .. -1))(0.1) ≈ f(0.1)
 
 
 
