@@ -20,9 +20,11 @@ Base.isreal(::Domain{T}) where {T} = false
 
 Base.copy(d::Domain) = d  # all domains are immutable
 
-dimension(::Domain{<:Number}) = 1
+dimension(::Type{Domain{<:Number}}) = 1
 dimension(::Type{Domain{Vec{d,T}}}) where {T,d} = d
 dimension(::Type{DT}) where {DT<:Domain} = dimension(supertype(DT))
+
+dimension(d::Domain) = dimension(typeof(d))
 
 # add indexing for all spaces, not just DirectSumSpace
 # mimicking scalar vs vector

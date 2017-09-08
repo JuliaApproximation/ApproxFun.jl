@@ -44,9 +44,9 @@ end
 
 ## Adaptive construction
 
-function ProductFun(f::DFunction,sp::AbstractProductSpace{Tuple{S,V}};tol=100eps()) where {S<:UnivariateSpace,V<:UnivariateSpace}
+function ProductFun(f::Function,sp::AbstractProductSpace{Tuple{S,V}};tol=100eps()) where {S<:UnivariateSpace,V<:UnivariateSpace}
     for n = 50:100:5000
-        X = coefficients(ProductFun(f,sp,n,n;tol=tol))
+        X = coefficients(ProductFun(dynamic(f),sp,n,n;tol=tol))
         if size(X,1)<n && size(X,2)<n
             return ProductFun(X,sp;tol=tol)
         end
@@ -57,31 +57,30 @@ end
 
 ## ProductFun values to coefficients
 
-function ProductFun(f::DFunction,S::AbstractProductSpace,M::Integer,N::Integer;tol=100eps())
+function ProductFun(f::Function,S::AbstractProductSpace,M::Integer,N::Integer;tol=100eps())
     xy = checkpoints(S)
     T = promote_type(eltype(f(first(xy)...)),rangetype(S))
     ptsx,ptsy=points(S,M,N)
     vals=T[f(ptsx[k,j],ptsy[k,j]) for k=1:size(ptsx,1), j=1:size(ptsx,2)]
     ProductFun(transform!(S,vals),S;tol=tol,chopping=true)
 end
-ProductFun(f::DFunction,S::TensorSpace) = ProductFun(LowRankFun(f,S))
+ProductFun(f::Function,S::TensorSpace) = ProductFun(LowRankFun(dynamic(f),S))
 
-ProductFun(f,dx::Space,dy::Space)=ProductFun(f,TensorSpace(dx,dy))
+ProductFun(f,dx::Space,dy::Space)=ProductFun(dynamic(f),TensorSpace(dx,dy))
 
-ProductFun(f::Function,dx::Space,dy::Space)=ProductFun(F(f),TensorSpace(dx,dy))
-ProductFun(f::Function,args...;kwds...) = ProductFun(F(f),args...;kwds...)
+ProductFun(f::Function,dx::Space,dy::Space)=ProductFun(dynamic(f),TensorSpace(dx,dy))
 
 ## Domains promoted to Spaces
 
-ProductFun(f::DFunction,D::BivariateDomain,M::Integer,N::Integer)=ProductFun(f,Space(D),M,N)
-ProductFun(f::DFunction,d::Domain)=ProductFun(f,Space(d))
-ProductFun(f::DFunction,dx::UnivariateDomain,dy::UnivariateDomain)=ProductFun(f,Space(dx),Space(dy))
-ProductFun(f::DFunction) = ProductFun(f,Interval(),Interval())
+ProductFun(f::Function,D::BivariateDomain,M::Integer,N::Integer) = ProductFun(dynamic(f),Space(D),M,N)
+ProductFun(f::Function,d::Domain) = ProductFun(dynamic(f),Space(d))
+ProductFun(f::Function,dx::UnivariateDomain,dy::UnivariateDomain) = ProductFun(dynamic(f),Space(dx),Space(dy))
+ProductFun(f::Function) = ProductFun(dynamic(f),Interval(),Interval())
 
 ## Conversion from other 2D Funs
 
-ProductFun(f::LowRankFun)=ProductFun(coefficients(f),space(f,1),space(f,2))
-ProductFun(f::Fun{S}) where {S<:AbstractProductSpace}=ProductFun(coefficientmatrix(f),space(f))
+ProductFun(f::LowRankFun) = ProductFun(coefficients(f),space(f,1),space(f,2))
+ProductFun(f::Fun{S}) where {S<:AbstractProductSpace} = ProductFun(coefficientmatrix(f),space(f))
 
 ## Conversion to other ProductSpaces with the same coefficients
 
@@ -100,12 +99,13 @@ end
 
 ## For specifying spaces by anonymous function
 
-ProductFun(f::DFunction,SF::Function,T::Space,M::Integer,N::Integer)=ProductFun(f,typeof(SF(1))[SF(k) for k=1:N],T,M)
+ProductFun(f::Function,SF::Function,T::Space,M::Integer,N::Integer) =
+    ProductFun(dynamic(f),typeof(SF(1))[SF(k) for k=1:N],T,M)
 
 ## Conversion of a constant to a ProductFun
 
-ProductFun(c::Number,sp::BivariateSpace)=ProductFun([Fun(c,columnspace(sp,1))],sp)
-ProductFun(f::Fun,sp::BivariateSpace)=ProductFun([Fun(f,columnspace(sp,1))],sp)
+ProductFun(c::Number,sp::BivariateSpace) = ProductFun([Fun(c,columnspace(sp,1))],sp)
+ProductFun(f::Fun,sp::BivariateSpace) = ProductFun([Fun(f,columnspace(sp,1))],sp)
 
 
 
