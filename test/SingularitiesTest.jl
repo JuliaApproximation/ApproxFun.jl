@@ -124,7 +124,15 @@ f=Fun(x->exp(-x^2),Line())
 
 d=PeriodicLine()
 D=Derivative(d)
-f=Fun(x->sech(x-.1),d)
+
+f = Fun(x->sech(x-0.1),d,200)
+@test f(1.) ≈ sech(1-0.1)
+
+
+f=Fun(x->sech(x-0.1),d)
+
+100.0 ∈ d
+
 
 
 @test ≈((D*f)(.2),-0.0991717226583897;atol=100000eps())

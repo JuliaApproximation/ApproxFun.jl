@@ -181,7 +181,10 @@ Base.reverse(d::PeriodicLine{true})=PeriodicLine{false}(d.center,d.L)
 Base.reverse(d::PeriodicLine{false})=PeriodicLine{true}(d.center,d.L)
 Base.reverse(d::PeriodicLine{a}) where {a}=PeriodicLine{a-1}(d.center,d.L)
 
-tocanonical(d::PeriodicLine{false},x)= 2atan((x-d.center)/d.L)
+function tocanonical(d::PeriodicLine{false},x)
+    θ = real(2atan((x-d.center)/d.L))
+    ifelse(θ < 0, θ+2π, θ)
+end
 fromcanonical(d::PeriodicLine{false},v::AbstractArray) =
     eltype(d)[fromcanonical(d,vk) for vk in v]
 fromcanonical(d::PeriodicLine{false},θ)=d.L*tan(θ/2) + d.center

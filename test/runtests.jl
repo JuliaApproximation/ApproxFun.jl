@@ -58,10 +58,19 @@ cumsum(ApproxFun.repeated(2)) == 2:2:ApproxFun.∞
 
 println("Domain tests")
 
-@test !in(0.45-0.65im,Interval())
-@test cumsum(ApproxFun.Flatten(([3],ApproxFun.repeated(2)))).it[2]==ApproxFun.Count(5,2)
+@test 0.45-0.65im ∉ Interval()
+@test cumsum(ApproxFun.Flatten(([3],ApproxFun.repeated(2)))).it[2] ==
+    ApproxFun.Count(5,2)
 @test reverse(Arc(1,2,(0.1,0.2))) == Arc(1,2,(0.2,0.1))
-@test in(0.1,PeriodicInterval(2π,0))
+@test 0.1 ∈ PeriodicInterval(2π,0)
+
+@test 10.0 ∈ PeriodicLine()
+@test -10.0 ∈ PeriodicLine()
+@test -10.0+im ∉ PeriodicLine()
+
+@test ApproxFun.Vec(0,0.5) ∈ PeriodicInterval(ApproxFun.Vec(0.0,0), ApproxFun.Vec(0,1))
+
+@test ApproxFun.Vec(1,0) ∈ Circle((0.,0.),1.)
 
 @test isambiguous(convert(ApproxFun.Point,ApproxFun.AnyDomain()))
 @test isambiguous(ApproxFun.Point(ApproxFun.AnyDomain()))
