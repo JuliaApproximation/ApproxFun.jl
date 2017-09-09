@@ -68,8 +68,10 @@ clenshaw(sp::Chebyshev,c::AbstractVector,x::AbstractArray) =
 
 function clenshaw(::Chebyshev,c::AbstractVector,x)
     N,T = length(c),promote_type(eltype(c),typeof(x))
-    if isempty(c)
+    if N == 0
         return zero(x)
+    elseif N == 1 # avoid issues with NaN x
+        return first(c)*one(x)
     end
 
     x = 2x

@@ -169,7 +169,13 @@ plan_itransform(::CosSpace,x::AbstractVector) = plan_ichebyshevtransform(x;kind=
 transform(::CosSpace,vals,plan) = plan*vals
 itransform(::CosSpace,cfs,plan) = plan*cfs
 
-evaluate(f::AbstractVector,S::CosSpace,t) = clenshaw(Chebyshev(),f,cos(tocanonical(S,t)))
+function evaluate(f::AbstractVector,S::CosSpace,t)
+    if t ∈ domain(S)
+        clenshaw(Chebyshev(),f,cos(tocanonical(S,t)))
+    else
+        zero(eltype(f))
+    end
+end
 
 
 points(sp::SinSpace,n)=points(domain(sp),2n+2)[2:n+1]

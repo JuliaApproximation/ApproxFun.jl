@@ -313,3 +313,15 @@ mySin = Fun(Fourier(),[0,1])
 A = Multiplication(mySin,Fourier())
 L = A ⊗ A
 @test L[1,1] == 0
+
+
+
+## Check off domain evaluate
+
+g = Fun(1, ApproxFun.Vec(0,-1) .. ApproxFun.Vec(π,-1))
+@test g(0.1,-1) ≈ 1
+@test g(0.1,1) ≈ 0
+
+g = Fun(1, PeriodicInterval(ApproxFun.Vec(0,-1) , ApproxFun.Vec(π,-1)))
+@test g(0.1,-1) ≈ 1
+@test g(0.1,1) ≈ 0

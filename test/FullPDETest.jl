@@ -233,6 +233,15 @@ let co=cache(RaggedMatrix,A)
 end
 
 
+v=[g;0.]
+@test v(1.,0.5) ≈ [exp(1)*cos(0.5);0]
+
+u=A\[g;0.]
+@test u(.1,.2) ≈ real(exp(0.1+0.2im))
+
+v=Fun([g,0.])
+@test v(1.,0.5) ≈ [exp(1)*cos(0.5);0]
+
 u=A\[g,0.]
 @test u(.1,.2) ≈ real(exp(0.1+0.2im))
 
@@ -432,7 +441,23 @@ A=Laplacian(d)+.1I
 
 d=PeriodicInterval()*Interval()
 g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
-@time u=[Dirichlet(d);Laplacian(d)]\Any[g;0.]
+
+@test g(0.1,1.0) ≈ real(cos(0.1+im))
+@test g(0.1,-1.0) ≈ real(cos(0.1-im))
+v=[g;0]
+@test v(0.1,-1) ≈ [real(cos(0.1-im));0]
+
+
+A=[Dirichlet(d);Laplacian(d)]
+    a = space(v)
+    b = rangespace(A)
+
+
+@test Fun(component(v[1],1), component(b[1],1))(0.1,-1.0) ≈ v(0.1,-1.0)[1]
+@test Fun(component(v[1],2), component(b[1],2))(0.1,-1.0) ≈ v(0.1,-1.0)[1]
+@test ApproxFun.default_Fun(v[1] , b[1])(0.1,1.0) ≈ v(0.1,1.0)[1]
+
+@time u=[Dirichlet(d);Laplacian(d)]\[g;0.]
 
 @test u(.1,.2) ≈ real(cos(.1+.2im))
 
