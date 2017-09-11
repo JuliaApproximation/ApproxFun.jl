@@ -32,7 +32,7 @@ function Fun(sp::Space,v::AbstractVector{Any})
 end
 
 
-hasnumargs(f::Fun,k) = domaindimension(f) == k
+hasnumargs(f::Fun,k) = k == 1 || domaindimension(f) == k  # all funs take a single argument as a Vec
 
 ##Coefficient routines
 #TODO: domainscompatible?

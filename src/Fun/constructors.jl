@@ -45,7 +45,7 @@ default_Fun(::Type{T},f,d::Space{ReComp},pts::AbstractVector,::Type{Val{true}}) 
     Fun(d,transform(d,T[f(x...) for x in pts]))
 
 default_Fun(::Type{T},f,d::Space{ReComp},pts::AbstractVector,::Type{Val{false}}) where {T,ReComp} =
-    Fun(d,transform(d,T[f(x) for x in pts]))
+    Fun(d,transform(d,broadcast!(f, similar(pts, T), pts)))
 
 
 function default_Fun(f,d::Space{ReComp},n::Integer,::Type{Val{false}}) where ReComp
