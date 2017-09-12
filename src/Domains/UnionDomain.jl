@@ -96,6 +96,11 @@ components(d::UnionDomain) = collect(d.domains)
 component(d::UnionDomain,k) = d.domains[k]
 ncomponents(d::UnionDomain) = length(d.domains)
 
+pieces(d::UnionDomain) = collect(d.domains)
+piece(d::UnionDomain,k) = d.domains[k]
+npieces(d::UnionDomain) = length(d.domains)
+
+
 arclength(d::UnionDomain) = mapreduce(arclength,+,d.domains)
 
 ==(d1::UnionDomain,d2::UnionDomain) =
@@ -109,13 +114,16 @@ Base.reverse(d::UnionDomain) = UnionDomain(reverse(map(reverse,d.domains)))
 
 ∂(d::UnionDomain) = mapreduce(∂,union,d.domains)
 
-function points(d::UnionDomain,n)
-   k=div(n,length(d))
-    r=n-length(d)*k
-
-    [vcat([points(d.domains[j],k+1) for j=1:r]...);
-        vcat([points(d.domains[j],k) for j=r+1:length(d)]...)]
+# determine the number of points per piece
+function pieces_npoints(d, n::Int)
+    N = npieces(d)
+    k = n ÷ N
+    r = n - N*k
+    [fill(k+1, r); fill(k, N-r)]
 end
+
+
+points(d::UnionDomain,n) = vcat(points.(pieces(d), pieces_npoints(d,n))...)
 
 Base.rand(d::UnionDomain) = rand(component(d,rand(1:length(d))))
 checkpoints(d::UnionDomain) = mapreduce(checkpoints,union,d.domains)

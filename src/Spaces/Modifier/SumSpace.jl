@@ -1,4 +1,4 @@
-export ⊕,components,PiecewiseSpace
+export ⊕, components, PiecewiseSpace
 
 
 
@@ -144,6 +144,15 @@ for TYP in (:SumSpace,:PiecewiseSpace)
         canonicalspace(A::$TYP) = $TYP(sort(collect(A.spaces)))
     end
 end
+
+
+pieces(sp::PiecewiseSpace) = sp.spaces
+piece(s::Space,k) = pieces(s)[k]
+pieces(f::Fun{<:PiecewiseSpace}) = components(f)
+piece(f::Fun{<:PiecewiseSpace},k) = component(f,k)
+
+npieces(s::Space) = length(pieces(s))
+npieces(f::Fun) = npieces(space(f))
 
 
 
@@ -471,15 +480,8 @@ end
 Fun(v::AbstractVector{Any},::Type{PiecewiseSpace}) = Fun(tuple(v...),PiecewiseSpace)
 
 ## transforms
+points(d::PiecewiseSpace,n) = vcat(points.(pieces(d), pieces_npoints(d,n))...)
 
-
-function points(d::PiecewiseSpace,n)
-   k=div(n,ncomponents(d))
-    r=n-ncomponents(d)*k
-
-    [vcat([points(d.spaces[j],k+1) for j=1:r]...);
-        vcat([points(d.spaces[j],k) for j=r+1:ncomponents(d)]...)]
-end
 
 plan_transform(sp::PiecewiseSpace,vals::AbstractVector) =
     TransformPlan{eltype(vals),typeof(sp),false,Void}(sp,nothing)

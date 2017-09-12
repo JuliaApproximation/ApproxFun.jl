@@ -253,3 +253,15 @@ f=Fun((x,y)->real(exp(x+im*y)),Legendre(Vec(0.,0.)..Vec(1.,1.)))
 
 C=Conversion(Legendre(),Jacobi(1,0))
 testbandedoperator(C)
+
+
+## Test bug in addition
+
+f = Fun(exp,Legendre())
+f1 = Fun(exp,Legendre(-1..0))
+f2 = Fun(exp,Legendre(0..1))
+fp = f1+f2
+@test space(fp) isa PiecewiseSpace
+@test fp(0.1) ≈ exp(0.1)
+@test fp(0.) ≈ exp(0.)
+@test fp(-0.1) ≈ exp(-0.1)

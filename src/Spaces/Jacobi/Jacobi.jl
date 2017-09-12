@@ -38,7 +38,7 @@ const WeightedJacobi{D,R} = JacobiWeight{Jacobi{D,R},D,R}
 WeightedJacobi(β,α,d::Domain) = JacobiWeight(β,α,Jacobi(β,α,d))
 WeightedJacobi(β,α) = JacobiWeight(β,α,Jacobi(β,α))
 
-spacescompatible(a::Jacobi,b::Jacobi) = a.a ≈ b.a && a.b ≈ b.b
+spacescompatible(a::Jacobi,b::Jacobi) = a.a ≈ b.a && a.b ≈ b.b && domainscompatible(a,b)
 
 function canonicalspace(S::Jacobi)
     if isapproxinteger(S.a+0.5) && isapproxinteger(S.b+0.5)

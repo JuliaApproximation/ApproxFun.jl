@@ -63,6 +63,11 @@ dimension(AS::ArraySpace) = mapreduce(dimension,+,AS.spaces)
 domain(AS::ArraySpace) = domain(AS.spaces[1])
 setdomain(A::ArraySpace,d::Domain) = ArraySpace(map(sp->setdomain(sp,d),A.spaces))
 
+
+
+# support for Array of PiecewiseSpace
+
+
 ## transforms
 
 #TODO: rework for different spaces

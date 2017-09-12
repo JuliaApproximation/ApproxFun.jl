@@ -63,6 +63,8 @@ println("Domain tests")
     ApproxFun.Count(5,2)
 @test reverse(Arc(1,2,(0.1,0.2))) == Arc(1,2,(0.2,0.1))
 @test 0.1 ∈ PeriodicInterval(2π,0)
+@test 100.0 ∈ PeriodicInterval(0,2π)
+@test -100.0 ∈ PeriodicInterval(0,2π)
 
 @test 10.0 ∈ PeriodicLine()
 @test -10.0 ∈ PeriodicLine()

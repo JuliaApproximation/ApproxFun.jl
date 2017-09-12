@@ -155,13 +155,13 @@ function Base.in(x,d::PeriodicDomain{T}) where T
 
     l=arclength(d)
     if isinf(l)
-        abs(imag(y))<20eps(T) && -2eps(T)<real(y)<2π+2eps(T)
+        abs(imag(y))<20eps(T)
     else
-        abs(imag(y))/l<20eps(T) && -2l*eps(T)<real(y)<2π+2l*eps(T)
+        abs(imag(y))/l<20eps(T)
     end
 end
 
-Base.issubset(a::Domain,b::Domain)=a==b
+Base.issubset(a::Domain,b::Domain) = a==b
 
 
 Base.first(d::PeriodicDomain) = fromcanonical(d,0)
@@ -171,7 +171,7 @@ Base.last(d::PeriodicDomain) = fromcanonical(d,2π)
 struct AnyPeriodicDomain <: PeriodicDomain{UnsetNumber} end
 isambiguous(::AnyPeriodicDomain)=true
 
-convert(::Type{D},::AnyDomain) where {D<:PeriodicDomain}=AnyPeriodicDomain()
+convert(::Type{D},::AnyDomain) where {D<:PeriodicDomain} = AnyPeriodicDomain()
 
 ## conveninece routines
 
