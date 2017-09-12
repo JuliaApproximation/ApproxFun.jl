@@ -15,7 +15,9 @@ end
 ## Constructors that involve MultivariateFun
 Fun(f::Fun) = f # Fun of Fun should be like a conversion
 
-function Fun(f::Function)
+function Fun(fin::Function)
+    f = dynamic(fin)
+
     if hasnumargs(f,1)
         # check for tuple
         try

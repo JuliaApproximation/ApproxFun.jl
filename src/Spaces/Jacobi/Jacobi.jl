@@ -94,12 +94,13 @@ function jacobip(::Type{T},r::Range,α,β,x::Number) where T
             v[2]=(α-β+(2+α+β)*x)/2
 
             @inbounds for k=2:n-1
-                v[k+1]=((x-jacobirecα(T,α,β,k))*v[k] - jacobirecγ(T,α,β,k)*v[k-1])/jacobirecβ(T,α,β,k)
+                v[k+1]=(jacobirecA(T,α,β,k-1)*x+jacobirecB(T,α,β,k-1))*v[k] - jacobirecC(T,α,β,k-1)*v[k-1]
             end
         end
         v[r+1]
     end
 end
+
 
 jacobip(r::Range,α,β,x::Number) = jacobip(promote_type(typeof(α),typeof(β),typeof(x)),r,α,β,x)
 
