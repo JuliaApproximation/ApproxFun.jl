@@ -81,7 +81,7 @@ transform(AS::ArraySpace{SS,1},vals::AbstractVector{Vector{V}}) where {SS,V} =
 function transform(AS::ArraySpace{SS,1,T},M::AbstractArray{V,2}) where {SS,T,V<:Number}
     n=length(AS)
 
-    @assert size(M,2)==n
+    @assert size(M,2) == n
     plan = plan_transform(AS.spaces[1],M[:,1])
     cfs=Vector{V}[plan*M[:,k]  for k=1:size(M,2)]
 
@@ -95,6 +95,13 @@ transform(AS::VectorSpace{SS},vals::AbstractVector{AV}) where {SS,AV<:AbstractVe
     transform(AS,map(Vector,vals))
 transform(AS::VectorSpace{SS},vals::AbstractVector{Vec{V,n}}) where {SS,n,V} =
     transform(AS,map(Vector,vals))
+
+function itransform(AS::VectorSpace,cfs::AbstractVector)
+    vf = vec(Fun(AS, cfs))
+    n = maximum(ncoefficients, vf)
+    vcat.(values.(pad!.(vf, n))...)
+end
+
 
 Base.vec(AS::ArraySpace) = ArraySpace(vec(AS.spaces))
 Base.vec(f::Fun{ArraySpace{S,n,DD,RR}}) where {S,n,DD,RR} =
