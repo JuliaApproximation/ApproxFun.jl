@@ -58,7 +58,7 @@ Base.getindex(p::Point,k...) = p.x[k...]
 Base.first(p::Point) = p.x
 Base.last(p::Point) = p.x
 
-Base.in(x,d::Point) = isapprox(x,d.x)
+indomain(x,d::Point) = isapprox(x,d.x)
 
 Base.isnan(d::Point) = false
 

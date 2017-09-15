@@ -49,6 +49,7 @@ represents the set `{x : a ≤ x ≤ b}`.
 """
 Interval
 
+convert(::Type{Domain{T}}, d::Segment) where {T<:Number} = Segment{T}(d.a,d.b)
 convert(::Type{Segment{T}}, d::Segment) where {T<:Number} = Segment{T}(d.a,d.b)
 convert(::Type{Segment},d::ClosedInterval) = Segment(d.left,d.right)
 

@@ -8,17 +8,9 @@ export components, component, ncomponents
 # T is the numeric type used to represent the domain
 # For d-dimensional domains, it is Vec{d,T}
 
-abstract type Domain{T} end
 const UnivariateDomain{T} = Domain{T} where {T<:Number}
 const BivariateDomain{T} = Domain{Vec{2,T}} where {T<:Number}
 
-
-eltype(::Domain{T}) where {T} = T
-eltype(::Type{Domain{T}}) where {T} = T
-Base.isreal(::Domain{T}) where {T<:Real} = true
-Base.isreal(::Domain{T}) where {T} = false
-
-Base.copy(d::Domain) = d  # all domains are immutable
 
 dimension(::Type{Domain{TT}}) where TT<:Number = 1
 dimension(::Type{Domain{Vec{d,T}}}) where {T,d} = d
@@ -61,7 +53,7 @@ Base.reverse(a::Union{AnyDomain,EmptyDomain}) = a
 
 canonicaldomain(a::Union{AnyDomain,EmptyDomain}) = a
 
-Base.in(x::Domain,::EmptyDomain) = false
+indomain(x::Domain,::EmptyDomain) = false
 
 ##General routines
 
@@ -109,8 +101,8 @@ bary(v::AbstractVector{Float64},d::IntervalDomain,x::Float64) = bary(v,tocanonic
 Base.first(d::IntervalDomain{T}) where {T} = fromcanonical(d,-one(T))
 Base.last(d::IntervalDomain{T}) where {T} = fromcanonical(d,one(T))
 
-Base.in(x,::AnyDomain) = true
-function Base.in(x,d::IntervalDomain)
+indomain(x,::AnyDomain) = true
+function indomain(x,d::IntervalDomain)
     T=real(prectype(d))
     y=tocanonical(d,x)
     ry=real(y)
@@ -147,7 +139,7 @@ fourierpoints(n::Integer) = fourierpoints(Float64,n)
 fourierpoints(::Type{T},n::Integer) where {T<:Number} = convert(T,π)*collect(0:2:2n-2)/n
 
 
-function Base.in(x,d::PeriodicDomain{T}) where T
+function indomain(x,d::PeriodicDomain{T}) where T
     y=tocanonical(d,x)
     if !isapprox(fromcanonical(d,y),x)
         return false

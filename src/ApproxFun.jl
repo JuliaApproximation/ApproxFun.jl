@@ -2,9 +2,11 @@ __precompile__()
 
 module ApproxFun
     using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers, BandedMatrices, IntervalSets, Compat
-    import StaticArrays, ToeplitzMatrices, Calculus
+    import StaticArrays, ToeplitzMatrices, Calculus, Domains
 
 import Base.LinAlg: BlasInt, BlasFloat, norm
+import Domains: Domain, indomain
+
 
 import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, !=, eltype, start, next, done,
                 >=, /, ^, \, ∪, transpose, size, to_indexes, reindex, tail, broadcast, broadcast!

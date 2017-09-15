@@ -50,7 +50,7 @@ end
 fromcanonicalD(c::Curve,x)=differentiate(c.curve)(x)
 
 
-function Base.in(x,c::Curve)
+function indomain(x,c::Curve)
     rts=roots(c.curve-x)
     if length(rts) ≠ 1
         false

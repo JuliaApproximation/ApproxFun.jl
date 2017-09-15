@@ -108,7 +108,7 @@ arclength(d::UnionDomain) = mapreduce(arclength,+,d.domains)
         all(Bool[component(d1,k) == component(d2,k) for k=1:ncomponents(d1)])
 
 
-Base.in(x,d::UnionDomain) = any(a->x∈a,d.domains)
+indomain(x,d::UnionDomain) = any(a->x∈a,d.domains)
 Base.issubset(a::Domain,d::UnionDomain) = (a∪d) == d
 Base.reverse(d::UnionDomain) = UnionDomain(reverse(map(reverse,d.domains)))
 

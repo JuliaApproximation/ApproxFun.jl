@@ -50,7 +50,8 @@ Line() = Line(false)
 
 
 isambiguous(d::Line)=isnan(d.center)
-convert(::Type{Line{a,T}},::AnyDomain) where {a,T<:Number}=Line{a,T}(NaN)
+convert(::Type{Domain{T}},d::Line{a}) where {a,T<:Number} = Line{a,T}(d.center, d.α, d.β)
+convert(::Type{Line{a,T}},::AnyDomain) where {a,T<:Number} = Line{a,T}(NaN)
 convert(::Type{IT},::AnyDomain) where {IT<:Line}=Line(NaN,NaN)
 
 ## Map interval
@@ -155,7 +156,7 @@ end
 
 # angle is (false==0) and π (true==1)
 # or ranges from (-1,1]
-struct PeriodicLine{angle,T} <: PeriodicDomain{Float64}
+struct PeriodicLine{angle,T} <: PeriodicDomain{T}
     center::T
     L::Float64
     PeriodicLine{angle,T}(c,L) where {angle,T} = new{angle,T}(c,L)
@@ -164,7 +165,7 @@ struct PeriodicLine{angle,T} <: PeriodicDomain{Float64}
     PeriodicLine{angle,T}() where {angle,T} = new{angle,T}(0.,1.)
 end
 
-convert(::Type{PeriodicLine{a}},c,L) where {a} = PeriodicLine{a,typeof(c)}(c,L)
+(::Type{PeriodicLine{a}})(c,L) where {a} = PeriodicLine{a,typeof(c)}(c,L)
 
 
 PeriodicLine(c,a) = PeriodicLine{a/π,eltype(c)}(c,1.)
@@ -172,6 +173,7 @@ PeriodicLine() = PeriodicLine{false,Float64}(0.,1.)
 PeriodicLine(b::Bool) = PeriodicLine{b,Float64}()
 
 isambiguous(d::PeriodicLine) = isnan(d.center) && isnan(d.angle)
+convert(::Type{Domain{T}},d::PeriodicLine{a}) where {a,T<:Number} = PeriodicLine{a,T}(d.center, d.L)
 convert(::Type{PeriodicLine{T,TT}},::AnyDomain) where {T<:Number,TT} = PeriodicLine{T,TT}(NaN,NaN)
 convert(::Type{IT},::AnyDomain) where {IT<:PeriodicLine} = PeriodicLine(NaN,NaN)
 
