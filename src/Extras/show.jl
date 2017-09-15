@@ -42,16 +42,6 @@ Base.show(io::IO,d::Circle) =
                     (d.center==0 ? "" : "+$(d.center)"))
 Base.show(io::IO,d::Point) = print(io,"Point($(d.x))")
 
-
-function Base.show(io::IO,d::UnionDomain)
-    s = components(d)
-    show(io,s[1])
-    for d in s[2:end]
-        print(io,"∪")
-        show(io,d)
-    end
-end
-
 ## Spaces
 
 Base.show(io::IO,::ConstantSpace{AnyDomain}) = print(io,"ConstantSpace")

@@ -345,6 +345,7 @@ f=Fun(TS,collect(1:13))
 @test f[4] == Fun(TS[4],[4.,9.,13.])
 @test f[5] == Fun(TS[5],[5.,6.])
 
+
 ## Operator * Matrix
 f = [Fun(exp) Fun(cos)]
 @test f(0.1) ≈ [exp(0.1) cos(0.1)]

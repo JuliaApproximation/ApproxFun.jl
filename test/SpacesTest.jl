@@ -324,3 +324,11 @@ g = Fun(x->cos(50x),Ultraspherical(1)) + δ
 S = Jacobi(0,1) ⊕ JacobiWeight(1/3,0,Jacobi(1/3,2/3)) ⊕ JacobiWeight(2/3,0,Jacobi(2/3,1/3))
 o = ones(S)
 @test o(0.5) == 1
+
+
+
+## equality
+@test ApproxFun.spacescompatible(PointSpace([1.,2.]) , PointSpace([1.,2.]))
+@test ApproxFun.Point(1) == ApproxFun.Point(1)
+d = domain(PointSpace([1.,2.]))
+@test d == d

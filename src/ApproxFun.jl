@@ -5,7 +5,7 @@ module ApproxFun
     import StaticArrays, ToeplitzMatrices, Calculus, Domains
 
 import Base.LinAlg: BlasInt, BlasFloat, norm
-import Domains: Domain, indomain
+import Domains: Domain, indomain, UnionDomain
 
 
 import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, !=, eltype, start, next, done,
