@@ -305,7 +305,7 @@ function defaultConversion(A::JacobiWeight{JS1,DD},B::JacobiWeight{JS2,DD}) wher
             # M is the default, so we should use multiplication by polynomials instead
             x=Fun(identity,d)
             y=mobius(d,x)   # we use mobius instead of tocanonical so that it works for Funs
-            m=(1+y).^βdif.*(1-y).^αdif
+            m=(1+y)^βdif*(1-y)^αdif
             MC=promoterangespace(Multiplication(m,A.space),B.space)
 
             ConversionWrapper(SpaceOperator(MC,A,B))# Wrap the operator with the correct spaces

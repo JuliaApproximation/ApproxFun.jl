@@ -94,7 +94,7 @@ end
 # TODO: need to work out how to set piecewise domain
 
 
-scaleshiftdomain(f::Fun,sc,sh)=setdomain(f,sc*domain(f)+sh)
+scaleshiftdomain(f::Fun,sc,sh) = setdomain(f,sc*domain(f)+sh)
 
 /(c::Number,f::Fun{Ultraspherical{λ,DD,RR}}) where {λ,DD,RR} = c/Fun(f,Chebyshev(domain(f)))
 /(c::Number,f::Fun{Jacobi{DD,RR}}) where {DD,RR} = c/Fun(f,Chebyshev(domain(f)))
@@ -107,9 +107,9 @@ function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:Segment,RR}
     tol = 200eps(promote_type(typeof(c),eltype(f)))*norm(f.coefficients,1)
 
     # we prune out roots at the boundary first
-    if ncoefficients(f)==1
+    if ncoefficients(f) == 1
         return Fun(c/f.coefficients[1],space(f))
-    elseif ncoefficients(f)==2
+    elseif ncoefficients(f) == 2
         if isempty(roots(f))
             return \(Multiplication(f,space(f)),c;tolerance=0.05tol)
         elseif isapprox(fc.coefficients[1],fc.coefficients[2])
@@ -122,13 +122,13 @@ function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:Segment,RR}
             # we need to split at the only root
             return c/splitatroots(f)
         end
-    elseif abs(first(fc))≤tol
+    elseif abs(first(fc)) ≤ tol
         #left root
         g=divide_singularity((1,0),fc)
         p=c/g
         x=identity_fun(domain(p))
         return scaleshiftdomain(p/(1+x),(d.b - d.a)/2,(d.a + d.b)/2 )
-    elseif abs(last(fc))≤tol
+    elseif abs(last(fc)) ≤ tol
         #right root
         g=divide_singularity((0,1),fc)
         p=c/g
