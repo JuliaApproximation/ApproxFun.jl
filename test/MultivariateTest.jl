@@ -186,7 +186,7 @@ end
 
 # test conversion between
 dx=dy=Interval()
-d=dx*dy
+d=dx × dy
 
 x,y=Fun(∂(d))
 x,y=components(x),components(y)
@@ -225,7 +225,7 @@ testbandedblockbandedoperator(L)
 
 ## Bug in Multiplication
 
-dom = Interval(0.001, 1) * PeriodicInterval(-pi, pi)
+dom = Interval(0.001, 1) × PeriodicInterval(-pi, pi)
 
 
 

@@ -512,8 +512,9 @@ struct ConstantSpace{DD,R} <: Space{DD,R}
 end
 
 ConstantSpace(d::Domain) = ConstantSpace{typeof(d),real(prectype(d))}(d)
-ConstantSpace() = ConstantSpace(AnyDomain())
-ConstantSpace(::Type{N}) where {N<:Number} = ConstantSpace{AnyDomain,real(N)}(AnyDomain())
+ConstantSpace(::Type{N},d::Domain) where {N<:Number} = ConstantSpace{typeof(d),real(N)}(d)
+ConstantSpace(::Type{N}) where {N<:Number} = ConstantSpace(N,AnyDomain())
+ConstantSpace() = ConstantSpace(Float64)
 
 convert(::Type{Space},z::Number) = ConstantSpace(Domain(z))  # Spaces
 

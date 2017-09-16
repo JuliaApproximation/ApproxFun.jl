@@ -55,6 +55,8 @@ canonicaldomain(a::Union{AnyDomain,EmptyDomain}) = a
 
 indomain(x::Domain,::EmptyDomain) = false
 
+convert(::Type{Domain{T}}, ::AnyDomain) where T = Domain(T)
+
 ##General routines
 
 

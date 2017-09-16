@@ -299,7 +299,7 @@ tensor_eval_type(_,::Type{Vector{Any}}) = Vector{Any}
 
 
 TensorSpace(sp::Tuple) =
-    TensorSpace{typeof(sp),typeof(mapreduce(domain,*,sp)),
+    TensorSpace{typeof(sp),typeof(mapreduce(domain,×,sp)),
                 mapreduce(rangetype,(a,b)->tensor_eval_type(a,b),sp)}(sp)
 
 
@@ -321,7 +321,7 @@ TensorSpace(A::ProductDomain) = TensorSpace(tuple(map(Space,A.domains)...))
 ⊗(A::Space,B::TensorSpace) = TensorSpace(A,B.spaces...)
 ⊗(A::Space,B::Space) = TensorSpace(A,B)
 
-domain(f::TensorSpace) = mapreduce(domain,*,f.spaces)
+domain(f::TensorSpace) = mapreduce(domain,×,f.spaces)
 Space(sp::ProductDomain) = TensorSpace(sp)
 
 *(A::Space,B::Space) = A⊗B
@@ -359,12 +359,12 @@ struct ProductSpace{S<:Space,V<:Space,D,R} <: AbstractProductSpace{Tuple{S,V},D,
 end
 
 ProductSpace(spacesx::Vector,spacey) =
-    ProductSpace{eltype(spacesx),typeof(spacey),typeof(mapreduce(domain,*,sp)),
+    ProductSpace{eltype(spacesx),typeof(spacey),typeof(mapreduce(domain,×,sp)),
                 mapreduce(s->eltype(domain(s)),promote_type,sp)}(spacesx,spacey)
 
 # TODO: This is a weird definition
 ⊗(A::Vector{S},B::Space) where {S<:Space} = ProductSpace(A,B)
-domain(f::ProductSpace) = domain(f.spacesx[1])*domain(f.spacesy)
+domain(f::ProductSpace) = domain(f.spacesx[1])×domain(f.spacesy)
 
 
 nfactors(d::AbstractProductSpace) = length(d.spaces)

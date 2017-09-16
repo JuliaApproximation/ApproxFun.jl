@@ -5,7 +5,7 @@ module ApproxFun
     import StaticArrays, ToeplitzMatrices, Calculus, Domains
 
 import Base.LinAlg: BlasInt, BlasFloat, norm
-import Domains: Domain, indomain, UnionDomain
+import Domains: Domain, indomain, UnionDomain, ProductDomain, FullSpace
 
 
 import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, !=, eltype, start, next, done,
@@ -36,7 +36,7 @@ import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, bandshift,
 
 import Base: view
 
-import StaticArrays: SVector
+import StaticArrays: StaticArray, SVector
 
 const Vec{d,T} = SVector{d,T}
 

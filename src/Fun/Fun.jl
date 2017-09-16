@@ -529,8 +529,12 @@ end
 Base.Broadcast._containertype(::Type{<:Fun}) = Fun
 
 Base.Broadcast.promote_containertype(::Type{Fun}, ::Type{Fun}) = Fun
-Base.Broadcast.promote_containertype(::Type{Array}, ::Type{Fun}) = Array
-Base.Broadcast.promote_containertype(::Type{Fun}, ::Type{Array}) = Array
+for ATyp in (:Array, :StaticArray)
+    @eval begin
+        Base.Broadcast.promote_containertype(::Type{$ATyp}, ::Type{Fun}) = $ATyp
+        Base.Broadcast.promote_containertype(::Type{Fun}, ::Type{$ATyp}) = $ATyp
+    end
+end
 Base.Broadcast.promote_containertype(::Type{Fun}, ct) = Fun
 Base.Broadcast.promote_containertype(ct, ::Type{Fun}) = Fun
 

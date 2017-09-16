@@ -49,7 +49,11 @@ u=[B;
 
 s=Fun(sin,-2..2)|>abs
 c=Fun(cos,-2..2)|>abs
+@test s(-1.5) ≈ abs(sin(-1.5))
+@test c(-1.5) ≈ abs(cos(-1.5))
 sc=Fun(x->abs(sin(x))+abs(cos(x)),Domain(-2..2) \ [-π/2,0,π/2])
+@test sc(-1.5) ≈ abs(sin(-1.5)) + abs(cos(-1.5))
+@test (c+s)(-1.5) ≈ abs(sin(-1.5)) + abs(cos(-1.5))
 @test norm(sc-(c+s))<100eps()
 
 # max/min creates breakpoints
@@ -59,7 +63,10 @@ g=4*(x-0.2)
 f=max(-1,g)
 f2=min(f,1)
 
-f3=Fun(x->x<-0.05?-1.0:(x<0.45?4*(x-.2):1),Domain(-1..1) \ [-0.05,0.45])
+f3=Fun(x -> x<-0.05 ? -1.0 :
+           (x<0.45 ? 4*(x-.2) : 1.0),
+       Domain(-1..1) \ [-0.05,0.45])
+
 @test norm(f2.(linspace(-1,1,10))-f3.(linspace(-1,1,10))) < 2eps()
 
 x=Fun(identity, Segment(im,0) ∪ Segment(0,1))
