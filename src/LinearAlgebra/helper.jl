@@ -576,6 +576,16 @@ for OP in (:>,:>=)
 end
 
 
+abstract type Iterator end
+
+
+function Base.findfirst(testf::Function, A::Iterator)
+    for (k,v) in enumerate(A)
+        testf(v) && return k
+    end
+    return 0
+end
+
 # Take -- iterate through the first n elements
 
 struct Take{I,T} <: AbstractVector{T}
@@ -655,7 +665,7 @@ pad(it::Take,n::Integer) = pad!(collect(it),n)
 # Re-implementation of Base iterators
 # to use ∞ and allow getindex
 
-abstract type AbstractRepeated{T} end
+abstract type AbstractRepeated{T} <: Iterator end
 
 Base.eltype(::Type{AbstractRepeated{T}}) where {T} = T
 Base.eltype(::Type{R}) where {R<:AbstractRepeated} = eltype(super(R))
@@ -716,7 +726,7 @@ repeated(x,::Infinity{Bool}) = repeated(x)
 repeated(x,m::Integer) = take(repeated(x),m)
 
 
-abstract type AbstractCount{S<:Number} end
+abstract type AbstractCount{S<:Number} <: Iterator end
 
 struct UnitCount{S<:Number} <: AbstractCount{S}
     start::S
@@ -806,7 +816,7 @@ Base.intersect(a::Range, b::Count) = intersect(a, first(b):step(b):last(a))
 
 
 
-struct CumSumIterator{CC}
+struct CumSumIterator{CC} <: Iterator
     iterator::CC
 end
 
@@ -840,7 +850,7 @@ columnrange(A,row::Integer) = max(1,row+bandinds(A,1)):row+bandinds(A,2)
 
 
 ## Store iterator
-mutable struct CachedIterator{T,IT,ST}
+mutable struct CachedIterator{T,IT,ST} <: Iterator
     iterator::IT
     storage::Vector{T}
     state::ST
@@ -1174,7 +1184,8 @@ end
 Base.cumsum(r::Repeated) = r.x:r.x:(r.x>0?∞:-∞)
 Base.cumsum(r::Repeated{Bool}) = 1:∞
 Base.cumsum(r::ZeroRepeated) = r
-Base.cumsum(r::AbstractCount) = CumSumIterator(r)
+Base.cumsum(r::Iterator) = CumSumIterator(r)
+
 
 
 
