@@ -78,7 +78,6 @@ println("Domain tests")
 @test isambiguous(ApproxFun.Point(ApproxFun.AnyDomain()))
 
 @test ApproxFun.AnySegment() == ApproxFun.AnySegment()
-@test ApproxFun.Point(NaN) == ApproxFun.Point(NaN)
 
 
 @test ApproxFun.dimension(Domain{Float64}) == 1

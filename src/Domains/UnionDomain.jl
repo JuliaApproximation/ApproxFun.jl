@@ -9,13 +9,13 @@ convert(::Type{UnionDomain{DD,T}},::AnyDomain) where {DD,T} =
 convert(::Type{IT},::AnyDomain) where {IT<:UnionDomain} = UnionDomain(tuple())
 
 #support tuple set
-components(d::UnionDomain) = collect(d.domains)
-component(d::UnionDomain,k) = d.domains[k]
-ncomponents(d::UnionDomain) = length(d.domains)
+components(d::UnionDomain) = elements(d)
+component(d::UnionDomain,k) = components(d)[k]
+ncomponents(d::UnionDomain) = length(elements(d))
 
-pieces(d::UnionDomain) = collect(d.domains)
-piece(d::UnionDomain,k) = d.domains[k]
-npieces(d::UnionDomain) = length(d.domains)
+pieces(d::UnionDomain) = elements(d)
+piece(d::UnionDomain,k) = pieces(d)[k]
+npieces(d::UnionDomain) = length(elements(d))
 
 
 arclength(d::UnionDomain) = mapreduce(arclength,+,d.domains)
@@ -40,14 +40,6 @@ checkpoints(d::UnionDomain) = mapreduce(checkpoints,union,d.domains)
 
 
 ## to move over
-
-Base.setdiff(a::UnionDomain,b::UnionDomain) = mapreduce(d->setdiff(d,b),∪,a.domains)
-Base.setdiff(a::UnionDomain,b::Domain) = mapreduce(d->setdiff(d,b),∪,a.domains)
-Base.setdiff(a::Domain,b::UnionDomain) = mapreduce(d->setdiff(a,d),∩,b.domains)
-Base.setdiff(a::UnionDomain,b) = mapreduce(d->setdiff(d,b),∪,a.domains)
-Base.setdiff(a,b::UnionDomain) = mapreduce(d->setdiff(a,d),∩,b.domains)
-
-
 function Base.merge(d1::UnionDomain,m::Segment)
     ret=d1.domains
 

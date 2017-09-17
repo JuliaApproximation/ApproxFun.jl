@@ -36,7 +36,7 @@ u=[B;
 u2=[Dirichlet();Derivative(Chebyshev())^2]\[[1.,0],0]
 @test u(0.) ≈ u2(0.)
 
-x=Fun(identity,Domain(-10..15) \ [0,1])
+x=Fun(identity,Domain(-10..15) \ Set([0,1]))
 sp=space(x)
 D=Derivative(sp)
 B=Dirichlet(sp)
@@ -51,7 +51,7 @@ s=Fun(sin,-2..2)|>abs
 c=Fun(cos,-2..2)|>abs
 @test s(-1.5) ≈ abs(sin(-1.5))
 @test c(-1.5) ≈ abs(cos(-1.5))
-sc=Fun(x->abs(sin(x))+abs(cos(x)),Domain(-2..2) \ [-π/2,0,π/2])
+sc=Fun(x->abs(sin(x))+abs(cos(x)),Domain(-2..2) \ Set([-π/2,0,π/2]))
 @test sc(-1.5) ≈ abs(sin(-1.5)) + abs(cos(-1.5))
 @test (c+s)(-1.5) ≈ abs(sin(-1.5)) + abs(cos(-1.5))
 @test norm(sc-(c+s))<100eps()
@@ -65,7 +65,7 @@ f2=min(f,1)
 
 f3=Fun(x -> x<-0.05 ? -1.0 :
            (x<0.45 ? 4*(x-.2) : 1.0),
-       Domain(-1..1) \ [-0.05,0.45])
+       Domain(-1..1) \ Set([-0.05,0.45]))
 
 @test norm(f2.(linspace(-1,1,10))-f3.(linspace(-1,1,10))) < 2eps()
 
@@ -222,6 +222,10 @@ z=Fun(identity,Arc(0.,.1,0.,π/2))
 ## Extending function
 
 Γ=Segment(-im,1.0-im) ∪ Curve(Fun(x->exp(0.8im)*(x+x^2-1+im*(x-4x^3+x^4)/6))) ∪ Circle(2.0,0.2)
+
+@which component(Γ,1)\component(Γ,1)
+
+
 
 @test isempty(component(Γ,1)\component(Γ,1))
 @test Γ\component(Γ,1) == component(Γ,2) ∪ component(Γ,3)

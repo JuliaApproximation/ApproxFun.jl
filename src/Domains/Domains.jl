@@ -96,11 +96,8 @@ Base.union(a::Domain,b::ClosedInterval) = union(a,Domain(b))
 
 
 ## set minus
-\(d::Domain,x::Number) = d \ Point(x)
-
-
-function Base.setdiff(d::AffineDomain,ptsin::Vector)
-    pts=copy(ptsin)
+function Base.setdiff(d::AffineDomain,ptsin::UnionDomain{AS}) where {AS <: AbstractVector{P}} where {P <: Point}
+    pts=Number.(elements(ptsin))
     isempty(pts) && return d
     tol=sqrt(eps(arclength(d)))
     da=first(d)
@@ -125,7 +122,11 @@ function Base.setdiff(d::AffineDomain,ptsin::Vector)
     UnionDomain(ret)
 end
 
-
+function Base.setdiff(d::IntervalDomain,p::Point)
+    x = Number(p)
+    (x ∉ d || x ≈ first(d) || x ≈ last(d)) && return d
+    DifferenceDomain(d,p)
+end
 
 
 

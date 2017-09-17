@@ -130,6 +130,8 @@ function PiecewiseSpace(spin::Tuple)
                    mapreduce(rangetype,promote_type,sp)}(sp)
 end
 
+PiecewiseSpace(spin::Set) = PiecewiseSpace(collect(spin))
+
 
 
 for TYP in (:SumSpace,:PiecewiseSpace)

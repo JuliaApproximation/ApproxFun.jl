@@ -1,5 +1,5 @@
 ## abs
-splitmap(g,d::Domain,pts) = Fun(g,d \ pts)
+splitmap(g,d::Domain,pts) = Fun(g,d \ Set(pts))
 
 
 function splitatroots(f::Fun)
@@ -41,7 +41,7 @@ for OP in (:sign,:angle)
         if isempty(pts)
             $OP(first(f))*one(f)
         else
-            d = d \ pts
+            d = d \ Set(pts)
             midpts = midpoints(d)
             Fun(d, $OP.(f.(midpts)))
         end
