@@ -35,7 +35,7 @@ QR=qrfact(Δ)
 
 ## Rectangle PDE
 dx=dy=Interval()
-d=dx*dy
+d=dx×dy
 g=Fun((x,y)->exp(x)*cos(y),∂(d))
 
 B=Dirichlet(d)
@@ -66,7 +66,7 @@ A=[Dirichlet(d);Laplacian(d)]
 
 println("    Bilaplacian tests")
 dx=dy=Interval()
-d=dx*dy
+d=dx×dy
 Dx=Derivative(dx);Dy=Derivative(dy)
 L=Dx^4⊗I + 2*Dx^2⊗Dy^2 + I⊗Dy^4
 
@@ -93,7 +93,7 @@ testraggedbelowoperator(A)
 ## Test periodic x interval
 
 println("    Periodic x Interval tests")
-d=PeriodicInterval()*Interval()
+d=PeriodicInterval()×Interval()
 
 u_ex=Fun((x,y)->real(cos(x+im*y)),d)
 @test u_ex(1.0,0.1) ≈ real(cos(1.0+im*0.1)) atol=10eps()
@@ -127,7 +127,7 @@ testbandedblockbandedoperator(C)
 testbandedblockbandedoperator(Operator{Complex128}(C))
 
 
-d=dx*dt
+d=dx×dt
 
 x,y=Fun(d)
 V=x^2

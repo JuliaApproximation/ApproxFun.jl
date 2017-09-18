@@ -8,7 +8,7 @@ DualNumbers.dualpart(f::Fun{S,T}) where {S,T<:Dual} = Fun(space(f),dualpart(coef
 
 DualNumbers.realpart(d::Segment{DD}) where {DD<:Dual} = Segment(realpart(d.a),realpart(d.b))
 indomain(x::Number,d::Segment{DD}) where {DD<:Dual} = in(x,realpart(d))
-indomain(x::Dual,d::Segment{DD}) where {DD<:Dual} = in(realpart(x),d)
+indomain(x::Dual,d::Segment{DD}) where {DD<:Dual} = in(realpart(x),realpart(d))
 
 
 # for QR Factorization.  These have been submitted to DualNumbers

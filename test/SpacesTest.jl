@@ -1,5 +1,7 @@
 using ApproxFun, Base.Test
-    import ApproxFun: ChebyshevDirichlet,Ultraspherical,PiecewiseSegment, ContinuousSpace, space,testspace,testbandedoperator,testcalculus,testtransforms
+    import ApproxFun: ChebyshevDirichlet,Ultraspherical,PiecewiseSegment,
+            ContinuousSpace, space,testspace,testbandedoperator,testcalculus,testtransforms,
+            PointSpace
 
 testtransforms(ChebyshevDirichlet{1,1}())
 

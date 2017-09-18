@@ -3,7 +3,7 @@ using ApproxFun, Base.Test, DualNumbers
 
 ## Dual Numbers
 
-
+@test dual(1.5,1) ∈  Segment(dual(1.0,1),dual(2.0))
 f=Fun(exp,Segment(dual(1.0,1),dual(2.0)),20)
 @test Fun(h->Fun(exp,Segment(1.0+h,2.0)).coefficients[1],0..1)'(0.) ≈ DualNumbers.epsilon(f.coefficients[1])
 

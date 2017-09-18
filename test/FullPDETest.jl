@@ -21,7 +21,7 @@ f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),rangespace(Δ))  #default is [-1,1]^2
 # Screened Poisson
 
 dx=dy=Interval()
-d=dx*dy
+d=dx×dy
 g=Fun((x,y)->exp(x)*cos(y),∂(d))
 
 
@@ -48,7 +48,7 @@ d=Interval()^2
 
 
 dx=Interval();dt=Interval(0,2.)
-d=dx*dt
+d=dx×dt
 Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 x,y=Fun(identity,d)
 @time u=\([I⊗ldirichlet(dt);Dt+x*Dx],[Fun(x->exp(-20x^2),dx);0.];tolerance=1E-12)
@@ -61,7 +61,7 @@ x,y=Fun(identity,d)
 println("    Bilaplacian Tests")
 
 dx=dy=Interval()
-d=dx*dy
+d=dx×dy
 Dx=Derivative(dx);Dy=Derivative(dy)
 L=Dx^4⊗I+2*Dx^2⊗Dy^2+I⊗Dy^4
 
@@ -100,7 +100,7 @@ F=[Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A)[1]);
 @test u(0.1,0.2)  ≈ exp(0.1)*cos(0.2)
 
 dx=dy=Interval()
-d=dx*dy
+d=dx×dy
 Dx=Derivative(dx);Dy=Derivative(dy)
 L=Dx^4⊗I+2*Dx^2⊗Dy^2+I⊗Dy^4
 
@@ -222,7 +222,7 @@ M=ApproxFun.BandedBlockBandedMatrix(view(Δ,1:112,1:112))
 
 ## Rectangle PDE
 dx=dy=Interval()
-d=dx*dy
+d=dx×dy
 g=Fun((x,y)->exp(x)*cos(y),∂(d))
 
 A=[Dirichlet(d);Laplacian(d)]
@@ -376,7 +376,7 @@ println("    Periodic x Interval tests")
 
 
 dθ=PeriodicInterval(-π,π);dt=Interval(0,1.)
-d=dθ*dt
+d=dθ×dt
 ε=0.1
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 u0=Fun(θ->exp(-20θ^2),dθ,20)
@@ -390,7 +390,7 @@ testbandedblockbandedoperator(A)
 
 # Transport equation
 dθ=PeriodicInterval(-2.,2.);dt=Interval(0,1.)
-d=dθ*dt
+d=dθ×dt
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 u0=Fun(θ->exp(-20θ^2),dθ)
 
@@ -408,9 +408,9 @@ testbandedblockbandedoperator(A)
 println("    Time evolution tests")
 
 dx=Interval();dt=Interval(0,0.2)
-d=dx*dt
+d=dx×dt
 Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
-x,t=Fun(dx*dt)
+x,t=Fun(dx×dt)
 
 
 B=0.0
@@ -439,7 +439,7 @@ A=Laplacian(d)+.1I
 @test u(.1,.2) ≈ u(.2,.1)
 
 
-d=PeriodicInterval()*Interval()
+d=PeriodicInterval()×Interval()
 g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
 
 @test g(0.1,1.0) ≈ real(cos(0.1+im))
@@ -475,7 +475,7 @@ ApproxFun.resizedata!(CO,:,4)
 
 
 dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
-d=dt*dθ
+d=dt×dθ
 Dt=Derivative(d,[1,0]);Dθ=Derivative(d,[0,1])
 A=[ldirichlet(dt)⊗I;Dt+Dθ]
 testbandedblockbandedoperator(A.ops[2])
@@ -492,7 +492,7 @@ u0=Fun(θ->exp(-20θ^2),dθ,20)
 
 
 dθ=PeriodicInterval(0.0,1.0);dt=Interval(0,0.01)
-d=dθ*dt
+d=dθ×dt
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1]);
 
 B=[I⊗ldirichlet(dt);I⊗lneumann(dt)]
@@ -533,7 +533,7 @@ ApproxFun.resizedata!(CO,:,4)
 
 
 dx=Interval();dt=Interval(0,2.)
-d=dx*dt
+d=dx×dt
 Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 x,y=Fun(identity,d)
 @time u=\([I⊗ldirichlet(dt);Dt+x*Dx],[Fun(x->exp(-20x^2),dx);0.];tolerance=1E-12)
@@ -542,7 +542,7 @@ x,y=Fun(identity,d)
 
 
 dθ=PeriodicInterval();dt=Interval(0,1.)
-d=dθ*dt
+d=dθ×dt
 ε=0.1
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 u0=Fun(θ->exp(-20θ^2),dθ,20)
