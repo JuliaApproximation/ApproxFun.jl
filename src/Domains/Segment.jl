@@ -64,6 +64,10 @@ convert(::Type{Segment},::AnyDomain) = AnySegment()
 
 Base.first(d::Segment) = d.a
 Base.last(d::Segment) = d.b
+
+Base.minimum(d::Segment) = min(d.a,d.b)
+Base.maximum(d::Segment) = max(d.a,d.b)
+
 Base.isempty(d::Segment) = isapprox(d.a,d.b;atol=200eps(eltype(d)))
 
 Base.issubset(a::Segment,b::Segment) = first(a)∈b && last(a)∈b

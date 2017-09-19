@@ -114,7 +114,7 @@ x = ApproxFun.sample(f,10)
 
 println("    PDE tests")
 ## PDEs
-using ApproxFun
+
 d = Interval()^2                            # Defines a rectangle
 
 # @time u = \([Dirichlet(d);Laplacian(d)+100I],

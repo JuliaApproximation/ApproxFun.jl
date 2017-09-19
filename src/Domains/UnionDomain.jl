@@ -22,6 +22,9 @@ arclength(d::UnionDomain) = mapreduce(arclength,+,d.domains)
 
 Base.reverse(d::UnionDomain) = UnionDomain(reverse(map(reverse,d.domains)))
 
+Base.first(d::UnionDomain) = first(first(elements(d)))
+Base.last(d::UnionDomain) = last(last(elements(d)))
+
 # determine the number of points per piece
 function pieces_npoints(d, n::Int)
     N = npieces(d)

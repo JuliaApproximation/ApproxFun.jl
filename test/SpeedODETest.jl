@@ -79,7 +79,7 @@ println("Complex exp: Time should be 0.03")
 
 
 ## Piecewise
-x=Fun(identity,Domain(-20..15) \ [-10.,-5.,0.,1.])
+x=Fun(identity,Domain(-20..15) \ Set([-10.,-5.,0.,1.]))
 sp=space(x)
 D=Derivative(sp)
 B=[Dirichlet(sp);continuity(sp,0:1)]

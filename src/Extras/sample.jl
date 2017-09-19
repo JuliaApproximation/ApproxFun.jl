@@ -10,11 +10,11 @@ bisectioninv(f::Fun{S,T},x::Real;opts...) where {S,T} = first(bisectioninv(f,[x]
 
 function bisectioninv(f::Fun{S,T},x::Float64;numits::Int=47) where {S,T}
     d=domain(f)
-    a = first(d);b = last(d)
+    a = minimum(d);b = maximum(d)
 
 
     for k=1:numits  #TODO: decide 47
-        m=.5*(a+b)
+        m=0.5*(a+b)
         val = f(m)
 
             (val<= x) ? (a = m) : (b = m)
