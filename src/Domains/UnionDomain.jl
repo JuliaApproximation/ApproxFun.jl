@@ -115,13 +115,15 @@ Base.reverse(d::UnionDomain) = UnionDomain(reverse(map(reverse,d.domains)))
 ∂(d::UnionDomain) = mapreduce(∂,union,d.domains)
 
 # determine the number of points per piece
-function pieces_npoints(d, n::Int)
-    N = npieces(d)
+function components_npoints(d, n::Int)
+    N = ncomponents(d)
     k = n ÷ N
     r = n - N*k
     [fill(k+1, r); fill(k, N-r)]
 end
 
+
+pieces_npoints(d, n::Int) = components_npoints(d, n)
 
 points(d::UnionDomain,n) = vcat(points.(pieces(d), pieces_npoints(d,n))...)
 
