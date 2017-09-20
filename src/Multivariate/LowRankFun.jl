@@ -198,7 +198,7 @@ LowRankFun(f::Function,dx::Domain,dy::Domain;kwds...) =
 LowRankFun(f::Function,d::ProductDomain;kwds...) =
     LowRankFun(dynamic(f),d.domains...;kwds...)
 
-LowRankFun(f::Function;kwds...) = LowRankFun(dynamic(f),Interval(),Interval();kwds...)
+LowRankFun(f::Function;kwds...) = LowRankFun(dynamic(f),ChebyshevInterval(),ChebyshevInterval();kwds...)
 
 ## Construction from values
 
@@ -210,7 +210,7 @@ LowRankFun(c::Number,etc...) = LowRankFun((x,y)->c,etc...)
 LowRankFun(f::LowRankFun,d1::IntervalDomain,d2::IntervalDomain) =
     LowRankFun(map(g->Fun(d1,g.coefficients),f.A),
                map(g->Fun(d2,g.coefficients),f.B))
-LowRankFun(f::LowRankFun) = LowRankFun(f,Interval(),Interval())
+LowRankFun(f::LowRankFun) = LowRankFun(f,ChebyshevInterval(),ChebyshevInterval())
 
 
 

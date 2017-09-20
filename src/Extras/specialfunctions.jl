@@ -100,7 +100,7 @@ scaleshiftdomain(f::Fun,sc,sh) = setdomain(f,sc*domain(f)+sh)
 /(c::Number,f::Fun{Jacobi{DD,RR}}) where {DD,RR} = c/Fun(f,Chebyshev(domain(f)))
 
 /(c::Number,f::Fun{C}) where {C<:Chebyshev}=setdomain(c/setcanonicaldomain(f),domain(f))
-function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:Segment,RR}
+function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:IntervalOrSegment,RR}
     fc = setcanonicaldomain(f)
     d=domain(f)
     # if domain f is small then the pts get projected in

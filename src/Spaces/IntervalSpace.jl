@@ -25,6 +25,6 @@ for Func in (:DefiniteIntegral,:DefiniteLineIntegral)
             @assert round(Int,α+.5) >= 0
             $Func(JacobiWeight(α,β,Ultraspherical(round(Int,α+.5),d)))
         end
-        $Func(α::Number,β::Number) = $Func(α,β,Interval())
+        $Func(α::Number,β::Number) = $Func(α,β,ChebyshevInterval())
     end
 end

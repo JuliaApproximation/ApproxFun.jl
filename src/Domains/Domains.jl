@@ -15,22 +15,11 @@ include("Point.jl")
 const AffineDomain = Union{Segment,PeriodicInterval,Ray,Line}
 
 
-points(d::ClosedInterval,n) = points(Domain(d),n)
+points(d::IntervalSets.ClosedInterval,n) = points(Domain(d),n)
 
-# These are needed for spaces to auto-convert [a,b] to Segment
-function convert(::Type{Domain},d::ClosedInterval)
-    a,b=d.left,d.right
-    if isinf(norm(a)) && isinf(norm(b))
-        Line(d)
-    elseif isinf(norm(a)) || isinf(norm(b))
-        Ray(d)
-    else
-        Segment(d)
-    end
-end
 
 # These are needed for spaces to auto-convert [a,b] to Interval
-function convert(::Type{PeriodicDomain},d::ClosedInterval)
+function convert(::Type{PeriodicDomain},d::IntervalSets.ClosedInterval)
     a,b=d.left,d.right
     if isinf(norm(a)) && isinf(norm(b))
         PeriodicLine(d)
@@ -41,7 +30,7 @@ function convert(::Type{PeriodicDomain},d::ClosedInterval)
     end
 end
 
-convert(::Type{Space},d::ClosedInterval) = Space(Domain(d))
+convert(::Type{Space},d::IntervalSets.ClosedInterval) = Space(Domain(d))
 
 
 #issubset between domains
@@ -87,12 +76,12 @@ Base.isless(d2::Ray{true,T2},d1::Segment{T1}) where {T1<:Real,T2<:Real} = d2.cen
 
 
 # ^
-*(a::ClosedInterval,b::Domain) = Domain(a)*b
-*(a::Domain,b::ClosedInterval) = a*Domain(b)
+*(a::IntervalSets.ClosedInterval,b::Domain) = Domain(a)*b
+*(a::Domain,b::IntervalSets.ClosedInterval) = a*Domain(b)
 
 #union
-Base.union(a::ClosedInterval,b::Domain) = union(Domain(a),b)
-Base.union(a::Domain,b::ClosedInterval) = union(a,Domain(b))
+Base.union(a::IntervalSets.ClosedInterval,b::Domain) = union(Domain(a),b)
+Base.union(a::Domain,b::IntervalSets.ClosedInterval) = union(a,Domain(b))
 
 
 ## set minus
@@ -122,7 +111,7 @@ function Base.setdiff(d::AffineDomain,ptsin::UnionDomain{AS}) where {AS <: Abstr
     UnionDomain(ret)
 end
 
-function Base.setdiff(d::IntervalDomain,p::Point)
+function Base.setdiff(d::SegmentDomain,p::Point)
     x = Number(p)
     (x ∉ d || x ≈ first(d) || x ≈ last(d)) && return d
     DifferenceDomain(d,p)

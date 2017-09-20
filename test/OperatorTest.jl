@@ -73,7 +73,7 @@ X=Multiplication(x,space(x))
 
 testbandedoperator(X)
 
-d=Interval()
+d=ChebyshevInterval()
 
 
 A=Conversion(Chebyshev(d),Ultraspherical(2,d))
@@ -156,7 +156,7 @@ u=L\f
 
 ## Check mixed
 
-d=Interval()
+d=ChebyshevInterval()
 D=Derivative(d)
 x=Fun(identity,d)
 A=D*(x*D)

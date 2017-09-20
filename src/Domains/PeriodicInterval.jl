@@ -20,7 +20,7 @@ PeriodicInterval(a::Int,b::Int) = PeriodicInterval(Float64(a),Float64(b)) #conve
 PeriodicInterval(a,b) = PeriodicInterval{promote_type(typeof(a),typeof(b))}(a,b)
 PeriodicInterval(a::Tuple,b::Tuple) = Interval(Vec(a...),Vec(b...))
 
-function convert(::Type{PeriodicInterval},d::ClosedInterval)
+function convert(::Type{PeriodicInterval},d::IntervalSets.ClosedInterval)
 	a,b = d.left,d.right
     @assert isfinite(a) && isfinite(b)
     PeriodicInterval(a,b)

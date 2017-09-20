@@ -176,13 +176,13 @@ Fun(f::Fun, d::Domain) = Fun(f,Space((d ∪ domain(f)) ∩ d))
 
 
 Fun(T::Type,n::Integer) = Fun(T(),n)
-Fun(f,n::Integer) = Fun(f,Interval(),n)
-Fun(f,d::ClosedInterval,n::Integer) = Fun(f,Domain(d),n)
-Fun(d::ClosedInterval,cfs::AbstractVector{M}) where {M<:Number} = Fun(Domain(d),1.0*cfs)
-Fun(f::Function,d::ClosedInterval) = Fun(dynamic(f),Domain(d))
-Fun(f,d::ClosedInterval) = Fun(f,Domain(d))
-Fun(f::Number,d::ClosedInterval) = Fun(f,Domain(d))
-Fun(d::ClosedInterval) = Fun(Domain(d))
+Fun(f,n::Integer) = Fun(f,ChebyshevInterval(),n)
+Fun(f,d::IntervalSets.ClosedInterval,n::Integer) = Fun(f,Domain(d),n)
+Fun(d::IntervalSets.ClosedInterval,cfs::AbstractVector{M}) where {M<:Number} = Fun(Domain(d),1.0*cfs)
+Fun(f::Function,d::IntervalSets.ClosedInterval) = Fun(dynamic(f),Domain(d))
+Fun(f,d::IntervalSets.ClosedInterval) = Fun(f,Domain(d))
+Fun(f::Number,d::IntervalSets.ClosedInterval) = Fun(f,Domain(d))
+Fun(d::IntervalSets.ClosedInterval) = Fun(Domain(d))
 
 Fun(T::Type,d::AbstractVector) = Fun(T(),d)
 

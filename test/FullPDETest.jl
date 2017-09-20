@@ -20,7 +20,7 @@ f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),rangespace(Δ))  #default is [-1,1]^2
 
 # Screened Poisson
 
-dx=dy=Interval()
+dx=dy=ChebyshevInterval()
 d=dx×dy
 g=Fun((x,y)->exp(x)*cos(y),∂(d))
 
@@ -36,7 +36,7 @@ A=[Dirichlet(d);Laplacian(d)]
 
 
 
-d=Interval()^2
+d=ChebyshevInterval()^2
 
 # TODO: piecewise space
 @time u=\([Neumann(d);Laplacian(d)-100.0I],[[[1,1],[1,1]],0.];tolerance=1E-12)
@@ -47,7 +47,7 @@ d=Interval()^2
 ## Test error
 
 
-dx=Interval();dt=Interval(0,2.)
+dx=ChebyshevInterval();dt=Interval(0,2.)
 d=dx×dt
 Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 x,y=Fun(identity,d)
@@ -60,7 +60,7 @@ x,y=Fun(identity,d)
 
 println("    Bilaplacian Tests")
 
-dx=dy=Interval()
+dx=dy=ChebyshevInterval()
 d=dx×dy
 Dx=Derivative(dx);Dy=Derivative(dy)
 L=Dx^4⊗I+2*Dx^2⊗Dy^2+I⊗Dy^4
@@ -99,7 +99,7 @@ F=[Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A)[1]);
 
 @test u(0.1,0.2)  ≈ exp(0.1)*cos(0.2)
 
-dx=dy=Interval()
+dx=dy=ChebyshevInterval()
 d=dx×dy
 Dx=Derivative(dx);Dy=Derivative(dy)
 L=Dx^4⊗I+2*Dx^2⊗Dy^2+I⊗Dy^4
@@ -221,7 +221,7 @@ M=ApproxFun.BandedBlockBandedMatrix(view(Δ,1:112,1:112))
 
 
 ## Rectangle PDE
-dx=dy=Interval()
+dx=dy=ChebyshevInterval()
 d=dx×dy
 g=Fun((x,y)->exp(x)*cos(y),∂(d))
 
@@ -253,7 +253,7 @@ u=A\[g,0.]
 
 # Check resizing
 
-d=Interval()^2
+d=ChebyshevInterval()^2
 A=[Dirichlet(d);Laplacian()+100I]
 QR = qrfact(A)
 @time ApproxFun.resizedata!(QR.R,:,2000)
@@ -343,7 +343,7 @@ println("    Poisson tests")
 
 ## Poisson
 
-f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),Interval()^2,500)  #default is [-1,1]^2
+f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),ChebyshevInterval()^2,500)  #default is [-1,1]^2
 d=domain(f)
 A=[Dirichlet(d);Laplacian(d)]
 @time  u=\(A,[zeros(∂(d));f];tolerance=1E-7)
@@ -407,7 +407,7 @@ testbandedblockbandedoperator(A)
 
 println("    Time evolution tests")
 
-dx=Interval();dt=Interval(0,0.2)
+dx=ChebyshevInterval();dt=Interval(0,0.2)
 d=dx×dt
 Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 x,t=Fun(dx×dt)
@@ -439,7 +439,7 @@ A=Laplacian(d)+.1I
 @test u(.1,.2) ≈ u(.2,.1)
 
 
-d=PeriodicInterval()×Interval()
+d=PeriodicInterval()×ChebyshevInterval()
 g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
 
 @test g(0.1,1.0) ≈ real(cos(0.1+im))
@@ -507,7 +507,7 @@ println("    Rectangle tests")
 
 # Screened Poisson
 
-d=Interval()^2
+d=ChebyshevInterval()^2
 @time u=\([Neumann(d);Laplacian(d)-100.0I],[[[1,1],[1,1]],0.];tolerance=1E-12)
 @test u(.1,.9) ≈ 0.03679861429138079
 
@@ -532,7 +532,7 @@ ApproxFun.resizedata!(CO,:,4)
 ## Test error
 
 
-dx=Interval();dt=Interval(0,2.)
+dx=ChebyshevInterval();dt=Interval(0,2.)
 d=dx×dt
 Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 x,y=Fun(identity,d)

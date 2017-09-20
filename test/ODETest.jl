@@ -88,7 +88,7 @@ A=[B;D+1im*w*I];
 
 ## Bessel
 
-d=Interval()
+d=ChebyshevInterval()
 D=Derivative(d)
 x=Fun(identity,d)
 A=x^2*D^2+x*D+x^2
@@ -166,7 +166,7 @@ QR=qrfact(A)
 
 
 ## Vector
-d=Interval()
+d=ChebyshevInterval()
 D=Derivative(d);
 B=ldirichlet();
 Bn=lneumann();

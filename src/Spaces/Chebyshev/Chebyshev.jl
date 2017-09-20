@@ -22,6 +22,7 @@ Chebyshev(d) = Chebyshev(Domain(d))
 
 
 Space(d::Segment) = Chebyshev(d)
+Space(d::AbstractInterval) = Chebyshev(d)
 
 
 setdomain(S::Chebyshev,d::Domain) = Chebyshev(d)
@@ -222,9 +223,9 @@ end
 
 
 # diff T -> U, then convert U -> T
-integrate(f::Fun{Chebyshev{D,R}}) where {D<:Segment,R} =
+integrate(f::Fun{Chebyshev{D,R}}) where {D<:IntervalOrSegment,R} =
     Fun(f.space,fromcanonicalD(f,0)*ultraint!(ultraconversion(f.coefficients)))
-differentiate(f::Fun{Chebyshev{D,R}}) where {D<:Segment,R} =
+differentiate(f::Fun{Chebyshev{D,R}}) where {D<:IntervalOrSegment,R} =
     Fun(f.space,1/fromcanonicalD(f,0)*ultraiconversion(ultradiff(f.coefficients)))
 
 ## identity_fun

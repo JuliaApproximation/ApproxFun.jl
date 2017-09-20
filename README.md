@@ -169,7 +169,7 @@ so we specify a lower tolerance to avoid resolving these singularities
 completely.
 
 ```julia
-d = Interval()^2                            # Defines a rectangle
+d = ChebyshevInterval()^2                            # Defines a rectangle
 Δ = Laplacian(d)                            # Represent the Laplacian
 f = ones(∂(d))                              # one at the boundary
 u = \([Dirichlet(d);Δ+100I],[f;0.];         # Solve the PDE
@@ -184,10 +184,10 @@ surface(u)                                  # Surface plot
 `u_t = 0.01Δu - 4u_x -3u_y` on a rectangle
 
 ```julia
-d = Interval()^2
+d = ChebyshevInterval()^2
 u0 = Fun((x,y)->exp(-40(x-.1)^2-40(y+.2)^2),d)
 B = dirichlet(d)
-D = Derivative(Interval())
+D = Derivative(ChebyshevInterval())
 L = (0.01D^2-4D)⊗I + I⊗(0.01D^2-3D)
 h = 0.002
 timeevolution(B,L,u0,h)                    # Requires GLPlot

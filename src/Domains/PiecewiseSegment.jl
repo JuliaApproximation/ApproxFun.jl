@@ -5,7 +5,7 @@ end
 PiecewiseSegment(d::AbstractVector) = PiecewiseSegment{eltype(d)}(collect(d))
 PiecewiseSegment(d...) = PiecewiseSegment(collect(mapreduce(eltype,promote_type,d),d))
 
-function PiecewiseSegment(pcsin::AbstractVector{IT}) where IT<:Segment
+function PiecewiseSegment(pcsin::AbstractVector{IT}) where IT<:IntervalOrSegment
     pcs=collect(pcsin)
     p=∂(pop!(pcs))
     successful=true

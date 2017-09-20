@@ -140,7 +140,7 @@ end
 
 ## Fredholm integral
 
-K=LowRankFun((x,y)->cos(x-y),Interval()^2)
+K=LowRankFun((x,y)->cos(x-y),ChebyshevInterval()^2)
 Σ=DefiniteIntegral(Chebyshev())
 testbandedbelowoperator(Σ[K])
 

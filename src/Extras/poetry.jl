@@ -60,7 +60,7 @@ Base.cross(∇::Function,F::Vector{M}) where {M<:MultivariateFun} = curl(F)
 
 ## Domains
 
-const 𝕀 = Interval()
+const 𝕀 = ChebyshevInterval()
 const ℝ = Line()
 const 𝕌 = Circle()
 

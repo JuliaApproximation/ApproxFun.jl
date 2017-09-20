@@ -23,7 +23,7 @@ end
 
 Ultraspherical(m::Number,d::Domain) = Ultraspherical{typeof(m),typeof(d),real(prectype(d))}(m,d)
 Ultraspherical(m::Number,d) = Ultraspherical(m,Domain(d))
-Ultraspherical(m::Number) = Ultraspherical(m,Interval())
+Ultraspherical(m::Number) = Ultraspherical(m,ChebyshevInterval())
 
 
 order(S::Ultraspherical) = S.order

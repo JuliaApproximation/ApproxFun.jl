@@ -1,11 +1,12 @@
 __precompile__()
 
 module ApproxFun
-    using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers, BandedMatrices, IntervalSets, Compat
-    import StaticArrays, ToeplitzMatrices, Calculus, Domains
+    using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers, BandedMatrices, Compat, Domains
+    import StaticArrays, ToeplitzMatrices, Calculus, IntervalSets
 
 import Base.LinAlg: BlasInt, BlasFloat, norm
-import Domains: Domain, indomain, UnionDomain, ProductDomain, FullSpace, Point, elements, DifferenceDomain
+import Domains: Domain, indomain, UnionDomain, ProductDomain, FullSpace, Point, elements, DifferenceDomain,
+            Interval, ChebyshevInterval
 
 
 import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, !=, eltype, start, next, done,
@@ -38,6 +39,8 @@ import Base: view
 
 import StaticArrays: StaticArray, SVector
 
+import IntervalSets: (..)
+
 const Vec{d,T} = SVector{d,T}
 
 export pad!, pad, chop!, sample,
@@ -47,7 +50,7 @@ export pad!, pad, chop!, sample,
 ##Testing
 export bisectioninv
 
-export ..
+export .., Interval, ChebyshevInterval
 
 
 

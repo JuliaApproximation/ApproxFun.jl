@@ -39,7 +39,7 @@ LeftIntegral(S::Chebyshev,k) = LeftIntegralWrapper(
     0.5)
 
 
-function rangespace(Q::ConcreteLeftIntegral{Jacobi{DD,RR},Float64}) where {DD<:Segment,RR}
+function rangespace(Q::ConcreteLeftIntegral{Jacobi{DD,RR},Float64}) where {DD<:IntervalOrSegment,RR}
     μ=Q.order
     S=domainspace(Q)
 
@@ -55,7 +55,7 @@ function RightIntegral(S::Jacobi,k)
     end
 end
 
-function rangespace(Q::ConcreteRightIntegral{Jacobi{DD,RR},Float64}) where {DD<:Segment,RR}
+function rangespace(Q::ConcreteRightIntegral{Jacobi{DD,RR},Float64}) where {DD<:IntervalOrSegment,RR}
     μ=Q.order
     S=domainspace(Q)
     @assert S.a==0
@@ -65,8 +65,8 @@ end
 
 for TYP in (:ConcreteLeftIntegral,:ConcreteRightIntegral)
     @eval begin
-        bandinds(Q::$TYP{Jacobi{DD,RR},Float64}) where {DD<:Segment,RR}=(0,0)
-        getindex(Q::$TYP{Jacobi{DD,RR},Float64},k::Integer,j::Integer) where {DD<:Segment,RR} =
+        bandinds(Q::$TYP{Jacobi{DD,RR},Float64}) where {DD<:IntervalOrSegment,RR}=(0,0)
+        getindex(Q::$TYP{Jacobi{DD,RR},Float64},k::Integer,j::Integer) where {DD<:IntervalOrSegment,RR} =
             jacobi_frac_getindex(domain(Q),0.,Q.order,k,j)
     end
 end
@@ -133,7 +133,7 @@ end
 
 
 #DLMF18.17.9
-function rangespace(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR},Float64}) where {DD<:Segment,RR}
+function rangespace(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR},Float64}) where {DD<:IntervalOrSegment,RR}
     μ=Q.order
     S=domainspace(Q)
     J=S.space
@@ -144,7 +144,7 @@ function rangespace(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR},Fl
     end
 end
 
-function rangespace(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR},Float64}) where {DD<:Segment,RR}
+function rangespace(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR},Float64}) where {DD<:IntervalOrSegment,RR}
     μ=Q.order
     S=domainspace(Q)
     J=S.space
@@ -158,13 +158,13 @@ function rangespace(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR},F
 end
 
 for TYP in (:ConcreteLeftIntegral,:ConcreteRightIntegral)
-    @eval bandinds(Q::$TYP{JacobiWeight{Jacobi{DD,RR},DD,RR},Float64}) where {DD<:Segment,RR}=(0,0)
+    @eval bandinds(Q::$TYP{JacobiWeight{Jacobi{DD,RR},DD,RR},Float64}) where {DD<:IntervalOrSegment,RR}=(0,0)
 end
 
-getindex(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR},Float64},k::Integer,j::Integer) where {DD<:Segment,RR} =
+getindex(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR},Float64},k::Integer,j::Integer) where {DD<:IntervalOrSegment,RR} =
     jacobi_frac_getindex(domain(Q),domainspace(Q).β,Q.order,k,j)
 
-getindex(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR},Float64},k::Integer,j::Integer) where {DD<:Segment,RR} =
+getindex(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR},Float64},k::Integer,j::Integer) where {DD<:IntervalOrSegment,RR} =
     jacobi_frac_getindex(domain(Q),domainspace(Q).α,Q.order,k,j)
 
 function choosedomainspace(Q::LeftIntegral{UnsetSpace,T},sp::JacobiWeight) where T<:Float64

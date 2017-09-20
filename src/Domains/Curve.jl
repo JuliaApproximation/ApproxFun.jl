@@ -4,7 +4,7 @@ export Curve
 
 
 
-struct IntervalCurve{S<:Space,T,VT} <: IntervalDomain{T}
+struct IntervalCurve{S<:Space,T,VT} <: SegmentDomain{T}
     curve::Fun{S,T,VT}
 end
 

@@ -158,7 +158,7 @@ A = fill(x,4,4)
 
 
 
-d=Interval()
+d=ChebyshevInterval()
 D=Derivative(d);
 B=ldirichlet();
 Bn=lneumann();
@@ -244,7 +244,7 @@ L=[B;D-A]
 
 ## Multiplication
 
-d = Interval()
+d = ChebyshevInterval()
 t=Fun(identity,d)
 f = Fun([t^2, sin(t)])
 @test norm(((Derivative(space(f))*f)-Fun(t->[2t,cos(t)])).coefficients)<100eps()

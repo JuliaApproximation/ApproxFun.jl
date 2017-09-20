@@ -17,7 +17,7 @@ doc"""
 
 represents the line at angle `a` in the complex plane, centred at `c`.
 """
-struct Line{angle,T<:Number} <: IntervalDomain{T}
+struct Line{angle,T<:Number} <: SegmentDomain{T}
     center::T
     α::Float64
     β::Float64
@@ -226,7 +226,7 @@ complexlength(d::Union{Line,PeriodicLine})=Inf
 ## vectorized
 
 for typ in (:Line,:PeriodicLine)
-    @eval function convert(::Type{$typ},d::ClosedInterval)
+    @eval function convert(::Type{$typ},d::IntervalSets.ClosedInterval)
         a,b=d.left,d.right
         @assert abs(a) == abs(b) == Inf
 

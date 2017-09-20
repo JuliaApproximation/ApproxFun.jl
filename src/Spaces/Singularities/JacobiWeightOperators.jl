@@ -8,7 +8,7 @@ linesum(f::Fun{JacobiWeight{C,DD,RR}}) where {C<:Chebyshev,DD,RR}=linesum(setdom
 
 for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:arclength))
     @eval begin
-        function $Func(f::Fun{JacobiWeight{C,DD,RR}}) where {C<:Chebyshev,DD<:Segment,RR}
+        function $Func(f::Fun{JacobiWeight{C,DD,RR}}) where {C<:Chebyshev,DD<:IntervalOrSegment,RR}
             tol=1e-10
             d,β,α,n=domain(f),f.space.β,f.space.α,ncoefficients(f)
             g=Fun(space(f).space,f.coefficients)
@@ -47,7 +47,7 @@ for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:arclength))
 end
 
 
-function differentiate(f::Fun{JacobiWeight{SS,DD,RR}}) where {SS,DD<:Segment,RR}
+function differentiate(f::Fun{JacobiWeight{SS,DD,RR}}) where {SS,DD<:IntervalOrSegment,RR}
     S=f.space
     d=domain(f)
     ff=Fun(S.space,f.coefficients)
@@ -77,7 +77,7 @@ end
 
 
 
-function integrate(f::Fun{JacobiWeight{SS,DD,RR}}) where {SS,DD<:Segment,RR}
+function integrate(f::Fun{JacobiWeight{SS,DD,RR}}) where {SS,DD<:IntervalOrSegment,RR}
     S=space(f)
     # we integrate by solving u'=f
     D=Derivative(S)
@@ -127,7 +127,7 @@ function integrate(f::Fun{JacobiWeight{SS,DD,RR}}) where {SS,DD<:Segment,RR}
     end
 end
 
-function Base.cumsum(f::Fun{JacobiWeight{SS,DD,RR}}) where {SS,DD<:Segment,RR}
+function Base.cumsum(f::Fun{JacobiWeight{SS,DD,RR}}) where {SS,DD<:IntervalOrSegment,RR}
     g=integrate(f)
     S=space(f)
 
@@ -143,7 +143,7 @@ end
 ## Operators
 
 
-function jacobiweightDerivative(S::JacobiWeight{SS,DDD}) where {SS,DDD<:Segment}
+function jacobiweightDerivative(S::JacobiWeight{SS,DDD}) where {SS,DDD<:IntervalOrSegment}
     d=domain(S)
 
     if d!=Segment()
@@ -179,9 +179,9 @@ function jacobiweightDerivative(S::JacobiWeight{SS,DDD}) where {SS,DDD<:Segment}
     end
 end
 
-Derivative(S::JacobiWeight{SS,DDD}) where {SS,DDD<:Segment} = jacobiweightDerivative(S)
+Derivative(S::JacobiWeight{SS,DDD}) where {SS,DDD<:IntervalOrSegment} = jacobiweightDerivative(S)
 
-function Derivative(S::JacobiWeight{SS,DD},k::Integer) where {SS,DD<:Segment}
+function Derivative(S::JacobiWeight{SS,DD},k::Integer) where {SS,DD<:IntervalOrSegment}
     if k==1
         Derivative(S)
     else
@@ -378,11 +378,11 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
     ConcFunc = parse("Concrete"*string(Func))
 
     @eval begin
-        $Func(S::JacobiWeight{SS,D}) where {SS,D<:Segment} = $ConcFunc(S)
+        $Func(S::JacobiWeight{SS,D}) where {SS,D<:IntervalOrSegment} = $ConcFunc(S)
 
         getindex(Σ::$ConcFunc,k::Integer) = eltype(Σ)($Sum(Fun(domainspace(Σ),[zeros(eltype(Σ),k-1);1])))
 
-        function getindex(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D,R},D,R},T},k::Integer) where {LT,D<:Segment,R,T}
+        function getindex(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D,R},D,R},T},k::Integer) where {LT,D<:IntervalOrSegment,R,T}
             λ = order(domainspace(Σ).space)
             dsp = domainspace(Σ)
             d = domain(Σ)
@@ -395,7 +395,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             end
         end
 
-        function getindex(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D,R},D,R},T},kr::Range) where {LT,D<:Segment,R,T}
+        function getindex(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D,R},D,R},T},kr::Range) where {LT,D<:IntervalOrSegment,R,T}
             λ = order(domainspace(Σ).space)
             dsp = domainspace(Σ)
             d = domain(Σ)
@@ -408,7 +408,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             end
         end
 
-        function bandinds(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D,R},D,R}}) where {LT,D<:Segment,R}
+        function bandinds(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D,R},D,R}}) where {LT,D<:IntervalOrSegment,R}
             λ = order(domainspace(Σ).space)
             β,α = domainspace(Σ).β,domainspace(Σ).α
             if β==α && isapproxinteger(β-0.5-λ) && λ ≤ ceil(Int,β)
@@ -419,7 +419,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
         end
 
 
-        function getindex(Σ::$ConcFunc{JacobiWeight{Chebyshev{D,R},D,R},T},k::Integer) where {D<:Segment,R,T}
+        function getindex(Σ::$ConcFunc{JacobiWeight{Chebyshev{D,R},D,R},T},k::Integer) where {D<:IntervalOrSegment,R,T}
             dsp = domainspace(Σ)
             d = domain(Σ)
             C = $Len(d)/2
@@ -431,7 +431,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             end
         end
 
-        function getindex(Σ::$ConcFunc{JacobiWeight{Chebyshev{D,R},D,R},T},kr::Range) where {D<:Segment,R,T}
+        function getindex(Σ::$ConcFunc{JacobiWeight{Chebyshev{D,R},D,R},T},kr::Range) where {D<:IntervalOrSegment,R,T}
             dsp = domainspace(Σ)
             d = domain(Σ)
             C = $Len(d)/2
@@ -443,7 +443,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             end
         end
 
-        function bandinds(Σ::$ConcFunc{JacobiWeight{Chebyshev{D,R},D,R}}) where {D<:Segment,R}
+        function bandinds(Σ::$ConcFunc{JacobiWeight{Chebyshev{D,R},D,R}}) where {D<:IntervalOrSegment,R}
             β,α = domainspace(Σ).β,domainspace(Σ).α
             if β==α && isapproxinteger(β-0.5) && 0 ≤ ceil(Int,β)
                 0,2ceil(Int,β)

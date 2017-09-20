@@ -58,7 +58,7 @@ transformtimes(f::Fun,g::Fun{JW}) where {JW<:JacobiWeight} =
 
 jacobiweight(β,α,x) = (1+x).^β.*(1-x).^α
 jacobiweight(β,α,d::Domain) = Fun(JacobiWeight(β,α,ConstantSpace(d)),[1.])
-jacobiweight(β,α) = jacobiweight(β,α,Interval())
+jacobiweight(β,α) = jacobiweight(β,α,ChebyshevInterval())
 
 weight(sp::JacobiWeight,x) = jacobiweight(sp.β,sp.α,tocanonical(sp,x))
 dimension(sp::JacobiWeight) = dimension(sp.space)

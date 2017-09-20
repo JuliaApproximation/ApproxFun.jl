@@ -34,7 +34,7 @@ QR=qrfact(Δ)
 
 
 ## Rectangle PDE
-dx=dy=Interval()
+dx=dy=ChebyshevInterval()
 d=dx×dy
 g=Fun((x,y)->exp(x)*cos(y),∂(d))
 
@@ -54,7 +54,7 @@ println("    Poisson tests")
 
 ## Poisson
 
-f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),Interval()^2,500)  #default is [-1,1]^2
+f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),ChebyshevInterval()^2,500)  #default is [-1,1]^2
 d=domain(f)
 A=[Dirichlet(d);Laplacian(d)]
 @time  u=\(A,[zeros(∂(d));f];tolerance=1E-7)
@@ -65,7 +65,7 @@ A=[Dirichlet(d);Laplacian(d)]
 # fourth order
 
 println("    Bilaplacian tests")
-dx=dy=Interval()
+dx=dy=ChebyshevInterval()
 d=dx×dy
 Dx=Derivative(dx);Dy=Derivative(dy)
 L=Dx^4⊗I + 2*Dx^2⊗Dy^2 + I⊗Dy^4
@@ -93,7 +93,7 @@ testraggedbelowoperator(A)
 ## Test periodic x interval
 
 println("    Periodic x Interval tests")
-d=PeriodicInterval()×Interval()
+d=PeriodicInterval()×ChebyshevInterval()
 
 u_ex=Fun((x,y)->real(cos(x+im*y)),d)
 @test u_ex(1.0,0.1) ≈ real(cos(1.0+im*0.1)) atol=10eps()

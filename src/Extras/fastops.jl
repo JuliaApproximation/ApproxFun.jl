@@ -133,7 +133,7 @@ function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Chebys
     D = parent(S)
     k = D.order
     d = domain(D)
-    C=T(pochhammer(one(T),k-1)/2*(4/(d.b-d.a))^k)
+    C=T(pochhammer(one(T),k-1)/2*(4/(last(d)-first(d)))^k)
 
     # need to drop columns
 
@@ -156,7 +156,7 @@ function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Ultras
     λ = order(domainspace(D))
     d = domain(D)
 
-    C = T(pochhammer(one(T)*λ,k)*(4/(d.b-d.a))^k)
+    C = T(pochhammer(one(T)*λ,k)*(4/(last(d)-first(d)))^k)
     ret[band(dg+k)] = C
 
     ret

@@ -1,6 +1,6 @@
 
 
-export Interval, Segment
+export Segment
 
 
 
@@ -12,12 +12,15 @@ doc"""
 represents a line segment from `a` to `b`.  In the case where `a` and `b`
 are real and `a < b`, then this is is equivalent to an `Interval(a,b)`.
 """
-struct Segment{T} <: IntervalDomain{T}
+struct Segment{T} <: SegmentDomain{T}
 	a::T
 	b::T
 	Segment{T}() where {T} = new{T}(-one(T),one(T))
 	Segment{T}(a,b) where {T} = new{T}(a,b)
 end
+
+
+const IntervalOrSegment{T} = Union{AbstractInterval{T}, Segment{T}}
 
 
 
@@ -30,28 +33,12 @@ Segment(a,b::Complex{IT}) where {IT<:Integer} = Segment(a,Complex128(b)) #conven
 Segment(a,b) = Segment{promote_type(typeof(a),typeof(b))}(a,b)
 Segment(a::Tuple,b::Tuple) = Segment(Vec(a...),Vec(b...))
 
-for TYP in (:Integer,:Real)
-	@eval function Interval(a::$TYP,b::$TYP)
-		if b ≤ a
-			error("Interval(a,b) requires a < b.  Use Segment($a,$b) to represent the line segment from $a to $b.")
-		end
-		Segment(a,b)
-	end
-end
 
-Interval(a,b) = error("Interval(a,b) only defined for real a and b.  Use Segment($a,$b) to represent the line segment from $a to $b.")
-Interval() = Segment()
 
-doc"""
-	Interval(a::Real,b::Real)
-
-represents the set `{x : a ≤ x ≤ b}`.
-"""
-Interval
 
 convert(::Type{Domain{T}}, d::Segment) where {T<:Number} = Segment{T}(d.a,d.b)
 convert(::Type{Segment{T}}, d::Segment) where {T<:Number} = Segment{T}(d.a,d.b)
-convert(::Type{Segment},d::ClosedInterval) = Segment(d.left,d.right)
+convert(::Type{Segment},d::IntervalSets.ClosedInterval) = Segment(d.left,d.right)
 
 AnySegment(::Type{T}) where {T} = Segment{T}(NaN,NaN)
 AnySegment() = AnySegment(Float64)
@@ -62,11 +49,11 @@ convert(::Type{Segment},::AnyDomain) = AnySegment()
 
 ## Information
 
-Base.first(d::Segment) = d.a
-Base.last(d::Segment) = d.b
+@inline Base.first(d::Segment) = d.a
+@inline Base.last(d::Segment) = d.b
 
-Base.minimum(d::Segment) = min(d.a,d.b)
-Base.maximum(d::Segment) = max(d.a,d.b)
+@inline Base.minimum(d::Segment) = min(d.a,d.b)
+@inline Base.maximum(d::Segment) = max(d.a,d.b)
 
 Base.isempty(d::Segment) = isapprox(d.a,d.b;atol=200eps(eltype(d)))
 
@@ -79,20 +66,27 @@ Base.issubset(a::Segment,b::Segment) = first(a)∈b && last(a)∈b
 
 mobius(S::Space,x...) = mobius(domain(S),x...)
 
-tocanonical(d::Segment{T},x) where {T} = 2norm(x-d.a)/arclength(d)-1
-tocanonical(d::Segment{T},x::Number) where {T<:Complex} = 2norm(x-d.a)/arclength(d)-1
-mobius(d::Segment,x) = (d.a + d.b - 2x)/(d.a - d.b)
-tocanonical(d::Segment{T},x) where {T<:Real} = mobius(d,x)
-tocanonicalD(d::Segment{T},x) where {T<:Real} = 2/(d.b- d.a)
-fromcanonical(d::Segment{T},x) where {T<:Number} = (d.a + d.b)/2 + (d.b - d.a)x/2
-fromcanonical(d::Segment{T},x) where {T<:Vec} = (d.a + d.b)/2 + (d.b - d.a)x/2
-fromcanonicalD(d::Segment,x) = (d.b- d.a) / 2
+mobius(d::ChebyshevInterval{T},x) where {T<:Number} = x
+fromcanonical(d::ChebyshevInterval{T},x) where {T<:Number} = x
+fromcanonicalD(d::ChebyshevInterval{T},x) where {T<:Number} = one(x)
+tocanonical(d::ChebyshevInterval{T},x) where {T<:Number} = x
+tocanonicalD(d::ChebyshevInterval{T},x) where {T<:Number} = one(x)
+
+tocanonical(d::IntervalOrSegment{T},x) where {T} = 2norm(x-d.a)/arclength(d)-1
+tocanonical(d::IntervalOrSegment{T},x::Number) where {T<:Complex} = 2norm(x-d.a)/arclength(d)-1
+mobius(d::IntervalOrSegment,x) = (d.a + d.b - 2x)/(d.a - d.b)
+tocanonical(d::IntervalOrSegment{T},x) where {T<:Real} = mobius(d,x)
+tocanonicalD(d::IntervalOrSegment{T},x) where {T<:Real} = 2/(d.b- d.a)
+fromcanonical(d::IntervalOrSegment{T},x) where {T<:Number} = (d.a + d.b)/2 + (d.b - d.a)x/2
+fromcanonical(d::IntervalOrSegment{T},x) where {T<:Vec} = (d.a + d.b)/2 + (d.b - d.a)x/2
+fromcanonicalD(d::IntervalOrSegment,x) = (d.b- d.a) / 2
 
 
+arclength(d::AbstractInterval) = norm(maximum(d) - minimum(d))
 arclength(d::Segment) = norm(d.b - d.a)
-Base.angle(d::Segment) = angle(d.b-d.a)
-Base.sign(d::Segment) = sign(d.b-d.a)
-complexlength(d::Segment) = d.b-d.a
+Base.angle(d::IntervalOrSegment) = angle(last(d)-first(d))
+Base.sign(d::IntervalOrSegment) = sign(last(d)-first(d))
+complexlength(d::IntervalOrSegment) = last(d)-first(d)
 
 
 ==(d::Segment,m::Segment) = (isambiguous(d) && isambiguous(m)) || (d.a == m.a && d.b == m.b)

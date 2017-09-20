@@ -15,7 +15,7 @@ x,y = Fun(ApproxFun.Vec(0.,0.) .. ApproxFun.Vec(2.,1.))
 
 @time for k=0:5,j=0:5
     ff=(x,y)->cos(k*acos(x))*cos(j*acos(y))
-    f=Fun(ff,Interval()^2)
+    f=Fun(ff,ChebyshevInterval()^2)
     @test f(0.1,0.2) ≈ ff(0.1,0.2)
 end
 
@@ -37,15 +37,15 @@ end
 
 ff=(x,y)->exp(-10(x+.2)^2-20(y-.1)^2)*cos(x*y)
 gg=x->exp(-10(x[1]+.2)^2-20(x[1]-.1)^2)*cos(x[1]*x[2])
-f=Fun(ff,Interval()^2,10000)
+f=Fun(ff,ChebyshevInterval()^2,10000)
 @test f(0.,0.) ≈ ff(0.,0.)
 
-f=Fun(gg,Interval()^2,10000)
+f=Fun(gg,ChebyshevInterval()^2,10000)
 @test f(0.,0.) ≈ ff(0.,0.)
 
-f=Fun(ff,Interval()^2)
+f=Fun(ff,ChebyshevInterval()^2)
 @test f(0.,0.) ≈ ff(0.,0.)
-f=Fun(gg,Interval()^2)
+f=Fun(gg,ChebyshevInterval()^2)
 @test f(0.,0.) ≈ ff(0.,0.)
 
 
@@ -157,7 +157,7 @@ end
 
 ## x,y constructor
 
-@time let d=Interval()^2
+@time let d=ChebyshevInterval()^2
     x,y=Fun(d)
     @test x(0.1,0.2) ≈ 0.1
     @test y(0.1,0.2) ≈ 0.2
@@ -185,7 +185,7 @@ end
 end
 
 # test conversion between
-dx=dy=Interval()
+dx=dy=ChebyshevInterval()
 d=dx × dy
 
 x,y=Fun(∂(d))
@@ -248,7 +248,7 @@ testbandedblockbandedoperator(rDr)
 ## Cheby * Interval
 
 
-d = Interval()^2
+d = ChebyshevInterval()^2
 x,y = Fun(∂(d))
 
 

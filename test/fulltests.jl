@@ -66,7 +66,7 @@ println("Full ODE Tests")
 
 ## Null space
 
-d=Interval()
+d=ChebyshevInterval()
 D=Derivative(d)
 A=D^2-I
 @time κ=nullspace(A)
@@ -245,7 +245,7 @@ f=ProductFun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
 
 ## Functional*Fun
 
-d=Interval()
+d=ChebyshevInterval()
 B=ldirichlet(d)
 f=ProductFun((x,y)->cos(cos(x)*sin(y)),d^2)
 
@@ -254,10 +254,10 @@ f=ProductFun((x,y)->cos(cos(x)*sin(y)),d^2)
 
 ## matrix
 
-f=Fun((x,y)->[exp(x*cos(y));cos(x*sin(y));2],Interval()^2)
+f=Fun((x,y)->[exp(x*cos(y));cos(x*sin(y));2],ChebyshevInterval()^2)
 @test f(0.1,0.2) ≈ [exp(0.1*cos(0.2));cos(0.1*sin(0.2));2]
 
-f=Fun((x,y)->[exp(x*cos(y)) cos(x*sin(y)); 2 1],Interval()^2)
+f=Fun((x,y)->[exp(x*cos(y)) cos(x*sin(y)); 2 1],ChebyshevInterval()^2)
 @test f(0.1,0.2) ≈ [exp(0.1*cos(0.2)) cos(0.1*sin(0.2));2 1]
 
 

@@ -8,7 +8,7 @@ testtransforms(ChebyshevDirichlet{1,1}())
 @test Fun(exp,ChebyshevDirichlet{1,1})(.1) ≈ exp(.1)
 @test Fun(Fun(exp,ChebyshevDirichlet{1,1}),Ultraspherical(1))(.1) ≈ exp(.1)
 
-d=Interval()
+d=ChebyshevInterval()
 sp=ChebyshevDirichlet{1,1}(d)
 B=Dirichlet(sp)
 D=Derivative(d)

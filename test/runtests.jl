@@ -58,7 +58,7 @@ cumsum(ApproxFun.repeated(2)) == 2:2:ApproxFun.∞
 
 println("Domain tests")
 
-@test 0.45-0.65im ∉ Interval()
+@test 0.45-0.65im ∉ Segment()
 @test cumsum(ApproxFun.Flatten(([3],ApproxFun.repeated(2)))).it[2] ==
     ApproxFun.Count(5,2)
 @test reverse(Arc(1,2,(0.1,0.2))) == Arc(1,2,(0.2,0.1))
@@ -82,9 +82,9 @@ println("Domain tests")
 
 @test ApproxFun.dimension(Domain{Float64}) == 1
 @test ApproxFun.dimension(Segment{Float64}) == 1
-@test ApproxFun.dimension(Interval()) == 1
-@test ApproxFun.dimension(Interval()^2) == 2
-@test ApproxFun.dimension(Interval()^3) == 3
+@test ApproxFun.dimension(ChebyshevInterval()) == 1
+@test ApproxFun.dimension(ChebyshevInterval()^2) == 2
+@test ApproxFun.dimension(ChebyshevInterval()^3) == 3
 
 @time include("MatrixTest.jl")
 

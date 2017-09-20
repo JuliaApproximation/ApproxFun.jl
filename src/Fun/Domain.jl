@@ -1,6 +1,6 @@
 
 
-export Domain, IntervalDomain, PeriodicDomain, tocanonical, fromcanonical, fromcanonicalD, ∂
+export Domain, SegmentDomain, PeriodicDomain, tocanonical, fromcanonical, fromcanonicalD, ∂
 export chebyshevpoints, fourierpoints, isambiguous, arclength
 export components, component, ncomponents
 
@@ -66,9 +66,11 @@ Base.intersect(a::Domain,b::Domain) = a==b ? a : EmptyDomain()
 
 ## Interval Domains
 
-abstract type IntervalDomain{T} <: UnivariateDomain{T} end
+abstract type SegmentDomain{T} <: UnivariateDomain{T} end
+const IntervalDomain{T} = Union{AbstractInterval{T}, SegmentDomain{T}}
 
-canonicaldomain(d::IntervalDomain) = Segment{real(prectype(d))}()
+canonicaldomain(d::AbstractInterval) = ChebyshevInterval{real(prectype(d))}()
+canonicaldomain(d::SegmentDomain) = Segment{real(prectype(d))}()
 
 Base.isapprox(a::Domain,b::Domain) = a==b
 domainscompatible(a,b) = domainscompatible(domain(a),domain(b))
@@ -99,7 +101,7 @@ Base.first(d::IntervalDomain{T}) where {T} = fromcanonical(d,-one(T))
 Base.last(d::IntervalDomain{T}) where {T} = fromcanonical(d,one(T))
 
 indomain(x,::AnyDomain) = true
-function indomain(x,d::IntervalDomain)
+function indomain(x,d::SegmentDomain)
     T=real(prectype(d))
     y=tocanonical(d,x)
     ry=real(y)
@@ -210,11 +212,11 @@ doc"""
     ∂(d::Domain)
 
 returns the boundary of `d`.  For example, the boundary of a `Disk()`
-is a `Circle()`, and the boundary of `Interval()^2` is a piecewise interval
+is a `Circle()`, and the boundary of `ChebyshevInterval()^2` is a piecewise interval
 that sketches the boundary of a rectangle.
 """
 ∂(d::Domain) = EmptyDomain()   # This is meant to be overriden
-∂(d::IntervalDomain) = [first(d),last(d)] #TODO: Points domain
+∂(d::SegmentDomain) = [first(d),last(d)] #TODO: Points domain
 ∂(d::PeriodicDomain) = EmptyDomain()
 
 

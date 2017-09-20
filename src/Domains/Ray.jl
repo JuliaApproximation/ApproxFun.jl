@@ -15,7 +15,7 @@ doc"""
 represents a ray at angle `a` starting at `c`, with orientation out to
 infinity (`o = true`) or back from infinity (`o = false`).
 """
-struct Ray{angle,T<:Number} <: IntervalDomain{T}
+struct Ray{angle,T<:Number} <: SegmentDomain{T}
     center::T
     orientation::Bool
     Ray{angle,T}(c,o) where {angle,T} = new{angle,T}(c,o)
@@ -42,7 +42,7 @@ Ray() = Ray{false}()
 
 ##deal with vector
 
-function convert(::Type{Ray},d::ClosedInterval)
+function convert(::Type{Ray},d::IntervalSets.ClosedInterval)
     a,b=d.left,d.right
     @assert abs(a)==Inf || abs(b)==Inf
 

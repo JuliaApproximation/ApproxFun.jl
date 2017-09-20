@@ -5,12 +5,15 @@ using ApproxFun, Base.Test
 @test Fun(x->4).coefficients == [4.0]
 @test Fun(4).coefficients == [4.0]
 
-for d in (Interval(),Interval(1.,2.),Segment(1.0+im,2.0+2im))
+f = Fun(ChebyshevInterval(), [1])
+@test f(0.1) == 1
+
+for d in (ChebyshevInterval(), Interval(1.,2.), Segment(1.0+im,2.0+2im))
     testspace(Chebyshev(d))
 end
 
 
-ef = Fun(exp,Interval())
+ef = Fun(exp,ChebyshevInterval())
 
 @test ef == -(-ef)
 @test ef == (ef-1) + 1

@@ -93,7 +93,7 @@ println("Piecewise Airy: should be ~0.008")
 
 
 ## Vector
-d=Interval()
+d=ChebyshevInterval()
 D=Derivative(d);
 B=ldirichlet();
 Bn=lneumann();
