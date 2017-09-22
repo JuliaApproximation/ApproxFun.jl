@@ -156,6 +156,9 @@ A = fill(x,4,4)
 @test norm((Fun(A)*A-fill(4x^2,4,4)).coefficients) < eps()
 @test norm((Fun(A)^2-fill(4x^2,4,4)).coefficients) < eps()
 
+@test [x;x] == A[:,1]
+@test [[x;2x] [3x;4x]] == [x 3x; 2x 4x]
+@test [x x] == A[1:1,:]
 
 
 d=Interval()

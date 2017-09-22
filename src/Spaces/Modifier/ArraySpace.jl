@@ -52,7 +52,7 @@ for OP in (:(Base.done),:(Base.stride))
     @eval $OP(f::Fun{<:ArraySpace},k) = $OP(space(f),k)
 end
 
-getindex(f::ArraySpace,k...) = component(f,k...)
+getindex(f::ArraySpace,k...) = Space(component(f,k...))
 Base.next(f::Fun{<:ArraySpace},k)=f[k],k+1
 
 
