@@ -83,6 +83,14 @@ function coefficients(v::AbstractVector,a::ArraySpace,b::ArraySpace)
 end
 
 
+# ArraySpace is straight forward
+
+function Conversion(a::ArraySpace, b::ArraySpace)
+    @assert size(a) == size(b)
+    ConversionWrapper(InterlaceOperator(Diagonal(Conversion.(vec(a.spaces), vec(b.spaces))), a, b))
+end
+
+
 # Sum Space and PiecewiseSpace need to allow permutation of space orders
 for TYP in (:SumSpace,:PiecewiseSpace)
     @eval function Conversion(S1::$TYP,S2::$TYP)

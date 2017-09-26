@@ -405,3 +405,21 @@ A=[ Operator(diagm(fill(ldirichlet(d),n)));
          0.732284 -0.170879 -0.612945 -0.836059;
          -0.836059 0.265569 -0.170879 -0.148885;
          -0.612945 -0.836059 0.732284 -0.170879] atol=1E-3
+
+
+
+## Conversion
+
+a = ArraySpace(JacobiWeight(1/2,1/2, Chebyshev()), 2)
+b = ArraySpace(JacobiWeight(1/2,1/2, Ultraspherical(1)), 2)
+C = Conversion(a, b)
+
+f = Fun(a, rand(10))
+@test f(0.1) ≈ (C*f)(0.1)
+
+a = ArraySpace(JacobiWeight(1/2,1/2, Chebyshev()), 2,3)
+b = ArraySpace(JacobiWeight(1/2,1/2, Ultraspherical(1)), 2,3)
+C = Conversion(a, b)
+
+f = Fun(a, rand(10))
+@test f(0.1) ≈ (C*f)(0.1)
