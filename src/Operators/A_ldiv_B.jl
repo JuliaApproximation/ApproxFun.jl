@@ -31,9 +31,11 @@ function \(A::Operator,B::AbstractMatrix;kwds...)
     end
 
     ret=Matrix{VFun{typeof(ds),
-               promote_type(mapreduce(eltype,promote_type,B),prectype(ds))}}(1,size(B,2))
+               promote_type(eltype(A),mapreduce(eltype,promote_type,B))}}(1,size(B,2))
+
+    QR = factorize(A) # reuse computation
     for j=1:size(B,2)
-        ret[:,j]=\(A,B[:,j];kwds...)
+        ret[:,j]=\(QR,B[:,j];kwds...)
     end
     Fun(ret)
 end
