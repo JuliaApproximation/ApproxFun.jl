@@ -246,5 +246,5 @@ EuclideanSpace(n::Integer) = ArraySpace(ConstantSpace(Float64),n)
 ## support pieces
 
 npieces(f::Fun{<:ArraySpace}) = npieces(f[1])
-piece(f::Fun{<:ArraySpace}, k) = Fun(piece.(Array(F),k))
+piece(f::Fun{<:ArraySpace}, k) = Fun(piece.(Array(f),k))
 pieces(f::Fun{<:ArraySpace}) = [piece(f,k) for k=1:npieces(f)]
