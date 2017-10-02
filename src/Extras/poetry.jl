@@ -7,9 +7,9 @@ export chebyshevt,chebyshevu,legendre,∫,⨜,⨍,∇,Δ,ChebyshevWeight,𝕀,�
 
 ## Constructors
 
-Fun()=Fun(identity)
-Fun(d::Domain)=Fun(identity,d)
-Fun(d::Space)=Fun(identity,d)
+Fun() = Fun(identity)
+Fun(d::Domain) = Fun(identity,d)
+Fun(d::Space) = Fun(identity,d)
 
 ## Chebyshev & Legendre polynomials
 

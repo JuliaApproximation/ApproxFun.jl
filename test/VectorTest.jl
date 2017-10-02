@@ -143,6 +143,11 @@ A = [x x; x x]
 @test norm(map(norm,Array(A)*Array(A)-Array([2x^2 2x^2; 2x^2 2x^2]))) < eps()
 
 
+@test [x;x] == A[:,1]
+@test [[x;2x] [3x;4x]] == [x 3x; 2x 4x]
+@test [x x] == A[1:1,:]
+
+
 A = fill(x,3,3)
 @test norm(map(norm,A^3-fill(9x^3,3,3))) <eps()
 @test norm((A^2*Fun(A)-fill(9x^3,3,3)).coefficients) < eps()
@@ -156,9 +161,6 @@ A = fill(x,4,4)
 @test norm((Fun(A)*A-fill(4x^2,4,4)).coefficients) < eps()
 @test norm((Fun(A)^2-fill(4x^2,4,4)).coefficients) < eps()
 
-@test [x;x] == A[:,1]
-@test [[x;2x] [3x;4x]] == [x 3x; 2x 4x]
-@test [x x] == A[1:1,:]
 
 
 d=Interval()

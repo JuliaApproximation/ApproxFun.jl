@@ -239,3 +239,12 @@ Base.ones(A::ArraySpace) = Fun(ones.(spaces(A)))
 
 const EuclideanSpace{RR} = VectorSpace{ConstantSpace{AnyDomain},AnyDomain,RR}
 EuclideanSpace(n::Integer) = ArraySpace(ConstantSpace(Float64),n)
+
+
+
+
+## support pieces
+
+npieces(f::Fun{<:ArraySpace}) = npieces(f[1])
+piece(f::Fun{<:ArraySpace}, k) = Fun(piece.(Array(F),k))
+pieces(f::Fun{<:ArraySpace}) = [piece(f,k) for k=1:npieces(f)]

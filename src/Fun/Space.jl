@@ -118,7 +118,7 @@ spacescompatible(f::D,g::D) where D<:Space = error("Override spacescompatible fo
 spacescompatible(::UnsetSpace,::UnsetSpace) = true
 spacescompatible(::NoSpace,::NoSpace) = true
 spacescompatible(f,g) = false
-==(A::Space,B::Space) = spacescompatible(A,B)&&domain(A)==domain(B)
+==(A::Space,B::Space) = spacescompatible(A,B) && domain(A)==domain(B)
 spacesequal(A::Space,B::Space) = A==B
 
 pointscompatible(f,g) = spacescompatible(f,g)
@@ -295,7 +295,7 @@ Base.union(a::Space,b::Space,c::Space,d::Space...) =
 
 
 # tests whether a Conversion operator exists
-hasconversion(a,b) = maxspace(a,b)==b
+hasconversion(a,b) = maxspace(a,b) == b
 
 
 # tests whether a coefficients can be converted to b
