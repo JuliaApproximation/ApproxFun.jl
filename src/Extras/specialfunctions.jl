@@ -126,13 +126,13 @@ function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:Segment,RR}
         #left root
         g=divide_singularity((1,0),fc)
         p=c/g
-        x=identity_fun(domain(p))
+        x = Fun(identity,domain(p))
         return scaleshiftdomain(p/(1+x),(d.b - d.a)/2,(d.a + d.b)/2 )
     elseif abs(last(fc))≤tol
         #right root
         g=divide_singularity((0,1),fc)
         p=c/g
-        x=identity_fun(domain(p))
+        x=Fun(identity,domain(p))
         return scaleshiftdomain(p/(1-x),(d.b - d.a)/2,(d.a + d.b)/2 )
     else
         r = roots(fc)
@@ -143,13 +143,13 @@ function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:Segment,RR}
             #left root
             g=divide_singularity((1,0),fc)
             p=c/g
-            x=identity_fun(domain(p))
+            x=Fun(identity,domain(p))
             return scaleshiftdomain(p/(1+x),(d.b - d.a)/2,(d.a + d.b)/2 )
         elseif abs(last(r)-1.0)≤tol  # double check
             #right root
             g=divide_singularity((0,1),fc)
             p=c/g
-            x=identity_fun(domain(p))
+            x=Fun(identity,domain(p))
             return scaleshiftdomain(p/(1-x),(d.b - d.a)/2,(d.a + d.b)/2 )
         else
             # no roots on the boundary

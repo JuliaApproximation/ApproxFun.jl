@@ -74,8 +74,8 @@ end
 
 Space(d::Point) = PointSpace(d)
 
-identity_fun(S::PointSpace) = Fun(S,S.points)
-identity_fun(S::DiracSpace) = Fun(PointSpace(S.points),S.points)
+Fun(::typeof(identity), S::PointSpace) = Fun(S,S.points)
+Fun(::typeof(identity), S::DiracSpace) = Fun(PointSpace(S.points),S.points)
 transform(S::PointSpace,v::AbstractVector,plan...) = v
 values(f::Fun{S}) where S<:PointSpace = coefficient(f,:)
 

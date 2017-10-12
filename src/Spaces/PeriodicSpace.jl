@@ -1,7 +1,7 @@
-identity_fun(d::Circle)=Fun(Laurent(d),[d.center,0.,d.radius])
+Fun(::typeof(identity), d::Circle) = Fun(Laurent(d),[d.center,0.,d.radius])
 
-Space(d::PeriodicDomain)=Fourier(d)
-Space(d::Circle)=Laurent(d)
+Space(d::PeriodicDomain) = Fourier(d)
+Space(d::Circle) = Laurent(d)
 
 
 ## Evaluation

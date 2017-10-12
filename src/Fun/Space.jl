@@ -349,34 +349,6 @@ coefficients(f,a,b) = defaultcoefficients(f,a,b)
 
 
 
-## TODO: remove zeros
-Base.zero(S::Space) = zeros(S)
-Base.zero(::Type{T},S::Space) where {T<:Number} = zeros(T,S)
-Base.zeros(::Type{T},S::Space) where {T<:Number} = Fun(S,zeros(T,1))
-Base.zeros(S::Space) = Fun(S,zeros(1))
-
-# catch all
-Base.ones(S::Space) = Fun(x->1.0,S)
-Base.ones(::Type{T},S::Space) where {T<:Number} = Fun(x->one(T),S)
-
-identity_fun(S::Space) = identity_fun(domain(S))
-
-function identity_fun(d::Domain)
-    cd=canonicaldomain(d)
-    if typeof(d) == typeof(cd)
-        Fun(x->x,d) # fall back to constructor, can't use `identity` as that creates a loop
-    else
-        # this allows support for singularities, that the constructor doesn't
-        sf=fromcanonical(d,Fun(identity,cd))
-        Fun(setdomain(space(sf),d),coefficients(sf))
-    end
-end
-
-
-
-
-
-
 
 
 ## rand

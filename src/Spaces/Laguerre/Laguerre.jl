@@ -41,7 +41,7 @@ for (REC,JREC) in ((:recα,:laguerrerecα),(:recβ,:laguerrerecβ),(:recγ,:lagu
 end
 
 
-identity_fun(L::Laguerre) = Fun(L,[1+L.α,-1.0])
+Fun(::typeof(identity), L::Laguerre) = Fun(L,[1+L.α,-1.0])
 
 
 

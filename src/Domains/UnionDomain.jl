@@ -15,7 +15,7 @@ end
 UnionDomain(d::Tuple{}) = error("Cannot create UnionDomain with no components")
 UnionDomain(d::Tuple) =
     UnionDomain{typeof(d),mapreduce(eltype,promote_type,d)}(d)
-UnionDomain(d::AbstractVector) = UnionDomain{typeof(d),eltype(d)}(d)
+UnionDomain(d::AbstractVector) = UnionDomain{typeof(d),eltype(eltype(d))}(d)
 
 
 UnionDomain(d1::UnionDomain,d2::UnionDomain) = UnionDomain((d1.domains...,d2.domains...))

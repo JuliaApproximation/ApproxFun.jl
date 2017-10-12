@@ -105,7 +105,7 @@ Base.last(f::Fun{Ultraspherical{Int,D,R}}) where {D,R} = reduce(+,coefficients(f
 Base.first(f::Fun{Ultraspherical{O,D,R}}) where {O,D,R} = f(first(domain(f)))
 Base.last(f::Fun{Ultraspherical{O,D,R}}) where {O,D,R} = f(last(domain(f)))
 
-identity_fun(d::Ultraspherical) = Fun(identity_fun(domain(d)),d)
+Fun(::typeof(identity), d::Ultraspherical) = Fun(Fun(identity, domain(d)),d)
 
 
 ## Calculus

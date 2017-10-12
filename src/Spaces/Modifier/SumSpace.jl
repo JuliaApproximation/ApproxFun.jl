@@ -417,7 +417,7 @@ Base.ones(::Type{T},S::PiecewiseSpace{SS,V}) where {T<:Number,SS,V} =
 Base.ones(S::PiecewiseSpace) = ones(Float64,S)
 
 
-identity_fun(S::PiecewiseSpace) = Fun(map(identity_fun,S.spaces),PiecewiseSpace)
+Fun(::typeof(identity), S::PiecewiseSpace) = Fun(Fun.(identity,S.spaces),PiecewiseSpace)
 
 
 # interlace coefficients according to iterator

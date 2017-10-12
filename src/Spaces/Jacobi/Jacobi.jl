@@ -123,7 +123,7 @@ for op in (:(Base.ones),:(Base.zeros))
     @eval ($op)(S::Jacobi)=Fun(S,($op)(1))
 end
 
-function identity_fun(J::Jacobi)
+function Fun(::typeof(identity), J::Jacobi)
     if domain(J)==Segment()
         Fun(J,[(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)])
     else

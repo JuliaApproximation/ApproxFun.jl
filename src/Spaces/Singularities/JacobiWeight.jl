@@ -34,7 +34,7 @@ JacobiWeight(a::Number,b::Number) = JacobiWeight(a,b,Chebyshev())
 
 JacobiWeight(a::Number,b::Number,s::PiecewiseSpace) = PiecewiseSpace(JacobiWeight(a,b,components(s)))
 
-identity_fun(S::JacobiWeight) =
+Fun(::typeof(identity), S::JacobiWeight) =
     isapproxinteger(S.β) && isapproxinteger(S.α) ? Fun(x->x,S) : Fun(identity,domain(S))
 
 order(S::JacobiWeight{Ultraspherical{Int,D,R},D,R}) where {D,R} = order(S.space)

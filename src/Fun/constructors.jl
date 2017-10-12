@@ -100,15 +100,18 @@ Fun(c::Number,d::Space) = c==0?c*zeros(prectype(d),d):c*ones(prectype(d),d)
 
 ## Adaptive constructors
 function default_Fun(f, d::Space)
+    hasnumargs(f,1) || return Fun(xy->f(xy...),d)
+    isinf(dimension(d)) || return Fun(f,d,dimension(d))  # use exactly dimension number of sample points
+
     #TODO: reuse function values?
     T = real(eltype(domain(d)))
 
     r=checkpoints(d)
     f0=f(first(r))
 
-    if isa(f0,AbstractArray) && size(d) ≠ size(f0)
-        return default_Fun(f,Space(fill(d,size(f0))))
-    end
+    isa(f0,AbstractArray) && size(d) ≠ size(f0) && return Fun(f,Space(fill(d,size(f0))))
+
+
 
     tol =T==Any?20eps():20eps(T)
 
@@ -141,26 +144,43 @@ function default_Fun(f, d::Space)
 end
 
 Fun(f::Type, d::Space) = error("Not implemented")
-Fun(f::Function, d::Space) = Fun(dynamic(f), d)
-function Fun(f::DFunction, d::Space)
-    T = eltype(domain(d))
 
-    if f.f == identity
-        identity_fun(d)
-    elseif f.f == zero # zero is always defined
-        zeros(T,d)
-    elseif f.f == one
-        ones(T,d)
-    elseif !hasnumargs(f.f,1)  # Splat out Vec
-        Fun(xy->f(xy...),d)
-    elseif !isinf(dimension(d))
-        Fun(f,d,dimension(d))  # use exactly dimension number of sample points
+
+# special case constructors
+## TODO: remove zeros
+Base.zero(S::Space) = zeros(S)
+Base.zero(::Type{T},S::Space) where {T<:Number} = zeros(T,S)
+Base.zeros(::Type{T},S::Space) where {T<:Number} = Fun(S,zeros(T,1))
+Base.zeros(S::Space) = Fun(S,zeros(1))
+
+# catch all
+Base.ones(S::Space) = Fun(x->1.0,S)
+Base.ones(::Type{T},S::Space) where {T<:Number} = Fun(x->one(T),S)
+
+function Fun(::typeof(identity), d::Domain)
+    cd=canonicaldomain(d)
+    if typeof(d) == typeof(cd)
+        Fun(dynamic(x->x),d) # fall back to constructor, can't use `identity` as that creates a loop
     else
-        default_Fun(f,d)
+        # this allows support for singularities, that the constructor doesn't
+        sf=fromcanonical(d,Fun(identity,cd))
+        Fun(setdomain(space(sf),d),coefficients(sf))
     end
 end
+
+Fun(::typeof(identity), S::Space) = Fun(identity,domain(S))
+
+
+
+Fun(f::typeof(zero), d::Space) = zeros(eltype(domain(d)),d)
+Fun(f::typeof(one), d::Space) = ones(eltype(domain(d)),d)
+
 Fun(f::Type, d::Domain) = Fun(f,Space(d))
 Fun(f::Function, d::Domain) = Fun(f,Space(d))
+
+
+# this is the main constructor
+Fun(f::Function, d::Space) = default_Fun(dynamic(f), d)
 
 # this supports expanding a Fun to a larger or smaller domain.
 # we take the union and then intersection to get at any singularities

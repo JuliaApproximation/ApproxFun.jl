@@ -207,6 +207,8 @@ w+δ
 
 ## PointSpace
 
+@test eltype(domain(ApproxFun.PointSpace([0,0.1,1])) ) == Float64
+
 f=Fun(x->(x-0.1),ApproxFun.PointSpace([0,0.1,1]))
 @test roots(f) == [0.1]
 

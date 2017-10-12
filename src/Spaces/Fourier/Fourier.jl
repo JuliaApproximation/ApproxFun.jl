@@ -407,7 +407,7 @@ for sp in (:Fourier,:CosSpace,:Laurent,:Taylor)
 end
 
 
-function identity_fun(S::Taylor{DD,RR}) where {DD<:Circle,RR}
+function Fun(::typeof(identity), S::Taylor{DD,RR}) where {DD<:Circle,RR}
     d=domain(S)
     if d.orientation
         Fun(S,[d.center,d.radius])
@@ -417,7 +417,8 @@ function identity_fun(S::Taylor{DD,RR}) where {DD<:Circle,RR}
 end
 
 
-identity_fun(S::Fourier{DD,RR}) where {DD<:Circle,RR} = Fun(identity_fun(Laurent(domain(S))),S)
+Fun(::typeof(identity), S::Fourier{DD,RR}) where {DD<:Circle,RR} =
+    Fun(Fun(identity, Laurent(domain(S))),S)
 
 
 reverseorientation(f::Fun{Fourier{DD,RR}}) where {DD,RR} =
