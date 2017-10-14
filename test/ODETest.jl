@@ -135,6 +135,10 @@ Q,R=qr(A)
 u=(R\(Q'*[[1.,0.0],0.0]))
 @test u(0.0)  ≈ 0.3240271368319427
 
+# check that matrix RHS works
+U = QR \ [[[1.,0.],0] [[0.,1.0],0.]]
+@test U[1,1] ≈ u
+
 x=Fun(S)
 A=[Dirichlet(S);Derivative(S)^2 - exp(im*x)]
 QR=qrfact(A)

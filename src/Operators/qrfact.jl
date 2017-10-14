@@ -15,6 +15,9 @@ QROperator(R::CachedOperator,H::AbstractArray,ncs::Int) =
 convert(::Type{Operator{T}},QR::QROperator) where {T} =
     QROperator(Operator{T}(QR.R),AbstractArray{T}(QR.H),QR.ncols)
 
+Base.qrfact(QR::QROperator) = QR
+Base.factorize(QR::QROperator) = QR
+
 for OP in (:domainspace,:rangespace)
     @eval $OP(QR::QROperator) = $OP(QR.R)
 end
