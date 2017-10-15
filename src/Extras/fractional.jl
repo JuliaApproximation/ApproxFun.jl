@@ -204,7 +204,7 @@ for (DTYP,QTYP,DWRAP,QWRAP) in ((:LeftDerivative,:LeftIntegral,:LeftDerivativeWr
         function $DTYP(S::Space,k::Real)
             i=ceil(Int,k)
             r=i-k
-            $DWRAP(i<0?$QTYP(S,-k):Derivative(i)*$QTYP(S,r),k)
+            $DWRAP(i<0 ? $QTYP(S,-k) : Derivative(i)*$QTYP(S,r),k)
         end
         $QTYP(S::SumSpace,k) = $QWRAP(InterlaceOperator(Diagonal([map(s->$QTYP(s,k),S.spaces)...]),SumSpace),k)
     end

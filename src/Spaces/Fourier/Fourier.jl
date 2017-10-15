@@ -183,9 +183,9 @@ points(sp::SinSpace,n)=points(domain(sp),2n+2)[2:n+1]
 for (Typ,Pltr!,Pltr) in ((:TransformPlan,:plan_transform!,:plan_transform),
                          (:ITransformPlan,:plan_itransform!,:plan_itransform))
     @eval begin
-        $Pltr!(sp::SinSpace{DD},x::AbstractVector{T}) where {DD,T<:FFTW.fftwNumber} =
-            $Typ(sp,FFTW.plan_r2r!(x,FFTW.RODFT00),Val{true})
-        $Pltr(sp::SinSpace{DD},x::AbstractVector{T}) where {DD,T<:FFTW.fftwNumber} =
+        $Pltr!(sp::SinSpace{DD},x::AbstractVector{T}) where {DD,T<:fftwNumber} =
+            $Typ(sp,plan_r2r!(x,RODFT00),Val{true})
+        $Pltr(sp::SinSpace{DD},x::AbstractVector{T}) where {DD,T<:fftwNumber} =
             $Typ(sp,$Pltr!(sp,x),Val{false})
         $Pltr!(sp::SinSpace{DD},x::AbstractVector{T}) where {DD,T} =
             error("transform for SinSpace only implemented for fftwNumbers")
@@ -339,15 +339,15 @@ end
 
 points(sp::Fourier{D,R},n) where {D,R}=points(domain(sp),n)
 
-plan_transform!(sp::Fourier{D,R},x::AbstractVector{T}) where {T<:FFTW.fftwNumber,D,R} =
-    TransformPlan(sp,FFTW.plan_r2r!(x, FFTW.R2HC),Val{true})
-plan_itransform!(sp::Fourier{D,R},x::AbstractVector{T}) where {T<:FFTW.fftwNumber,D,R} =
-    ITransformPlan(sp,FFTW.plan_r2r!(x, FFTW.HC2R),Val{true})
+plan_transform!(sp::Fourier{D,R},x::AbstractVector{T}) where {T<:fftwNumber,D,R} =
+    TransformPlan(sp,plan_r2r!(x, R2HC),Val{true})
+plan_itransform!(sp::Fourier{D,R},x::AbstractVector{T}) where {T<:fftwNumber,D,R} =
+    ITransformPlan(sp,plan_r2r!(x, HC2R),Val{true})
 
 for (Typ,Pltr!,Pltr) in ((:TransformPlan,:plan_transform!,:plan_transform),
                          (:ITransformPlan,:plan_itransform!,:plan_itransform))
     @eval begin
-        $Pltr(sp::Fourier{DD,RR},x::AbstractVector{T}) where {T<:FFTW.fftwNumber,DD,RR} =
+        $Pltr(sp::Fourier{DD,RR},x::AbstractVector{T}) where {T<:fftwNumber,DD,RR} =
             $Typ(sp,$Pltr!(sp,x),Val{false})
         $Pltr!(sp::Fourier{DD,RR},x::AbstractVector{T}) where {T,DD,RR} =
             error("transform for Fourier only implemented for fftwNumbers")

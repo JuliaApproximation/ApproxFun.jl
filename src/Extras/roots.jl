@@ -44,8 +44,8 @@ end
 #function roots(f::Fun)
 #    irts=map(real,filter!(x->abs(x)<=1.+10eps(),filter!#(isreal,complexroots(f.coefficients))))
 #
-#    map!(x->x>1.?1.:x,irts)
-#    map!(x->x<-1.?-1.:x,irts)
+#    map!(x->x>1. ? 1. : x,irts)
+#    map!(x->x<-1. ? -1. : x,irts)
 #
 #    if length(irts)==0
 #        Float64[]
@@ -235,8 +235,8 @@ function rootsunit_coeffs(c::Vector{T}, htol::Float64,clplan::ClenshawPlan{S,T})
         # Evaluate the polynomial at Chebyshev grids on both intervals:
         #(clenshaw! overwrites points, which only makes sence if c is real)
 
-        v1 = isa(c,Vector{Float64})?clenshaw!( c, points(-1..splitPoint,n),clplan):clenshaw( c, points(-1..splitPoint,n),clplan)
-        v2 = isa(c,Vector{Float64})?clenshaw!( c, points(splitPoint..1 ,n),clplan):clenshaw( c, points(splitPoint..1 ,n),clplan)
+        v1 = isa(c,Vector{Float64}) ? clenshaw!( c, points(-1..splitPoint,n),clplan) : clenshaw( c, points(-1..splitPoint,n),clplan)
+        v2 = isa(c,Vector{Float64}) ? clenshaw!( c, points(splitPoint..1 ,n),clplan) : clenshaw( c, points(splitPoint..1 ,n),clplan)
 
         # Recurse (and map roots back to original interval):
         p = plan_chebyshevtransform( v1 )

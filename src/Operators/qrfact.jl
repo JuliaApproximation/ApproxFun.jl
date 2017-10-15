@@ -164,7 +164,7 @@ end
 
 \(R::QROperatorR,b::Fun{SequenceSpace};kwds...) =
     Fun(domainspace(R),A_ldiv_B_coefficients(R,b.coefficients;kwds...))
-\(A::QROperatorR,b::Fun;kwds...) = error("\ not implement for $(typeof(b)) right-hand sides")
+\(A::QROperatorR,b::Fun;kwds...) = error("\\ not implement for $(typeof(b)) right-hand sides")
 
 
 # QR

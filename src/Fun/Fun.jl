@@ -271,7 +271,7 @@ for op in (:+,:-)
                 n = max(ncoefficients(f),ncoefficients(g))
                 f2 = pad(f,n); g2 = pad(g,n)
 
-                Fun(isambiguous(domain(f))?g.space:f.space,($op)(f2.coefficients,g2.coefficients))
+                Fun(isambiguous(domain(f)) ? g.space : f.space,($op)(f2.coefficients,g2.coefficients))
             else
                 m=union(f.space,g.space)
                 if isa(m,NoSpace)
@@ -280,7 +280,7 @@ for op in (:+,:-)
                 $op(Fun(f,m),Fun(g,m)) # convert to same space
             end
         end
-        $op(f::Fun{S,T},c::T) where {S,T<:Number} = c==0?f:$op(f,Fun(c))
+        $op(f::Fun{S,T},c::T) where {S,T<:Number} = c==0 ? f : $op(f,Fun(c))
         $op(f::Fun,c::Number) = $op(f,Fun(c))
         $op(f::Fun,c::UniformScaling) = $op(f,c.λ)
         $op(c::UniformScaling,f::Fun) = $op(c.λ,f)
@@ -428,7 +428,7 @@ Base.cumsum(f::Fun,d)=cumsum(f,Domain(d))
 
 function differentiate(f::Fun,k::Integer)
     @assert k >= 0
-    (k==0)?f:differentiate(differentiate(f),k-1)
+    (k==0) ? f : differentiate(differentiate(f),k-1)
 end
 
 

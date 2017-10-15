@@ -1,13 +1,16 @@
 ## Testing
 # These routines are for the unit tests
 
-using Base.Test
-
+if VERSION ≤ v"0.7.0-DEV.1775"
+    using Base.Test
+else
+    using Test
+end
 
 ## Supports @test_approx_eq
 
 
-Base.Test.approx_full(f::Fun) = f
+Test.approx_full(f::Fun) = f
 
 
 

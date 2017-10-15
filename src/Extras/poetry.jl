@@ -28,7 +28,7 @@ for poly in (:chebyshevt,:chebyshevu,:legendre)
     end
 end
 
-ChebyshevWeight(d,k)=k==0?JacobiWeight(-0.5,-0.5,d):JacobiWeight(0.5,0.5,d)
+ChebyshevWeight(d,k)=k==0 ? JacobiWeight(-0.5,-0.5,d) : JacobiWeight(0.5,0.5,d)
 ChebyshevWeight(d)=ChebyshevWeight(d,0)
 ChebyshevWeight(k::Integer)=ChebyshevWeight(Segment(),k)
 ChebyshevWeight()=ChebyshevWeight(0)

@@ -492,7 +492,7 @@ const ∞ = Infinity()
 
 Base.isinf(::Infinity) = true
 Base.isfinite(::Infinity) = false
-Base.sign(y::Infinity{B}) where {B<:Integer} = mod(y.angle,2)==0?1:-1
+Base.sign(y::Infinity{B}) where {B<:Integer} = mod(y.angle,2)==0 ? 1 : -1
 Base.angle(x::Infinity) = π*x.angle
 
 function Base.show(io::IO, y::Infinity{B}) where B<:Integer
