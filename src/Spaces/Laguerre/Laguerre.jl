@@ -27,11 +27,11 @@ domain(::Laguerre) = Ray()
 tocanonical(::Laguerre,x) = x
 
 @inline laguerrerecα(::Type{T},α,k) where {T} = T(2k+α-1)
-@inline laguerrerecβ(::Type{T},::,k) where {T} = T(-k)
+@inline laguerrerecβ(::Type{T},_,k) where {T} = T(-k)
 @inline laguerrerecγ(::Type{T},α,k) where {T} = T(-(k-1+α))
 
 
-@inline laguerrerecA(::Type{T},::,k) where {T} = T(-1/(k+1))
+@inline laguerrerecA(::Type{T},_,k) where {T} = T(-1/(k+1))
 @inline laguerrerecB(::Type{T},α,k) where {T} = T((2k+α+1)/(k+1))
 @inline laguerrerecC(::Type{T},α,k) where {T} = T((k+α)/(k+1))
 

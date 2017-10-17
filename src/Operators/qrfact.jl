@@ -15,6 +15,9 @@ QROperator(R::CachedOperator,H::AbstractArray,ncs::Int) =
 convert(::Type{Operator{T}},QR::QROperator) where {T} =
     QROperator(Operator{T}(QR.R),AbstractArray{T}(QR.H),QR.ncols)
 
+Base.qrfact(QR::QROperator) = QR
+Base.factorize(QR::QROperator) = QR
+
 for OP in (:domainspace,:rangespace)
     @eval $OP(QR::QROperator) = $OP(QR.R)
 end
@@ -161,7 +164,7 @@ end
 
 \(R::QROperatorR,b::Fun{SequenceSpace};kwds...) =
     Fun(domainspace(R),A_ldiv_B_coefficients(R,b.coefficients;kwds...))
-\(A::QROperatorR,b::Fun;kwds...) = error("\ not implement for $(typeof(b)) right-hand sides")
+\(A::QROperatorR,b::Fun;kwds...) = error("\\ not implement for $(typeof(b)) right-hand sides")
 
 
 # QR

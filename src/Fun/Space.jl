@@ -182,7 +182,7 @@ function conversion_type(a,b)
         NoSpace()  # this avoids having to check eachtime
     else
         cr=conversion_rule(a,b)
-        cr==NoSpace()?conversion_rule(b,a):cr
+        cr==NoSpace() ? conversion_rule(b,a) : cr
     end
 end
 
@@ -364,7 +364,7 @@ checkpoints(d::Space) = checkpoints(domain(d))
 # These plans are use to wrap another plan
 for Typ in (:TransformPlan,:ITransformPlan)
     @eval begin
-        struct $Typ{T,SP,inplace,PL} <: FFTW.Plan{T}
+        struct $Typ{T,SP,inplace,PL} <: Plan{T}
             space::SP
             plan::PL
         end
@@ -375,7 +375,7 @@ end
 
 for Typ in (:CanonicalTransformPlan,:ICanonicalTransformPlan)
     @eval begin
-        struct $Typ{T,SP,PL,CSP} <: FFTW.Plan{T}
+        struct $Typ{T,SP,PL,CSP} <: Plan{T}
             space::SP
             plan::PL
             canonicalspace::CSP

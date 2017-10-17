@@ -21,7 +21,7 @@ solves a linear equation, usually differential equation, where `A` is an operato
 or array of operators and `b` is a `Fun` or array of funs.  The result `u`
 will approximately satisfy `A*u = b`.
 """
-\(::Operator,::)
+\(::Operator,_)
 
 # Solve each column separately
 function \(A::Operator,B::AbstractMatrix;kwds...)

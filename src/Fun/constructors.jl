@@ -94,9 +94,9 @@ Fun(f::Function,d::Domain,n) = Fun(dynamic(f),Space(d),n)
 
 
 # We do zero special since zero exists even when one doesn't
-Fun(c::Number,::Type{T}) where {T<:Space} = c==0?zeros(T(AnyDomain())):c*ones(T(AnyDomain()))
-Fun(c::Number,d::Domain) = c==0?c*zeros(d):c*ones(d)
-Fun(c::Number,d::Space) = c==0?c*zeros(prectype(d),d):c*ones(prectype(d),d)
+Fun(c::Number,::Type{T}) where {T<:Space} = c==0 ? zeros(T(AnyDomain())) : c*ones(T(AnyDomain()))
+Fun(c::Number,d::Domain) = c==0 ? c*zeros(d) : c*ones(d)
+Fun(c::Number,d::Space) = c==0 ? c*zeros(prectype(d),d) : c*ones(prectype(d),d)
 
 ## Adaptive constructors
 function default_Fun(f, d::Space)
@@ -113,7 +113,7 @@ function default_Fun(f, d::Space)
 
 
 
-    tol =T==Any?20eps():20eps(T)
+    tol =T==Any ? 20eps() : 20eps(T)
 
 
     fr=map(f,r)
