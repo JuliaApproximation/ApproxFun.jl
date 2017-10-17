@@ -276,3 +276,18 @@ A = Multiplication(mySin,Fourier())
 mySin = Fun(Fourier(),[0,1])
 A = Multiplication(mySin,Fourier())
 @test A.op[1,1] == 0
+
+
+
+## Negatively oriented circles
+
+f1 = Fun(z -> exp(1/z), Circle(0.0,0.2))
+f̃1 = Fun(z -> exp(1/z), Circle(0.0,0.2,false))
+f̃2 = Fun(z -> exp(1/z), Circle(0.0,0.3,false))
+
+@test f1(0.2exp(0.1im)) ≈ exp(1/(0.2exp(0.1im)))
+@test f̃1(0.2exp(0.1im)) ≈ exp(1/(0.2exp(0.1im)))
+@test f̃2(0.3exp(0.1im)) ≈ exp(1/(0.3exp(0.1im)))
+
+@test sum(f1) ≈ -sum(f̃1)
+@test sum(f̃1) ≈ sum(f̃2)
