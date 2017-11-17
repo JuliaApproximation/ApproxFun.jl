@@ -33,7 +33,7 @@ Ray{a}() where {a} = Ray{a,Float64}()
 Base.angle(d::Ray{a}) where {a} = a*π
 
 # ensure the angle is always in (-1,1]
-Ray(c,a,o) = Ray{a==0 ? false : (abs(a)==(1.0π) ? true : mod(a/π-1,-2)+1),typeof(c)}(c,o)
+Ray(c,a,o) = Ray{a==0 ? false : (abs(a)≈(1.0π) ? true : mod(a/π-1,-2)+1),typeof(c)}(c,o)
 Ray(c,a) = Ray(c,a,true)
 
 Ray() = Ray{false}()
@@ -98,6 +98,8 @@ tocanonical(d::Ray,x) =
 tocanonicalD(d::Ray,x) =
     conj(cisangle(d)).*ray_tocanonicalD(d.orientation,conj(cisangle(d)).*(x-d.center))
 fromcanonical(d::Ray,x) = cisangle(d)*ray_fromcanonical(d.orientation,x)+d.center
+fromcanonical(d::Ray{false},x) = ray_fromcanonical(d.orientation,x)+d.center
+fromcanonical(d::Ray{true},x) = -ray_fromcanonical(d.orientation,x)+d.center
 fromcanonicalD(d::Ray,x) = cisangle(d)*ray_fromcanonicalD(d.orientation,x)
 invfromcanonicalD(d::Ray,x) = conj(cisangle(d))*ray_invfromcanonicalD(d.orientation,x)
 

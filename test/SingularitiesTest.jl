@@ -102,6 +102,12 @@ f=x^(-0.123)*exp(-x)
 @test ≈(sum(Fun(sech,0..Inf)),sum(Fun(sech,0..40));atol=1000000eps())
 
 
+f=Fun(sech,Line())
+Fun(f,Ray())(2.0) ≈ sech(2.0)
+Fun(f,Ray(0.,π))(-2.0) ≈ sech(-2.0)
+Fun(sech,Ray(0.,π))(-2.0) ≈ sech(-2.0)
+
+
 #Ei (Exp Integral)
 
 y=Fun(Ray())

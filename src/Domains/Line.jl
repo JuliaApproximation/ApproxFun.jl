@@ -60,8 +60,6 @@ convert(::Type{IT},::AnyDomain) where {IT<:Line}=Line(NaN,NaN)
 
 
 function line_tocanonical(α,β,x)
-
-
     @assert α==β==-1. || α==β==-.5
 
     if α==β==-1.
