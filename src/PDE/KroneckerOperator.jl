@@ -369,11 +369,11 @@ function convert(::Type{BandedBlockBandedMatrix},
     ret = M[k_st:k_st+length(kr)-1,j_st:j_st+length(jr)-1]
 
     # add zero blocks
-    prepend!(ret.rows,zeros(Int,KR[1].K-1))
-    prepend!(ret.cols,zeros(Int,JR[1].K-1))
-    ret.rowblocks[:] += KR[1].K-1
-    ret.colblocks[:] += JR[1].K-1
-    BSH = (JR[1].K-1) - (KR[1].K-1)
+    prepend!(ret.rows,zeros(Int,KR[1].n[1]-1))
+    prepend!(ret.cols,zeros(Int,JR[1].n[1]-1))
+    ret.rowblocks[:] += KR[1].n[1]-1
+    ret.colblocks[:] += JR[1].n[1]-1
+    BSH = (JR[1].n[1]-1) - (KR[1].n[1]-1)
     ret.l -= BSH
     ret.u += BSH
 
@@ -407,7 +407,7 @@ function convert(::Type{BandedBlockBandedMatrix},
     λ,μ = subblockbandwidths(ret)
 
     for J in Block(1):Block(blocksize(ret,2)), K in blockcolrange(ret,J)
-        n,m=KR[K.K].K,JR[J.K].K
+        n,m=KR[K.n[1]].n[1],JR[J.n[1]].n[1]
         Bs = view(ret,K,J)
         l = min(Al,Bu+n-m,λ)
         u = min(Au,Bl+m-n,μ)

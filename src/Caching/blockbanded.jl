@@ -104,8 +104,8 @@ function resizedata!(B::CachedOperator{T,BlockBandedMatrix{T}},::Colon,col::Inte
         J=block(domainspace(B),col)
         col = blockstop(domainspace(B),J)  # pad to end of block
 
-        rows = blocklengths(rangespace(B.op))[1:J.K+l]
-        cols = blocklengths(domainspace(B.op))[1:J.K]
+        rows = blocklengths(rangespace(B.op))[1:J.n[1]+l]
+        cols = blocklengths(domainspace(B.op))[1:J.n[1]]
 
         pad!(B.data.data,bbm_numentries(rows,cols,l,u))
         B.data.rows = rows
@@ -210,9 +210,9 @@ function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
 
     R=MO.data
     # last block, convoluted def to match blockbandedmatrix
-    J_col = block(domainspace(MO),col).K
-    K_end = blockcolstop(MO,J_col).K  # last row block in last column
-    J_end = blockrowstop(MO,K_end).K  # QR will affect up to this column
+    J_col = block(domainspace(MO),col).n[1]
+    K_end = blockcolstop(MO,J_col).n[1]  # last row block in last column
+    J_end = blockrowstop(MO,K_end).n[1]  # QR will affect up to this column
     rs=blockstop(rangespace(MO),J_end)  # we need to resize up this column
     sz=sizeof(T)
 
@@ -241,7 +241,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
 
     @inbounds for k=QR.ncols+1:col
         J1=R.colblocks[k]
-        CS=blockcolstop(R,J1).K
+        CS=blockcolstop(R,J1).n[1]
 
         wp=w+sz*(W.cols[k]-1)          # k-th column of W
 
@@ -273,7 +273,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
 
         # first block
         # scale banded entries
-        BRS1=blockrowstop(R,K1).K
+        BRS1=blockrowstop(R,K1).n[1]
         @inbounds for J=J1:BRS1
             for j = (J==J1 ? k-bc[1]+1 : 1):R.cols[J]  # only do partial columns for first block
                 jshft = (j-1)*nrows1
@@ -298,7 +298,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
 
 
         # now do the blocks where we have zeros
-        @inbounds for J=BRS1+1:blockrowstop(R,CS).K
+        @inbounds for J=BRS1+1:blockrowstop(R,CS).n[1]
             for j=1:R.cols[J]  # only do partial columns for first block
                 dt=zero(T)
                 Mpre=M1 + sum(R.rows[K1+1:K1+J-BRS1-1]) # number of rows in zero blocks

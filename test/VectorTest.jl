@@ -3,6 +3,9 @@ using ApproxFun,Base.Test
                         ArraySpace, testblockbandedoperator
 
 
+@test Fun(x->[1.,0.])(0.) ≈ [1.,0.]
+
+
 x = Fun()
 
 @test x .+ [1,2] ≈ [x+1,x+2]

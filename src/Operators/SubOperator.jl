@@ -19,7 +19,7 @@ checkbounds(A::Operator,kr,jr) =
 
 
 checkbounds(A::Operator,K::Block,J::Block) =
-     1 ≤ K.K ≤ length(blocklengths(rangespace(A))) && 1 ≤ J.K ≤ length(blocklengths(domainspace(A)))
+     1 ≤ K.n[1] ≤ length(blocklengths(rangespace(A))) && 1 ≤ J.n[1] ≤ length(blocklengths(domainspace(A)))
 
 checkbounds(A::Operator,K::BlockRange,J::BlockRange) =
     isempty(K) || isempty(J) || checkbounds(A,maximum(K),maximum(J))
@@ -48,7 +48,7 @@ SubOperator(A,inds,dims::Tuple{Bool,Bool},lu) = SubOperator(A,inds,Int.(dims),lu
 
 function SubOperator(A,inds::Tuple{Block,Block},lu)
     checkbounds(A,inds...)
-    SubOperator(A,inds,(blocklengths(rangespace(A))[inds[1].K],blocklengths(domainspace(A))[inds[2].K]),lu)
+    SubOperator(A,inds,(blocklengths(rangespace(A))[inds[1].n[1]],blocklengths(domainspace(A))[inds[2].n[1]]),lu)
 end
 
 SubOperator(A,inds::Tuple{Block,Block}) = SubOperator(A,inds,subblockbandwidths(A))
@@ -193,7 +193,7 @@ blockbandinds(S::SubOperator{T,OP,Tuple{II,JJ}}) where {T,OP,II<:Range{Int},JJ<:
 function blockbandinds(S::SubOperator{T,B,Tuple{<:BlockRange,<:BlockRange}}) where {T,B}
     KR,JR = parentindexes(S)
     l,u = blockbandinds(parent(S))
-    sh = first(KR).K-first(JR).K
+    sh = first(KR).n[1]-first(JR).n[1]
     l+sh,u+sh
 end
 
@@ -235,7 +235,7 @@ function bbbzeros(S::SubOperator{T,B,Tuple{<:BlockRange,<:BlockRange}}) where {T
     dt=domainspace(KO)
     J=JR[1]
     K=KR[1]
-    bl_sh = J.K-K.K
+    bl_sh = J.n[1]-K.n[1]
 
     KBR = blocklengthrange(rt,KR)
     KJR = blocklengthrange(dt,JR)

@@ -159,6 +159,11 @@ isblockbanded(A::Operator) = isblockbandedbelow(A) && isblockbandedabove(A)
 israggedbelow(A::Operator) = isbandedbelow(A) || isbandedblockbanded(A) || isblockbandedbelow(A)
 
 
+blockbandwidths(S::Operator) = (-blockbandinds(S,1),blockbandinds(S,2))
+blockbandinds(K::Operator,k::Integer) = blockbandinds(K)[k]
+blockbandwidth(K::Operator,k::Integer) = k==1 ? -blockbandinds(K,k) : blockbandinds(K,k)
+
+
 bandwidth(A::Operator) = bandwidth(A,1) + bandwidth(A,2) + 1
 bandwidth(A::Operator,k::Integer) = k==1?-bandinds(A,1):bandinds(A,2)
 bandwidths(A::Operator) = (bandwidth(A,1),bandwidth(A,2))

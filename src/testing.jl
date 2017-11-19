@@ -216,8 +216,8 @@ function testblockbandedoperator(A)
     @test isfinite(blockbandwidth(A,1))
 
     for K=1:10
-        @test K - blockbandwidth(A,2) ≤ blockcolstop(A,K).K ≤ K + blockbandwidth(A,1) < ∞
-        @test K - blockbandwidth(A,1) ≤ blockrowstop(A,K).K ≤ K + blockbandwidth(A,2) < ∞
+        @test K - blockbandwidth(A,2) ≤ blockcolstop(A,K).n[1] ≤ K + blockbandwidth(A,1) < ∞
+        @test K - blockbandwidth(A,1) ≤ blockrowstop(A,K).n[1] ≤ K + blockbandwidth(A,2) < ∞
     end
 end
 

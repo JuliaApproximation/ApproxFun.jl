@@ -34,6 +34,9 @@ import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, bandshift,
                         colstart, colstop, colrange, rowstart, rowstop, rowrange,
                         bandwidths, αA_mul_B_plus_βC!, showarray
 
+import BlockBandedMatrices: blockbandwidth, blockbandwidths, blockcolstop,
+                            blockcolstart, blockrowstop, blockrowstart
+
 import Base: view
 
 import StaticArrays: SVector

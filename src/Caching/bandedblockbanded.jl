@@ -17,7 +17,7 @@ function resizedata!(B::CachedOperator{T,BandedBlockBandedMatrix{T}},::Colon,col
 
     if col > B.datasize[2]
         l=B.data.l; u=B.data.u
-        J=block(domainspace(B),col).K
+        J=block(domainspace(B),col).n[1]
 
         rows=blocklengths(rangespace(B.op))[1:J+l]
         cols=blocklengths(domainspace(B.op))[1:J]
@@ -46,7 +46,7 @@ function resizedata!(B::CachedOperator{T,BandedBlockBandedMatrix{T}},n::Integer,
     end
 
     # make sure we have enough rows
-    K=block(rangespace(B),n).K
+    K=block(rangespace(B),n).n[1]
     rows=blocklengths(rangespace(B.op))[1:K]
     B.data.rows=rows
     B.data.rowblocks=blocklookup(rows)

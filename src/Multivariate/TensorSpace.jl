@@ -133,7 +133,7 @@ function block(it::Tensorizer{Tuple{Repeated{Bool},Vector{Bool}}},n::Int)::Block
 end
 
 blocklength(it,k) = blocklengths(it)[k]
-blocklength(it,k::Block) = blocklength(it,k.K)
+blocklength(it,k::Block) = blocklength(it,k.n[1])
 blocklength(it,k::BlockRange) = blocklength(it,Int.(k))
 
 blocklengths(::TrivialTensorizer{2}) = 1:∞
@@ -154,7 +154,7 @@ end
 function getindex(it::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Integer) where {S,T}
     a,b = it.blocks[1].x,it.blocks[2].x
     nb1,nr = fldmod(n-1,a*b) # nb1 = "nb" - 1, i.e. using zero-base
-    m1=block(it,n).K-1
+    m1=block(it,n).n[1]-1
     pb1=fld(findfirst(it,(1,b*m1+1))-1,a*b)
     jb1=nb1-pb1
     kr1,jr1 = fldmod(nr,a)
@@ -166,8 +166,8 @@ blockstart(it,K)::Int = K==1?1:sum(blocklengths(it)[1:K-1])+1
 blockstop(it,::Infinity{Bool}) = ∞
 blockstop(it,K)::Int = sum(blocklengths(it)[1:K])
 
-blockstart(it,K::Block) = blockstart(it,K.K)
-blockstop(it,K::Block) = blockstop(it,K.K)
+blockstart(it,K::Block) = blockstart(it,K.n[1])
+blockstop(it,K::Block) = blockstop(it,K.n[1])
 
 
 blockrange(it,K) = blockstart(it,K):blockstop(it,K)
@@ -178,10 +178,10 @@ blockrange(it,K::BlockRange) = blockstart(it,K[1]):blockstop(it,K[end])
 
 # convert from block, subblock to tensor
 subblock2tensor(rt::TrivialTensorizer{2},K,k) =
-    (k,K.K-k+1)
+    (k,K.n[1]-k+1)
 
 subblock2tensor(rt::CachedIterator{II,TrivialTensorizer{2}},K,k) where {II} =
-    (k,K.K-k+1)
+    (k,K.n[1]-k+1)
 
 
 subblock2tensor(rt::CachedIterator,K,k) = rt[blockstart(rt,K)+k-1]
@@ -566,8 +566,8 @@ function totensor(it::Tensorizer,M::AbstractVector)
     B=block(it,n)
     ds = dimensions(it)
 
-    ret=zeros(eltype(M),sum(it.blocks[1][1:min(B.K,length(it.blocks[1]))]),
-                        sum(it.blocks[2][1:min(B.K,length(it.blocks[2]))]))
+    ret=zeros(eltype(M),sum(it.blocks[1][1:min(B.n[1],length(it.blocks[1]))]),
+                        sum(it.blocks[2][1:min(B.n[1],length(it.blocks[2]))]))
     k=1
     for (K,J) in it
         if k > n
