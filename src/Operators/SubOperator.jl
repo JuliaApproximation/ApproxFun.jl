@@ -19,10 +19,12 @@ checkbounds(A::Operator,kr,jr) =
 
 
 checkbounds(A::Operator,K::Block,J::Block) =
-     1 ≤ K.n[1] ≤ length(blocklengths(rangespace(A))) && 1 ≤ J.n[1] ≤ length(blocklengths(domainspace(A)))
+     1 ≤ K.n[1] ≤ length(blocklengths(rangespace(A))) &&
+     1 ≤ J.n[1] ≤ length(blocklengths(domainspace(A)))
 
-checkbounds(A::Operator,K::BlockRange,J::BlockRange) =
-    isempty(K) || isempty(J) || checkbounds(A,maximum(K),maximum(J))
+checkbounds(A::Operator,K::BlockRange{1},J::BlockRange{1}) =
+    isempty(K) || isempty(J) ||
+        checkbounds(A, Block(maximum(K.indices[1])), Block(maximum(J.indices[1])))
 
 
 
@@ -51,10 +53,11 @@ function SubOperator(A,inds::Tuple{Block,Block},lu)
     SubOperator(A,inds,(blocklengths(rangespace(A))[inds[1].n[1]],blocklengths(domainspace(A))[inds[2].n[1]]),lu)
 end
 
-SubOperator(A,inds::Tuple{Block,Block}) = SubOperator(A,inds,subblockbandwidths(A))
-function SubOperator(A,inds::Tuple{<:BlockRange,<:BlockRange})
+SubOperator(A, inds::Tuple{Block,Block}) = SubOperator(A,inds,subblockbandwidths(A))
+function SubOperator(A, inds::Tuple{BlockRange{1,R},BlockRange{1,R}}) where R
     checkbounds(A,inds...)
-    dims = (sum(blocklengths(rangespace(A))[Int.(inds[1])]),sum(blocklengths(domainspace(A))[Int.(inds[2])]))
+    dims = (sum(blocklengths(rangespace(A))[inds[1].indices[1]]),
+            sum(blocklengths(domainspace(A))[inds[2].indices[1]]))
     SubOperator(A,inds,dims,(dims[1]-1,dims[2]-1))
 end
 
@@ -127,16 +130,16 @@ reindex(A::Operator, B::Tuple{Block,Any}, kj::Tuple{Any,Any}) =
     (reindex(rangespace(A),(B[1],), (kj[1],))[1], reindex(domainspace(A),tail(B), tail(kj))[1])
 # always reindex left-to-right, so if we have only a single tuple, then
 # we must be the domainspace
-reindex(A::Operator, B::Tuple{Block}, kj::Tuple{Any}) = reindex(domainspace(A),B,kj)
+reindex(A::Operator, B::Tuple{Block{1}}, kj::Tuple{Any}) = reindex(domainspace(A),B,kj)
 
-reindex(A::Operator, B::Tuple{AbstractVector{Block},Any}, kj::Tuple{Any,Any}) =
+reindex(A::Operator, B::Tuple{BlockRange1,Any}, kj::Tuple{Any,Any}) =
     (reindex(rangespace(A),(B[1],), (kj[1],))[1], reindex(domainspace(A),tail(B), tail(kj))[1])
 # always reindex left-to-right, so if we have only a single tuple, then
 # we must be the domainspace
-reindex(A::Operator, B::Tuple{AbstractVector{Block}}, kj::Tuple{Any}) =
+reindex(A::Operator, B::Tuple{BlockRange1}, kj::Tuple{Any}) =
     reindex(domainspace(A),B,kj)
 # Blocks are preserved under ranges
-for TYP in (:Block,:(AbstractVector{Block}),:(AbstractCount{Block})),
+for TYP in (:Block,:BlockRange1,:(AbstractVector{Block{1}}),:(AbstractCount{Block{1}})),
         VTYP in (:AbstractVector,:AbstractCount)
     @eval begin
         reindex(A::Operator, B::Tuple{$VTYP{Int},Any}, kj::Tuple{$TYP,Any}) =
@@ -190,7 +193,7 @@ israggedbelow(S::SubOperator) = israggedbelow(parent(S))
 # since blocks don't change with indexex, neither do blockbandinds
 blockbandinds(S::SubOperator{T,OP,Tuple{II,JJ}}) where {T,OP,II<:Range{Int},JJ<:Range{Int}} =
     blockbandinds(parent(S))
-function blockbandinds(S::SubOperator{T,B,Tuple{<:BlockRange,<:BlockRange}}) where {T,B}
+function blockbandinds(S::SubOperator{T,B,Tuple{BlockRange1,BlockRange1}}) where {T,B}
     KR,JR = parentindexes(S)
     l,u = blockbandinds(parent(S))
     sh = first(KR).n[1]-first(JR).n[1]
@@ -225,7 +228,7 @@ function bbbzeros(S::SubOperator)
             blocklengths(domainspace(S)))
 end
 
-function bbbzeros(S::SubOperator{T,B,Tuple{<:BlockRange,<:BlockRange}}) where {T,B}
+function bbbzeros(S::SubOperator{T,B,Tuple{BlockRange1,BlockRange1}}) where {T,B}
     KR,JR=parentindexes(S)
     KO=parent(S)
     l,u=blockbandinds(KO)::Tuple{Int,Int}
@@ -303,7 +306,7 @@ for TYP in (:RaggedMatrix,:Matrix)
 end
 
 # fast converts to banded matrices would be based on indices, not blocks
-function convert(::Type{BandedMatrix},S::SubOperator{T,B,Tuple{<:BlockRange,<:BlockRange}}) where {T,B}
+function convert(::Type{BandedMatrix},S::SubOperator{T,B,Tuple{BlockRange1,BlockRange1}}) where {T,B}
     A = parent(S)
     ds = domainspace(A)
     rs = rangespace(A)

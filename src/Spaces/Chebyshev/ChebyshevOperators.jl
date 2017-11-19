@@ -278,5 +278,5 @@ end
 
 
 
-ReverseOrientation(S::Chebyshev) = ReverseOrientationWrapper(SpaceOperator(NegateEven(),S,reverseorientation(S)))
-Reverse(S::Chebyshev) = ReverseWrapper(SpaceOperator(NegateEven(),S,S))
+ReverseOrientation(S::Chebyshev) = ReverseOrientationWrapper(NegateEven(S,reverseorientation(S)))
+Reverse(S::Chebyshev) = ReverseWrapper(NegateEven(S,S))

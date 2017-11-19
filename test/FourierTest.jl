@@ -1,4 +1,4 @@
-using ApproxFun, Base.Test
+using ApproxFun, Base.Test, BlockArrays
     import ApproxFun: testspace, testtransforms, testmultiplication,
                       testbandedoperator, testcalculus
 
@@ -251,10 +251,12 @@ B=Evaluation(Laurent(0..2π),0,1)
 
 
 ## Conversion between reverse
+
 C = Conversion(SinSpace()⊕CosSpace(),Fourier())
+@test C[Block(1), Block(1)] ≈ [0 1; 1 0]
+@test ApproxFun.defaultgetindex(C, Block.(1:2), Block.(1:2)) isa AbstractMatrix
+
 testbandedoperator(C)
-
-
 
 ## Diagonal Derivative
 D = Derivative(Laurent())

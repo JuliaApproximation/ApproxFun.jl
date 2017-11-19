@@ -341,8 +341,8 @@ transformtimes(f::Fun{Fourier{D,R}},g::Fun{SS}) where {SS<:SinSpace,D,R} = trans
 transformtimes(f::Fun{SS},g::Fun{CS}) where {SS<:SinSpace,CS<:CosSpace} = transformtimes(g,f)
 
 
-ReverseOrientation(S::Fourier{D}) where {D} = ReverseOrientationWrapper(SpaceOperator(NegateEven(),S,reverseorientation(S)))
-Reverse(S::Fourier{D}) where {D} = ReverseWrapper(SpaceOperator(NegateEven(),S,S))
+ReverseOrientation(S::Fourier{D}) where {D} = ReverseOrientationWrapper(NegateEven(S,reverseorientation(S)))
+Reverse(S::Fourier{D}) where {D} = ReverseWrapper(NegateEven(S,S))
 
 
 

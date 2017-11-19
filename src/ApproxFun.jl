@@ -2,9 +2,20 @@ __precompile__()
 
 module ApproxFun
     using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers,
-            BlockArrays, BandedMatrices, BlockBandedMatrices, IntervalSets, Compat,
-            AbstractFFTs, FFTW
+            BlockArrays, BandedMatrices, BlockBandedMatrices, IntervalSets, Compat
     import StaticArrays, ToeplitzMatrices, Calculus
+
+if VERSION < v"0.7-"
+    using Base.FFTW
+    import Base.FFTW: Plan
+    import Base.FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
+                    r2r!, r2r
+else
+    using AbstractFFTs, FFTW
+    import AbstractFFTs: Plan
+    import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
+                    r2r!, r2r
+end
 
 import Base.LinAlg: BlasInt, BlasFloat, norm
 
@@ -35,15 +46,15 @@ import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, bandshift,
                         bandwidths, αA_mul_B_plus_βC!, showarray
 
 import BlockBandedMatrices: blockbandwidth, blockbandwidths, blockcolstop,
-                            blockcolstart, blockrowstop, blockrowstart
+                            blockcolstart, blockrowstop, blockrowstart,
+                            subblockbandwidth, subblockbandwidths
+
+# convenience for 1-d block ranges
+const BlockRange1 = BlockRange{1,Tuple{UnitRange{Int}}}
 
 import Base: view
 
 import StaticArrays: SVector
-
-import AbstractFFTs: Plan
-import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
-                r2r!, r2r
 
 const Vec{d,T} = SVector{d,T}
 

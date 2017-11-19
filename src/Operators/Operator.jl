@@ -163,6 +163,11 @@ blockbandwidths(S::Operator) = (-blockbandinds(S,1),blockbandinds(S,2))
 blockbandinds(K::Operator,k::Integer) = blockbandinds(K)[k]
 blockbandwidth(K::Operator,k::Integer) = k==1 ? -blockbandinds(K,k) : blockbandinds(K,k)
 
+subblockbandwidths(K::Operator) = -subblockbandinds(K,1),subblockbandinds(K,2)
+subblockbandinds(K::Operator) = subblockbandinds(K,1),subblockbandinds(K,2)
+subblockbandwidth(K::Operator,k::Integer) = k==1 ? -subblockbandinds(K,k) : subblockbandinds(K,k)
+
+
 
 bandwidth(A::Operator) = bandwidth(A,1) + bandwidth(A,2) + 1
 bandwidth(A::Operator,k::Integer) = k==1?-bandinds(A,1):bandinds(A,2)
@@ -225,6 +230,12 @@ defaultgetindex(B::Operator,k::Range,j::Range) = AbstractMatrix(view(B,k,j))
 
 defaultgetindex(op::Operator,k::Integer,j::Range) = eltype(op)[op[k,j] for j in j]
 defaultgetindex(op::Operator,k::Range,j::Integer) = eltype(op)[op[k,j] for k in k]
+
+defaultgetindex(B::Operator,k::Block,j::BlockRange) = AbstractMatrix(view(B,k,j))
+defaultgetindex(B::Operator,k::BlockRange,j::BlockRange) = AbstractMatrix(view(B,k,j))
+
+defaultgetindex(op::Operator,k::Integer,j::BlockRange) = eltype(op)[op[k,j] for j in j]
+defaultgetindex(op::Operator,k::BlockRange,j::Integer) = eltype(op)[op[k,j] for k in k]
 
 
 # Colon casdes
@@ -382,7 +393,7 @@ function defaultgetindex(A::Operator,::Type{FiniteRange},jr::AbstractVector{Int}
     A[1:cs,jr]
 end
 
-function defaultgetindex(A::Operator,::Type{FiniteRange},jr::AbstractVector{Block})
+function defaultgetindex(A::Operator,::Type{FiniteRange},jr::BlockRange{1})
     cs = (isbanded(A) || isblockbandedbelow(A)) ? blockcolstop(A,maximum(jr)) : mapreduce(j->blockcolstop(A,j),max,jr)
     A[Block(1):cs,jr]
 end
@@ -392,7 +403,7 @@ function Base.view(A::Operator,::Type{FiniteRange},jr::AbstractVector{Int})
     view(A,1:cs,jr)
 end
 
-function Base.view(A::Operator,::Type{FiniteRange},jr::AbstractVector{Block})
+function Base.view(A::Operator,::Type{FiniteRange},jr::BlockRange{1})
     cs = (isbanded(A) || isblockbandedbelow(A)) ? blockcolstop(A,maximum(jr)) : mapreduce(j->blockcolstop(A,j),max,jr)
     view(A,Block(1):cs,jr)
 end
@@ -494,15 +505,15 @@ macro wrappergetindex(Wrap)
 
         # fast converts to banded matrices would be based on indices, not blocks
         function Base.convert(::Type{BandedMatrices.BandedMatrix},
-                              S::ApproxFun.SubOperator{T,OP,Tuple{<:BlockRange,
-                                                                  <:BlockRange}}) where {T,OP<:$Wrap}
+                              S::ApproxFun.SubOperator{T,OP,Tuple{BlockRange1,
+                                                                  BlockRange1}}) where {T,OP<:$Wrap}
             A = parent(S)
             ds = domainspace(A)
             rs = rangespace(A)
             KR,JR = parentindexes(S)
             BandedMatrix(view(A,
-                              blockstart(rs,KR[1]):blockstop(rs,KR[end]),
-                              blockstart(ds,JR[1]):blockstop(ds,JR[end])))
+                              blockstart(rs,first(KR)):blockstop(rs,last(KR)),
+                              blockstart(ds,first(JR)):blockstop(ds,last(JR))))
         end
 
 

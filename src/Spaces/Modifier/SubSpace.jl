@@ -50,18 +50,18 @@ blocklengths(sp::SubSpace) = error("Not implemented for non-unitrange subspaces"
 
 
 ## Block reindexing for SubSpace
-reindex(sp::SubSpace, b::Tuple{Block}, ks::Tuple{Any}) = (blockstart(sp.space,b[1])+ks[1]-1,)
-reindex(sp::SubSpace, br::Tuple{<:BlockRange}, ks::Tuple{Block}) = (br[1][ks[1].n[1]],)
-reindex(sp::SubSpace, br::Tuple{<:BlockRange}, ks::Tuple{Any}) = (blockstart(sp.space,first(br[1]))+ks[1]-1,)
+reindex(sp::SubSpace, b::Tuple{Block{1}}, ks::Tuple{Any}) = (blockstart(sp.space,b[1])+ks[1]-1,)
+reindex(sp::SubSpace, br::Tuple{BlockRange1}, ks::Tuple{Block{1}}) = (br[1][ks[1].n[1]],)
+reindex(sp::SubSpace, br::Tuple{BlockRange1}, ks::Tuple{Any}) = (blockstart(sp.space,first(br[1]))+ks[1]-1,)
 
 # blocks stay the same with unit range indices
-reindex(sp::SubSpace, br::Tuple{AbstractVector{Int}}, ks::Tuple{Block}) =
+reindex(sp::SubSpace, br::Tuple{AbstractVector{Int}}, ks::Tuple{Block{1}}) =
     reindex(sp, br, (blockrange(sp,first(ks)),))
-reindex(sp::SubSpace, br::Tuple{AbstractCount{Int}}, ks::Tuple{Block}) =
+reindex(sp::SubSpace, br::Tuple{AbstractCount{Int}}, ks::Tuple{Block{1}}) =
     reindex(sp, br, (blockrange(sp,first(ks)),))
-reindex(sp::SubSpace, br::Tuple{AbstractVector{Int}}, ks::Tuple{<:BlockRange}) =
+reindex(sp::SubSpace, br::Tuple{AbstractVector{Int}}, ks::Tuple{BlockRange1}) =
     reindex(sp, br, (blockrange(sp,first(ks)),))
-reindex(sp::SubSpace, br::Tuple{AbstractCount{Int}}, ks::Tuple{<:BlockRange}) =
+reindex(sp::SubSpace, br::Tuple{AbstractCount{Int}}, ks::Tuple{BlockRange1}) =
     reindex(sp, br, (blockrange(sp,first(ks)),))
 
 
@@ -70,8 +70,8 @@ blocklengths(sp::SubSpace{DS,Block}) where {DS} = [blocklengths(sp.space)[sp.ind
 dimension(sp::SubSpace{DS,Block}) where {DS} = blocklengths(sp.space)[sp.indexes.n[1]]
 
 
-blocklengths(sp::SubSpace{DS,<:BlockRange}) where {DS} = blocklengths(sp.space)[Int.(sp.indexes)]
-dimension(sp::SubSpace{DS,<:BlockRange}) where {DS} = sum(blocklengths(sp.space)[Int.(sp.indexes)])
+blocklengths(sp::SubSpace{DS,BlockRange1}) where {DS} = blocklengths(sp.space)[Int.(sp.indexes)]
+dimension(sp::SubSpace{DS,BlockRange1}) where {DS} = sum(blocklengths(sp.space)[Int.(sp.indexes)])
 
 
 block(_,B::Block) = B
