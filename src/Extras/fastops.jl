@@ -92,25 +92,26 @@ function convert(::Type{BandedMatrix},
     ret
 end
 
-function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteConversion{Ultraspherical{LT,DD,RR},Ultraspherical{LT,DD,RR},T},
+function convert(::Type{BandedMatrix},V::SubOperator{T,ConcreteConversion{Ultraspherical{LT,DD,RR},Ultraspherical{LT,DD,RR},T},
                                                                   Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,LT,DD,RR}
 
-    n,m = size(S)
-    ret = BandedMatrix(eltype(S),n,m,bandwidth(S,1),bandwidth(S,2))
-    kr,jr = parentindexes(S)
-    dg = diagindshift(S)
+    n,m = size(V)
+    V_l, V_u = bandwidths(V)
+    ret = BandedMatrix(eltype(V),n,m,V_l, V_u)
+    kr,jr = parentindexes(V)
+    dg = diagindshift(V)
 
 
-    λ = order(rangespace(parent(S)))
+    λ = order(rangespace(parent(V)))
     c = λ-one(T)
 
     # need to drop columns
 
 
 
-    ret[band(dg)] .= c./(jr[max(0,dg)+1:min(n+dg,m)] .- 2 .+ λ)
-    ret[band(dg+1)] = 0
-    ret[band(dg+2)] .= c./(2 .- λ .- jr[max(0,dg+2)+1:min(n+dg+2,m)])
+    1-n ≤ dg ≤ m-1 && (ret[band(dg)] .= c./(jr[max(0,dg)+1:min(n+dg,m)] .- 2 .+ λ))
+    1-n ≤ dg+1 ≤ m-1 && (ret[band(dg+1)] = 0)
+    1-n ≤ dg+2 ≤ m-1 && (ret[band(dg+2)] .= c./(2 .- λ .- jr[max(0,dg+2)+1:min(n+dg+2,m)]))
 
     ret
 end

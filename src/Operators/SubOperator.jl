@@ -312,8 +312,8 @@ function convert(::Type{BandedMatrix},S::SubOperator{T,B,Tuple{BlockRange1,Block
     rs = rangespace(A)
     KR,JR = parentindexes(S)
     BandedMatrix(view(A,
-                      blockstart(rs,KR[1]):blockstop(rs,KR[end]),
-                      blockstart(ds,JR[1]):blockstop(ds,JR[end])))
+                      blockstart(rs,first(KR)):blockstop(rs,last(KR)),
+                      blockstart(ds,first(JR)):blockstop(ds,last(JR))))
 end
 
 
