@@ -134,7 +134,7 @@ end
 
 blocklength(it,k) = blocklengths(it)[k]
 blocklength(it,k::Block) = blocklength(it,k.K)
-blocklength(it,k::Range{Block}) = blocklength(it,Int.(k))
+blocklength(it,k::BlockRange) = blocklength(it,Int.(k))
 
 blocklengths(::TrivialTensorizer{2}) = 1:∞
 
@@ -171,7 +171,7 @@ blockstop(it,K::Block) = blockstop(it,K.K)
 
 
 blockrange(it,K) = blockstart(it,K):blockstop(it,K)
-blockrange(it,K::UnitRange{Block}) = blockstart(it,K[1]):blockstop(it,K[end])
+blockrange(it,K::BlockRange) = blockstart(it,K[1]):blockstop(it,K[end])
 
 
 

@@ -21,7 +21,7 @@ checkbounds(A::Operator,kr,jr) =
 checkbounds(A::Operator,K::Block,J::Block) =
      1 ≤ K.K ≤ length(blocklengths(rangespace(A))) && 1 ≤ J.K ≤ length(blocklengths(domainspace(A)))
 
-checkbounds(A::Operator,K::Range{Block},J::Range{Block}) =
+checkbounds(A::Operator,K::BlockRange,J::BlockRange) =
     isempty(K) || isempty(J) || checkbounds(A,maximum(K),maximum(J))
 
 
@@ -52,7 +52,7 @@ function SubOperator(A,inds::Tuple{Block,Block},lu)
 end
 
 SubOperator(A,inds::Tuple{Block,Block}) = SubOperator(A,inds,subblockbandwidths(A))
-function SubOperator(A,inds::Tuple{UnitRange{Block},UnitRange{Block}})
+function SubOperator(A,inds::Tuple{<:BlockRange,<:BlockRange})
     checkbounds(A,inds...)
     dims = (sum(blocklengths(rangespace(A))[Int.(inds[1])]),sum(blocklengths(domainspace(A))[Int.(inds[2])]))
     SubOperator(A,inds,dims,(dims[1]-1,dims[2]-1))
@@ -113,7 +113,7 @@ view(A::Operator,K::Block,j::Colon) = view(A,blockrows(A,K),j)
 view(A::Operator,k::Colon,J::Block) = view(A,k,blockcols(A,J))
 view(A::Operator,K::Block,j) = view(A,blockrows(A,K),j)
 view(A::Operator,k,J::Block) = view(A,k,blockcols(A,J))
-view(A::Operator,KR::UnitRange{Block},JR::UnitRange{Block}) = SubOperator(A,(KR,JR))
+view(A::Operator,KR::BlockRange,JR::BlockRange) = SubOperator(A,(KR,JR))
 
 view(A::Operator,k,j) = SubOperator(A,(k,j))
 
@@ -190,7 +190,7 @@ israggedbelow(S::SubOperator) = israggedbelow(parent(S))
 # since blocks don't change with indexex, neither do blockbandinds
 blockbandinds(S::SubOperator{T,OP,Tuple{II,JJ}}) where {T,OP,II<:Range{Int},JJ<:Range{Int}} =
     blockbandinds(parent(S))
-function blockbandinds(S::SubOperator{T,B,Tuple{UnitRange{Block},UnitRange{Block}}}) where {T,B}
+function blockbandinds(S::SubOperator{T,B,Tuple{<:BlockRange,<:BlockRange}}) where {T,B}
     KR,JR = parentindexes(S)
     l,u = blockbandinds(parent(S))
     sh = first(KR).K-first(JR).K
@@ -225,7 +225,7 @@ function bbbzeros(S::SubOperator)
             blocklengths(domainspace(S)))
 end
 
-function bbbzeros(S::SubOperator{T,B,Tuple{UnitRange{Block},UnitRange{Block}}}) where {T,B}
+function bbbzeros(S::SubOperator{T,B,Tuple{<:BlockRange,<:BlockRange}}) where {T,B}
     KR,JR=parentindexes(S)
     KO=parent(S)
     l,u=blockbandinds(KO)::Tuple{Int,Int}
@@ -303,7 +303,7 @@ for TYP in (:RaggedMatrix,:Matrix)
 end
 
 # fast converts to banded matrices would be based on indices, not blocks
-function convert(::Type{BandedMatrix},S::SubOperator{T,B,Tuple{UnitRange{Block},UnitRange{Block}}}) where {T,B}
+function convert(::Type{BandedMatrix},S::SubOperator{T,B,Tuple{<:BlockRange,<:BlockRange}}) where {T,B}
     A = parent(S)
     ds = domainspace(A)
     rs = rangespace(A)

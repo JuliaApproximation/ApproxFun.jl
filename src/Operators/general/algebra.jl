@@ -108,7 +108,7 @@ end
 
 for TYP in (:RaggedMatrix,:Matrix,:BandedMatrix,
             :BlockBandedMatrix,:BandedBlockBandedMatrix)
-    @eval convert(::Type{$TYP},P::SubOperator{T,PP,Tuple{UnitRange{Block},UnitRange{Block}}}) where {T,PP<:PlusOperator} =
+    @eval convert(::Type{$TYP},P::SubOperator{T,PP,Tuple{<:BlockRange,<:BlockRange}}) where {T,PP<:PlusOperator} =
         convert_axpy!($TYP,P)   # use axpy! to copy
     @eval convert(::Type{$TYP},P::SubOperator{T,PP}) where {T,PP<:PlusOperator} =
         convert_axpy!($TYP,P)   # use axpy! to copy
@@ -201,7 +201,7 @@ for (TYP,ZERS) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
     @eval begin
         # avoid ambiugity
         convert(::Type{$TYP},
-                     S::SubOperator{T,OP,Tuple{UnitRange{Block},UnitRange{Block}}}) where {T,OP<:ConstantTimesOperator} =
+                     S::SubOperator{T,OP,Tuple{<:BlockRange,<:BlockRange}}) where {T,OP<:ConstantTimesOperator} =
             convert_axpy!($TYP,S)
         convert(::Type{$TYP},S::SubOperator{T,OP}) where {T,OP<:ConstantTimesOperator} =
             convert_axpy!($TYP,S)
@@ -439,7 +439,7 @@ end
 for (STyp,Zer) in ((:BandedBlockBandedMatrix,:bbbzeros),
                     (:BlockBandedMatrix,:bbzeros))
     @eval function convert(::Type{$STyp},
-   S::SubOperator{T,TO,Tuple{UnitRange{Block},UnitRange{Block}}}) where {T,TO<:TimesOperator}
+   S::SubOperator{T,TO,Tuple{<:BlockRange,<:BlockRange}}) where {T,TO<:TimesOperator}
         P=parent(S)
         KR,JR=parentindexes(S)
 

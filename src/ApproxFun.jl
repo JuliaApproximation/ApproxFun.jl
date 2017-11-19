@@ -1,7 +1,8 @@
 __precompile__()
 
 module ApproxFun
-    using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers, BandedMatrices, IntervalSets, Compat,
+    using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers,
+            BlockArrays, BandedMatrices, BlockBandedMatrices, IntervalSets, Compat,
             AbstractFFTs, FFTW
     import StaticArrays, ToeplitzMatrices, Calculus
 

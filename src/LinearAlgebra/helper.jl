@@ -726,13 +726,13 @@ repeated(x,::Infinity{Bool}) = repeated(x)
 repeated(x,m::Integer) = take(repeated(x),m)
 
 
-abstract type AbstractCount{S<:Number} <: Iterator end
+abstract type AbstractCount{S} <: Iterator end
 
-struct UnitCount{S<:Number} <: AbstractCount{S}
+struct UnitCount{S} <: AbstractCount{S}
     start::S
 end
 
-struct Count{S<:Number} <: AbstractCount{S}
+struct Count{S} <: AbstractCount{S}
     start::S
     step::S
 end

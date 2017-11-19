@@ -298,9 +298,9 @@ DefiniteIntegral(S::TensorSpace) = DefiniteIntegralWrapper(mapreduce(DefiniteInt
 ### Copy
 
 # finds block lengths for a subrange
-blocklengthrange(rt,B::Block) = [blocklength(rt,B)]
-blocklengthrange(rt,B::Range{Block}) = blocklength(rt,B)
-function blocklengthrange(rt,kr)
+blocklengthrange(rt, B::Block) = [blocklength(rt,B)]
+blocklengthrange(rt, B::BlockRange) = blocklength(rt,B)
+function blocklengthrange(rt, kr)
     KR=block(rt,first(kr)):block(rt,last(kr))
     Klengths=Vector{Int}(length(KR))
     for ν in eachindex(KR)
@@ -393,7 +393,7 @@ const Trivial2DTensorizer = CachedIterator{Tuple{Int64,Int64},
 function convert(::Type{BandedBlockBandedMatrix},
                       S::SubOperator{T,KroneckerOperator{SS,V,DS,RS,
                                      Trivial2DTensorizer,Trivial2DTensorizer,T},
-                                     Tuple{UnitRange{Block},UnitRange{Block}}}) where {SS,V,DS,RS,T}
+                                     Tuple{<:BlockRange,<:BlockRange}}) where {SS,V,DS,RS,T}
     KR,JR=parentindexes(S)
     KO=parent(S)
 

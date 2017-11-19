@@ -83,7 +83,7 @@ end
 
 ## Grow cached operator
 #
-function resizedata!(B::CachedOperator{T,BlockBandedMatrix{T,RI,DI}},::Colon,col::Integer) where {T<:Number,RI,DI}
+function resizedata!(B::CachedOperator{T,BlockBandedMatrix{T}},::Colon,col::Integer) where {T<:Number}
     if col > size(B,2)
         throw(ArgumentError("Cannot resize beyound size of operator"))
     end
@@ -124,7 +124,7 @@ function resizedata!(B::CachedOperator{T,BlockBandedMatrix{T,RI,DI}},::Colon,col
     B
 end
 
-function resizedata!(B::CachedOperator{T,BlockBandedMatrix{T,RI,DI}},n::Integer,m::Integer) where {T<:Number,RI,DI}
+function resizedata!(B::CachedOperator{T,BlockBandedMatrix{T}},n::Integer,m::Integer) where {T<:Number}
     N = block(rangespace(B),n)
     m̃ = blockstart(domainspace(B),N)
     resizedata!(B,:,max(m,m̃))
@@ -134,13 +134,13 @@ end
 ## QR
 # we use a RaggedMatrix to represent the growing lengths of the
 # householder reflections
-QROperator(R::CachedOperator{T,BlockBandedMatrix{T,DDS,RRS}}) where {T,DDS,RRS} =
+QROperator(R::CachedOperator{T,BlockBandedMatrix{T}}) where {T} =
     QROperator(R,RaggedMatrix(T,0,Int[]),0)
 
 
-function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T,DDS,RRS},
+function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
                                           MM,DS,RS,BI}},
- ::Colon,col) where {T,MM,DS,RS,DDS,RRS,BI}
+ ::Colon,col) where {T,MM,DS,RS,BI}
     if col ≤ QR.ncols
         return QR
     end
@@ -198,9 +198,9 @@ end
 
 
 
-function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T,DDS,RRS},
+function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
                                MM,DS,RS,BI}},
-::Colon,col) where {T<:BlasFloat,MM,DS,RS,DDS,RRS,BI}
+::Colon,col) where {T<:BlasFloat,MM,DS,RS,BI}
     if col ≤ QR.ncols
         return QR
     end
