@@ -46,7 +46,8 @@ end
 
 NegateEven{T}(ds::DS, rs::RS) where {DS<:Space,RS<:Space,T} =
     NegateEven{T,DS,RS}(ds, rs)
-NegateEven() = NegateEven{Float64}(ℓ⁰,ℓ⁰)
+NegateEven(ds, rs) = NegateEven{Int}(ds, rs)    
+NegateEven() = NegateEven(ℓ⁰,ℓ⁰)
 
 domainspace(P::NegateEven) = P.domainspace
 rangespace(P::NegateEven) = P.rangespace
