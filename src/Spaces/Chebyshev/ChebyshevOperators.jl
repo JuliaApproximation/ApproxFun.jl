@@ -203,7 +203,7 @@ getindex(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) where {PS<:Pol
 
 
 function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,C,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {C<:Chebyshev,T}
-    ret=bzeros(S)
+    ret = BandedMatrix(Zeros, S)
 
     kr,jr=parentindexes(S)
     cfs=parent(S).f.coefficients

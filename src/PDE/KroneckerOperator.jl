@@ -343,7 +343,7 @@ function default_bandedblockbandedmatrix(S)
     KO = parent(S)
     rt=rangespace(KO)
     dt=domainspace(KO)
-    ret=bbbzeros(S)
+    ret = BandedBlockBandedMatrix(Zeros, S)
     bandedblockbanded_convert!(ret,S,parent(S),rt,dt)
 end
 
@@ -353,7 +353,7 @@ convert(::Type{BandedBlockBandedMatrix},S::SubOperator) = default_bandedblockban
 function convert(::Type{BandedBlockBandedMatrix},
                       S::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}}) where {KKO<:KroneckerOperator,T}
     kr,jr = parentindexes(S)
-    (isempty(kr) || isempty(jr)) && return bbbzeros(S)
+    (isempty(kr) || isempty(jr)) && return BandedBlockBandedMatrix(Zeros, S)
     KO = parent(S)
 
     rt = rangetensorizer(KO)
@@ -397,7 +397,7 @@ function convert(::Type{BandedBlockBandedMatrix},
     KR,JR=parentindexes(S)
     KO=parent(S)
 
-    ret=bbbzeros(S)
+    ret = BandedBlockBandedMatrix(Zeros, S)
 
     A,B=KO.ops
     AA=A[Block(1):KR[end],Block(1):JR[end]]::BandedMatrix{eltype(S)}

@@ -324,11 +324,8 @@ end
 # and no interlacing of the columns is necessary
 # this is especially important for \
 ######
-
-
-
-for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzeros),
-                    (:BlockBandedMatrix,:bbzeros))
+for TYP in (:BandedMatrix, :BlockBandedMatrix, :BandedBlockBandedMatrix, :RaggedMatrix,
+                :Matrix)
     @eval begin
         function convert(::Type{$TYP},
               S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI},
@@ -336,7 +333,7 @@ for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzero
             kr,jr=parentindexes(S)
             L=parent(S)
 
-            ret=$ZER(S)
+            ret=$TYP(Zeros, S)
 
             ds=domainspace(L)
             rs=rangespace(L)
@@ -361,7 +358,7 @@ for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzero
             kr,jr=parentindexes(S)
             L=parent(S)
 
-            ret=$ZER(S)
+            ret=$TYP(Zeros, S)
 
             if isempty(kr) || isempty(jr)
                 return ret
@@ -389,8 +386,6 @@ for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzero
         end
     end
 end
-
-
 
 
 ## Build block-by-block
@@ -425,7 +420,7 @@ for d in (:1,:2)
     @eval convert(::Type{BlockBandedMatrix},
           S::SubOperator{T,InterlaceOperator{T,$d,SS,PS,DI,RI,BI},
                           Tuple{BlockRange1,BlockRange1}}) where {SS,PS,DI,RI,BI,T} =
-    blockbanded_interlace_convert!(S,bbzeros(S))
+    blockbanded_interlace_convert!(S, BlockBandedMatrix(Zeros, S))
 end
 
 

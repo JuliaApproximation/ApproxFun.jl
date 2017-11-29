@@ -286,7 +286,7 @@ S::SubOperator{T,ConcreteDirichlet{TensorSpace{Tuple{CD,CD},DD,RR},
         CSP,TT},
 Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR,CSP,TT}
     P=parent(S)
-    ret=bbzeros(S)
+    ret=BlockBandedMatrix(Zeros, S)
     kr,jr=parentindexes(S)
 
     K1=block(rangespace(P),kr[1])

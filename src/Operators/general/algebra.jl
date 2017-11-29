@@ -195,18 +195,20 @@ end
 getindex(P::ConstantTimesOperator,k::Integer...) =
     P.λ*P.op[k...]
 
-for (TYP,ZERS) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
-                   (:BandedBlockBandedMatrix,:bbbzeros),
-                   (:RaggedMatrix,:rzeros),(:BlockBandedMatrix,:bbzeros))
+
+for TYP in (:RaggedMatrix,:Matrix,:BandedMatrix,
+            :BlockBandedMatrix,:BandedBlockBandedMatrix)
     @eval begin
-        # avoid ambiugity
         convert(::Type{$TYP},
-                     S::SubOperator{T,OP,Tuple{BlockRange1,BlockRange1}}) where {T,OP<:ConstantTimesOperator} =
-            convert_axpy!($TYP,S)
-        convert(::Type{$TYP},S::SubOperator{T,OP}) where {T,OP<:ConstantTimesOperator} =
-            convert_axpy!($TYP,S)
+                S::SubOperator{T,OP,Tuple{BlockRange1,BlockRange1}}) where {T,OP<:ConstantTimesOperator} =
+            convert_axpy!($TYP, S)
+        convert(::Type{$TYP},
+                S::SubOperator{T,OP}) where {T,OP<:ConstantTimesOperator} =
+            convert_axpy!($TYP, S)
     end
 end
+
+
 
 BLAS.axpy!(α,S::SubOperator{T,OP},A::AbstractMatrix) where {T,OP<:ConstantTimesOperator} =
     unwrap_axpy!(α*parent(S).λ,S,A)
@@ -372,124 +374,118 @@ function getindex(P::TimesOperator,k::AbstractVector)
     vec(Matrix(P[1:1,k]))
 end
 
+for TYP in (:Matrix, :BandedMatrix, :BlockBandedMatrix, :BandedBlockBandedMatrix, :RaggedMatrix)
+    @eval begin
+        function convert(::Type{$TYP},
+                         S::SubOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,TO<:TimesOperator}
+            P=parent(S)
+            kr,jr=parentindexes(S)
 
+            (isempty(kr) || isempty(jr)) && return $TYP(Zeros, S)
 
-for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
-                    (:BandedBlockBandedMatrix,:bbbzeros),
-                    (:BlockBandedMatrix,:bbzeros),
-                    (:RaggedMatrix,:rzeros))
-    @eval function convert(::Type{$STyp},
-   S::SubOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,TO<:TimesOperator}
-        P=parent(S)
-        kr,jr=parentindexes(S)
-
-        (isempty(kr) || isempty(jr)) && return $Zer(S)
-
-        if maximum(kr) > size(P,1) || maximum(jr) > size(P,2) ||
-            minimum(kr) < 1 || minimum(jr) < 1
-            throw(BoundsError())
-        end
-
-        @assert length(P.ops)≥2
-        if size(S,1)==0
-            return $Zer(S)
-        end
-
-
-        # find optimal truncations for each operator
-        # by finding the non-zero entries
-        krlin = Matrix{Union{Int,Infinity{Bool}}}(length(P.ops),2)
-
-        krlin[1,1],krlin[1,2]=kr[1],kr[end]
-        for m=1:length(P.ops)-1
-            krlin[m+1,1]=rowstart(P.ops[m],krlin[m,1])
-            krlin[m+1,2]=rowstop(P.ops[m],krlin[m,2])
-        end
-        krlin[end,1]=max(krlin[end,1],colstart(P.ops[end],jr[1]))
-        krlin[end,2]=min(krlin[end,2],colstop(P.ops[end],jr[end]))
-        for m=length(P.ops)-1:-1:2
-            krlin[m,1]=max(krlin[m,1],colstart(P.ops[m],krlin[m+1,1]))
-            krlin[m,2]=min(krlin[m,2],colstop(P.ops[m],krlin[m+1,2]))
-        end
-
-
-        krl = Matrix{Int}(krlin)
-
-        # Check if any range is invalid, in which case return zero
-        for m=1:length(P.ops)
-            if krl[m,1]>krl[m,2]
-                return $Zer(S)
+            if maximum(kr) > size(P,1) || maximum(jr) > size(P,2) ||
+                minimum(kr) < 1 || minimum(jr) < 1
+                throw(BoundsError())
             end
-        end
 
-
-
-        # The following returns a banded Matrix with all rows
-        # for large k its upper triangular
-        BA=$STyp{T}(P.ops[end][krl[end,1]:krl[end,2],jr])
-        for m=(length(P.ops)-1):-1:1
-            BA=$STyp{T}(P.ops[m][krl[m,1]:krl[m,2],krl[m+1,1]:krl[m+1,2]])*BA
-        end
-
-        $STyp{T}(BA)
-    end
-end
-
-
-for (STyp,Zer) in ((:BandedBlockBandedMatrix,:bbbzeros),
-                    (:BlockBandedMatrix,:bbzeros))
-    @eval function convert(::Type{$STyp},
-   S::SubOperator{T,TO,Tuple{BlockRange1,BlockRange1}}) where {T,TO<:TimesOperator}
-        P=parent(S)
-        KR,JR=parentindexes(S)
-
-        @assert length(P.ops)≥2
-        if size(S,1)==0 || isempty(KR) || isempty(JR)
-            return $Zer(S)
-        end
-
-        if maximum(KR) > blocksize(P,1) || maximum(JR) > blocksize(P,2) ||
-            minimum(KR) < 1 || minimum(JR) < 1
-            throw(BoundsError())
-        end
-
-
-        # find optimal truncations for each operator
-        # by finding the non-zero entries
-        KRlin = Matrix{Union{Block,Infinity{Bool}}}(length(P.ops),2)
-
-        KRlin[1,1],KRlin[1,2]=KR[1],KR[end]
-        for m=1:length(P.ops)-1
-            KRlin[m+1,1]=blockrowstart(P.ops[m],KRlin[m,1])
-            KRlin[m+1,2]=blockrowstop(P.ops[m],KRlin[m,2])
-        end
-        KRlin[end,1]=max(KRlin[end,1],blockcolstart(P.ops[end],JR[1]))
-        KRlin[end,2]=min(KRlin[end,2],blockcolstop(P.ops[end],JR[end]))
-        for m=length(P.ops)-1:-1:2
-            KRlin[m,1]=max(KRlin[m,1],blockcolstart(P.ops[m],KRlin[m+1,1]))
-            KRlin[m,2]=min(KRlin[m,2],blockcolstop(P.ops[m],KRlin[m+1,2]))
-        end
-
-
-        KRl = Matrix{Block{1}}(KRlin)
-
-        # Check if any range is invalid, in which case return zero
-        for m=1:length(P.ops)
-            if KRl[m,1]>KRl[m,2]
-                return $Zer(S)
+            @assert length(P.ops)≥2
+            if size(S,1)==0
+                return $TYP(Zeros, S)
             end
+
+
+            # find optimal truncations for each operator
+            # by finding the non-zero entries
+            krlin = Matrix{Union{Int,Infinity{Bool}}}(length(P.ops),2)
+
+            krlin[1,1],krlin[1,2]=kr[1],kr[end]
+            for m=1:length(P.ops)-1
+                krlin[m+1,1]=rowstart(P.ops[m],krlin[m,1])
+                krlin[m+1,2]=rowstop(P.ops[m],krlin[m,2])
+            end
+            krlin[end,1]=max(krlin[end,1],colstart(P.ops[end],jr[1]))
+            krlin[end,2]=min(krlin[end,2],colstop(P.ops[end],jr[end]))
+            for m=length(P.ops)-1:-1:2
+                krlin[m,1]=max(krlin[m,1],colstart(P.ops[m],krlin[m+1,1]))
+                krlin[m,2]=min(krlin[m,2],colstop(P.ops[m],krlin[m+1,2]))
+            end
+
+
+            krl = Matrix{Int}(krlin)
+
+            # Check if any range is invalid, in which case return zero
+            for m=1:length(P.ops)
+                if krl[m,1]>krl[m,2]
+                    return $TYP(Zeros, S)
+                end
+            end
+
+
+
+            # The following returns a banded Matrix with all rows
+            # for large k its upper triangular
+            BA=$TYP{T}(P.ops[end][krl[end,1]:krl[end,2],jr])
+            for m=(length(P.ops)-1):-1:1
+                BA=$TYP{T}(P.ops[m][krl[m,1]:krl[m,2],krl[m+1,1]:krl[m+1,2]])*BA
+            end
+
+            $TYP{T}(BA)
         end
 
 
+        function convert(::Type{$TYP},
+                         S::SubOperator{T,TO,Tuple{BlockRange1,BlockRange1}}) where {T,TO<:TimesOperator}
+            P=parent(S)
+            KR,JR=parentindexes(S)
 
-        # The following returns a banded Matrix with all rows
-        # for large k its upper triangular
-        BA=$STyp(view(P.ops[end],KRl[end,1]:KRl[end,2],JR))
-        for m=(length(P.ops)-1):-1:1
-            BA=$STyp(view(P.ops[m],KRl[m,1]:KRl[m,2],KRl[m+1,1]:KRl[m+1,2]))*BA
+            @assert length(P.ops)≥2
+            if size(S,1)==0 || isempty(KR) || isempty(JR)
+                return $TYP(Zeros, S)
+            end
+
+            if maximum(KR) > blocksize(P,1) || maximum(JR) > blocksize(P,2) ||
+                minimum(KR) < 1 || minimum(JR) < 1
+                throw(BoundsError())
+            end
+
+
+            # find optimal truncations for each operator
+            # by finding the non-zero entries
+            KRlin = Matrix{Union{Block,Infinity{Bool}}}(length(P.ops),2)
+
+            KRlin[1,1],KRlin[1,2]=KR[1],KR[end]
+            for m=1:length(P.ops)-1
+                KRlin[m+1,1]=blockrowstart(P.ops[m],KRlin[m,1])
+                KRlin[m+1,2]=blockrowstop(P.ops[m],KRlin[m,2])
+            end
+            KRlin[end,1]=max(KRlin[end,1],blockcolstart(P.ops[end],JR[1]))
+            KRlin[end,2]=min(KRlin[end,2],blockcolstop(P.ops[end],JR[end]))
+            for m=length(P.ops)-1:-1:2
+                KRlin[m,1]=max(KRlin[m,1],blockcolstart(P.ops[m],KRlin[m+1,1]))
+                KRlin[m,2]=min(KRlin[m,2],blockcolstop(P.ops[m],KRlin[m+1,2]))
+            end
+
+
+            KRl = Matrix{Block{1}}(KRlin)
+
+            # Check if any range is invalid, in which case return zero
+            for m=1:length(P.ops)
+                if KRl[m,1]>KRl[m,2]
+                    return $TYP(Zeros, S)
+                end
+            end
+
+
+
+            # The following returns a banded Matrix with all rows
+            # for large k its upper triangular
+            BA=$TYP(view(P.ops[end],KRl[end,1]:KRl[end,2],JR))
+            for m=(length(P.ops)-1):-1:1
+                BA=$TYP(view(P.ops[m],KRl[m,1]:KRl[m,2],KRl[m+1,1]:KRl[m+1,2]))*BA
+            end
+
+            BA
         end
-
-        BA
     end
 end
 

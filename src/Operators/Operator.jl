@@ -663,29 +663,29 @@ BLAS.axpy!(a,X::Operator,Y::AbstractMatrix) = BLAS.axpy!(a,AbstractMatrix(X),Y)
 
 # this is for operators that implement copy via axpy!
 
-bzeros(S::Operator) = bzeros(eltype(S),size(S,1),size(S,2),bandwidth(S,1),bandwidth(S,2))
-Base.zeros(S::Operator) = zeros(eltype(S),size(S,1),size(S,2))
-bbbzeros(S::Operator) = bbbzeros(eltype(S),blockbandwidth(S,1),blockbandwidth(S,2),
-                    subblockbandwidth(S,1),subblockbandwidth(S,2),
-            blocklengthrange(rangetensorizer(S),1:size(S,1)),
-            blocklengthrange(domaintensorizer(S),1:size(S,2)))
-bbzeros(S::Operator) = bbzeros(eltype(S),blockbandwidth(S,1),blockbandwidth(S,2),
-            blocklengths(rangespace(S)),blocklengths(domainspace(S)))
-
-rzeros(S::Operator) = rzeros(eltype(S),size(S,1),Int[max(0,colstop(S,j)) for j=1:size(S,2)])
-
-for (TYP,ZERS) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
-                   (:BandedBlockBandedMatrix,:bbbzeros),
-                   (:RaggedMatrix,:rzeros),(:BlockBandedMatrix,:bbzeros))
-    @eval convert_axpy!(::Type{$TYP},S::Operator) =
-        BLAS.axpy!(one(eltype(S)),S,$ZERS(S))
-end
+BandedMatrix(::Type{Zeros}, V::Operator) = BandedMatrix(Zeros{eltype(V)}(size(V)), bandwidths(V))
+Matrix(::Type{Zeros}, V::Operator) = Matrix(Zeros{eltype(V)}(size(V)))
+BandedBlockBandedMatrix(::Type{Zeros}, V::Operator) =
+    BandedBlockBandedMatrix(Zeros{eltype(V)}(size(V)),
+                            (blocklengths(rangespace(S)), blocklengths(domainspace(S))),
+                            blockbandwidths(V), subblockbandwidths(V))
+BlockBandedMatrix(::Type{Zeros}, V::Operator) =
+    BlockBandedMatrix(Zeros{eltype(V)}(size(V)),
+                      (blocklengths(rangespace(S)), blocklengths(domainspace(S))),
+                      blockbandwidths(V))
+RaggedMatrix(::Type{Zeros}, V::Operator) =
+    RaggedMatrix(Zeros{eltype(V)}(size(V)),
+                 Int[max(0,colstop(V,j)) for j=1:size(V,2)])
 
 
+convert_axpy!(::Type{MT}, S::Operator) where {MT <: AbstractMatrix} =
+        BLAS.axpy!(one(eltype(S)), S, MT(Zeros, S))
 
-convert(::Type{BandedMatrix},S::Operator) = default_bandedmatrix(S)
 
-function convert(::Type{BlockBandedMatrix},S::Operator)
+
+convert(::Type{BandedMatrix}, S::Operator) = default_bandedmatrix(S)
+
+function convert(::Type{BlockBandedMatrix}, S::Operator)
     if isbandedblockbanded(S)
         BlockBandedMatrix(BandedBlockBandedMatrix(S))
     else
@@ -695,9 +695,9 @@ end
 
 
 # TODO: Unify with SubOperator
-for TYP in (:RaggedMatrix,:Matrix)
+for TYP in (:RaggedMatrix, :Matrix)
     def_TYP = parse("default_" * string(TYP))
-    @eval function convert(::Type{$TYP},S::Operator)
+    @eval function convert(::Type{$TYP}, S::Operator)
         if isinf(size(S,1)) || isinf(size(S,2))
             error("Cannot convert $S to a $TYP")
         end
@@ -714,7 +714,7 @@ for TYP in (:RaggedMatrix,:Matrix)
     end
 end
 
-function convert(::Type{Vector},S::Operator)
+function convert(::Type{Vector}, S::Operator)
     if size(S,2) ≠ 1  || isinf(size(S,1))
         error("Cannot convert $S to a AbstractVector")
     end

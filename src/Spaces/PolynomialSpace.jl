@@ -184,9 +184,9 @@ function convert(::Type{BandedMatrix},
     n=length(a)
 
     if n==0
-        return bzeros(S)
+        return BandedMatrix(Zeros, S)
     elseif n==1
-        ret = bzeros(S)
+        ret = BandedMatrix(Zeros, S)
         shft=kr[1]-jr[1]
         ret[band(shft)] = a[1]
         return ret::BandedMatrix{T}
@@ -210,7 +210,7 @@ function convert(::Type{BandedMatrix},
     B=n-1  # final bandwidth
 
     # Clenshaw for operators
-    Bk2 = bzeros(T,size(J,1),size(J,2),B,B)
+    Bk2 = BandedMatrix(Zeros{T}(size(J,1),size(J,2)), (B,B))
     Bk2[band(0)] = a[n]/recβ(T,sp,n-1)
     α,β = recα(T,sp,n-1),recβ(T,sp,n-2)
     Bk1 = (-α/β)*Bk2

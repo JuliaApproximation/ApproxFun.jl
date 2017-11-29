@@ -28,10 +28,10 @@ end
 RaggedMatrix(dat::Vector,cols::Vector{Int},m::Int) =
     RaggedMatrix{eltype(dat)}(dat,cols,m)
 
-RaggedMatrix(::Type{T},m::Int,colns::AbstractVector{Int}) where {T} =
+RaggedMatrix{T}(m::Int,colns::AbstractVector{Int}) where {T} =
     RaggedMatrix(Vector{T}(sum(colns)),Int[1;1+cumsum(colns)],m)
 
-RaggedMatrix(m::Int,collengths::AbstractVector{Int}) = RaggedMatrix(Float64,m,collengths)
+RaggedMatrix(m::Int,collengths::AbstractVector{Int}) = RaggedMatrix{Float64}(m,collengths)
 
 
 Base.size(A::RaggedMatrix) = (A.m,length(A.cols)-1)
@@ -84,9 +84,9 @@ convert(::Type{Matrix},A::RaggedMatrix) = Matrix{eltype(A)}(A)
 
 Base.full(A::RaggedMatrix) = convert(Matrix,A)
 
-function convert(::Type{RaggedMatrix{T}},B::BandedMatrix) where T
+function convert(::Type{RaggedMatrix{T}}, B::BandedMatrix) where T
     l = bandwidth(B,1)
-    ret = rzeros(T,size(B,1),Int[colstop(B,j) for j=1:size(B,2)])
+    ret = RaggedMatrix(Zeros{T}(size(B)), Int[colstop(B,j) for j=1:size(B,2)])
     for j=1:size(B,2),k=colrange(B,j)
         ret[k,j] = B[k,j]
     end
@@ -96,24 +96,32 @@ end
 convert(::Type{RaggedMatrix},B::BandedMatrix) = RaggedMatrix{eltype(B)}(B)
 
 function convert(::Type{RaggedMatrix{T}},B::AbstractMatrix) where T
-    ret = rzeros(T,size(B,1),Int[colstop(B,j) for j=1:size(B,2)])
+    ret = RaggedMatrix(Zeros{T}(size(B)), Int[colstop(B,j) for j=1:size(B,2)])
     for j=1:size(B,2),k=colrange(B,j)
         ret[k,j] = B[k,j]
     end
     ret
 end
 
-convert(::Type{RaggedMatrix},B::AbstractMatrix) = RaggedMatrix{eltype(B)}(B)
+convert(::Type{RaggedMatrix}, B::AbstractMatrix) = RaggedMatrix{eltype(B)}(B)
 
 Base.similar(B::RaggedMatrix,::Type{T}) where {T} = RaggedMatrix(Vector{T}(length(B.data)),copy(B.cols),B.m)
 
-for (op,bop) in ((:(Base.rand),:rrand),(:(Base.zeros),:rzeros),(:(Base.ones),:rones))
+for (op,bop) in ((:(Base.rand),:rrand),)
     @eval begin
         $bop(::Type{T},m::Int,colns::AbstractVector{Int}) where {T} =
             RaggedMatrix($op(T,sum(colns)),[1;1+cumsum(colns)],m)
         $bop(m::Int,colns::AbstractVector{Int}) = $bop(Float64,m,colns)
     end
 end
+
+function RaggedMatrix{T}(Z::Zeros, colns::AbstractVector{Int}) where {T}
+    if size(Z,2) ≠ length(colns)
+        throw(DimensionMismatch())
+    end
+    RaggedMatrix(zeros(T,sum(colns)), [1;1+cumsum(colns)], size(Z,1))
+end
+RaggedMatrix(A::AbstractMatrix, colns::AbstractVector{Int}) = RaggedMatrix{eltype(A)}(A, colns)
 
 
 ## BLAS
@@ -200,7 +208,7 @@ function *(A::RaggedMatrix,B::RaggedMatrix)
         cols[j] = max(cols[j],colstop(A,k))
     end
 
-    unsafe_A_mul_B!(RaggedMatrix(T,size(A,1),cols),A,B)
+    unsafe_A_mul_B!(RaggedMatrix{T}(size(A,1),cols),A,B)
 end
 
 function unsafe_A_mul_B!(Y::RaggedMatrix,A::RaggedMatrix,B::RaggedMatrix)

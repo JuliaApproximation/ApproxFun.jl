@@ -1,6 +1,6 @@
 
 CachedOperator(::Type{RaggedMatrix},op::Operator;padding::Bool=false) =
-    CachedOperator(op,RaggedMatrix(eltype(op),0,Int[]),padding)
+    CachedOperator(op,RaggedMatrix{eltype(op)}(0,Int[]),padding)
 
 ## Grow cached operator
 

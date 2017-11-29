@@ -205,7 +205,7 @@ isbanded(S::SubOperator{T,B,Tuple{Block,Block}}) where {T,B} = isbandedblockband
 bandinds(S::SubOperator{T,B,Tuple{Block,Block}}) where {T,B} = subblockbandinds(parent(S))
 blockbandinds(S::SubOperator{T,B,Tuple{Block,Block}}) where {T,B} = 0,0
 
-function bbbzeros(S::SubOperator)
+function BandedBlockBandedMatrix(::Type{Zeros}, S::SubOperator)
     kr,jr=parentindexes(S)
     KO=parent(S)
     l,u=blockbandinds(KO)
@@ -223,12 +223,13 @@ function bbbzeros(S::SubOperator)
     jsh=j1-blockstart(dt,J)
     ksh=k1-blockstart(rt,K)
 
-    ret=bbbzeros(eltype(KO),-l,u,-λ+jsh,μ+ksh,
-            blocklengths(rangespace(S)),
-            blocklengths(domainspace(S)))
+    rows,cols = blocklengths(rangespace(S)), blocklengths(domainspace(S))
+
+    BandedBlockBandedMatrix(Zeros{eltype(KO)}(sum(rows),sum(cols)),
+                                (rows,cols), (-l,u), (-λ+jsh,μ+ksh))
 end
 
-function bbbzeros(S::SubOperator{T,B,Tuple{BlockRange1,BlockRange1}}) where {T,B}
+function BandedBlockBandedMatrix(::Type{Zeros}, S::SubOperator{T,B,Tuple{BlockRange1,BlockRange1}}) where {T,B}
     KR,JR=parentindexes(S)
     KO=parent(S)
     l,u=blockbandinds(KO)::Tuple{Int,Int}
@@ -243,8 +244,8 @@ function bbbzeros(S::SubOperator{T,B,Tuple{BlockRange1,BlockRange1}}) where {T,B
     KBR = blocklengthrange(rt,KR)
     KJR = blocklengthrange(dt,JR)
 
-    ret=bbbzeros(eltype(KO),-l+bl_sh,u-bl_sh,-λ,μ,
-            KBR,KJR)
+    BandedBlockBandedMatrix(Zeros{eltype(KO)}(sum(KBR),sum(KJR)),
+                                (KBR,KJR), (-l+bl_sh,u-bl_sh), (-λ,μ))
 end
 
 
