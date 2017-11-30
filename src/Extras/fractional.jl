@@ -26,12 +26,8 @@ function LeftIntegral(S::Jacobi,k)
 end
 
 function LeftIntegral(S::Ultraspherical,k)
-    if order(S) == 1/2
-        LeftIntegralWrapper(SpaceOperator(LeftIntegral(Jacobi(S),k),S,S),0.5)
-    else
-        J = Jacobi(S)
-        LeftIntegralWrapper(LeftIntegral(J,k)*Conversion(S,J),0.5)
-    end
+    J = Jacobi(S)
+    LeftIntegralWrapper(LeftIntegral(J,k)*Conversion(S,J),0.5)
 end
 
 LeftIntegral(S::Chebyshev,k) = LeftIntegralWrapper(
