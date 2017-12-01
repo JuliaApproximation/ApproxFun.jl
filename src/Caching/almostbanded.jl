@@ -143,7 +143,7 @@ function CachedOperator(io::InterlaceOperator{T,2};padding::Bool=false) where T
     end
 
     n=1+nbcs+p
-    ret=AlmostBandedMatrix(Zeros{T}(n,n+u),(-l,u),nds)
+    ret=AlmostBandedMatrix(Zeros{T}(n,n+u),(-l,u),nbcs)
 
     # populate entries and fill functionals
     bcrow=1
