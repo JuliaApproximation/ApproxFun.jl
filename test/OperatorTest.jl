@@ -91,7 +91,7 @@ A=Conversion(Chebyshev(d),Ultraspherical(2,d))*X
 
 
 
-@test norm((A_mul_B_coefficients(A,f.coefficients))-coefficients(x.*f,rangespace(A))) < 100eps()«
+@test norm((A_mul_B_coefficients(A,f.coefficients))-coefficients(x.*f,rangespace(A))) < 100eps()
 
 
 ## Special functions
@@ -240,6 +240,22 @@ u = D[1:ApproxFun.∞,2:ApproxFun.∞] \ f
 
 A = InterlaceOperator(Diagonal([eye(2),Derivative(Chebyshev())]))
 testblockbandedoperator(A)
+using BlockArrays, BlockBandedMatrices, FillArrays
+V = view(A, Block(1):Block(2), Block(1):Block(2)
+
+
+sp =rangespace(V)
+sp.indexes
+Int.(sp.indexes)
+BlockBandedMatrix(Zeros{eltype(V)}(size(V)),
+                  (ApproxFun.blocklengths(rangespace(V)), blocklengths(domainspace(V))),
+                  blockbandwidths(V))
+
+BlockBandedMatrix(::Type{Zeros}, V::Operator) =
+    BlockBandedMatrix(Zeros{eltype(V)}(size(V)),
+                      (blocklengths(rangespace(V)), blocklengths(domainspace(V))),
+                      blockbandwidths(V))
+A[1:10,1:10]
 
 ## Projection
 

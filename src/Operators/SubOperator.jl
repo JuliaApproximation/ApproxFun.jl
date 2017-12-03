@@ -1,4 +1,4 @@
-checkbounds(A::Operator,kr::Colon) = nothing
+Vcheckbounds(A::Operator,kr::Colon) = nothing
 
 checkbounds(A::Operator,kr) =
     (maximum(kr) > length(A) || minimum(kr) < 1) && throw(BoundsError(A,kr))
@@ -19,8 +19,8 @@ checkbounds(A::Operator,kr,jr) =
 
 
 checkbounds(A::Operator,K::Block,J::Block) =
-     1 ≤ K.n[1] ≤ length(blocklengths(rangespace(A))) &&
-     1 ≤ J.n[1] ≤ length(blocklengths(domainspace(A)))
+     1 ≤ first(K.n[1]) ≤ length(blocklengths(rangespace(A))) &&
+     1 ≤ first(J.n[1]) ≤ length(blocklengths(domainspace(A)))
 
 checkbounds(A::Operator,K::BlockRange{1},J::BlockRange{1}) =
     isempty(K) || isempty(J) ||
@@ -151,15 +151,15 @@ end
 
 
 
-view(A::SubOperator,kr::UnitRange,jr::UnitRange) = view(A.parent,reindex(A,parentindexes(A),(kr,jr))...)
-view(A::SubOperator,K::Block,J::Block) = view(A.parent,reindex(A,parentindexes(A),(K,J))...)
-function Base.view(A::SubOperator,::Type{FiniteRange},jr::AbstractVector{Int})
-    cs = (isbanded(A) || isblockbandedbelow(A)) ? colstop(A,maximum(jr)) : mapreduce(j->colstop(A,j),max,jr)
-    view(A,1:cs,jr)
+view(V::SubOperator,kr::UnitRange,jr::UnitRange) = view(V.parent,reindex(V,parentindexes(V),(kr,jr))...)
+view(V::SubOperator,K::Block,J::Block) = view(V.parent,reindex(V,parentindexes(V),(K,J))...)
+function Base.view(V::SubOperator,::Type{FiniteRange},jr::AbstractVector{Int})
+    cs = (isbanded(V) || isblockbandedbelow(V)) ? colstop(V,maximum(jr)) : mapreduce(j->colstop(V,j),max,jr)
+    view(V,1:cs,jr)
 end
 
-view(A::SubOperator,kr,jr) = view(A.parent,reindex(A,parentindexes(A),(kr,jr))...)
-view(A::SubOperator,kr::AbstractCount,jr::AbstractCount) = view(A.parent,reindex(A,parentindexes(A),(kr,jr))...)
+view(V::SubOperator,kr,jr) = view(V.parent,reindex(V,parentindexes(V),(kr,jr))...)
+view(V::SubOperator,kr::AbstractCount,jr::AbstractCount) = view(V.parent,reindex(V,parentindexes(V),(kr,jr))...)
 
 
 bandwidth(S::SubOperator,k::Int) = S.bandwidths[k]

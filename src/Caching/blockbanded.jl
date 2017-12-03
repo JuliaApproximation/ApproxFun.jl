@@ -4,10 +4,11 @@
 # # default copy is to loop through
 # # override this for most operators.
 function default_blockbandedmatrix(S::Operator)
-    ret=BlockBandedMatrix(eltype(S),blockbandwidth(S,1),blockbandwidth(S,2),
-            blocklengths(rangespace(S)),blocklengths(domainspace(S)))
+    ret=BlockBandedMatrix{eltype(S)}(uninitialized,
+                                     (blocklengths(rangespace(S)),blocklengths(domainspace(S))),
+                                     blockbandwidths(S))
 
-    @inbounds for J=Block(1):Block(blocksize(ret,2)),K=blockcolrange(ret,J)
+    @inbounds for J=Block(1):Block(nblocks(ret,2)),K=blockcolrange(ret,Int(J))
         ret[K,J] = view(S,K,J)
     end
     ret

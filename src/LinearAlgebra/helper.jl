@@ -518,11 +518,9 @@ Base.isless(x::Infinity{Bool}, y::Number) = x.angle && y ≠ -∞
 Base.isless(x::Block{1}, y::Infinity{Bool}) = isless(Int(x), y)
 Base.isless(x::Infinity{Bool}, y::Block{1}) = isless(x, Int(y))
 
-iselse(-
-
 -(y::Infinity{B}) where {B<:Integer} = sign(y)==1?Infinity(one(B)):Infinity(zero(B))
 
-function +(x::Infinity{B},y::Infinity{B}) where B
+function +(x::Infinity{B}, y::Infinity{B}) where B
     if x.angle != y.angle
         error("Angles must be the same to add ∞")
     end

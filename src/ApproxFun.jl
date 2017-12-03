@@ -39,14 +39,16 @@ import Base: sinpi, cospi, airy, besselh, exp,
                     atan, acos, asin, erfc, inv
 
 
+import BlockArrays: nblocks
+
 import BandedMatrices: bandinds, bandrange, PrintShow, bandshift,
                         inbands_getindex, inbands_setindex!, bandwidth, AbstractBandedMatrix,
                         dot, dotu, normalize!, flipsign,
                         colstart, colstop, colrange, rowstart, rowstop, rowrange,
                         bandwidths, αA_mul_B_plus_βC!, showarray, _BandedMatrix, BandedMatrix
 
-import BlockBandedMatrices: blockbandwidth, blockbandwidths, blockcolstop,
-                            blockcolstart, blockrowstop, blockrowstart,
+import BlockBandedMatrices: blockbandwidth, blockbandwidths, blockcolstop, blockcolrange,
+                            blockcolstart, blockrowstop, blockrowstart, blockrowrange,
                             subblockbandwidth, subblockbandwidths, _BlockBandedMatrix,
                             _BandedBlockBandedMatrix, BandedBlockBandedMatrix, BlockBandedMatrix
 

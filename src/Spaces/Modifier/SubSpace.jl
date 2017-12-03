@@ -51,7 +51,7 @@ blocklengths(sp::SubSpace) = error("Not implemented for non-unitrange subspaces"
 
 ## Block reindexing for SubSpace
 reindex(sp::SubSpace, b::Tuple{Block{1}}, ks::Tuple{Any}) = (blockstart(sp.space,b[1])+ks[1]-1,)
-reindex(sp::SubSpace, br::Tuple{BlockRange1}, ks::Tuple{Block{1}}) = (br[1][ks[1].n[1]],)
+reindex(sp::SubSpace, br::Tuple{BlockRange1}, ks::Tuple{Block{1}}) = (Block(br[1].indices[first(ks[1].n)]),)
 reindex(sp::SubSpace, br::Tuple{BlockRange1}, ks::Tuple{Any}) = (blockstart(sp.space,first(br[1]))+ks[1]-1,)
 
 # blocks stay the same with unit range indices
