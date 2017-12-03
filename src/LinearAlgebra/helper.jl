@@ -512,10 +512,13 @@ for TYP in (:Dual,:Number)
         ==(y::$TYP,x::Infinity) = x == y
     end
 end
-Base.isless(x::Infinity{Bool},y::Infinity{Bool}) = x.angle && !y.angle
-Base.isless(x::Number,y::Infinity{Bool}) = y.angle && (x ≠ ∞)
-Base.isless(x::Infinity{Bool},y::Number) = !x.angle && (y ≠ -∞)
+Base.isless(x::Infinity{Bool}, y::Infinity{Bool}) = x.angle && !y.angle
+Base.isless(x::Number, y::Infinity{Bool}) = !y.angle && x ≠ ∞
+Base.isless(x::Infinity{Bool}, y::Number) = x.angle && y ≠ -∞
+Base.isless(x::Block{1}, y::Infinity{Bool}) = isless(Int(x), y)
+Base.isless(x::Infinity{Bool}, y::Block{1}) = isless(x, Int(y))
 
+iselse(-
 
 -(y::Infinity{B}) where {B<:Integer} = sign(y)==1?Infinity(one(B)):Infinity(zero(B))
 

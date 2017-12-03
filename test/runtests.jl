@@ -21,6 +21,17 @@ println("Helper tests")
 @test maximum([1,∞]) == ∞
 @test minimum([1,∞]) == 1
 
+@test isless(1, ∞)
+@test !isless(Inf, ∞)
+@test !isless(∞, Inf)
+@test !isless(∞, 1)
+
+@test isless(-∞, 1)
+@test !isless(-∞, -Inf)
+@test !isless(-Inf, -∞)
+@test !isless(1, -∞)
+
+
 @test (1:∞) ∩ (2:10) == (2:10)
 @test (2:10) ∩ (1:∞) == (2:10)
 @test (3:∞) ∩ (2:2:10) == (4:2:10)

@@ -87,10 +87,11 @@ testbandedoperator(A)
 @test norm(X*f-(x.*f)) < 100eps()
 
 A=Conversion(Chebyshev(d),Ultraspherical(2,d))*X
-
 @time testbandedoperator(A)
 
-@test norm((A_mul_B_coefficients(A,f.coefficients))-coefficients(x.*f,rangespace(A))) < 100eps()
+
+
+@test norm((A_mul_B_coefficients(A,f.coefficients))-coefficients(x.*f,rangespace(A))) < 100eps()«
 
 
 ## Special functions

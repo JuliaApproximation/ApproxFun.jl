@@ -443,8 +443,8 @@ for TYP in (:Matrix, :BandedMatrix, :BlockBandedMatrix, :BandedBlockBandedMatrix
                 return $TYP(Zeros, S)
             end
 
-            if maximum(KR) > blocksize(P,1) || maximum(JR) > blocksize(P,2) ||
-                minimum(KR) < 1 || minimum(JR) < 1
+            if Int(maximum(KR)) > blocksize(P,1) || Int(maximum(JR)) > blocksize(P,2) ||
+                Int(minimum(KR)) < 1 || Int(minimum(JR)) < 1
                 throw(BoundsError())
             end
 
@@ -453,13 +453,13 @@ for TYP in (:Matrix, :BandedMatrix, :BlockBandedMatrix, :BandedBlockBandedMatrix
             # by finding the non-zero entries
             KRlin = Matrix{Union{Block,Infinity{Bool}}}(length(P.ops),2)
 
-            KRlin[1,1],KRlin[1,2]=KR[1],KR[end]
+            KRlin[1,1],KRlin[1,2] = first(KR),last(KR)
             for m=1:length(P.ops)-1
                 KRlin[m+1,1]=blockrowstart(P.ops[m],KRlin[m,1])
                 KRlin[m+1,2]=blockrowstop(P.ops[m],KRlin[m,2])
             end
-            KRlin[end,1]=max(KRlin[end,1],blockcolstart(P.ops[end],JR[1]))
-            KRlin[end,2]=min(KRlin[end,2],blockcolstop(P.ops[end],JR[end]))
+            KRlin[end,1]=max(KRlin[end,1],blockcolstart(P.ops[end],first(JR)))
+            KRlin[end,2]=min(KRlin[end,2],blockcolstop(P.ops[end],last(JR)))
             for m=length(P.ops)-1:-1:2
                 KRlin[m,1]=max(KRlin[m,1],blockcolstart(P.ops[m],KRlin[m+1,1]))
                 KRlin[m,2]=min(KRlin[m,2],blockcolstop(P.ops[m],KRlin[m+1,2]))

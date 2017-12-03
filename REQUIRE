@@ -8,4 +8,4 @@ ToeplitzMatrices 0.2
 Calculus 0.1.15
 IntervalSets 0.0.2
 StaticArrays 0.3
-Compat 0.19
+Compat 0.39
