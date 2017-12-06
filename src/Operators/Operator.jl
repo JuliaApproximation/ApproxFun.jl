@@ -671,7 +671,8 @@ BandedBlockBandedMatrix(::Type{Zeros}, V::Operator) =
                             blockbandwidths(V), subblockbandwidths(V))
 BlockBandedMatrix(::Type{Zeros}, V::Operator) =
     BlockBandedMatrix(Zeros{eltype(V)}(size(V)),
-                      (blocklengths(rangespace(V)), blocklengths(domainspace(V))),
+                      (AbstractVector{Int}(blocklengths(rangespace(V))),
+                       AbstractVector{Int}(blocklengths(domainspace(V)))),
                       blockbandwidths(V))
 RaggedMatrix(::Type{Zeros}, V::Operator) =
     RaggedMatrix(Zeros{eltype(V)}(size(V)),

@@ -400,7 +400,7 @@ function blockbanded_interlace_convert!(S,ret)
                 BlockBandedMatrix(view(op, KR_size, JR_size))
             end, parent(S).ops)
 
-    for J=Block(1):Block(nblocks(ret,2)),K=blockcolrange(ret,J)
+    for J=Block(1):Block(nblocks(ret,2)),K=blockcolrange(ret,Int(J))
         Bs=view(ret,K,J)
         j = 0
         for ξ=1:size(M,2)

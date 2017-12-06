@@ -46,13 +46,16 @@ function blocklengths(sp::SubSpace{DS,UnitCount{Int}}) where DS
             blocklengths(sp.space)[B1.n[1]+1:∞]))
 end
 
+blocklengths(sp::SubSpace{DS,Block{1,T}}) where {DS, T} =
+    [blocklengths(sp.space)[Int(sp.indexes)]]
+
 blocklengths(sp::SubSpace) = error("Not implemented for non-unitrange subspaces")
 
 
 ## Block reindexing for SubSpace
 reindex(sp::SubSpace, b::Tuple{Block{1}}, ks::Tuple{Any}) = (blockstart(sp.space,b[1])+ks[1]-1,)
-reindex(sp::SubSpace, br::Tuple{BlockRange1}, ks::Tuple{Block{1}}) = (Block(br[1].indices[first(ks[1].n)]),)
-reindex(sp::SubSpace, br::Tuple{BlockRange1}, ks::Tuple{Any}) = (blockstart(sp.space,first(br[1]))+ks[1]-1,)
+reindex(sp::SubSpace, br::Tuple{BlockRange1}, ks::Tuple{Block{1}}) = (Block(Int.(br[1])[first(ks[1].n)]),)
+reindex(sp::SubSpace, br::Tuple{BlockRange1}, ks::Tuple{Any}) = (blockstart(sp.space,first(Int.(br[1])))+ks[1]-1,)
 
 # blocks stay the same with unit range indices
 reindex(sp::SubSpace, br::Tuple{AbstractVector{Int}}, ks::Tuple{Block{1}}) =

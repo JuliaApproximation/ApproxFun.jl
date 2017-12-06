@@ -239,27 +239,17 @@ u = D[1:ApproxFun.∞,2:ApproxFun.∞] \ f
 
 
 A = InterlaceOperator(Diagonal([eye(2),Derivative(Chebyshev())]))
+@test Matrix(view(A, Block(1), Block(1))) == A[1:3,1:3]
+@test Matrix(view(A, Block(1):Block(2), Block(1):Block(2))) == A[1:4,1:4]
 testblockbandedoperator(A)
-using ApproxFun, BlockArrays, BlockBandedMatrices, FillArrays
-V = view(A, Block(1):Block(2), Block(1):Block(2))
-B,kj = Base.parentindexes(V),(Block(1),Block(1))[
-import Base: reindex
-reindex(rangespace(V),(B[1],), (kj[1],))
+@which convert(BlockBandedMatrix, view(A, 2:5, 1:5))
+[view(A, 2:5, 1:5)[k, j] for k=1:4, j=1:5]
+A[1:5,1:5]
 
-reindex(domainspace(V),tail(B), tail(kj))[1])
+[A[k, j] for k=1:5, j=1:5]
+A[1:5,1:5][2:5, 1:5]
 
-sp =rangespace(V)
-sp.indexes
-Int.(sp.indexes)
-BlockBandedMatrix(Zeros{eltype(V)}(size(V)),
-                  (ApproxFun.blocklengths(rangespace(V)), blocklengths(domainspace(V))),
-                  blockbandwidths(V))
 
-BlockBandedMatrix(::Type{Zeros}, V::Operator) =
-    BlockBandedMatrix(Zeros{eltype(V)}(size(V)),
-                      (blocklengths(rangespace(V)), blocklengths(domainspace(V))),
-                      blockbandwidths(V))
-A[1:10,1:10]
 
 ## Projection
 
