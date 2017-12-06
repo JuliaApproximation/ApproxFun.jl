@@ -81,8 +81,8 @@ macro functional(FF)
 end
 
 
-blocksize(A::Operator,k) = k==1 ? length(blocklengths(rangespace(A))) : length(blocklengths(domainspace(A)))
-blocksize(A::Operator) = (blocksize(A,1),blocksize(A,2))
+nblocks(A::Operator,k) = k==1 ? length(blocklengths(rangespace(A))) : length(blocklengths(domainspace(A)))
+nblocks(A::Operator) = (nblocks(A,1),nblocks(A,2))
 
 
 Base.size(A::Operator) = (size(A,1),size(A,2))
@@ -248,8 +248,8 @@ defaultgetindex(A::Operator,k,j) = view(A,k,j)
 # TODO: finite dimensional blocks
 blockcolstart(A::Operator,J::Integer) = Block(max(1,J-blockbandwidth(A,2)))
 blockrowstart(A::Operator,K::Integer) = Block(max(1,K-blockbandwidth(A,1)))
-blockcolstop(A::Operator,J::Integer) = Block(min(J+blockbandwidth(A,1),blocksize(A,1)))
-blockrowstop(A::Operator,K::Integer) = Block(min(K+blockbandwidth(A,2),blocksize(A,2)))
+blockcolstop(A::Operator,J::Integer) = Block(min(J+blockbandwidth(A,1),nblocks(A,1)))
+blockrowstop(A::Operator,K::Integer) = Block(min(K+blockbandwidth(A,2),nblocks(A,2)))
 
 blockrows(A::Operator,K::Integer) = blockrange(rangespace(A),K)
 blockcols(A::Operator,J::Integer) = blockrange(domainspace(A),J)

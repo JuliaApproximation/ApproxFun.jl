@@ -39,7 +39,7 @@ import Base: sinpi, cospi, airy, besselh, exp,
                     atan, acos, asin, erfc, inv
 
 
-import BlockArrays: nblocks
+import BlockArrays: nblocks, blocksize
 
 import BandedMatrices: bandinds, bandrange, PrintShow, bandshift,
                         inbands_getindex, inbands_setindex!, bandwidth, AbstractBandedMatrix,
@@ -50,7 +50,8 @@ import BandedMatrices: bandinds, bandrange, PrintShow, bandshift,
 import BlockBandedMatrices: blockbandwidth, blockbandwidths, blockcolstop, blockcolrange,
                             blockcolstart, blockrowstop, blockrowstart, blockrowrange,
                             subblockbandwidth, subblockbandwidths, _BlockBandedMatrix,
-                            _BandedBlockBandedMatrix, BandedBlockBandedMatrix, BlockBandedMatrix
+                            _BandedBlockBandedMatrix, BandedBlockBandedMatrix, BlockBandedMatrix,
+                            isblockbanded, isbandedblockbanded
 
 # convenience for 1-d block ranges
 const BlockRange1 = BlockRange{1,Tuple{UnitRange{Int}}}

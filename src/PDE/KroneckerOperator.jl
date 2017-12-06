@@ -322,7 +322,7 @@ function bandedblockbanded_convert!(ret,S::SubOperator,KO,rt,dt)
 
 
 
-    for J=Block(1):Block(blocksize(ret,2))
+    for J=Block(1):Block(nblocks(ret,2))
         jshft = (J==Block(1) ? jr1 : blockstart(dt,J+Jshft)) - 1
         for K=blockcolrange(ret,J)
             Bs = view(ret,K,J)
@@ -406,7 +406,7 @@ function convert(::Type{BandedBlockBandedMatrix},
     Bl,Bu = bandwidths(BB)
     λ,μ = subblockbandwidths(ret)
 
-    for J in Block(1):Block(blocksize(ret,2)), K in blockcolrange(ret,J)
+    for J in Block(1):Block(nblocks(ret,2)), K in blockcolrange(ret,J)
         n,m=KR[K.n[1]].n[1],JR[J.n[1]].n[1]
         Bs = view(ret,K,J)
         l = min(Al,Bu+n-m,λ)

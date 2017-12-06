@@ -240,9 +240,13 @@ u = D[1:ApproxFun.∞,2:ApproxFun.∞] \ f
 
 A = InterlaceOperator(Diagonal([eye(2),Derivative(Chebyshev())]))
 testblockbandedoperator(A)
-using BlockArrays, BlockBandedMatrices, FillArrays
-V = view(A, Block(1):Block(2), Block(1):Block(2)
+using ApproxFun, BlockArrays, BlockBandedMatrices, FillArrays
+V = view(A, Block(1):Block(2), Block(1):Block(2))
+B,kj = Base.parentindexes(V),(Block(1),Block(1))[
+import Base: reindex
+reindex(rangespace(V),(B[1],), (kj[1],))
 
+reindex(domainspace(V),tail(B), tail(kj))[1])
 
 sp =rangespace(V)
 sp.indexes

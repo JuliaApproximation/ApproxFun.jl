@@ -97,7 +97,7 @@ function InterlaceOperator(ops::AbstractMatrix{Operator{T}},ds::Space,rs::Space)
     dsi = interlacer(ds)
     rsi = interlacer(rs)
 
-    if size(ops,2) == p && all(isbanded,ops) &&# only support blocksize 1 for now
+    if size(ops,2) == p && all(isbanded,ops) &&# only support nblocks 1 for now
             all(i->isa(i,Repeated) && i.x == 1, dsi.blocks) &&
             all(i->isa(i,Repeated) && i.x == 1, rsi.blocks)
         l,u = 0,0
@@ -395,19 +395,19 @@ function blockbanded_interlace_convert!(S,ret)
     l,u=blockbandwidths(S)::Tuple{Int,Int}
 
     M = map(op -> begin
-                KR_size = Block.(Int(first(KR)):min(Int(last(KR)),blocksize(op,1)))
-                JR_size = Block.(Int(first(JR)):min(Int(last(JR)),blocksize(op,2)))
+                KR_size = Block.(Int(first(KR)):min(Int(last(KR)),nblocks(op,1)))
+                JR_size = Block.(Int(first(JR)):min(Int(last(JR)),nblocks(op,2)))
                 BlockBandedMatrix(view(op, KR_size, JR_size))
             end, parent(S).ops)
 
-    for J=Block(1):Block(blocksize(ret,2)),K=blockcolrange(ret,J)
+    for J=Block(1):Block(nblocks(ret,2)),K=blockcolrange(ret,J)
         Bs=view(ret,K,J)
         j = 0
         for ξ=1:size(M,2)
             k = 0
             m = 0
             for κ=1:size(M,1)
-                if K.n[1] ≤ blocksize(M[κ,ξ],1) && J.n[1] ≤ blocksize(M[κ,ξ],2)
+                if K.n[1] ≤ nblocks(M[κ,ξ],1) && J.n[1] ≤ nblocks(M[κ,ξ],2)
                     MKJ = M[κ,ξ][K,J]::Matrix{T}
                     n,m = size(MKJ)
                     Bs[k+1:k+n,j+1:j+m] = MKJ
