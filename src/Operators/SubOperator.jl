@@ -114,8 +114,8 @@ view(A::Operator,kr,::Colon) = view(A,kr,1:size(A,2))
 view(A::Operator,K::Block,J::Block) = SubOperator(A,(K,J))
 view(A::Operator,K::Block,j::Colon) = view(A,blockrows(A,K),j)
 view(A::Operator,k::Colon,J::Block) = view(A,k,blockcols(A,J))
-view(A::Operator,K::Block,j) = view(A,blockrows(A,K),j)
-view(A::Operator,k,J::Block) = view(A,k,blockcols(A,J))
+view(A::Operator, K::Block, j) = view(A,blockrows(A,Int(K)),j)
+view(A::Operator, k, J::Block) = view(A,k,blockcols(A,Int(J))) #TODO: fix view
 view(A::Operator,KR::BlockRange,JR::BlockRange) = SubOperator(A,(KR,JR))
 
 view(A::Operator,k,j) = SubOperator(A,(k,j))

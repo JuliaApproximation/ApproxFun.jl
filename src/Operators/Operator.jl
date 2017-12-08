@@ -724,24 +724,28 @@ function convert(::Type{Vector}, S::Operator)
 end
 
 
-
-convert(::Type{AbstractMatrix},S::Operator) = Matrix(S)
-
-function convert(::Type{AbstractMatrix},S::SubOperator)
-    if isinf(size(S,1)) || isinf(size(S,2))
-        throw(BoundsError())
-    end
-    if isbanded(parent(S))
-        BandedMatrix(S)
-    elseif isbandedblockbanded(parent(S))
-        BandedBlockBandedMatrix(S)
-    elseif isblockbanded(parent(S))
-        BlockBandedMatrix(S)
-    elseif isinf(size(parent(S),1)) && israggedbelow(parent(S))
-        RaggedMatrix(S)
-    else
-        Matrix(S)
-    end
+# TODO: template out fully
+arraytype(::Operator) = Matrix
+function arraytype(V::SubOperator{T,B,Tuple{KR,JR}}) where {T, B, KR <: Union{BlockRange, Block}, JR <: Union{BlockRange, Block}}
+    P = parent(V)
+    isbandedblockbanded(V) && return BandedBlockBandedMatrix
+    isblockbanded(V) && return BlockBandedMatrix
+    return BlockMatrix
 end
 
-convert(::Type{AbstractVector},S::Operator) = Vector(S)
+function arraytype(V::SubOperator{T,B,Tuple{KR,JR}}) where {T, B, KR <: Block, JR <: Block}
+    P = parent(V)
+    isbandedblockbanded(V) && return BandedMatrix
+    return Matrix
+end
+
+
+function arraytype(V::SubOperator)
+    P = parent(V)
+    isbanded(P) && return BandedMatrix
+    isinf(size(P,1)) && israggedbelow(P) && return RaggedMatrix
+    return Matrix
+end
+
+convert(::Type{AbstractMatrix}, V::Operator) = convert(arraytype(V), V)
+convert(::Type{AbstractVector}, S::Operator) = Vector(S)

@@ -1,11 +1,7 @@
 ## Testing
 # These routines are for the unit tests
 
-if VERSION ≤ v"0.7.0-DEV.1775"
-    using Base.Test
-else
-    using Test
-end
+using Compat.Test
 
 ## Supports @test_approx_eq
 
@@ -140,8 +136,8 @@ function backend_testinfoperator(A)
     @test A[1:10,1:10][5:10,5:10] ≈ A[5:10,5:10]
     @test A[1:30,1:30][20:30,20:30] ≈ A[20:30,20:30]
 
-    @test A[Block(1):Block(3),Block(1):Block(3)] ≈ A[blockstart(rangespace(A),1):blockstop(rangespace(A),3),blockstart(domainspace(A),1):blockstop(domainspace(A),3)]
-    @test A[Block(3):Block(4),Block(2):Block(4)] ≈ A[blockstart(rangespace(A),3):blockstop(rangespace(A),4),blockstart(domainspace(A),2):blockstop(domainspace(A),4)]
+    @test Matrix(A[Block(1):Block(3),Block(1):Block(3)]) ≈ Matrix(A[blockstart(rangespace(A),1):blockstop(rangespace(A),3),blockstart(domainspace(A),1):blockstop(domainspace(A),3)])
+    @test Matrix(A[Block(3):Block(4),Block(2):Block(4)]) ≈ Matrix(A[blockstart(rangespace(A),3):blockstop(rangespace(A),4),blockstart(domainspace(A),2):blockstop(domainspace(A),4)])
 
     for k=1:10
         @test isfinite(colstart(A,k)) && colstart(A,k) > 0

@@ -1,5 +1,5 @@
-using ApproxFun, Base.Test
-    import ApproxFun: Multiplication,InterlaceOperator
+using ApproxFun, BlockBandedMatrices,  Base.Test
+    import ApproxFun: Multiplication,InterlaceOperator, Block, ∞
     import ApproxFun: testfunctional, testbandedoperator, testraggedbelowoperator, testinfoperator, testblockbandedoperator
 
 
@@ -239,21 +239,14 @@ u = D[1:ApproxFun.∞,2:ApproxFun.∞] \ f
 
 
 A = InterlaceOperator(Diagonal([eye(2),Derivative(Chebyshev())]))
+@test A[Block(1):Block(2), Block(1):Block(2)] isa BlockBandedMatrix
+
 @test Matrix(view(A, Block(1), Block(1))) == A[1:3,1:3]
 @test Matrix(view(A, Block(1):Block(2), Block(1):Block(2))) == A[1:4,1:4]
 testblockbandedoperator(A)
-@which convert(BlockBandedMatrix, view(A, 2:5, 1:5))
-[view(A, 2:5, 1:5)[k, j] for k=1:4, j=1:5]
-A[1:5,1:5]
-
-[A[k, j] for k=1:5, j=1:5]
-A[1:5,1:5][2:5, 1:5]
-
 
 
 ## Projection
-
-
 ## SubSpace test
 
 S=Chebyshev()

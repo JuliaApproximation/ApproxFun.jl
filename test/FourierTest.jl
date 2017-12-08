@@ -1,6 +1,6 @@
-using ApproxFun, Base.Test, BlockArrays
+using ApproxFun, Base.Test, BlockArrays, BlockBandedMatrices
     import ApproxFun: testspace, testtransforms, testmultiplication,
-                      testbandedoperator, testcalculus
+                      testbandedoperator, testcalculus, Block
 
 
 for d in (PeriodicInterval(0.1,0.5),Circle(1.0+im,2.0))
@@ -257,6 +257,31 @@ C = Conversion(SinSpace()⊕CosSpace(),Fourier())
 @test ApproxFun.defaultgetindex(C, Block.(1:2), Block.(1:2)) isa AbstractMatrix
 
 testbandedoperator(C)
+A = C
+A.op
+A
+S = view(A.op,Block(3):Block(4),Block(2):Block(4))
+using FillArrays
+@which BlockBandedMatrix(Zeros, S)
+ret = BlockBandedMatrix(Zeros, S)
+    V = view(ret, Block(1), Block(2))
+    V[1,1] = 1
+    ret
+
+ret
+@which setblock!(ret, view(S, K,J), 1, 2)
+
+ret
+ret[K, J] = view(S, Block(1), Block(2))
+    ret
+
+
+Matrix(A[Block(3):Block(4),Block(2):Block(4)])
+
+
+Matrix(A[blockstart(rangespace(A),3):blockstop(rangespace(A),4),blockstart(domainspace(A),2):blockstop(domainspace(A),4)])
+
+C[Block(3):Block(4), Block(3):Block(4)]
 
 ## Diagonal Derivative
 D = Derivative(Laurent())
