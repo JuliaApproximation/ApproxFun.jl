@@ -74,10 +74,8 @@ X=Multiplication(x,space(x))
 testbandedoperator(X)
 
 d=Interval()
-
-
 A=Conversion(Chebyshev(d),Ultraspherical(2,d))
-
+@test AbstractMatrix(view(A.op, Block.(1:3), Block.(1:3))) isa BlockBandedMatrix
 testbandedoperator(A)
 
 @test norm(A\Fun(x.*f,rangespace(A))-(x.*f)) < 100eps()

@@ -94,42 +94,40 @@ end
 # which block of the tensor
 # equivalent to sum of indices -1
 
-# block(it::Tensorizer,k)::Block = sum(it[k])-length(it.blocks)+1
-block{T}(ci::CachedIterator{T,TrivialTensorizer{2}},k::Int)::Block =
-    k == 0 ? 0 : sum(ci[k])-length(ci.iterator.blocks)+1
+# block(it::Tensorizer,k) = Block(sum(it[k])-length(it.blocks)+1)
+block{T}(ci::CachedIterator{T,TrivialTensorizer{2}},k::Int) =
+    Block(k == 0 ? 0 : sum(ci[k])-length(ci.iterator.blocks)+1)
 
-block(::TrivialTensorizer{2},n::Int)::Block =
-    floor(Integer,sqrt(2n) + 1/2)
+block(::TrivialTensorizer{2},n::Int) =
+    Block(floor(Integer,sqrt(2n) + 1/2))
 
-block{S,T}(sp::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Int)::Block =
-    floor(Integer,sqrt(2floor(Integer,(n-1)/(sp.blocks[1].x*sp.blocks[2].x))+1) + 1/2)
-block(sp::Tensorizer,k::Int)::Block = findfirst(x->x≥k,cumsum(blocklengths(sp)))
+block{S,T}(sp::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Int) =
+    Block(floor(Integer,sqrt(2floor(Integer,(n-1)/(sp.blocks[1].x*sp.blocks[2].x))+1) + 1/2))
+block(sp::Tensorizer,k::Int) = Block(findfirst(x->x≥k,cumsum(blocklengths(sp))))
 block(sp::CachedIterator,k::Int) = block(sp.iterator,k)
 
 # [1,2,3] x 1:∞
-function block(it::Tensorizer{Tuple{Vector{Bool},Repeated{Bool}}},n::Int)::Block
+function block(it::Tensorizer{Tuple{Vector{Bool},Repeated{Bool}}},n::Int)
     m=sum(it.blocks[1])
     if m == length(it.blocks[1])  # trivial blocks
         N=(m*(m+1))÷2
         if n < N
-            return floor(Integer,sqrt(2n)+1/2)
+            return Block(floor(Integer,sqrt(2n)+1/2))
         else
-            return m+(n-N)÷m
+            return Block(m+(n-N)÷m)
         end
     else
-        return findfirst(x->x≥n,cumsum(blocklengths(it)))
+        return Block(findfirst(x->x≥n,cumsum(blocklengths(it))))
     end
 end
 
 # 1:∞ x 1:m
-function block(it::Tensorizer{Tuple{Repeated{Bool},Vector{Bool}}},n::Int)::Block
+function block(it::Tensorizer{Tuple{Repeated{Bool},Vector{Bool}}},n::Int)
     m=length(it.blocks[2])  # assume all true
     N=(m*(m+1))÷2
-    if n < N
-        floor(Integer,sqrt(2n)+1/2)
-    else
-        m+(n-N)÷m
-    end
+    Block(n < N ?
+        floor(Integer,sqrt(2n)+1/2) :
+        m+(n-N)÷m)
 end
 
 blocklength(it,k) = blocklengths(it)[k]

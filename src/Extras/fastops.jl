@@ -7,7 +7,7 @@
 
 # default copy is to loop through
 # override this for most operators.
-function default_bandedmatrix(S::Operator)
+function default_BandedMatrix(S::Operator)
     Y=BandedMatrix{eltype(S)}(uninitialized, size(S), bandwidths(S))
 
     for j=1:size(S,2),k=colrange(Y,j)

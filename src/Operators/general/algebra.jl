@@ -479,12 +479,12 @@ for TYP in (:Matrix, :BandedMatrix, :BlockBandedMatrix, :BandedBlockBandedMatrix
 
             # The following returns a banded Matrix with all rows
             # for large k its upper triangular
-            BA=$TYP(view(P.ops[end],KRl[end,1]:KRl[end,2],JR))
-            for m=(length(P.ops)-1):-1:1
-                BA=$TYP(view(P.ops[m],KRl[m,1]:KRl[m,2],KRl[m+1,1]:KRl[m+1,2]))*BA
+            BA = $TYP(view(P.ops[end],KRl[end,1]:KRl[end,2],JR))
+            for m = (length(P.ops)-1):-1:1
+                BA = $TYP(view(P.ops[m],KRl[m,1]:KRl[m,2],KRl[m+1,1]:KRl[m+1,2]))*BA
             end
 
-            BA
+            $TYP(BA)
         end
     end
 end

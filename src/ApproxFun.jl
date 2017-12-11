@@ -51,7 +51,7 @@ import BlockBandedMatrices: blockbandwidth, blockbandwidths, blockcolstop, block
                             blockcolstart, blockrowstop, blockrowstart, blockrowrange,
                             subblockbandwidth, subblockbandwidths, _BlockBandedMatrix,
                             _BandedBlockBandedMatrix, BandedBlockBandedMatrix, BlockBandedMatrix,
-                            isblockbanded, isbandedblockbanded
+                            isblockbanded, isbandedblockbanded, bb_numentries, BlockBandedSizes
 
 # convenience for 1-d block ranges
 const BlockRange1 = BlockRange{1,Tuple{UnitRange{Int}}}

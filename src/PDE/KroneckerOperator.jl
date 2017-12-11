@@ -311,7 +311,7 @@ function blocklengthrange(rt, kr)
     Klengths
 end
 
-function bandedblockbanded_convert!(ret,S::SubOperator,KO,rt,dt)
+function bandedblockbanded_convert!(ret, S::SubOperator, KO, rt, dt)
     pinds = parentindexes(S)
     kr,jr = pinds
 
@@ -339,46 +339,15 @@ end
 
 
 
-function default_bandedblockbandedmatrix(S)
+function default_BandedBlockBandedMatrix(S)
     KO = parent(S)
     rt=rangespace(KO)
     dt=domainspace(KO)
     ret = BandedBlockBandedMatrix(Zeros, S)
-    bandedblockbanded_convert!(ret,S,parent(S),rt,dt)
+    bandedblockbanded_convert!(ret, S, parent(S), rt, dt)
 end
 
-convert(::Type{BandedBlockBandedMatrix},S::SubOperator) = default_bandedblockbandedmatrix(S)
-
-
-function convert(::Type{BandedBlockBandedMatrix},
-                      S::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}}) where {KKO<:KroneckerOperator,T}
-    kr,jr = parentindexes(S)
-    (isempty(kr) || isempty(jr)) && return BandedBlockBandedMatrix(Zeros, S)
-    KO = parent(S)
-
-    rt = rangetensorizer(KO)
-    dt = domaintensorizer(KO)
-
-    KR = block(rt,kr[1]):block(rt,kr[end])
-    JR = block(dt,jr[1]):block(dt,jr[end])
-
-    # use fast block version
-    M = BandedBlockBandedMatrix(view(KO,KR,JR))
-    k_st = kr[1]-blockstart(rt,KR[1])+1
-    j_st = jr[1]-blockstart(dt,JR[1])+1
-    ret = M[k_st:k_st+length(kr)-1,j_st:j_st+length(jr)-1]
-
-    # add zero blocks
-    prepend!(ret.rows,zeros(Int,KR[1].n[1]-1))
-    prepend!(ret.cols,zeros(Int,JR[1].n[1]-1))
-    ret.rowblocks[:] += KR[1].n[1]-1
-    ret.colblocks[:] += JR[1].n[1]-1
-    BSH = (JR[1].n[1]-1) - (KR[1].n[1]-1)
-    ret.l -= BSH
-    ret.u += BSH
-
-    ret
-end
+convert(::Type{BandedBlockBandedMatrix}, S::SubOperator) = default_BandedBlockBandedMatrix(S)
 
 
 const Trivial2DTensorizer = CachedIterator{Tuple{Int64,Int64},

@@ -3,7 +3,7 @@
 
 # # default copy is to loop through
 # # override this for most operators.
-function default_blockbandedmatrix(S::Operator)
+function default_BlockBandedMatrix(S::Operator)
     ret = BlockBandedMatrix(Zeros, S)
 
     @inbounds for J=Block(1):Block(nblocks(ret,2)),K=blockcolrange(ret,Int(J))
@@ -70,9 +70,10 @@ diagblockshift(op::Operator) =
 function CachedOperator(::Type{BlockBandedMatrix},op::Operator;padding::Bool=false)
     l,u=blockbandwidths(op)
     padding && (u+=l+diagblockshift(op))
-    data=BlockBandedMatrix(eltype(op),l,u,
-                            blocklengths(rangespace(op))[1:0],
-                            blocklengths(domainspace(op))[1:0])
+    data=BlockBandedMatrix{eltype(op)}(uninitialized,
+                                        (blocklengths(rangespace(op))[1:0],
+                                         blocklengths(domainspace(op))[1:0]),
+                                        (l,u))
     CachedOperator(op,data,(0,0),domainspace(op),rangespace(op),(-l,u),padding)
 end
 
@@ -89,35 +90,33 @@ function resizedata!(B::CachedOperator{T,BlockBandedMatrix{T}},::Colon,col::Inte
 
     if col > B.datasize[2]
         if B.datasize[2] == 0
-            datablocksize = 0
+            datablocksize = Block(0)
         else
             datablocksize = block(domainspace(B),B.datasize[2])
-            bs =  blockstop(domainspace(B),datablocksize)
+            bs = blockstop(domainspace(B),datablocksize)
             if bs ≠ B.datasize[2]
                 error("Developer: $(B.datasize) is not lined up with the block $datablocksize as the last column doesn't end at $bs")
             end
         end
 
 
-        l=B.data.l; u=B.data.u
-        J=block(domainspace(B),col)
+        l,u = blockbandwidths(B.data)
+        J = block(domainspace(B),col)
         col = blockstop(domainspace(B),J)  # pad to end of block
 
-        rows = blocklengths(rangespace(B.op))[1:J.n[1]+l]
-        cols = blocklengths(domainspace(B.op))[1:J.n[1]]
+        rows = blocklengths(rangespace(B.op))[1:Int(J)+l]
+        cols = blocklengths(domainspace(B.op))[1:Int(J)]
 
-        pad!(B.data.data,bbm_numentries(rows,cols,l,u))
-        B.data.rows = rows
-        B.data.rowblocks = blocklookup(rows)
-        B.data.cols = cols
-        B.data.colblocks = blocklookup(cols)
-        B.data.blockstart = bbm_blockstarts(rows,cols,l,u)
+        b_size = BlockBandedSizes(rows, cols, l, u)
 
-        JR=datablocksize+1:J
-        KR=blockcolstart(B.data,JR[1]):blockcolstop(B.data,JR[end])
-        BLAS.axpy!(1.0,view(B.op,KR,JR),view(B.data,KR,JR))
+        pad!(B.data.data, bb_numentries(b_size))
+        B.data = _BlockBandedMatrix(B.data.data, b_size, l, u)
 
-        B.datasize = (blockstop(rangespace(B),KR[end]),col)
+        JR = datablocksize+1:J
+        KR=blockcolstart(B.data,first(JR)):blockcolstop(B.data,last(JR))
+        BLAS.axpy!(1.0, view(B.op,KR,JR), view(B.data,KR,JR))
+
+        B.datasize = (blockstop(rangespace(B),last(KR)),col)
     end
 
     B
@@ -134,7 +133,7 @@ end
 # we use a RaggedMatrix to represent the growing lengths of the
 # householder reflections
 QROperator(R::CachedOperator{T,BlockBandedMatrix{T}}) where {T} =
-    QROperator(R,RaggedMatrix(T,0,Int[]),0)
+    QROperator(R,RaggedMatrix{T}(uninitialized, 0, Int[]),0)
 
 
 function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
@@ -209,11 +208,11 @@ function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
 
     R=MO.data
     # last block, convoluted def to match blockbandedmatrix
-    J_col = block(domainspace(MO),col).n[1]
-    K_end = blockcolstop(MO,J_col).n[1]  # last row block in last column
-    J_end = blockrowstop(MO,K_end).n[1]  # QR will affect up to this column
-    rs=blockstop(rangespace(MO),J_end)  # we need to resize up this column
-    sz=sizeof(T)
+    J_col = Int(block(domainspace(MO),col))
+    K_end = Int(blockcolstop(MO,J_col))  # last row block in last column
+    J_end = Int(blockrowstop(MO,K_end))  # QR will affect up to this column
+    rs = blockstop(rangespace(MO),J_end)  # we need to resize up this column
+    sz = sizeof(T)
 
     if rs ≥ MO.datasize[2]
         # add columns up to column rs, which is last column affected by QR
@@ -227,7 +226,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
         resize!(W.cols,2col+1)
 
         for j=m+1:2col
-            cs = blockstop(rangespace(MO),blockcolstop(MO,block(domainspace(MO),j)))
+            cs = blockstop(rangespace(MO), blockcolstop(MO, block(domainspace(MO),j)))
             W.cols[j+1]=W.cols[j] + cs-j+1
             W.m=max(W.m,cs-j+1)
         end
@@ -239,7 +238,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
     r=pointer(R.data)
 
     @inbounds for k=QR.ncols+1:col
-        J1=R.colblocks[k]
+        J1 = R.colblocks[k]
         CS=blockcolstop(R,J1).n[1]
 
         wp=w+sz*(W.cols[k]-1)          # k-th column of W

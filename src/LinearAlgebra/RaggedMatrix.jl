@@ -28,10 +28,8 @@ end
 RaggedMatrix(dat::Vector,cols::Vector{Int},m::Int) =
     RaggedMatrix{eltype(dat)}(dat,cols,m)
 
-RaggedMatrix{T}(m::Int,colns::AbstractVector{Int}) where {T} =
+RaggedMatrix{T}(::Uninitialized, m::Int, colns::AbstractVector{Int}) where {T} =
     RaggedMatrix(Vector{T}(sum(colns)),Int[1;1+cumsum(colns)],m)
-
-RaggedMatrix(m::Int,collengths::AbstractVector{Int}) = RaggedMatrix{Float64}(m,collengths)
 
 
 Base.size(A::RaggedMatrix) = (A.m,length(A.cols)-1)

@@ -525,7 +525,18 @@ macro wrappergetindex(Wrap)
                     blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
                 BlockBandedMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
             else
-                default_blockbandedmatrix(S)
+                default_BlockBandedMatrix(S)
+            end
+        end
+
+        function Base.convert(::Type{ApproxFun.PseudoBlockMatrix},
+                              S::ApproxFun.SubOperator{T,OP}) where {T,OP<:$Wrap}
+            P = parent(S)
+            if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
+                    blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
+                PseudoBlockMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
+            else
+                default_blockmatrix(S)
             end
         end
 
@@ -536,7 +547,7 @@ macro wrappergetindex(Wrap)
                     blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
                 BandedBlockBandedMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
             else
-                default_bandedblockbandedmatrix(S)
+                default_BandedBlockBandedMatrix(S)
             end
         end
 
@@ -684,13 +695,31 @@ convert_axpy!(::Type{MT}, S::Operator) where {MT <: AbstractMatrix} =
 
 
 
-convert(::Type{BandedMatrix}, S::Operator) = default_bandedmatrix(S)
+convert(::Type{BandedMatrix}, S::Operator) = default_BandedMatrix(S)
 
 function convert(::Type{BlockBandedMatrix}, S::Operator)
     if isbandedblockbanded(S)
         BlockBandedMatrix(BandedBlockBandedMatrix(S))
     else
-        default_blockbandedmatrix(S)
+        default_BlockBandedMatrix(S)
+    end
+end
+
+function default_BlockMatrix(S::Operator)
+    ret = PseudoBlockArray(zeros(size(S)),
+                        AbstractVector{Int}(blocklengths(rangespace(S))),
+                        AbstractVector{Int}(blocklengths(domainspace(S))))
+    ret .= S
+    ret
+end
+
+function convert(::Type{PseudoBlockMatrix}, S::Operator)
+    if isbandedblockbanded(S)
+        PseudoBlockMatrix(BandedBlockBandedMatrix(S))
+    elseif isblockbanded(S)
+        PseudoBlockMatrix(BlockBandedMatrix(S))
+    else
+        default_BlockMatrix(S)
     end
 end
 
@@ -730,7 +759,7 @@ function arraytype(V::SubOperator{T,B,Tuple{KR,JR}}) where {T, B, KR <: Union{Bl
     P = parent(V)
     isbandedblockbanded(V) && return BandedBlockBandedMatrix
     isblockbanded(V) && return BlockBandedMatrix
-    return BlockMatrix
+    return PseudoBlockMatrix
 end
 
 function arraytype(V::SubOperator{T,B,Tuple{KR,JR}}) where {T, B, KR <: Block, JR <: Block}
