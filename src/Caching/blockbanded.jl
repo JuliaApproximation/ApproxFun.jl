@@ -239,7 +239,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
 
     @inbounds for k=QR.ncols+1:col
         J1 = R.colblocks[k]
-        CS=blockcolstop(R,J1).n[1]
+        CS = Int(blockcolstop(R,J1))
 
         wp=w+sz*(W.cols[k]-1)          # k-th column of W
 

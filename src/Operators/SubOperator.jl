@@ -230,22 +230,22 @@ function BandedBlockBandedMatrix(::Type{Zeros}, S::SubOperator)
 end
 
 function BandedBlockBandedMatrix(::Type{Zeros}, S::SubOperator{T,B,Tuple{BlockRange1,BlockRange1}}) where {T,B}
-    KR,JR=parentindexes(S)
-    KO=parent(S)
-    l,u=blockbandinds(KO)::Tuple{Int,Int}
-    λ,μ=subblockbandinds(KO)::Tuple{Int,Int}
+    KR,JR = parentindexes(S)
+    KO = parent(S)
+    l,u = blockbandwidths(KO)::Tuple{Int,Int}
+    λ,μ = subblockbandwidths(KO)::Tuple{Int,Int}
 
-    rt=rangespace(KO)
-    dt=domainspace(KO)
-    J=JR[1]
-    K=KR[1]
-    bl_sh = J.n[1]-K.n[1]
+    rt = rangespace(KO)
+    dt = domainspace(KO)
+    J = first(JR)
+    K = first(KR)
+    bl_sh = Int(J) - Int(K)
 
     KBR = blocklengthrange(rt,KR)
     KJR = blocklengthrange(dt,JR)
 
     BandedBlockBandedMatrix(Zeros{eltype(KO)}(sum(KBR),sum(KJR)),
-                                (KBR,KJR), (-l+bl_sh,u-bl_sh), (-λ,μ))
+                                (AbstractVector{Int}(KBR),AbstractVector{Int}(KJR)), (l+bl_sh,u-bl_sh), (λ,μ))
 end
 
 

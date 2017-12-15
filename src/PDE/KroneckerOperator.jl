@@ -363,26 +363,28 @@ function convert(::Type{BandedBlockBandedMatrix},
                       S::SubOperator{T,KroneckerOperator{SS,V,DS,RS,
                                      Trivial2DTensorizer,Trivial2DTensorizer,T},
                                      Tuple{BlockRange1,BlockRange1}}) where {SS,V,DS,RS,T}
-    KR,JR=parentindexes(S)
+    KR,JR = parentindexes(S)
+    KR_i, JR_i = Int.(KR), Int.(JR)
+
     KO=parent(S)
 
     ret = BandedBlockBandedMatrix(Zeros, S)
 
     A,B=KO.ops
-    AA=A[Block(1):KR[end],Block(1):JR[end]]::BandedMatrix{eltype(S)}
+    AA = convert(BlockBandedMatrix, view(A, Block(1):last(KR),Block(1):last(JR)))::BlockBandedMatrix{eltype(S)}
     Al,Au = bandwidths(AA)
-    BB=B[Block(1):KR[end],Block(1):JR[end]]::BandedMatrix{eltype(S)}
+    BB = convert(BlockBandedMatrix, view(B, Block(1):last(KR),Block(1):last(JR)))::BlockBandedMatrix{eltype(S)}
     Bl,Bu = bandwidths(BB)
     λ,μ = subblockbandwidths(ret)
 
     for J in Block(1):Block(nblocks(ret,2)), K in blockcolrange(ret,J)
-        n,m=KR[K.n[1]].n[1],JR[J.n[1]].n[1]
-        Bs = view(ret,K,J)
+        n,m = KR_i[Int(K)],JR_i[Int(J)]
+        Bs = view(ret, K, J)
         l = min(Al,Bu+n-m,λ)
         u = min(Au,Bl+m-n,μ)
         @inbounds for j=1:m, k=max(1,j-u):min(n,j+l)
-            a = inbands_getindex(AA,k,j)
-            b = inbands_getindex(BB,n-k+1,m-j+1)
+            a = AA[k,j]
+            b = BB[n-k+1,m-j+1]
             c = a*b
             inbands_setindex!(Bs,c,k,j)
         end

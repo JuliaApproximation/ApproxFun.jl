@@ -156,6 +156,64 @@ C=Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical(1)⊗Ultraspherical(1))
 end
 
 
+d = Space(0..1) * Space(0..2)
+Dx = Derivative(d, [1,0])
+f = Fun((x,y) -> sin(x) * cos(y), d)
+fx = Fun((x,y) -> cos(x) * cos(y), d)
+@test (Dx*f)(0.2,0.3) ≈ fx(0.2,0.3)
+Dx.op.ops[2]
+V = view(Dx, Block.(1:91), Block.(1:100))
+    S = V
+
+    KR,JR = parentindexes(S)
+    KO = parent(S)
+    l,u = blockbandwidths(KO)::Tuple{Int,Int}
+    λ,μ = subblockbandwidths(KO)::Tuple{Int,Int}
+
+    rt = rangespace(KO)
+    dt = domainspace(KO)
+    J = first(JR)
+    K = first(KR)
+    bl_sh = Int(J) - Int(K)
+
+    KBR = blocklengthrange(rt,KR)
+    KJR = blocklengthrange(dt,JR)
+(Zeros{eltype(KO)}(sum(KBR),sum(KJR)),
+                                (AbstractVector{Int}(KBR),AbstractVector{Int}(KJR)), (l+bl_sh,u-bl_sh), (λ,μ))
+A = view(Dx, FiniteRange,1:100)
+(l+bl_sh,u-bl_sh), (λ,μ))
+
+BandedBlockBandedMatrix(Zeros,
+P = parent(A)
+kr,jr = parentindexes(A)
+dt,rt = domaintensorizer(P),rangetensorizer(P)
+KR,JR = Block(1):block(rt,kr[end]),Block(1):block(dt,jr[end])
+
+
+
+
+BandedBlockBandedMatrix(Zeros(
+
+
+M = P[KR,JR]
+
+nblocks(f)
+
+
+Dx*f
+
+@which ApproxFun.isbandedblockbanded(Dx.op.ops[2])
+
+convert( BandedBlockBandedMatrix, V)
+
+parent(V)
+
+D = Derivative(Chebyshev())
+V = view(D,
+BandedBlockBandedMatrix(Zeros, V)
+
+
+Dx*f
 
 ## x,y constructor
 

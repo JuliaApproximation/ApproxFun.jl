@@ -10,7 +10,7 @@ mutable struct RaggedMatrix{T} <: AbstractMatrix{T}
     data::Vector{T} # a Vector of non-zero entries
     cols::Vector{Int} # a Vector specifying the first index of each column
     m::Int #Number of rows
-    function RaggedMatrix{T}(data::Vector{T},cols::Vector{Int},m::Int) where T
+    function RaggedMatrix{T}(data::Vector{T}, cols::Vector{Int}, m::Int) where T
         # make sure the cols are monitonically increasing
         @assert 1==cols[1]
         for j=1:length(cols)-1
@@ -206,7 +206,7 @@ function *(A::RaggedMatrix,B::RaggedMatrix)
         cols[j] = max(cols[j],colstop(A,k))
     end
 
-    unsafe_A_mul_B!(RaggedMatrix{T}(size(A,1),cols),A,B)
+    unsafe_A_mul_B!(RaggedMatrix{T}(uninitialized, size(A,1), cols), A, B)
 end
 
 function unsafe_A_mul_B!(Y::RaggedMatrix,A::RaggedMatrix,B::RaggedMatrix)
