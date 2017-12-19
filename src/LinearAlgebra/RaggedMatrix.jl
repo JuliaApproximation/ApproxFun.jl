@@ -140,7 +140,7 @@ function Base.A_mul_B!(y::Vector,A::RaggedMatrix,b::Vector)
 end
 
 
-function BLAS.axpy!(a,X::RaggedMatrix,Y::RaggedMatrix)
+function BLAS.axpy!(a, X::RaggedMatrix, Y::RaggedMatrix)
     if size(X) ≠ size(Y)
         throw(BoundsError())
     end

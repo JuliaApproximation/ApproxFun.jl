@@ -116,7 +116,7 @@ end
 
 function BLAS.axpy!(α,P::SubOperator{T,PP},A::AbstractMatrix) where {T,PP<:PlusOperator}
     for op in parent(P).ops
-        BLAS.axpy!(α,view(op,P.indexes[1],P.indexes[2]),A)
+        BLAS.axpy!(α, view(op,P.indexes[1],P.indexes[2]), A)
     end
 
     A

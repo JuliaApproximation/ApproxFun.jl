@@ -127,7 +127,7 @@ My=Multiplication(Fun(sin),Chebyshev())
 K=Mx⊗My
 
 @test ApproxFun.BandedBlockBandedMatrix(view(K,1:10,1:10)) ≈ [K[k,j] for k=1:10,j=1:10]
-C=Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical(1)⊗Ultraspherical(1))
+C = Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical(1)⊗Ultraspherical(1))
 @test C[1:100,1:100] ≈ Float64[C[k,j] for k=1:100,j=1:100]
 
 
@@ -139,7 +139,7 @@ C=Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical(1)⊗Ultraspherical(1))
     Dy = Derivative(d, [0,1])
     fy = Fun((x,y) -> -sin(x) * sin(y), d)
     @test (Dy*f)(0.2,0.3) ≈ fy(0.2,0.3)
-    L=Dx+Dy
+    L = Dx + Dy
     @test (L*f)(0.2,0.3) ≈ (fx(0.2,0.3)+fy(0.2,0.3))
 
     B=ldirichlet(factor(d,1))⊗ldirichlet(factor(d,2))
@@ -155,65 +155,35 @@ C=Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical(1)⊗Ultraspherical(1))
     @test Number(B*f) ≈ f(0.1,0.3)
 end
 
-
 d = Space(0..1) * Space(0..2)
 Dx = Derivative(d, [1,0])
 f = Fun((x,y) -> sin(x) * cos(y), d)
 fx = Fun((x,y) -> cos(x) * cos(y), d)
 @test (Dx*f)(0.2,0.3) ≈ fx(0.2,0.3)
-Dx.op.ops[2]
-V = view(Dx, Block.(1:91), Block.(1:100))
-    S = V
+Dy = Derivative(d, [0,1])
+fy = Fun((x,y) -> -sin(x) * sin(y), d)
+@test (Dy*f)(0.2,0.3) ≈ fy(0.2,0.3)
+L = Dx + Dy
+    testraggedbelowoperator(L)
+V = view(L, 1:10, 1:10)
+    ret = RaggedMatrix(Zeros, V)
+    A = convert(RaggedMatrix, view(L.ops[1], 1:10, 1:10))
+    colstop(L.ops[1],2)
 
-    KR,JR = parentindexes(S)
-    KO = parent(S)
-    l,u = blockbandwidths(KO)::Tuple{Int,Int}
-    λ,μ = subblockbandwidths(KO)::Tuple{Int,Int}
+@which convert(RaggedMatrix, view(L.ops[1], 1:10, 1:10))    
 
-    rt = rangespace(KO)
-    dt = domainspace(KO)
-    J = first(JR)
-    K = first(KR)
-    bl_sh = Int(J) - Int(K)
+colstop(L.ops[1]    ,2)
+ApproxFun.colstop(L,2)
+ApproxFun.colstop(L.ops[1],2)
 
-    KBR = blocklengthrange(rt,KR)
-    KJR = blocklengthrange(dt,JR)
-(Zeros{eltype(KO)}(sum(KBR),sum(KJR)),
-                                (AbstractVector{Int}(KBR),AbstractVector{Int}(KJR)), (l+bl_sh,u-bl_sh), (λ,μ))
-A = view(Dx, FiniteRange,1:100)
-(l+bl_sh,u-bl_sh), (λ,μ))
-
-BandedBlockBandedMatrix(Zeros,
-P = parent(A)
-kr,jr = parentindexes(A)
-dt,rt = domaintensorizer(P),rangetensorizer(P)
-KR,JR = Block(1):block(rt,kr[end]),Block(1):block(dt,jr[end])
+BLAS.axpy!(1.0, , ret)
 
 
+L.ops[1][1:10,1:10]
+@wniview(L.ops[1], 1;10, 1:10)
+BLAS.axpy!(one(eltype(S)), S, )
+convert_axpy!(RaggedMatrix, V)
 
-
-BandedBlockBandedMatrix(Zeros(
-
-
-M = P[KR,JR]
-
-nblocks(f)
-
-
-Dx*f
-
-@which ApproxFun.isbandedblockbanded(Dx.op.ops[2])
-
-convert( BandedBlockBandedMatrix, V)
-
-parent(V)
-
-D = Derivative(Chebyshev())
-V = view(D,
-BandedBlockBandedMatrix(Zeros, V)
-
-
-Dx*f
 
 ## x,y constructor
 

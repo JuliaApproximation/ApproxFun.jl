@@ -307,9 +307,9 @@ u=M*G1
 
 
 
-G=Fun(z->[-1 -3; -3 -1]/z +
-         [ 2  2;  1 -3] +
-         [ 2 -1;  1  2]*z,Circle())
+G = Fun(z->[-1 -3; -3 -1]/z +
+           [ 2  2;  1 -3] +
+           [ 2 -1;  1  2]*z, Circle())
 
 
 @test G[1,1](exp(0.1im)) == G(exp(0.1im))[1,1]
@@ -327,7 +327,7 @@ F = (G-I)[:,1]
 @test coefficients(F̃,space(F)) == F.coefficients
 @test Fun(F̃,space(F)) == F
 
-@test F==Fun(vec(F),space(F))
+@test F == Fun(vec(F),space(F))
 
 @test inv(G(exp(0.1im))) ≈ inv(G)(exp(0.1im))
 @test Fun(eye(2),space(G))(exp(0.1im)) ≈ eye(2)
