@@ -42,25 +42,24 @@ function resizedata!(B::CachedOperator{T,BandedBlockBandedMatrix{T}}, ::Colon, c
 end
 
 function resizedata!(B::CachedOperator{T,BandedBlockBandedMatrix{T}},n::Integer,m::Integer) where {T<:Number}
-    resizedata!(B,:,m)
+    resizedata!(B, :, m)
     if n < B.datasize[1]
         return B
     end
-    
+
     l,u,λ,μ = B.data.l,B.data.u,B.data.λ,B.data.μ
 
     # make sure we have enough rows
     K = Int(block(rangespace(B),n))
     rows = blocklengths(rangespace(B.op))[1:K]
 
-    b_bs = BlockSizes(BlockArrays._cumul_vec(rows), B.data.block_sizes.cumul_sizes[2])
+    b_bs = BlockSizes((BlockArrays._cumul_vec(rows), B.data.block_sizes.block_sizes.cumul_sizes[2]))
 
     bs = BandedBlockBandedSizes(b_bs, B.data.block_sizes.data_block_sizes,
                                 l, u, λ, μ)
 
-    B.data.rows=rows
-    B.data.rowblocks=blocklookup(rows)
-    B.datasize=(n,B.datasize[2])
+    B.data = _BandedBlockBandedMatrix(B.data.data, bs)
+    B.datasize = (n,B.datasize[2])
 
     B
 end

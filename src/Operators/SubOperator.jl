@@ -287,7 +287,7 @@ end
 # once the notion of bandedness of finite dimensional operators is made sense of
 
 
-for TYP in (:RaggedMatrix,:Matrix)
+for TYP in (:RaggedMatrix, :Matrix)
     def_TYP = parse("default_" * string(TYP))
     @eval function convert(::Type{$TYP},S::SubOperator)
         if isinf(size(S,1)) || isinf(size(S,2))

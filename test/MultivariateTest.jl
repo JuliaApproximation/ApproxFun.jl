@@ -163,34 +163,21 @@ fx = Fun((x,y) -> cos(x) * cos(y), d)
 Dy = Derivative(d, [0,1])
 fy = Fun((x,y) -> -sin(x) * sin(y), d)
 @test (Dy*f)(0.2,0.3) ≈ fy(0.2,0.3)
+V = view(Dx.op, 1:10, 1:10)
+@which convert(RaggedMatrix, V)
+
 testraggedbelowoperator(Dx)
-
-
-L = Dx + Dy
-    testraggedbelowoperator(L.ops[1])
-testraggedbelowoperator(L.ops[1])
-V = view(L, 1:10, 1:10)
+testraggedbelowoperator(Dy)
+testraggedbelowoperator(Dx+Dy)
+L = Dx+Dy
+    V = view(L, 1:10, 1:10)
     ret = RaggedMatrix(Zeros, V)
-    A = convert(RaggedMatrix, view(L.ops[1], 1:10, 1:10))
-    @which colstop(L.ops[1],2)
+    BLAS.axpy!(1.0, view(Dx,1:10,1:10), ret)
 
-colstop(L.ops[1].ops[1].op,2)
-L.ops[1].ops[1].op[1:10,1:10].cols
-L.ops[1]|>isbanded
-@which convert(RaggedMatrix, view(L.ops[1], 1:10, 1:10))
-
-colstop(L.ops[1]    ,2)
-ApproxFun.colstop(L,2)
-ApproxFun.colstop(L.ops[1],2)
-
-BLAS.axpy!(1.0, , ret)
-
-
-L.ops[1][1:10,1:10]
-@wniview(L.ops[1], 1;10, 1:10)
-BLAS.axpy!(one(eltype(S)), S, )
-convert_axpy!(RaggedMatrix, V)
-
+colstop(Dx,2)
+RaggedMatrix(view(Dx,1:10,1:10)).cols
+arraytype(V)
+colstop(Dy, 2)
 
 ## x,y constructor
 

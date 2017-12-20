@@ -175,6 +175,12 @@ function testraggedbelowoperator(A)
     for k=1:20
         @test isfinite(colstop(A,k))
     end
+
+    R = RaggedMatrix(view(A, 1:10, 1:10))
+    for j=1:size(R,2)
+        @test colstop(R,2) == colstop(A,2)
+    end
+
     testinfoperator(A)
 end
 
