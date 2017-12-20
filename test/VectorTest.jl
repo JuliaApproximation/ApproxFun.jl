@@ -1,6 +1,6 @@
 using ApproxFun,Base.Test
     import ApproxFun: interlace, Multiplication, ConstantSpace, PointSpace,
-                        ArraySpace, testblockbandedoperator
+    ArraySpace, testblockbandedoperator
 
 
 @test Fun(x->[1.,0.])(0.) ≈ [1.,0.]
@@ -330,6 +330,15 @@ F = (G-I)[:,1]
 @test F == Fun(vec(F),space(F))
 
 @test inv(G(exp(0.1im))) ≈ inv(G)(exp(0.1im))
+
+
+inv(G)
+
+ApproxFun.resizedata!(QR, : , Block(6))
+
+
+
+M \ Fun(eye(2),repmat(rangespace(M),1,2))
 @test Fun(eye(2),space(G))(exp(0.1im)) ≈ eye(2)
 @test Fun(I,space(G))(exp(0.1im)) ≈ eye(2)
 

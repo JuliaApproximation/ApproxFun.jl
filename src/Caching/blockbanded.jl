@@ -136,185 +136,168 @@ QROperator(R::CachedOperator{T,BlockBandedMatrix{T}}) where {T} =
     QROperator(R,RaggedMatrix{T}(uninitialized, 0, Int[]),0)
 
 
-function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
-                                          MM,DS,RS,BI}},
- ::Colon,col) where {T,MM,DS,RS,BI}
-    if col ≤ QR.ncols
-        return QR
-    end
+# function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
+#                                           MM,DS,RS,BI}},
+#                      ::Colon, col) where {T,MM,DS,RS,BI}
+#     if col ≤ QR.ncols
+#         return QR
+#     end
+#
+#     MO=QR.R
+#     W=QR.H
+#
+#     R=MO.data
+#     cs=colstop(MO,col)
+#
+#     if cs ≥ MO.datasize[1]
+#         resizedata!(MO,cs+100,:)  # add 100 rows
+#         R=MO.data
+#     end
+#
+#     if col > size(W,2)
+#         m=size(W,2)
+#         resize!(W.cols,2col+1)
+#
+#         for j=m+1:2col
+#             cs=colstop(MO,j)
+#             W.cols[j+1]=W.cols[j] + cs-j+1
+#             W.m=max(W.m,cs-j+1)
+#         end
+#
+#         resize!(W.data,W.cols[end]-1)
+#     end
+#
+#     for k=QR.ncols+1:col
+#         cs = colstop(R,k)
+#         W[1:cs-k+1,k] = view(R,k:cs,k) # diagonal and below
+#         wp=view(W,1:cs-k+1,k)
+#         W[1,k]+= flipsign(norm(wp),W[1,k])
+#         normalize!(wp)
+#
+#         # scale banded entries
+#         for j=k:rowstop(R,k)
+#             v=view(R,k:cs,j)
+#             dt=dot(wp,v)
+#             Base.axpy!(-2*dt,wp,v)
+#         end
+#
+#         # scale banded/filled entries
+#         for j=rowstop(R,k)+1:rowstop(R,cs)
+#             csrt=colstart(R,j)
+#             v=view(R,csrt:cs,j)  # shift down each time
+#             wp2=view(wp,csrt-k+1:cs-k+1)
+#             dt=dot(wp2,v)
+#             Base.axpy!(-2*dt,wp2,v)
+#         end
+#     end
+#     QR.ncols=col
+#     QR
+# end
 
-    MO=QR.R
-    W=QR.H
-
-    R=MO.data
-    cs=colstop(MO,col)
-
-    if cs ≥ MO.datasize[1]
-        resizedata!(MO,cs+100,:)  # add 100 rows
-        R=MO.data
-    end
-
-    if col > size(W,2)
-        m=size(W,2)
-        resize!(W.cols,2col+1)
-
-        for j=m+1:2col
-            cs=colstop(MO,j)
-            W.cols[j+1]=W.cols[j] + cs-j+1
-            W.m=max(W.m,cs-j+1)
-        end
-
-        resize!(W.data,W.cols[end]-1)
-    end
-
-    for k=QR.ncols+1:col
-        cs = colstop(R,k)
-        W[1:cs-k+1,k] = view(R,k:cs,k) # diagonal and below
-        wp=view(W,1:cs-k+1,k)
-        W[1,k]+= flipsign(norm(wp),W[1,k])
-        normalize!(wp)
-
-        # scale banded entries
-        for j=k:rowstop(R,k)
-            v=view(R,k:cs,j)
-            dt=dot(wp,v)
-            Base.axpy!(-2*dt,wp,v)
-        end
-
-        # scale banded/filled entries
-        for j=rowstop(R,k)+1:rowstop(R,cs)
-            csrt=colstart(R,j)
-            v=view(R,csrt:cs,j)  # shift down each time
-            wp2=view(wp,csrt-k+1:cs-k+1)
-            dt=dot(wp2,v)
-            Base.axpy!(-2*dt,wp2,v)
-        end
-    end
-    QR.ncols=col
-    QR
-end
-
-
+# always resize by column
+resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
+                               MM,DS,RS,BI}},
+                     ::Colon, col::Int) where {T,MM,DS,RS,BI} =
+    resizedata!(QR, :, block(domainspace(QR.R),col))
 
 function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
                                MM,DS,RS,BI}},
-::Colon,col) where {T<:BlasFloat,MM,DS,RS,BI}
-    if col ≤ QR.ncols
-        return QR
-    end
+                     ::Colon, COL::Block) where {T<:BlasFloat,MM,DS,RS,BI}
+     MO = QR.R
+     W = QR.H
+     R = MO.data
 
-    MO=QR.R
-    W=QR.H
+     l,u = R.l,R.u
 
-    R=MO.data
-    # last block, convoluted def to match blockbandedmatrix
-    J_col = Int(block(domainspace(MO),col))
-    K_end = Int(blockcolstop(MO,J_col))  # last row block in last column
-    J_end = Int(blockrowstop(MO,K_end))  # QR will affect up to this column
-    rs = blockstop(rangespace(MO),J_end)  # we need to resize up this column
-    sz = sizeof(T)
+     ds = domainspace(QR)
+     col = blockstop(ds, COL)  # last column
 
-    if rs ≥ MO.datasize[2]
-        # add columns up to column rs, which is last column affected by QR
-        resizedata!(MO,:,rs)
-        R=MO.data
-    end
+     if col ≤ QR.ncols
+         return QR
+     end
 
-    if col > size(W,2)
-        # resize Householder matrix
-        m=size(W,2)
-        resize!(W.cols,2col+1)
+     J_start = Int(block(ds, QR.ncols+1)) # first block-column not factorized
+     @assert blockstart(ds, J_start) == QR.ncols+1  # we want to make sure we haven't partially factorized a column
 
-        for j=m+1:2col
-            cs = blockstop(rangespace(MO), blockcolstop(MO, block(domainspace(MO),j)))
-            W.cols[j+1]=W.cols[j] + cs-j+1
-            W.m=max(W.m,cs-j+1)
-        end
+     # last block, convoluted def to match blockbandedmatrix
+     J_col = Int(COL)
+     K_end = Int(blockcolstop(MO, J_col))  # last row block in last column
+     J_end = Int(blockrowstop(MO, K_end))  # QR will affect up to this column
+     j_end = blockstop(rangespace(MO), J_end)  # we need to resize up this column
+     sz = sizeof(T)
 
-        resize!(W.data,W.cols[end]-1)
-    end
+     if j_end ≥ MO.datasize[2]
+         # add columns up to column rs, which is last column affected by QR
+         resizedata!(MO, :, j_end)
+         R = MO.data
+     end
 
-    w=pointer(W.data)
-    r=pointer(R.data)
+     if col > size(W,2)
+         # resize Householder matrix
+         m = size(W,2)
+         resize!(W.cols, 2col+1)
 
-    @inbounds for k=QR.ncols+1:col
-        J1 = R.colblocks[k]
-        CS = Int(blockcolstop(R,J1))
+         for j=m+1:2col
+             cs = blockstop(rangespace(MO), blockcolstop(MO, block(domainspace(MO),j)))
+             W.cols[j+1]=W.cols[j] + cs-j+1
+             W.m=max(W.m,cs-j+1)
+         end
 
-        wp=w+sz*(W.cols[k]-1)          # k-th column of W
+         resize!(W.data, W.cols[end]-1)
+     end
 
+     w = pointer(W.data)
+     r = pointer(R.data)
 
+     bs = R.block_sizes
 
-        K1=R.rowblocks[k]  # diagonal block
-        br=blockrows(R,K1)  # the rows of the diagonal block
-        bc=blockcols(R,J1) # the cols of the diagonal block
+     for j =QR.ncols+1 : col   # first column of block
+         bi = global2blockindex(bs, (j, j)) # converts from global indices to block indices
+         K1, J1 = bi.I  # this is the diagonal block corresponding to j
+         κ, ξ = bi.α
 
-        # copy into W
-        M1 = br[end]-k+1 # the number of entries in first block
-        kshft = k-br[1]
-        nrows1 = R.rows[K1]
-        jshft = (k-bc[1])*nrows1  # shift by each column we are to the right
-        BLAS.blascopy!(M1,r+sz*(inbands_getindex(R.blockstart,K1,J1)+kshft + jshft),1,wp,1)
-
-        M = M1 # number of entries so far copied
+         st = bs.block_strides[J1]  # the stride of the matrix
+         shft = bs.block_starts[K1,J1]-1 + st*(ξ-1) + κ-1 # the index of the pointer to the j, j entry
 
 
-        for K=K1+1:CS
-            jshft = (k-bc[1])*R.rows[K]  # shift by each column we are to the right
-            BLAS.blascopy!(R.rows[K],r+sz*(inbands_getindex(R.blockstart,K,J1) + jshft),1,wp+sz*M,1)
-            M += R.rows[K]    # copy all rows in K-th block
-        end
-
-        # M is now total entries in W
-        W.data[W.cols[k]] += flipsign(BLAS.nrm2(M,wp,1),W.data[W.cols[k]])
-        normalize!(M,wp)
-
-        # first block
-        # scale banded entries
-        BRS1=blockrowstop(R,K1).n[1]
-        @inbounds for J=J1:BRS1
-            for j = (J==J1 ? k-bc[1]+1 : 1):R.cols[J]  # only do partial columns for first block
-                jshft = (j-1)*nrows1
-                dt=dot(M1,wp,1,r+sz*(inbands_getindex(R.blockstart,K1,J)+kshft +jshft),1)
-                M=M1
-                for K=K1+1:CS
-                    jshft = (j-1)*R.rows[K]  # shift by each column we are to the right
-                    dt+=dot(R.rows[K],wp+sz*M,1,r+sz*(inbands_getindex(R.blockstart,K,J) +jshft),1)
-                    M += R.rows[K]    # copy all rows in K-th block
-                end
-
-                jshft = (j-1)*nrows1
-                BLAS.axpy!(M1,-2*dt,wp,1,r+sz*(inbands_getindex(R.blockstart,K1,J)+kshft +jshft),1)
-                M=M1
-                for K=K1+1:CS
-                    jshft = (j-1)*R.rows[K]  # shift by each column we are to the right
-                    BLAS.axpy!(R.rows[K],-2*dt,wp+sz*M,1,r+sz*(inbands_getindex(R.blockstart,K,J) +jshft),1)
-                    M += R.rows[K]    # copy all rows in K-th block
-                end
-            end
-        end
+         K_CS = Int(blockcolstop(R,J1)) # last row in J-th blockcolumn
+         k_end = globalrange(bs, (K_CS, J1))[1][end]
 
 
-        # now do the blocks where we have zeros
-        @inbounds for J=BRS1+1:blockrowstop(R,CS).n[1]
-            for j=1:R.cols[J]  # only do partial columns for first block
-                dt=zero(T)
-                Mpre=M1 + sum(R.rows[K1+1:K1+J-BRS1-1]) # number of rows in zero blocks
-                M=Mpre
-                for K=K1+J-BRS1:CS
-                    jshft = (j-1)*R.rows[K]  # shift by each column we are to the right
-                    dt+=dot(R.rows[K],wp+sz*M,1,r+sz*(inbands_getindex(R.blockstart,K,J) +jshft),1)
-                    M += R.rows[K]    # copy all rows in K-th block
-                end
-                M=Mpre
-                for K=K1+J-BRS1:CS
-                    jshft = (j-1)*R.rows[K]  # shift by each column we are to the right
-                    BLAS.axpy!(R.rows[K],-2*dt,wp+sz*M,1,r+sz*(inbands_getindex(R.blockstart,K,J) +jshft),1)
-                    M += R.rows[K]    # copy all rows in K-th block
-                end
-            end
-        end
-    end
+         w_j = W.cols[j]  # the data index  for the j-th column of W
+         wp = w+sz*(w_j-1)          # j-th column of W
+
+         M = k_end - j + 1 # the number of entries we are diagonalizing. we know the stride tells us the total number of rows
+
+         BLAS.blascopy!(M, r+sz*shft, 1, wp, 1) # copy the column into W
+
+
+         # we need to scale the first entry and then normalize
+         W.data[w_j] += flipsign(BLAS.nrm2(M,wp,1), W.data[w_j])
+         normalize!(M, wp)
+
+         # scale rest of columns in first block
+         # for ξ_2 = 2:
+
+         for ξ_2 = ξ:blocksize(bs, 2, J1)
+             # we now apply I-2v*v' in place
+             r_sh = r+sz*(shft + st*(ξ_2-ξ)) # the pointer the (j,ξ_2)-th entry
+             dt = dot(M, wp, 1, r_sh, 1)
+             BLAS.axpy!(M, -2*dt, wp, 1, r_sh ,1)
+         end
+
+         for J = J1+1:J1+u
+             st = bs.block_strides[J]
+             shft = bs.block_starts[K1,J] + κ-2 # the index of the pointer to the j, j entry
+             for ξ_2 = 1:blocksize(bs.block_sizes, 2, J)
+                 # we now apply I-2v*v' in place
+                 r_sh = r+sz*(shft + st*(ξ_2-1)) # the pointer the (j,ξ_2)-th entry
+                 dt = dot(M, wp, 1, r_sh, 1)
+                 BLAS.axpy!(M, -2*dt, wp, 1, r_sh ,1)
+             end
+         end
+     end
+
     QR.ncols=col
     QR
 end

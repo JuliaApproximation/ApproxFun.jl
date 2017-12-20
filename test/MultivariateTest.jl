@@ -1,5 +1,5 @@
 using ApproxFun, Base.Test
-    import ApproxFun: testbandedblockbandedoperator, factor, Block
+    import ApproxFun: testbandedblockbandedoperator, testraggedbelowoperator, factor, Block
 
 
 d=Domain(ApproxFun.Vec(0.,0.) .. ApproxFun.Vec(1.,1.))
@@ -164,6 +164,8 @@ Dy = Derivative(d, [0,1])
 fy = Fun((x,y) -> -sin(x) * sin(y), d)
 @test (Dy*f)(0.2,0.3) ≈ fy(0.2,0.3)
 testraggedbelowoperator(Dx)
+
+
 L = Dx + Dy
     testraggedbelowoperator(L.ops[1])
 testraggedbelowoperator(L.ops[1])

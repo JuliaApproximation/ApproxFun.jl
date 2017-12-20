@@ -39,7 +39,7 @@ import Base: sinpi, cospi, airy, besselh, exp,
                     atan, acos, asin, erfc, inv
 
 
-import BlockArrays: nblocks, blocksize
+import BlockArrays: nblocks, blocksize, global2blockindex, globalrange
 
 import BandedMatrices: bandinds, bandrange, PrintShow, bandshift,
                         inbands_getindex, inbands_setindex!, bandwidth, AbstractBandedMatrix,
