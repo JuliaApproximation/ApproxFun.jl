@@ -163,6 +163,26 @@ fx = Fun((x,y) -> cos(x) * cos(y), d)
 Dy = Derivative(d, [0,1])
 fy = Fun((x,y) -> -sin(x) * sin(y), d)
 @test (Dy*f)(0.2,0.3) ≈ fy(0.2,0.3)
+<<<<<<< HEAD
+=======
+testraggedbelowoperator(Dx)
+L = Dx + Dy
+    testraggedbelowoperator(L.ops[1])
+testraggedbelowoperator(L.ops[1])
+V = view(L, 1:10, 1:10)
+    ret = RaggedMatrix(Zeros, V)
+    A = convert(RaggedMatrix, view(L.ops[1], 1:10, 1:10))
+    @which colstop(L.ops[1],2)
+
+colstop(L.ops[1].ops[1].op,2)
+L.ops[1].ops[1].op[1:10,1:10].cols
+L.ops[1]|>isbanded
+@which convert(RaggedMatrix, view(L.ops[1], 1:10, 1:10))
+
+colstop(L.ops[1]    ,2)
+ApproxFun.colstop(L,2)
+ApproxFun.colstop(L.ops[1],2)
+>>>>>>> c1cbb8a557e10d63dc6f92b688a6f9273e778819
 
 testraggedbelowoperator(Dx)
 testraggedbelowoperator(Dy)
