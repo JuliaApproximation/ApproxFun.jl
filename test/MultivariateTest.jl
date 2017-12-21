@@ -163,8 +163,6 @@ fx = Fun((x,y) -> cos(x) * cos(y), d)
 Dy = Derivative(d, [0,1])
 fy = Fun((x,y) -> -sin(x) * sin(y), d)
 @test (Dy*f)(0.2,0.3) ≈ fy(0.2,0.3)
-V = view(Dx.op, 1:10, 1:10)
-@which convert(RaggedMatrix, V)
 
 testraggedbelowoperator(Dx)
 testraggedbelowoperator(Dy)
