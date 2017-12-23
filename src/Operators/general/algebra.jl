@@ -352,9 +352,9 @@ end
 
 for OP in (:colstart,:colstop)
     defOP=parse("default_"*string(OP))
-    @eval function $OP(P::TimesOperator,k::Integer)
+    @eval function $OP(P::TimesOperator, k::Integer)
         if isbanded(P)
-            return $defOP(P,k)
+            return $defOP(P, k)
         end
         for j=reverse(eachindex(P.ops))
             k=$OP(P.ops[j],k)
@@ -374,12 +374,15 @@ function getindex(P::TimesOperator,k::AbstractVector)
     vec(Matrix(P[1:1,k]))
 end
 
-for TYP in (:Matrix, :BandedMatrix, :BlockBandedMatrix, :BandedBlockBandedMatrix, :RaggedMatrix)
+for TYP in (:Matrix, :BandedMatrix, :RaggedMatrix)
     @eval begin
         function convert(::Type{$TYP},
                          S::SubOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,TO<:TimesOperator}
-            P=parent(S)
-            kr,jr=parentindexes(S)
+            P = parent(S)
+
+            isbanded(P) && $TYP ≠ BandedMatrix && return $TYP(convert(BandedMatrix, S))
+
+            kr,jr = parentindexes(S)
 
             (isempty(kr) || isempty(jr)) && return $TYP(Zeros, S)
 
@@ -388,7 +391,7 @@ for TYP in (:Matrix, :BandedMatrix, :BlockBandedMatrix, :BandedBlockBandedMatrix
                 throw(BoundsError())
             end
 
-            @assert length(P.ops)≥2
+            @assert length(P.ops) ≥ 2
             if size(S,1)==0
                 return $TYP(Zeros, S)
             end

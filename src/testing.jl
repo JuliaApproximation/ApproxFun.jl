@@ -178,7 +178,7 @@ function testraggedbelowoperator(A)
 
     R = RaggedMatrix(view(A, 1:10, 1:10))
     for j=1:size(R,2)
-        @test colstop(R,2) == colstop(A,2)
+        @test colstop(R,j) == min(colstop(A,j),10)
     end
 
     testinfoperator(A)
@@ -229,5 +229,5 @@ function testbandedblockbandedoperator(A)
     @test isfinite(subblockbandwidth(A,1))
     @test isfinite(subblockbandwidth(A,2))
 
-    @test isa(A[1:10,1:10],BandedBlockBandedMatrix)
+    @test isa(A[Block.(1:4),Block.(1:4)], BandedBlockBandedMatrix)
 end

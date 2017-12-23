@@ -205,23 +205,27 @@ end
 
 
 ## back substitution
+for ArrTyp in (:AbstractVector, :AbstractMatrix)
+    @eval function A_ldiv_B!(U::UpperTriangular{T, SubArray{T, 2, RaggedMatrix{T}, Tuple{UnitRange{Int}, UnitRange{Int}}, false}},
+                             u::$ArrTyp{T}) where T
+        n = size(u,1)
+        n == size(U,1) || throw(DimensionMismatch())
 
-function trtrs!(::Type{Val{'U'}},A::RaggedMatrix,u::Array)
-    if size(A,1) < size(u,1)
-        throw(BoundsError())
-    end
+        V = parent(U)
+        @assert parentindexes(V)[1][1] == 1
+        @assert parentindexes(V)[2][1] == 1
 
-    n=size(u,1)
-    T=eltype(u)
+        A = parent(V)
 
-    for c=1:size(u,2)
-        for k=n:-1:1
-            @inbounds ck = A.cols[k]
-            @inbounds u[k,c] /= A.data[ck+k-1]
-            BLAS.axpy!(-u[k,c],view(A.data,ck:ck+k-2),view(u,1:k-1,c))
+        for c=1:size(u,2)
+            for k=n:-1:1
+                @inbounds ck = A.cols[k]
+                @inbounds u[k,c] /= A.data[ck+k-1]
+                BLAS.axpy!(-u[k,c], view(A.data,ck:ck+k-2), view(u,1:k-1,c))
+            end
         end
+        u
     end
-    u
 end
 
 

@@ -734,10 +734,6 @@ for TYP in (:RaggedMatrix, :Matrix)
 
         if isbanded(S)
             $TYP(BandedMatrix(S))
-        elseif isbandedblockbanded(S)
-            $TYP(BandedBlockBandedMatrix(S))
-        elseif isblockbanded(S)
-            $TYP(BlockBandedMatrix(S))
         else
             $def_TYP(S)
         end

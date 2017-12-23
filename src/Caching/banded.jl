@@ -148,20 +148,30 @@ end
 
 
 ## back substitution
+# loop to avoid ambiguity with AbstractTRiangular
+for ArrTyp in (:AbstractVector, :AbstractMatrix)
+    @eval function A_ldiv_B!(U::UpperTriangular{T, SubArray{T, 2, BandedMatrix{T}, Tuple{UnitRange{Int}, UnitRange{Int}}, false}},
+                             u::$ArrTyp{T}) where T
+        n = size(u,1)
+        n == size(U,1) || throw(DimensionMismatch())
 
-function trtrs!(::Type{Val{'U'}},A::BandedMatrix,u::Array)
-    n=size(u,1)
-    b=bandwidth(A,2)
-    T=eltype(u)
+        V = parent(U)
+        @assert parentindexes(V)[1][1] == 1
+        @assert parentindexes(V)[2][1] == 1
 
-    for c=1:size(u,2)
-        for k=n:-1:1
-            @simd for j=k+1:min(n,k+b)
-                @inbounds u[k,c]=muladd(-A.data[k-j+A.u+1,j],u[j,c],u[k,c])
+        A = parent(V)
+
+        b=bandwidth(A,2)
+
+        for c=1:size(u,2)
+            for k=n:-1:1
+                @simd for j=k+1:min(n,k+b)
+                    @inbounds u[k,c] = muladd(-A.data[k-j+A.u+1,j],u[j,c],u[k,c])
+                end
+
+                @inbounds u[k,c] /= A.data[A.u+1,k]
             end
-
-            @inbounds u[k,c] /= A.data[A.u+1,k]
         end
+        u
     end
-    u
 end

@@ -211,16 +211,16 @@ b=Any[0.,0.,0.,f...]
 u1=vec(u)[1];u2=vec(u)[2];
 
 
-@test norm(differentiate(u1,2)-u1+2u2-f1)<2eps()
-@test norm(u2'+u2-f2)<2eps()
+@test norm(differentiate(u1,2)-u1+2u2-f1) < 4eps()
+@test norm(u2'+u2-f2) < 4eps()
 
-Ai=Operator(A)
-@time u=Ai\b
-u1=vec(u)[1];u2=vec(u)[2];
+Ai = Operator(A)
+@time u = Ai\b
+u1 = vec(u)[1];u2 = vec(u)[2];
 
 
-@test norm(u1''-u1+2u2-f1)<2eps()
-@test norm(u2'+u2-f2)<2eps()
+@test norm(u1''-u1+2u2-f1) < 4eps()
+@test norm(u2'+u2-f2) < 4eps()
 
 
 
@@ -262,16 +262,16 @@ f = Fun([t^2, sin(t)])
 
 ## Multiplication operator
 
-Γ=Circle() ∪ Circle(0.5)
+Γ = Circle() ∪ Circle(0.5)
 
 
-f=Fun(z->in(z,component(Γ,2)) ? 1:z,Γ)
+f = Fun(z -> in(z,component(Γ,2)) ? 1 : z,Γ)
 @test f(exp(0.1im)) ≈ exp(0.1im)
 @test f(0.5exp(0.1im)) ≈ 1
 
 
-G=Fun(z->in(z,component(Γ,2))?[1 -z^(-1); 0 1]:
-                   [z 0; 0 z^(-1)],Γ);
+G = Fun(z -> in(z,component(Γ,2)) ? [1 -z^(-1); 0 1] :
+                                    [z 0; 0 z^(-1)], Γ);
 
 
 @test G(exp(0.1im)) ≈ [exp(0.1im) 0 ; 0 exp(-0.1im)]
@@ -284,7 +284,7 @@ G1=Fun(Array(G)[:,1])
 @test G1(exp(0.1im)) ≈ [exp(0.1im),0.]
 @test G1(0.5exp(0.1im)) ≈ [1,0.]
 
-M=Multiplication(G,space(G1))
+M = Multiplication(G, space(G1))
 testblockbandedoperator(M)
 
 
@@ -297,7 +297,7 @@ for z in (0.5exp(0.1im),exp(0.2im))
 end
 
 
-u=M*G1
+u = M*G1
 @test norm(u(exp(.1im))-[exp(.2im),0])<100eps()
 @test norm(u(.5exp(.1im))-[1,0])<100eps()
 
@@ -332,13 +332,6 @@ F = (G-I)[:,1]
 @test inv(G(exp(0.1im))) ≈ inv(G)(exp(0.1im))
 
 
-inv(G)
-
-ApproxFun.resizedata!(QR, : , Block(6))
-
-
-
-M \ Fun(eye(2),repmat(rangespace(M),1,2))
 @test Fun(eye(2),space(G))(exp(0.1im)) ≈ eye(2)
 @test Fun(I,space(G))(exp(0.1im)) ≈ eye(2)
 

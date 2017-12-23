@@ -289,17 +289,13 @@ end
 
 for TYP in (:RaggedMatrix, :Matrix)
     def_TYP = parse("default_" * string(TYP))
-    @eval function convert(::Type{$TYP},S::SubOperator)
+    @eval function convert(::Type{$TYP}, S::SubOperator)
         if isinf(size(S,1)) || isinf(size(S,2))
             error("Cannot convert $S to a $TYP")
         end
 
         if isbanded(parent(S))
             $TYP(BandedMatrix(S))
-        elseif isbandedblockbanded(parent(S))
-            $TYP(BandedBlockBandedMatrix(S))
-        elseif isblockbanded(parent(S))
-            $TYP(BlockBandedMatrix(S))
         else
             $def_TYP(S)
         end

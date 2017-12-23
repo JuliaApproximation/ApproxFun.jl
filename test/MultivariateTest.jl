@@ -133,13 +133,16 @@ C = Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical(1)⊗Ultraspherical(1))
 
 @time let d = Space(0..1) * Space(0..2)
     Dx = Derivative(d, [1,0])
+    testbandedblockbandedoperator(Dx)
     f = Fun((x,y) -> sin(x) * cos(y), d)
     fx = Fun((x,y) -> cos(x) * cos(y), d)
     @test (Dx*f)(0.2,0.3) ≈ fx(0.2,0.3)
     Dy = Derivative(d, [0,1])
+    testbandedblockbandedoperator(Dy)
     fy = Fun((x,y) -> -sin(x) * sin(y), d)
     @test (Dy*f)(0.2,0.3) ≈ fy(0.2,0.3)
     L = Dx + Dy
+    testbandedblockbandedoperator(L)
     @test (L*f)(0.2,0.3) ≈ (fx(0.2,0.3)+fy(0.2,0.3))
 
     B=ldirichlet(factor(d,1))⊗ldirichlet(factor(d,2))
@@ -155,48 +158,6 @@ C = Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical(1)⊗Ultraspherical(1))
     @test Number(B*f) ≈ f(0.1,0.3)
 end
 
-d = Space(0..1) * Space(0..2)
-Dx = Derivative(d, [1,0])
-f = Fun((x,y) -> sin(x) * cos(y), d)
-fx = Fun((x,y) -> cos(x) * cos(y), d)
-@test (Dx*f)(0.2,0.3) ≈ fx(0.2,0.3)
-Dy = Derivative(d, [0,1])
-fy = Fun((x,y) -> -sin(x) * sin(y), d)
-@test (Dy*f)(0.2,0.3) ≈ fy(0.2,0.3)
-<<<<<<< HEAD
-=======
-testraggedbelowoperator(Dx)
-L = Dx + Dy
-    testraggedbelowoperator(L.ops[1])
-testraggedbelowoperator(L.ops[1])
-V = view(L, 1:10, 1:10)
-    ret = RaggedMatrix(Zeros, V)
-    A = convert(RaggedMatrix, view(L.ops[1], 1:10, 1:10))
-    @which colstop(L.ops[1],2)
-
-colstop(L.ops[1].ops[1].op,2)
-L.ops[1].ops[1].op[1:10,1:10].cols
-L.ops[1]|>isbanded
-@which convert(RaggedMatrix, view(L.ops[1], 1:10, 1:10))
-
-colstop(L.ops[1]    ,2)
-ApproxFun.colstop(L,2)
-ApproxFun.colstop(L.ops[1],2)
->>>>>>> c1cbb8a557e10d63dc6f92b688a6f9273e778819
-
-testraggedbelowoperator(Dx)
-testraggedbelowoperator(Dy)
-testraggedbelowoperator(Dx+Dy)
-L = Dx+Dy
-    V = view(L, 1:10, 1:10)
-    ret = RaggedMatrix(Zeros, V)
-    BLAS.axpy!(1.0, view(Dx,1:10,1:10), ret)
-
-colstop(Dx,2)
-RaggedMatrix(view(Dx,1:10,1:10)).cols
-arraytype(V)
-colstop(Dy, 2)
-
 ## x,y constructor
 
 @time let d=Interval()^2
@@ -204,19 +165,19 @@ colstop(Dy, 2)
     @test x(0.1,0.2) ≈ 0.1
     @test y(0.1,0.2) ≈ 0.2
 
-    x,y=Fun(identity,d,20)
+    x,y=Fun(identity, d, 20)
     @test x(0.1,0.2) ≈ 0.1
     @test y(0.1,0.2) ≈ 0.2
 
 
     # Boundary
 
-    x,y=Fun(identity,∂(d),20)
+    x,y=Fun(identity, ∂(d), 20)
     @test x(0.1,1.0) ≈ 0.1
     @test y(1.0,0.2) ≈ 0.2
 
 
-    x,y=Fun(identity,∂(d))
+    x,y=Fun(identity, ∂(d))
     @test x(0.1,1.0) ≈ 0.1
     @test y(1.0,0.2) ≈ 0.2
 
@@ -227,30 +188,30 @@ colstop(Dy, 2)
 end
 
 # test conversion between
-dx=dy=Interval()
-d=dx*dy
+dx = dy = Interval()
+d = dx*dy
 
-x,y=Fun(∂(d))
-x,y=components(x),components(y)
+x,y = Fun(∂(d))
+x,y = components(x),components(y)
 
-g=[real(exp(x[1]-1im));0.0y[2];real(exp(x[3]+1im));real(exp(-1+1im*y[4]))]
-B=[ eye(dx)⊗ldirichlet(dy);
-    ldirichlet(dx)⊗eye(dy);
-    eye(dx)⊗rdirichlet(dy);
-    rneumann(dx)⊗eye(dy)    ]
+g = [real(exp(x[1]-1im));0.0y[2];real(exp(x[3]+1im));real(exp(-1+1im*y[4]))]
+B = [ eye(dx)⊗ldirichlet(dy);
+     ldirichlet(dx)⊗eye(dy);
+     eye(dx)⊗rdirichlet(dy);
+     rneumann(dx)⊗eye(dy)    ]
 
 
 @test Fun(g[1],rangespace(B)[1])(-0.1,-1.0) ≈ g[1](-0.1,-1.0)
 @test Fun(g[3],rangespace(B)[3])(-0.1,1.0)  ≈ g[3](-0.1,1.0)
 
 
-A=[B;Δ]
+A = [B;Δ]
 
 
 
 
 @test eltype([g;0.0]) == Float64
-g2=Fun([g;0.0],rangespace(A))
+g2 = Fun([g;0.0],rangespace(A))
 @test eltype(g2) == Float64
 
 

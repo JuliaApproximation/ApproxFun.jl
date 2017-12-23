@@ -95,7 +95,7 @@ convert(::Type{RaggedMatrix},B::BandedMatrix) = RaggedMatrix{eltype(B)}(B)
 
 function convert(::Type{RaggedMatrix{T}}, B::AbstractMatrix) where T
     ret = RaggedMatrix(Zeros{T}(size(B)), Int[colstop(B,j) for j=1:size(B,2)])
-    for j=1:size(B,2),k=colrange(B,j)
+    for j=1:size(B,2), k=colrange(B,j)
         ret[k,j] = B[k,j]
     end
     ret

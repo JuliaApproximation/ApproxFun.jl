@@ -228,8 +228,8 @@ function colstop(M::InterlaceOperator{T},j::Integer) where T
     if isbandedbelow(M)
         min(j+bandwidth(M,1)::Int,size(M,1))::Int
     elseif isblockbandedbelow(M)
-        J=block(domainspace(M),j)::Block{1}
-        blockstop(rangespace(M),blockcolstop(M,J)::Block{1})::Int
+        J=block(domainspace(M), j)::Block{1}
+        blockstop(rangespace(M), blockcolstop(M,J)::Block{1})::Int
     else #assume is raggedbelow
         K = 0
         (J,jj) = M.domaininterlacer[j]

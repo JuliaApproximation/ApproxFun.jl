@@ -97,7 +97,7 @@ canonicalspace(S::ContinuousSpace) = PiecewiseSpace(map(ChebyshevDirichlet{1,1},
 
 blocklengths(C::ContinuousSpace) = repeated(ncomponents(C.domain))
 
-block(C::ContinuousSpace,k)::Block = (k-1)÷ncomponents(C.domain)+1
+block(C::ContinuousSpace,k) = Block((k-1)÷ncomponents(C.domain)+1)
 
 
 ## components
@@ -256,8 +256,8 @@ k::Integer,j::Integer) where {CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR}
     elseif j == 5 || j ≤ 3
         zero(T)
     else
-        K = block(rs,k)
-        J = block(ds,j)
+        K = Int(block(rs,k))
+        J = Int(block(ds,j))
         m = mod(k-1,4)
         s,t =  blockstart(ds,J),  blockstop(ds,J)
         if K == J-1 && (m == 1  && j == s ||
@@ -265,15 +265,15 @@ k::Integer,j::Integer) where {CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR}
             one(T)
         elseif K == J-1 && ((m == 3 && j == s) ||
                             (m == 2 && j == t))
-            iseven(K)?one(T):-one(T)
+            iseven(K) ? one(T) : -one(T)
         elseif K == J-2 && m == 1 && j == s+1
             one(T)
         elseif K == J-2 && m == 2 && j == t-1
-            iseven(K)?one(T):-one(T)
+            iseven(K) ? one(T) : -one(T)
         elseif K == J-2 && m == 0 && j == t-1
             -one(T)
         elseif K == J-2 && m == 3 && j == s+1
-            iseven(K)?-one(T):one(T)
+            iseven(K) ? -one(T) : one(T)
         else
             zero(T)
         end
@@ -282,9 +282,9 @@ end
 
 
 function convert(::Type{BlockBandedMatrix},
-S::SubOperator{T,ConcreteDirichlet{TensorSpace{Tuple{CD,CD},DD,RR},
-        CSP,TT},
-Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR,CSP,TT}
+                 S::SubOperator{T,ConcreteDirichlet{TensorSpace{Tuple{CD,CD},DD,RR},
+                                                    CSP,TT},
+                                Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR,CSP,TT}
     P=parent(S)
     ret=BlockBandedMatrix(Zeros, S)
     kr,jr=parentindexes(S)

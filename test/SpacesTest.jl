@@ -1,5 +1,6 @@
 using ApproxFun, Base.Test
-    import ApproxFun: ChebyshevDirichlet,Ultraspherical,PiecewiseSegment, ContinuousSpace, space,testspace,testbandedoperator,testcalculus,testtransforms
+    import ApproxFun: ChebyshevDirichlet, Ultraspherical, PiecewiseSegment, ContinuousSpace, space,
+                        testspace, testbandedoperator, testraggedbelowoperator, testcalculus, testtransforms
 
 testtransforms(ChebyshevDirichlet{1,1}())
 
@@ -94,14 +95,16 @@ w=2/(sqrt(1-x)*sqrt(1+im*x))
 
 ## ContinuousSpace
 
-d=PiecewiseSegment(1.,2.,3.,4.)
-S=ContinuousSpace(d)
-testtransforms(S;minpoints=3,invertibletransform=false)
+d = PiecewiseSegment(1.,2.,3.,4.)
+S = ContinuousSpace(d)
+testtransforms(S; minpoints=3, invertibletransform=false)
 
-D=Derivative(S)
+D = Derivative(S)
 testbandedoperator(D)
 
-u=[ldirichlet(S),D-I]\[exp(1.),0]
+A = [ldirichlet(S); D-I]
+testraggedbelowoperator(A)
+u = [ldirichlet(S); D-I] \ [exp(1.); 0]
 
 
 @test u(1.1) ≈ exp(1.1)

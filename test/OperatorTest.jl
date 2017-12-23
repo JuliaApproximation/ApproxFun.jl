@@ -155,12 +155,12 @@ u=L\f
 
 ## Check mixed
 
-d=Interval()
-D=Derivative(d)
-x=Fun(identity,d)
-A=D*(x*D)
-B=D+x*D^2
-C=x*D^2+D
+d = Interval()
+D = Derivative(d)
+x = Fun(identity,d)
+A = D*(x*D)
+B = D+x*D^2
+C = x*D^2+D
 
 testbandedoperator(A)
 testbandedoperator(B)
@@ -174,21 +174,22 @@ f=Fun(exp)
 @test (B*f)(0.1) ≈ f'(0.1)+0.1*f''(0.1)
 @test (C*f)(0.1) ≈ f'(0.1)+0.1*f''(0.1)
 
+
 testbandedoperator(A-B)
 testbandedoperator(B-A)
 testbandedoperator(A-C)
 
-@test norm((A-B)[1:10,1:10]|>full)<eps()
-@test norm((B-A)[1:10,1:10]|>full)<eps()
-@test norm((A-C)[1:10,1:10]|>full)<eps()
-@test norm((C-A)[1:10,1:10]|>full)<eps()
-@test norm((C-B)[1:10,1:10]|>full)<eps()
-@test norm((B-C)[1:10,1:10]|>full)<eps()
+@test norm((A-B)[1:10,1:10]|>full) < eps()
+@test norm((B-A)[1:10,1:10]|>full) < eps()
+@test norm((A-C)[1:10,1:10]|>full) < eps()
+@test norm((C-A)[1:10,1:10]|>full) < eps()
+@test norm((C-B)[1:10,1:10]|>full) < eps()
+@test norm((B-C)[1:10,1:10]|>full) < eps()
 
 
 
 ## Cached operator
-@test cache(Derivative(Chebyshev(),2))[1,1]==0
+@test cache(Derivative(Chebyshev(),2))[1,1] == 0
 
 
 S=Chebyshev()
@@ -219,7 +220,7 @@ testbandedoperator(ApproxFun.ReverseOrientation(Chebyshev()))
 
 
 ## Sub interval
-f=Fun(exp)
+f = Fun(exp)
 
 D = Derivative(Chebyshev())
 u = D[:,2:end] \ f
