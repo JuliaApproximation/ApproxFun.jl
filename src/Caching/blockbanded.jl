@@ -286,14 +286,30 @@ function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
              BLAS.axpy!(M, -2*dt, wp, 1, r_sh ,1)
          end
 
-         for J = J1+1:min(J1+u,J_end)
+         for J = J1+1:min(K1+u,J_end)
              st = bs.block_strides[J]
              shft = bs.block_starts[K1,J] + κ-2 # the index of the pointer to the j, j entry
              for ξ_2 = 1:blocksize(bs.block_sizes, 2, J)
                  # we now apply I-2v*v' in place
-                 r_sh = r+sz*(shft + st*(ξ_2-1)) # the pointer the (j,ξ_2)-th entry
-                 dt = dot(M, wp, 1, r_sh, 1)
-                 BLAS.axpy!(M, -2*dt, wp, 1, r_sh ,1)
+                 # r_sh = r+sz*(shft + st*(ξ_2-1)) # the pointer the (j,ξ_2)-th entry
+
+                 # TODO: remove these debugging statement
+                 # @assert w_j-1 + M ≤ length(W.data)
+                 # @assert shft + st*(ξ_2-1) + M ≤ length(R.data)
+                 # @assert 0 ≤ w_j-1
+                 # if ! (0 ≤ shft + st*(ξ_2-1))
+                 #     @show shft, st, ξ_2, l, u
+                 #     @show κ, bs.block_starts[K1,J]
+                 #     @show K1, J
+                 #     @show MO.op
+                 # end
+                 # dt = dot(M, wp, 1, r_sh, 1)
+                 # BLAS.axpy!(M, -2*dt, wp, 1, r_sh ,1)
+
+                 dt = dot(view(W.data, w_j:w_j+M-1) ,
+                                    view(R.data, shft + st*(ξ_2-1) +1:shft + st*(ξ_2-1) +M))
+                 BLAS.axpy!(-2*dt, view(W.data, w_j:w_j+M-1) ,
+                                    view(R.data, shft + st*(ξ_2-1) +1:shft + st*(ξ_2-1) +M))
              end
          end
      end

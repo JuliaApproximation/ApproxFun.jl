@@ -2,14 +2,14 @@ using ApproxFun, Base.Test, Base.Test
     import ApproxFun: testbandedblockbandedoperator, testblockbandedoperator, testraggedbelowoperator
 
 ## Check operators
-S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
-Δ=Laplacian(S)
+S = JacobiWeight(1.,1.,Jacobi(1.,1.))^2
+Δ = Laplacian(S)
 
 
 testbandedblockbandedoperator(Δ)
 
-u=Fun((x,y)->sin(π*x)*sin(π*y),S)
-f=-2π^2*u
+u = Fun((x,y)->sin(π*x)*sin(π*y),S)
+f = -2π^2*u
 
 
 QR=qrfact(Δ)
