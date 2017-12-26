@@ -122,20 +122,11 @@ end
 getindex(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) where {PS<:PolynomialSpace,T,C<:PolynomialSpace} = M[k:k,j:j][1,1]
 
 
-# Fast C = α.*A.*B .+ β.*C
-function αA_dot_B_plus_βC!(α, A::AbstractVector, B::AbstractVector, β, C::AbstractVector)
-    length(C) == length(A) == (n = length(B)) || throw(BoundsError())
-    @fastmath @inbounds @simd for i=1:n
-        C[i] = α*A[i]*B[i] + β*C[i]
-    end
-    C
-end
-
 
 
 # Fast implementation of C[:,:] = α*J*B+β*C where the bandediwth of B is
 # specified by b, not by the parameters in B
-function jac_gbmm!(α,J,B,β,C,b)
+function jac_gbmm!(α, J, B, β, C, b)
     if β ≠ 1
         scale!(β,C)
     end
@@ -145,26 +136,37 @@ function jac_gbmm!(α,J,B,β,C,b)
     Jm = view(J, band(-1))
     n = size(J,1)
 
-    for k=-1:b-1
-        αA_dot_B_plus_βC!(α,view(view(B,band(b-k-1)),2:n-b+k+1),
-                            view(Jp,1:n-b+k),1.0,view(C,band(b-k)))
-        αA_dot_B_plus_βC!(α,view(view(B,band(k-b+1)),1:n-b+k),
-                            view(Jm,b-k:n-1),1.0,view(C,band(k-b)))
-        if k ≥ 0
-            αA_dot_B_plus_βC!(α,view(B,band(b-k)),view(J0,1:n-b+k),1.0,view(C,band(b-k)))
-            αA_dot_B_plus_βC!(α,view(B,band(k-b)),view(J0,b-k+1:n),1.0,view(C,band(k-b)))
-            if k ≥ 1
-                αA_dot_B_plus_βC!(α,view(B,band(b-k+1)),
-                                    view(Jm,1:n-1-b+k),1.0,view(view(C,band(b-k)),2:n-b+k))
-                αA_dot_B_plus_βC!(α,view(B,band(k-b-1)),
-                                    view(Jp,b-k+1:n-1),1.0,view(view(C,band(k-b)),1:n-b+k-1))
+    Cn, Cm = size(C)
+
+    @views for k=-1:b-1
+        if 1-Cn ≤ b-k ≤ Cm-1 # if inbands
+            C[band(b-k)] .+= α.*B[band(b-k-1)][2:n-b+k+1].*Jp[1:n-b+k]
+            if k ≥ 0
+                C[band(b-k)] .+= α.*B[band(b-k)].*J0[1:n-b+k]
+                if k ≥ 1
+                    C[band(b-k)][2:n-b+k] .+= α.*B[band(b-k+1)].*Jm[1:n-1-b+k]
+                end
             end
         end
     end
 
-    αA_dot_B_plus_βC!(α,view(B,band(0)),J0,1.0,view(C,band(0)))
-    αA_dot_B_plus_βC!(α,view(B,band(-1)),Jp,1.0,view(view(C,band(0)),1:n-1))
-    αA_dot_B_plus_βC!(α,view(B,band(1)),Jm,1.0,view(view(C,band(0)),2:n))
+    @views for k=-1:b-1
+        if 1-Cn ≤ k-b ≤ Cm-1 # if inbands
+            C[band(k-b)] .+= α.*B[band(k-b+1)][1:n-b+k].*Jm[b-k:n-1]
+            if k ≥ 0
+                C[band(k-b)] .+= α.*B[band(k-b)].*J0[b-k+1:n]
+                if k ≥ 1
+                    C[band(k-b)][1:n-b+k-1] .+= α.*B[band(k-b-1)].*Jp[b-k+1:n-1]
+                end
+            end
+        end
+    end
+
+    @views begin
+        C[band(0)] .+= α.*B[band(0)].*J0
+        C[band(0)][1:n-1] .+= α.*B[band(-1)].*Jp
+        C[band(0)][2:n] .+= α.*B[band(1)].*Jm
+    end
 
     C
 end

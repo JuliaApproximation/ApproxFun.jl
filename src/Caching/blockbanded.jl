@@ -6,7 +6,7 @@
 function default_BlockBandedMatrix(S::Operator)
     ret = BlockBandedMatrix(Zeros, S)
 
-    @inbounds for J=Block(1):Block(nblocks(ret,2)),K=blockcolrange(ret,Int(J))
+    @inbounds for J=Block(1):Block(nblocks(ret,2)), K=blockcolrange(ret,Int(J))
         ret[K,J] = view(S,K,J)
     end
     ret
@@ -286,7 +286,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
              BLAS.axpy!(M, -2*dt, wp, 1, r_sh ,1)
          end
 
-         for J = J1+1:J1+u
+         for J = J1+1:min(J1+u,J_end)
              st = bs.block_strides[J]
              shft = bs.block_starts[K1,J] + κ-2 # the index of the pointer to the j, j entry
              for ξ_2 = 1:blocksize(bs.block_sizes, 2, J)

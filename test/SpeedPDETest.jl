@@ -1,4 +1,4 @@
-using ApproxFun, Base.Test
+using ApproxFun, Compat.Test
 
 
 ## PDEs
@@ -8,9 +8,7 @@ S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
 Δ=Laplacian(S)
 
 f = Fun((x,y)->sin(π*x)*sin(π*y),S)
-QR = qrfact(Δ)
-    ApproxFun.resizedata!(QR,:,400)
-\(QR,f;tolerance=1E-10)
+
 QR=qrfact(Δ)
     @time ApproxFun.resizedata!(QR,:,400)
     @time \(QR,f;tolerance=1E-10)

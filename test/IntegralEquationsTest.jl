@@ -18,7 +18,7 @@ dom = Segment(-1.0,1) ∪ Segment(1.0+im,1+2im) ∪ Segment(-2.0+im,-1+2im)
 S = domainspace(⨍)
 @test ApproxFun.blockbandinds(⨍) == (0,0)
 
-f=Fun(S,rand(20))
+f = Fun(S,rand(20))
 
 @test DefiniteLineIntegral(component(dom,1))*component(f,1) ≈ linesum(component(f,1))
 @test DefiniteLineIntegral(component(dom,2))*component(f,2) ≈ linesum(component(f,2))
@@ -34,22 +34,22 @@ f=Fun(S,rand(20))
 # u(x) + \int_{-1}^{+1} \frac{e^{y} u(y)}{\sqrt{1-y^2}} dy = f
 # on the interval -1..1.
 
-x=Fun(identity)
-w=1/sqrt(1-x^2)
-d=domain(x)
+x = Fun(identity)
+w = 1/sqrt(1-x^2)
+d = domain(x)
 
-Σ=DefiniteIntegral(d)
-bandinds(Σ)
+Σ = DefiniteIntegral(d)
+@test bandinds(Σ) == (0,0)
 
 @test domainspace(Σ) ==
     JacobiWeight{Chebyshev{Segment{Float64}},Segment{Float64},Float64}(-0.5,-0.5,Chebyshev())
 
-L=I+Σ[exp(x)*w]
+L = I+Σ[exp(x)*w]
 bandinds(L)
-usol=sin(2x)
-f=L*usol
+usol = sin(2x)
+f = L*usol
 
-@time u=L\f
+@time u = L\f
 @test norm(u-usol) <= 10eps()
 
 
@@ -57,23 +57,23 @@ f=L*usol
 # u'(x) + x u(x) + \int_{-2}^{+2} sin(y-x) u(y) \sqrt{4-y^2} dy = f
 # on the interval -2..2, with u(-2) = 1.
 
-x=Fun(identity,-2..2)
-w=sqrt(4-x^2)
-d=domain(x)
+x = Fun(identity,-2..2)
+w = sqrt(4-x^2)
+d = domain(x)
 
-D=Derivative(d)
-B=ldirichlet(d)
-Σ=DefiniteIntegral(.5,.5,d)
+D = Derivative(d)
+B = ldirichlet(d)
+Σ = DefiniteIntegral(.5,.5,d)
 
 @test domainspace(Σ) ==
     JacobiWeight{Ultraspherical{Int,Segment{Float64}},Segment{Float64},Float64}(.5,.5,Ultraspherical(1,d))
 
-K=LowRankFun((x,y)->sin(y-x)*w(y),Ultraspherical(1,d),domainspace(Σ))
+K = LowRankFun((x,y)->sin(y-x)*w(y),Ultraspherical(1,d),domainspace(Σ))
 
-L=D+x+Σ[K]
-usol=cospi(20x)
-f=L*usol
-@time u=[B;L]\[1.;f]
+L = D+x+Σ[K]
+usol = cospi(20x)
+f = L*usol
+@time u = [B;L]\[1.;f]
 
 
 @test norm(u-usol) ≤ 200eps()
@@ -81,13 +81,13 @@ f=L*usol
 
 Σ = DefiniteIntegral()
 
-f1=Fun(t->cos(cos(t)),-π..π)
-f=Fun(t->cos(cos(t)),Laurent(-π..π))
+f1 = Fun(t->cos(cos(t)),-π..π)
+f = Fun(t->cos(cos(t)),Laurent(-π..π))
 
 @test sum(f1) ≈ Σ*f
 
-f1=Fun(t->cos(cos(t))/t,Laurent(Circle()))
-f2=Fun(t->cos(cos(t))/t,Fourier(Circle()))
+f1 = Fun(t->cos(cos(t))/t,Laurent(Circle()))
+f2 = Fun(t->cos(cos(t))/t,Fourier(Circle()))
 @test Σ*f1 ≈ Σ*f2
 
 f1=Fun(t->cos(cos(t)),Laurent(-π..π))
