@@ -357,6 +357,18 @@ function evaluate(f::LowRankFun,::Colon,y::Number)
     Fun(first(f.A).space,ret)
 end
 
+"""
+    f.(x::AbstractVector, y':::AbstractMatrix)
+Fast evaluation of a LowRankFun on a cartesian grid x ⨂ y.
+"""
+function Base.broadcast(f::LowRankFun, x::AbstractVector, y::AbstractMatrix)
+    ret = zeros(length(y), length(x))
+    #println(InRed * "FROM BROADCAST" * InDefault)
+    for k = 1:rank(f)
+        ret +=  (f.A[k].(x) * f.B[k].(y))'
+    end
+    ret
+end
 
 ## Truncate
 #TODO: should reduce rank if needed

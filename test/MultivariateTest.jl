@@ -73,8 +73,13 @@ f=Fun((x,y)->exp(x)*cos(y))
 
 @test G(.357,.246) ≈ besselj0(10(.246-.357))
 
-
-
+# test "fast" grid evaluation of LowRankFun
+f = LowRankFun((x,y) -> exp(x) * cos(y)); n = 1000
+x = linspace(-1, 1, n); y = linspace(-1, 1, n)
+X = ones(n) * linspace(-1, 1, n)'; Y = linspace(-1, 1, n) * ones(1, n)
+@time v1 = f.(X, Y);
+@time v2 = f.(collect(x), collect(y)');
+@test v1 ≈ v2
 
 
 ## 1D in 2D
