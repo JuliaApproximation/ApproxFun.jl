@@ -169,7 +169,7 @@ blockstop(it,K::Block) = blockstop(it,K.n[1])
 
 
 blockrange(it,K) = blockstart(it,K):blockstop(it,K)
-blockrange(it,K::BlockRange) = blockstart(it,K[1]):blockstop(it,K[end])
+blockrange(it,K::BlockRange) = blockstart(it,first(K)):blockstop(it,last(K))
 
 
 

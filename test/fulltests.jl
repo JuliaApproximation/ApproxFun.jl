@@ -62,6 +62,8 @@ DS=WeightedJacobi(0.1+1,0.2+1)
 D=Derivative(DS)[2:end,:]
 @time ApproxFun.testbandedoperator(D)
 
+D[Block.(1:5),Block.(1:5)]
+
 println("Full ODE Tests")
 
 ## Null space
