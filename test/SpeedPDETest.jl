@@ -10,8 +10,21 @@ S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
 f = Fun((x,y)->sin(π*x)*sin(π*y),S)
 
 QR=qrfact(Δ)
+    ApproxFun.resizedata!(QR,:,400)
+    \(QR,f;tolerance=1E-10)
+
+QR=qrfact(Δ)
     @time ApproxFun.resizedata!(QR,:,400)
     @time \(QR,f;tolerance=1E-10)
+
+
+@profile ApproxFun.resizedata!(QR,:,400)
+Profile.clear()
+@profile \(QR,f;tolerance=1E-10)
+
+UpperTriangular(view(QR.R.data, 1:10, 1:10))
+
+Profile.print()
 
 println("Laplace Dirichlet: should be ~0.015, 0.001")
 

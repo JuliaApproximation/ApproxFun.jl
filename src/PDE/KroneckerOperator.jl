@@ -370,10 +370,12 @@ function convert(::Type{BandedBlockBandedMatrix},
 
     ret = BandedBlockBandedMatrix(Zeros, S)
 
-    A,B=KO.ops
-    AA = convert(BlockBandedMatrix, view(A, Block(1):last(KR),Block(1):last(JR)))::BlockBandedMatrix{eltype(S)}
+    A,B = KO.ops
+
+
+    AA = convert(BandedMatrix, view(A, Block(1):last(KR),Block(1):last(JR)))::BandedMatrix{eltype(S)}
     Al,Au = bandwidths(AA)
-    BB = convert(BlockBandedMatrix, view(B, Block(1):last(KR),Block(1):last(JR)))::BlockBandedMatrix{eltype(S)}
+    BB = convert(BandedMatrix, view(B, Block(1):last(KR),Block(1):last(JR)))::BandedMatrix{eltype(S)}
     Bl,Bu = bandwidths(BB)
     λ,μ = subblockbandwidths(ret)
 
@@ -427,11 +429,11 @@ Evaluation(sp::TensorSpace,x::Tuple) = Evaluation(sp,Vec(x...))
 
 
 # it's faster to build the operators to the last b
-function A_mul_B_coefficients(A::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}},b) where {T,KKO<:KroneckerOperator}
+function A_mul_B_coefficients(A::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}}, b) where {T,KKO<:KroneckerOperator}
     P = parent(A)
     kr,jr = parentindexes(A)
     dt,rt = domaintensorizer(P),rangetensorizer(P)
     KR,JR = Block(1):block(rt,kr[end]),Block(1):block(dt,jr[end])
     M = P[KR,JR]
-    view(M,kr,jr)*b
+    M*pad(b, size(M,2))
 end

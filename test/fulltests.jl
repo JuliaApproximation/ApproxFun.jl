@@ -56,13 +56,9 @@ A=[Z                      Evaluation(S,0);
 
 ApproxFun.backend_testinfoperator(A)
 
-# This is surprisingly slow...
-
 DS=WeightedJacobi(0.1+1,0.2+1)
 D=Derivative(DS)[2:end,:]
 @time ApproxFun.testbandedoperator(D)
-
-D[Block.(1:5),Block.(1:5)]
 
 println("Full ODE Tests")
 
@@ -147,8 +143,8 @@ M=Multiplication(f,sp2)
 
 
 ## Legendre conversions
-testspace(Ultraspherical(1);haslineintegral=false)
-testspace(Ultraspherical(2);haslineintegral=false)
+testspace(Ultraspherical(1); haslineintegral=false)
+testspace(Ultraspherical(2); haslineintegral=false)
 # minpoints is a tempory fix a bug
 @time testspace(Ultraspherical(1//2);haslineintegral=false,minpoints=2)
 

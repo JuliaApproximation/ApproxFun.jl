@@ -153,7 +153,7 @@ end
 
 view(V::SubOperator,kr::UnitRange,jr::UnitRange) = view(V.parent,reindex(V,parentindexes(V),(kr,jr))...)
 view(V::SubOperator,K::Block,J::Block) = view(V.parent,reindex(V,parentindexes(V),(K,J))...)
-view(V::SubOperator,KR::BlockRange,JR::BlockRange) = SubOperator(V.parent,reindex(V,parentindexes(V),(KR,JR))...)
+view(V::SubOperator,KR::BlockRange,JR::BlockRange) = SubOperator(V.parent, reindex(V,parentindexes(V),(KR,JR)))
 function view(V::SubOperator,::Type{FiniteRange},jr::AbstractVector{Int})
     cs = (isbanded(V) || isblockbandedbelow(V)) ? colstop(V,maximum(jr)) : mapreduce(j->colstop(V,j),max,jr)
     view(V,1:cs,jr)

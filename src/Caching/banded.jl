@@ -156,8 +156,8 @@ for ArrTyp in (:AbstractVector, :AbstractMatrix)
         n == size(U,1) || throw(DimensionMismatch())
 
         V = parent(U)
-        @assert parentindexes(V)[1][1] == 1
-        @assert parentindexes(V)[2][1] == 1
+        @assert first(parentindexes(V)[1]) == 1
+        @assert first(parentindexes(V)[2]) == 1
 
         A = parent(V)
 
