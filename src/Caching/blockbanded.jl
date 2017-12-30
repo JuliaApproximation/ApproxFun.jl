@@ -71,8 +71,7 @@ function CachedOperator(::Type{BlockBandedMatrix},op::Operator;padding::Bool=fal
     l,u=blockbandwidths(op)
     padding && (u+=l+diagblockshift(op))
     data=BlockBandedMatrix{eltype(op)}(uninitialized,
-                                        (blocklengths(rangespace(op))[1:0],
-                                         blocklengths(domainspace(op))[1:0]),
+                                        (Vector{Int}(), Vector{Int}()),
                                         (l,u))
     CachedOperator(op,data,(0,0),domainspace(op),rangespace(op),(-l,u),padding)
 end

@@ -138,7 +138,9 @@ function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Chebys
     # need to drop columns
 
 
-    ret[band(dg+k)] .= C.*(jr[max(0,dg+k)+1:min(n+dg+k,m)] .- one(T))
+    if 1-n ≤ dg+k ≤ m-1
+        ret[band(dg+k)] .= C.*(jr[max(0,dg+k)+1:min(n+dg+k,m)] .- one(T))
+    end
 
     ret
 end
