@@ -106,7 +106,7 @@ function resizedata!(B::CachedOperator{T,BlockBandedMatrix{T}},::Colon,col::Inte
         rows = blocklengths(rangespace(B.op))[1:Int(J)+l]
         cols = blocklengths(domainspace(B.op))[1:Int(J)]
 
-        b_size = BlockBandedSizes(rows, cols, l, u)
+        b_size = BlockBandedSizes(Vector{Int}(rows), Vector{Int}(cols), l, u)
 
         pad!(B.data.data, bb_numentries(b_size))
         B.data = _BlockBandedMatrix(B.data.data, b_size, l, u)
