@@ -94,7 +94,7 @@ function resizedata!(B::CachedOperator{T,BlockBandedMatrix{T}},::Colon,col::Inte
             datablocksize = block(domainspace(B),B.datasize[2])
             bs = blockstop(domainspace(B),datablocksize)
             if bs ≠ B.datasize[2]
-                error("Developer: $(B.datasize) is not lined up with the block $datablocksize as the last column doesn't end at $bs")
+                error("Internal Error: $(B.datasize) is not lined up with the block $datablocksize as the last column doesn't end at $bs")
             end
         end
 
