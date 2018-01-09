@@ -329,7 +329,7 @@ for op in (:(Base.findmax),:(Base.findmin))
             # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
             ext,ind = $op(f.(pts))
-	    ext,pts[ind]
+            ext,pts[ind]
         end
     end
 end
