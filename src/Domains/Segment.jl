@@ -65,6 +65,7 @@ Base.first(d::Segment) = d.a
 Base.last(d::Segment) = d.b
 Base.isempty(d::Segment) = isapprox(d.a,d.b;atol=200eps(eltype(d)))
 
+Base.in(x::S, d::Segment{T}) where {S<:Real, T<:Real} = min(d.a, d.b) ≤ x ≤ max(d.a, d.b)
 Base.issubset(a::Segment,b::Segment) = first(a)∈b && last(a)∈b
 
 
