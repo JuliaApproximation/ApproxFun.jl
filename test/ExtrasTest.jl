@@ -85,3 +85,8 @@ g=sum(f,1)/sum(f)
 f = Fun(x -> exp(-x^2/2),-5..5)
 g = cumsum(f)
 @test g(ApproxFun.bisectioninv(g,0.5)) ≈ 0.5
+
+# check findmin, findmax
+f = Fun(x -> exp(0.25x) + sin(x) + 0.5cos(10x), -4..4)
+@test [findmax(f)...] ≈ [3.0531164509549584, 1.886754631165656]
+@test [findmin(f)...] ≈ [-0.825047261209411, -1.5741041425422948]
