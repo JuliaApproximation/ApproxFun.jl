@@ -162,3 +162,7 @@ x=Fun()
 ## Checks #7
 
 @test ncoefficients(Fun(x->sin(400*pi*x),-1..1)) ≤ 1400
+
+let w = Fun(x -> 1e5/(x*x+1), 283.72074879785936 .. 335.0101119042838)
+    @test w(domain(w).a) ≈ 1e5/(domain(w).a^2+1)
+end

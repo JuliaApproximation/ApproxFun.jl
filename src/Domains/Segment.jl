@@ -76,7 +76,7 @@ mobius(S::Space,x...) = mobius(domain(S),x...)
 
 tocanonical(d::Segment{T},x) where {T} = 2norm(x-d.a)/arclength(d)-1
 tocanonical(d::Segment{T},x::Number) where {T<:Complex} = 2norm(x-d.a)/arclength(d)-1
-mobius(d::Segment,x) = (d.a + d.b - 2x)/(d.a - d.b)
+mobius(d::Segment,x) = (((d.a - x) + (d.b - x))/(d.a - d.b))
 tocanonical(d::Segment{T},x) where {T<:Real} = mobius(d,x)
 tocanonicalD(d::Segment{T},x) where {T<:Real} = 2/(d.b- d.a)
 fromcanonical(d::Segment{T},x) where {T<:Number} = (d.a + d.b)/2 + (d.b - d.a)x/2
