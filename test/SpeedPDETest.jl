@@ -7,58 +7,21 @@ using ApproxFun, Compat.Test
 S = JacobiWeight(1.,1.,Jacobi(1.,1.))^2
 Δ = Laplacian(S)
 
-f = Fun((x,y)->sin(π*x)*sin(π*y),S)
-
-QR=qrfact(Δ)
-    QR.R
-
-BLAS.axpy!(1.0, view(B.op,KR,JR), view(B.data,KR,JR))
-Δ[Block.(1:5), Block.(1:5)]
-    ApproxFun.resizedata!(QR,:,400)
-    \(QR,f;tolerance=1E-10)
+@time f = Fun((x,y)->sin(π*x)*sin(π*y),S)
+    5
 
 @time Δ[Block.(1:40), Block.(1:40)]
-
-
-V = view(Δ, Block.(1:40), Block.(1:40))
-@time convert(BlockBandedMatrix, V)
-
-
-
-Δ.op.ops[1]
-@time Ao, Bo = (Δ.op.ops[1].ops)
-@time A = Ao[Block.(1:40), Block.(1:40)];
-@time B = Ao[Block.(1:40), Block.(1:40)];
-
-@time A*B
-@time Δ.op.ops[1][Block.(1:40), Block.(1:40)]
-@time Δ.op[Block.(1:40), Block.(1:40)]
-
-
-
-
-
-@time Δ.op.ops[1].ops[][Block.(1:40), Block.(1:40)]
-@time Δ.op.ops[1].ops[3][Block.(1:40), Block.(1:40)]
-@time Δ.op.ops[2][Block.(1:40), Block.(1:40)]
-
-
-QR.R.datasize
-QR=qrfact(Δ)
-    @profile ApproxFun.resizedata!(QR,:,400)
-
-Profile.print()
-
-ProfileView.view()
-
-using ProfileView
-
 
 QR=qrfact(Δ)
     @time Δ[Block.(1:40), Block.(1:40)]
     @time ApproxFun.resizedata!(QR,:,400)
     @time \(QR,f; tolerance=1E-10)
-using SO
+
+V = view(QR.R.data, Block.(1:30), Block.(1:30))
+A = Δ[Block.(1:30), Block.(1:30)]
+
+@time copy!(V, A)
+
 
 @profile ApproxFun.resizedata!(QR,:,400)
 Profile.clear()

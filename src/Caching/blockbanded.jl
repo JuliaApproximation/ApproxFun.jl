@@ -108,12 +108,12 @@ function resizedata!(B::CachedOperator{T,BlockBandedMatrix{T}},::Colon,col::Inte
 
         b_size = BlockBandedSizes(Vector{Int}(rows), Vector{Int}(cols), l, u)
 
-        pad!(B.data.data, bb_numentries(b_size))
+        resize!(B.data.data, bb_numentries(b_size))
         B.data = _BlockBandedMatrix(B.data.data, b_size, l, u)
 
         JR = datablocksize+1:J
         KR=blockcolstart(B.data,first(JR)):blockcolstop(B.data,last(JR))
-        BLAS.axpy!(1.0, view(B.op,KR,JR), view(B.data,KR,JR))
+        copy!(view(B.data,KR,JR), view(B.op,KR,JR))
 
         B.datasize = (blockstop(rangespace(B),last(KR)),col)
     end
