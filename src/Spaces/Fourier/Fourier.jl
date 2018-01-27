@@ -373,7 +373,7 @@ end
 function *(P::ITransformPlan{T,Fourier{DD,RR},true},cfs::AbstractVector{T}) where {T,DD,RR}
     n = length(cfs)
     reverseeven!(negateeven!(cfs))
-    cfs[:] = [cfs[1:2:end];cfs[2:2:end]]
+    cfs[:] = [view(cfs,1:2:n); view(cfs, 2:2:n)]
     if iseven(n)
         cfs[n÷2+1] *= 2
     end

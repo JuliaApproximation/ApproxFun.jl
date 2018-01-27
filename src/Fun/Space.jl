@@ -360,11 +360,14 @@ checkpoints(d::Space) = checkpoints(domain(d))
 
 
 ## default transforms
+abstract type AbstractTransformPlan{T} <: Plan{T} end
+
+space(P::AbstractTransformPlan) = P.space
 
 # These plans are use to wrap another plan
 for Typ in (:TransformPlan,:ITransformPlan)
     @eval begin
-        struct $Typ{T,SP,inplace,PL} <: Plan{T}
+        struct $Typ{T,SP,inplace,PL} <: AbstractTransformPlan{T}
             space::SP
             plan::PL
         end
@@ -375,7 +378,7 @@ end
 
 for Typ in (:CanonicalTransformPlan,:ICanonicalTransformPlan)
     @eval begin
-        struct $Typ{T,SP,PL,CSP} <: Plan{T}
+        struct $Typ{T,SP,PL,CSP} <: AbstractTransformPlan{T}
             space::SP
             plan::PL
             canonicalspace::CSP
