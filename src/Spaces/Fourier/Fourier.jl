@@ -339,10 +339,16 @@ end
 
 points(sp::Fourier{D,R},n) where {D,R}=points(domain(sp),n)
 
+struct IFourierTransformPlan{T,SP,PL} <: AbstractTransformPlan{T}
+    space::SP
+    plan::PL
+    work::Vector{T}
+end
+
 plan_transform!(sp::Fourier{D,R},x::AbstractVector{T}) where {T<:fftwNumber,D,R} =
     TransformPlan(sp,plan_r2r!(x, R2HC),Val{true})
 plan_itransform!(sp::Fourier{D,R},x::AbstractVector{T}) where {T<:fftwNumber,D,R} =
-    ITransformPlan(sp,plan_r2r!(x, HC2R),Val{true})
+    IFourierTransformPlan(sp, plan_r2r!(x, HC2R), copy(x)) # copy(x) is workspace data
 
 for (Typ,Pltr!,Pltr) in ((:TransformPlan,:plan_transform!,:plan_transform),
                          (:ITransformPlan,:plan_itransform!,:plan_itransform))
@@ -358,6 +364,11 @@ for (Typ,Pltr!,Pltr) in ((:TransformPlan,:plan_transform!,:plan_transform),
     end
 end
 
+Base.A_mul_B!(cfs::AbstractVector{T}, P::TransformPlan{T,Fourier{DD,RR},true}, vals::AbstractVector{T}) where {T,DD,RR} =
+    P*copy!(cfs, vals)
+
+Base.A_mul_B!(cfs::AbstractVector{T}, P::TransformPlan{T,Fourier{DD,RR},false}, vals::AbstractVector{T}) where {T,DD,RR} =
+    P.plan*copy!(cfs, vals)
 
 function *(P::TransformPlan{T,Fourier{DD,RR},true},vals::AbstractVector{T}) where {T,DD,RR}
     n = length(vals)
@@ -370,10 +381,29 @@ function *(P::TransformPlan{T,Fourier{DD,RR},true},vals::AbstractVector{T}) wher
     negateeven!(reverseeven!(interlace!(cfs,1)))
 end
 
-function *(P::ITransformPlan{T,Fourier{DD,RR},true},cfs::AbstractVector{T}) where {T,DD,RR}
+Base.A_mul_B!(vals::AbstractVector{T}, P::IFourierTransformPlan{T,Fourier{DD,RR}}, cfs::AbstractVector{T}) where {T,DD,RR} =
+    P*copy!(vals, cfs)
+
+Base.A_mul_B!(vals::AbstractVector{T}, P::ITransformPlan{T,Fourier{DD,RR},false},cfs::AbstractVector{T}) where {T,DD,RR} =
+    A_mul_B!(vals, P.plan, cfs)
+
+function *(P::IFourierTransformPlan{T,Fourier{DD,RR}},cfs::AbstractVector{T}) where {T,DD,RR}
     n = length(cfs)
     reverseeven!(negateeven!(cfs))
-    cfs[:] = [view(cfs,1:2:n); view(cfs, 2:2:n)]
+
+    # allocation free version of
+    #    cfs[:] = [view(cfs,1:2:n); view(cfs, 2:2:n)]
+    P.work .= cfs
+    j = 1
+    for k=1:2:n
+        cfs[j] .= P.work[k]
+        j+=1
+    end
+    for k=2:2:n
+        cfs[j] .= P.work[k]
+        j+=1
+    end
+
     if iseven(n)
         cfs[n÷2+1] *= 2
     end
