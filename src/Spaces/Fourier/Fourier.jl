@@ -396,11 +396,11 @@ function *(P::IFourierTransformPlan{T,Fourier{DD,RR}},cfs::AbstractVector{T}) wh
     P.work .= cfs
     j = 1
     for k=1:2:n
-        cfs[j] .= P.work[k]
+        cfs[j] = P.work[k]
         j+=1
     end
     for k=2:2:n
-        cfs[j] .= P.work[k]
+        cfs[j] = P.work[k]
         j+=1
     end
 
@@ -412,7 +412,7 @@ function *(P::IFourierTransformPlan{T,Fourier{DD,RR}},cfs::AbstractVector{T}) wh
 end
 
 
-transform(sp::Fourier{DD,RR},vals::AbstractVector,plan) where {DD,RR} = plan*vals
+transform(sp::Fourier{DD,RR},vals::AbstractVector,plan) where {DD,RR} = plan*valså
 itransform(sp::Fourier{DD,RR},cfs::AbstractVector,plan) where {DD,RR} = plan*cfs
 
 transform(sp::Fourier{DD,RR},vals::AbstractVector) where {DD,RR} = plan_transform(sp,vals)*vals
