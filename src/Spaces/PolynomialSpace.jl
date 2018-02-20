@@ -27,7 +27,7 @@ end
 evaluate(f::AbstractVector,S::PolynomialSpace,x,y,z...) =
     evaluate(f,S,Vec(x,y,z...))
 
-function evaluate(f::AbstractVector,S::PolynomialSpace,x::Fun)
+function evaluate(f::AbstractVector, S::PolynomialSpace, x::Fun)
     if issubset(Interval(minimum(x),maximum(x)),domain(S))
         clenshaw(S,f,tocanonical(S,x))
     else
