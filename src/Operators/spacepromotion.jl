@@ -130,7 +130,7 @@ choosedomainspace(A::Operator,sp::Space) = default_choosedomainspace(A,sp)
 choosedomainspace(A::Operator,f::Fun) = choosedomainspace(A,space(f))
 choosedomainspace(A::Operator,f::AbstractVector{FF}) where {FF<:Fun} =
     choosedomainspace(A,Fun(f))
-choosedomainspace(A::Operator,::) = choosedomainspace(A)
+choosedomainspace(A::Operator,_) = choosedomainspace(A)
 
 choosedomainspace(A) = choosedomainspace(A,UnsetSpace())
 

@@ -15,14 +15,14 @@ function resizedata!(B::CachedOperator{T,RaggedMatrix{T}},::Colon,n::Integer) wh
         if B.padding
             # K is largest colstop.  We get previous largest by looking at precalulated
             # cols
-            K = B.datasize[2]==0?0:B.data.cols[B.datasize[2]+1]-B.data.cols[B.datasize[2]]
+            K = B.datasize[2]==0 ? 0 : B.data.cols[B.datasize[2]+1]-B.data.cols[B.datasize[2]]
 
             for j = B.datasize[2]+1:n
                 K = max(K,colstop(B.op,j))
                 B.data.cols[j+1] = B.data.cols[j] + K
             end
         else
-            K = B.datasize[2]==0?0:B.data.m# more robust but slower: maximum(diff(B.data.cols))
+            K = B.datasize[2]==0 ? 0 : B.data.m# more robust but slower: maximum(diff(B.data.cols))
 
             for j = B.datasize[2]+1:n
                 cs = colstop(B.op,j)

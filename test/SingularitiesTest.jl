@@ -1,4 +1,4 @@
-using ApproxFun, Base.Test
+using ApproxFun, Compat.Test
 
 
 x=Fun(identity);
@@ -102,6 +102,12 @@ f=x^(-0.123)*exp(-x)
 @test ≈(sum(Fun(sech,0..Inf)),sum(Fun(sech,0..40));atol=1000000eps())
 
 
+f=Fun(sech,Line())
+Fun(f,Ray())(2.0) ≈ sech(2.0)
+Fun(f,Ray(0.,π))(-2.0) ≈ sech(-2.0)
+Fun(sech,Ray(0.,π))(-2.0) ≈ sech(-2.0)
+
+
 #Ei (Exp Integral)
 
 y=Fun(Ray())
@@ -124,8 +130,13 @@ f=Fun(x->exp(-x^2),Line())
 
 d=PeriodicLine()
 D=Derivative(d)
-f=Fun(x->sech(x-.1),d)
 
+f = Fun(x->sech(x-0.1),d,200)
+@test f(1.) ≈ sech(1-0.1)
+
+
+f=Fun(x->sech(x-0.1),d)
+@test f(1.) ≈ sech(1-0.1)
 
 @test ≈((D*f)(.2),-0.0991717226583897;atol=100000eps())
 @test ≈((D^2*f)(.2),-0.9752522555114987;atol=1000000eps())
@@ -201,6 +212,8 @@ w+δ
 
 
 ## PointSpace
+
+@test eltype(domain(ApproxFun.PointSpace([0,0.1,1])) ) == Float64
 
 f=Fun(x->(x-0.1),ApproxFun.PointSpace([0,0.1,1]))
 @test roots(f) == [0.1]
@@ -292,3 +305,10 @@ f=abs(x+1.2)
 x=Fun(0..1)
 f = exp(x)*sqrt(x)*log(1-x)
 @test f(0.1) ≈ exp(0.1)*sqrt(0.1)*log(1-0.1)
+
+# sampling Chebyshev
+x=Fun(identity)
+f = exp(x)/sqrt(1-x^2)
+g = cumsum(f)
+@test abs(g(-1)) ≤ 1E-15
+@test g'(0.1) ≈ f(0.1)

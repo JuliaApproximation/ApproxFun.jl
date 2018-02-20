@@ -1,4 +1,4 @@
-abstract type MultivariateFun{T,N} end
+abstract type MultivariateFun{T,N} <: Function end
 const BivariateFun{T} = MultivariateFun{T,2}
 
 export grad, lap, curl

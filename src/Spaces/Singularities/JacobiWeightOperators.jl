@@ -80,7 +80,6 @@ end
 function integrate(f::Fun{JacobiWeight{SS,DD,RR}}) where {SS,DD<:Segment,RR}
     S=space(f)
     # we integrate by solving u'=f
-    D=Derivative(S)
     tol=1e-10
     g=Fun(S.space,f.coefficients)
     if isapprox(S.β,0.) && isapprox(S.α,0.)
@@ -114,7 +113,8 @@ function integrate(f::Fun{JacobiWeight{SS,DD,RR}}) where {SS,DD<:Segment,RR}
     else
         s=sum(f)
         if abs(s)<1E-14
-            \(D,f;tolerance=1E-14)  # if the sum is 0 we don't get step-like behaviour
+            D=Derivative(JacobiWeight(S.β+1, S.α+1, S.space))
+            \(D,f; tolerance=1E-14)  # if the sum is 0 we don't get step-like behaviour
         else
             # we normalized so it sums to zero, and so backslash works
             w=Fun(x->exp(-40x^2),81)
@@ -122,7 +122,7 @@ function integrate(f::Fun{JacobiWeight{SS,DD,RR}}) where {SS,DD<:Segment,RR}
             w2=Fun(x->w1(x),domain(w1))
             c=s/sum(w1)
             v=f-w1*c
-            (c*integrate(w2))⊕\(D,v;tolerance=100eps())
+            (c*integrate(w2)) ⊕ integrate(v)
         end
     end
 end

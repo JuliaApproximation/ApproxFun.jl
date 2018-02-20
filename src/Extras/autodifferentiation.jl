@@ -1,4 +1,4 @@
-export newton
+export newton, linop
 
 struct DualFun{F,T}
     f::F
@@ -56,14 +56,14 @@ jacobian(d::DualFun)=d.J
 
 
 Base.promote_rule(::Type{DF},::Type{T}) where {DF<:DualFun,T<:Number}=DualFun
-convert(::Type{DualFun},b::Number)=DualFun(b,0)
+convert(::Type{DualFun},b::Number) = DualFun(b,0)
 
 
 
-function Operator(f::Function,ds::Space)
-    if (isgeneric(f)&&applicable(f,0)) || (!isgeneric(f)&&arglength(f)==1)
+function linop(f::Function,ds::Space)
+    if (isgeneric(f) && applicable(f,0)) || (!isgeneric(f)&&arglength(f)==1)
         df=f(DualFun(zeros(ds)))
-    elseif (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
+    elseif (isgeneric(f) && applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
         df=f(Fun(ds),DualFun(zeros(ds)))
     else
         error("Not implemented")
@@ -76,8 +76,8 @@ function Operator(f::Function,ds::Space)
     end
 end
 
-Operator(f::Function,d)=Operator(f,Space(d))
-Operator(f::Function)=Operator(f,Chebyshev())  #TODO: UnsetSpace
+linop(f::Function,d) = linop(f,Space(d))
+linop(f::Function) = linop(f,Chebyshev())  #TODO: UnsetSpace
 
 
 

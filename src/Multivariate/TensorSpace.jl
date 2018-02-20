@@ -350,7 +350,7 @@ getindex(sp::TensorSpace{Tuple{S1,S2}},k::Integer) where {S1,S2<:Space{D,R}} whe
 
 # every column is in the same space for a TensorSpace
 # TODO: remove
-columnspace(S::TensorSpace,::) = S.spaces[1]
+columnspace(S::TensorSpace,_) = S.spaces[1]
 
 
 struct ProductSpace{S<:Space,V<:Space,D,R} <: AbstractProductSpace{Tuple{S,V},D,R}
@@ -711,4 +711,4 @@ end
 
 
 
-identity_fun(S::TensorSpace) = Fun(xyz->[xyz...],S)
+Fun(::typeof(identity), S::TensorSpace) = Fun(xyz->collect(xyz),S)

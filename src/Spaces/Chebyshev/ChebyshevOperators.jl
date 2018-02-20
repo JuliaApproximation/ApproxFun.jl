@@ -1,9 +1,9 @@
 
 recA(::Type{T},::Chebyshev,k) where {T} = 2one(T)
-recB(::Type{T},::Chebyshev,::) where {T} = zero(T)
+recB(::Type{T},::Chebyshev,_) where {T} = zero(T)
 recC(::Type{T},::Chebyshev,k) where {T} = one(T)   # one(T) ensures we get correct type
 
-recα(::Type{T},::Chebyshev,::) where {T} = zero(T)
+recα(::Type{T},::Chebyshev,_) where {T} = zero(T)
 recβ(::Type{T},::Chebyshev,k) where {T} = ifelse(k==1,one(T),one(T)/2)   # one(T) ensures we get correct type,ifelse ensures inlining
 recγ(::Type{T},::Chebyshev,k) where {T} = one(T)/2   # one(T) ensures we get correct type
 

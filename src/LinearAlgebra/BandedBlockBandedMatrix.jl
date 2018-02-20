@@ -68,7 +68,7 @@ end
 
 convert(::Type{BandedMatrix},B::BandedBlockBandedMatrix) = BandedMatrix{eltype(B)}(B)
 
-isbandedblockbanded(::) = false
+isbandedblockbanded(_) = false
 isbandedblockbanded(::BandedBlockBandedMatrix) = true
 
 
@@ -138,7 +138,7 @@ end
 
 subblockbandwidths(K) = -subblockbandinds(K,1),subblockbandinds(K,2)
 subblockbandinds(K) = subblockbandinds(K,1),subblockbandinds(K,2)
-subblockbandwidth(K,k::Integer) = k==1?-subblockbandinds(K,k):subblockbandinds(K,k)
+subblockbandwidth(K,k::Integer) = k==1 ? -subblockbandinds(K,k) : subblockbandinds(K,k)
 subblockbandinds(K::BandedBlockBandedMatrix,k::Integer) = k==1 ? -K.λ : K.μ
 
 

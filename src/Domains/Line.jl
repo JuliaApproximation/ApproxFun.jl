@@ -60,8 +60,6 @@ convert(::Type{IT},::AnyDomain) where {IT<:Line}=Line(NaN,NaN)
 
 
 function line_tocanonical(α,β,x)
-
-
     @assert α==β==-1. || α==β==-.5
 
     if α==β==-1.
@@ -105,9 +103,9 @@ function line_invfromcanonicalD(α,β,x)
 end
 
 
-tocanonical(d::Line,x)=line_tocanonical(d.α,d.β,cis(-angle(d)).*(x-d.center))
-tocanonical(d::Line{false},x)=line_tocanonical(d.α,d.β,x-d.center)
-tocanonical(d::Line{true},x)=line_tocanonical(d.α,d.β,d.center-x)
+tocanonical(d::Line,x) = line_tocanonical(d.α,d.β,cis(-angle(d)).*(x-d.center))
+tocanonical(d::Line{false},x) = line_tocanonical(d.α,d.β,x-d.center)
+tocanonical(d::Line{true},x) = line_tocanonical(d.α,d.β,d.center-x)
 
 tocanonicalD(d::Line,x) = cis(-angle(d)).*line_tocanonicalD(d.α,d.β,cis(-angle(d)).*(x-d.center))
 tocanonicalD(d::Line{false},x) = line_tocanonicalD(d.α,d.β,x-d.center)
@@ -135,9 +133,9 @@ invfromcanonicalD(d::Line{true},x) = -line_invfromcanonicalD(d.α,d.β,x)
 
 
 # algebra
-*(c::Real,d::Line{false}) = Line{sign(c)>0?false:true}(isapprox(d.center,0)?d.center:c*d.center,d.α,d.β)
-*(c::Real,d::Line{true}) = Line{sign(c)>0?true:false}(isapprox(d.center,0)?d.center:c*d.center,d.α,d.β)
-*(c::Number,d::Line) = Line(isapprox(d.center,0)?d.center:c*d.center,angle(d)+angle(c),d.α,d.β)
+*(c::Real,d::Line{false}) = Line{sign(c)>0 ? false : true}(isapprox(d.center,0) ? d.center : c*d.center,d.α,d.β)
+*(c::Real,d::Line{true}) = Line{sign(c)>0 ? true : false}(isapprox(d.center,0) ? d.center : c*d.center,d.α,d.β)
+*(c::Number,d::Line) = Line(isapprox(d.center,0) ? d.center : c*d.center,angle(d)+angle(c),d.α,d.β)
 *(d::Line,c::Number) = c*d
 for OP in (:+,:-)
     @eval begin
@@ -181,12 +179,12 @@ Base.reverse(d::PeriodicLine{true})=PeriodicLine{false}(d.center,d.L)
 Base.reverse(d::PeriodicLine{false})=PeriodicLine{true}(d.center,d.L)
 Base.reverse(d::PeriodicLine{a}) where {a}=PeriodicLine{a-1}(d.center,d.L)
 
-tocanonical(d::PeriodicLine{false},x)= 2atan((x-d.center)/d.L)
+tocanonical(d::PeriodicLine{false},x) = real(2atan((x-d.center)/d.L))
 fromcanonical(d::PeriodicLine{false},v::AbstractArray) =
     eltype(d)[fromcanonical(d,vk) for vk in v]
-fromcanonical(d::PeriodicLine{false},θ)=d.L*tan(θ/2) + d.center
+fromcanonical(d::PeriodicLine{false},θ) = d.L*tan(θ/2) + d.center
 
-tocanonical(d::PeriodicLine{a},x) where {a}=tocanonical(PeriodicLine{false,Float64}(0.,d.L),exp(-π*im*a)*(x-d.center))
+tocanonical(d::PeriodicLine{a},x) where {a} = tocanonical(PeriodicLine{false,Float64}(0.,d.L),exp(-π*im*a)*(x-d.center))
 fromcanonical(d::PeriodicLine{a},v::AbstractArray) where {a} =
     [fromcanonical(d,vk) for vk in v]
 fromcanonical(d::PeriodicLine{a},x) where {a} =
@@ -198,7 +196,7 @@ function invfromcanonicalD(d::PeriodicLine{false})
     a=Fun(PeriodicInterval(),[1.,0,1])
 end
 
-mappoint(a::PeriodicLine{false},b::Circle,x)=b.radius*((a.L*im-(x-a.center))./(a.L*im+(x-a.center)))+b.center
+mappoint(a::PeriodicLine{false},b::Circle,x) = b.radius*((a.L*im-(x-a.center))./(a.L*im+(x-a.center)))+b.center
 function mappoint(b::Circle,a::PeriodicLine{false},x)
     y=(x-b.center)./b.radius
     a.center+a.L*im*(1-y)./(y+1)
@@ -206,7 +204,7 @@ end
 
 
 # algebra
-*(c::Number,d::PeriodicLine)=PeriodicLine(isapprox(d.center,0)?d.center:c*d.center,angle(d)+angle(c))
+*(c::Number,d::PeriodicLine)=PeriodicLine(isapprox(d.center,0) ? d.center : c*d.center,angle(d)+angle(c))
 *(d::PeriodicLine,c::Number)=c*d
 for OP in (:+,:-)
     @eval begin

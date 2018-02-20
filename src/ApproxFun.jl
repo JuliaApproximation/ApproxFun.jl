@@ -1,7 +1,8 @@
 __precompile__()
 
 module ApproxFun
-    using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers, BandedMatrices, IntervalSets, Compat
+    using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers, BandedMatrices, IntervalSets, Compat,
+            AbstractFFTs
     import StaticArrays, ToeplitzMatrices, Calculus
 
 import Base.LinAlg: BlasInt, BlasFloat, norm
@@ -35,6 +36,18 @@ import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, bandshift,
 import Base: view
 
 import StaticArrays: SVector
+
+import AbstractFFTs: Plan
+
+if VERSION < v"0.7-"
+    using Base.FFTW
+    import Base.FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
+                    r2r!, r2r
+else
+    using FFTW
+    import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
+                    r2r!, r2r
+end
 
 const Vec{d,T} = SVector{d,T}
 

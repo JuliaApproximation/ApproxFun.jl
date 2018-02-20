@@ -19,6 +19,7 @@ Base.getindex(f::MatrixFun,
 
 
 const FunTypes = Union{Fun,Number}
+const ScalarFunTypes = Union{ScalarFun,Number}
 function Base.vcat(vin::FunTypes...)
     #  remove tuple spaces
     v=Vector{Fun}(0)
@@ -36,13 +37,24 @@ function Base.vcat(vin::FunTypes...)
 end
 
 
-function Base.hcat(v::FunTypes...)
+function Base.hcat(v::ScalarFunTypes...)
     ff = vcat(v...)  # A vectorized version
     ff.'
 end
 
 Base.hvcat(rows::Tuple{Vararg{Int}},v::FunTypes...) = Fun(hvnocat(rows,v...))
 
+
+function Base.hcat(v::VectorFun...)
+    N = length(v[1])
+    M = length(v)
+
+    V = Array{Fun}(N,M)
+    for J=1:M
+        V[:,J] = vec(v[J])
+    end
+    Fun(V)
+end
 
 
 
@@ -60,7 +72,7 @@ end
 
 Fun(v::AbstractArray{NN}) where {NN<:Number} =
     Fun(v,Space(fill(ConstantSpace(NN),size(v))))
-Fun(v::AbstractArray{Any}) = Fun(Fun.([v...]) :: AbstractArray{<:Fun})
+Fun(v::AbstractArray{Any}) = Fun(Fun.(collect(v)) :: AbstractArray{<:Fun})
 
 Fun(f::ArrayFun,d::Space{D,R}) where {D,R<:AbstractArray} = space(f)==d ? f : Fun(d,coefficients(f,d))
 Fun(f::ArrayFun,d::Space) = Fun(f,Space(fill(d,size(space(f)))))

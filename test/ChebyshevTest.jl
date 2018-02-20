@@ -125,7 +125,6 @@ f=Fun(x->cos(50acos(x)))
 @test Fun(x->2,10)(.1) ≈ 2
 @test Fun(x->2)(.1) ≈ 2
 
-
 @test Fun(Chebyshev,Float64[]).([0.,1.]) ≈ [0.,0.]
 @test Fun(Chebyshev,[])(0.) ≈ 0.
 @test Fun(x->[1.,0.])(0.) ≈ [1.,0.]
@@ -149,7 +148,8 @@ f = sin(x^2)
 
 
 f=Fun(exp)
-@test Fun(f,Chebyshev(1..(-1)))(0.1) ≈ f(0.1)
+@test ApproxFun.default_Fun(f, Chebyshev(1 .. -1), ncoefficients(f))(0.1) ≈ exp(0.1)
+@test Fun(f,Chebyshev(1 .. -1))(0.1) ≈ f(0.1)
 
 
 
@@ -162,3 +162,17 @@ x=Fun()
 ## Checks #7
 
 @test ncoefficients(Fun(x->sin(400*pi*x),-1..1)) ≤ 1400
+
+
+# Bug from Trogdon
+
+δ = .03 # should be less than 0.03
+
+@test 0. ∈ Domain(1-8.*sqrt(δ)..1+8.*sqrt(δ))
+@test 0.00001 ∈ Domain(1-8.*sqrt(δ)..1+8.*sqrt(δ))
+
+ϕfun = Fun(x -> 1/sqrt(2*pi*δ)*exp(-abs2.(x-1)/(2*δ)), 1-8.*sqrt(δ)..1+8.*sqrt(δ))
+ϕfun(0.00001) ≈ 1/sqrt(2*pi*δ)*exp(-abs2.(0.00001-1)/(2*δ))
+
+iϕfun = 1-cumsum(ϕfun)
+@test iϕfun(0.00001) ≈ 1

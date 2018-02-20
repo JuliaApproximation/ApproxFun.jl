@@ -103,11 +103,11 @@ end
 end
 
 @recipe function f(dd::UnionDomain)
-    @series dd[1]
-    for k=2:length(dd)
+    @series component(dd,1)
+    for k=2:ncomponents(dd)
         @series begin
             primary := false
-            dd[k]
+            component(dd,k)
         end
     end
 end

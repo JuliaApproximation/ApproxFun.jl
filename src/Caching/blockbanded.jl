@@ -275,7 +275,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T,DDS,RRS
         # scale banded entries
         BRS1=blockrowstop(R,K1).K
         @inbounds for J=J1:BRS1
-            for j=(J==J1?k-bc[1]+1:1):R.cols[J]  # only do partial columns for first block
+            for j = (J==J1 ? k-bc[1]+1 : 1):R.cols[J]  # only do partial columns for first block
                 jshft = (j-1)*nrows1
                 dt=dot(M1,wp,1,r+sz*(inbands_getindex(R.blockstart,K1,J)+kshft +jshft),1)
                 M=M1

@@ -13,11 +13,12 @@ end
 
 
 ## Constructors that involve MultivariateFun
+Fun(f::Fun) = f # Fun of Fun should be like a conversion
 
-Fun(f::Function) = Fun(F(f))
+function Fun(fin::Function)
+    f = dynamic(fin)
 
-function Fun(f::F)
-    if hasnumargs(f.f,1)
+    if hasnumargs(f,1)
         # check for tuple
         try
             f(0)
@@ -31,7 +32,7 @@ function Fun(f::F)
         end
 
         Fun(f,Interval())
-    elseif hasnumargs(f.f,2)
+    elseif hasnumargs(f,2)
             Fun(f,Interval()^2)
     else
         error("Function not defined on interval or square")
@@ -45,9 +46,9 @@ end
 
 
 
-## dot for vector{Number} * Vector{Fun}
+## dot for AbstractVector{Number} * AbstractVector{Fun}
 
-function Base.dot(c::Vector{T},f::Vector{F}) where {T<:Union{Number,Fun,MultivariateFun},F<:Union{Fun,MultivariateFun}}
+function Base.dot(c::AbstractVector{T},f::AbstractVector{F}) where {T<:Union{Number,Fun,MultivariateFun},F<:Union{Fun,MultivariateFun}}
     @assert length(c)==length(f)
     ret = conj(first(c))*first(f)
     for k = 2:length(c)
@@ -57,7 +58,7 @@ function Base.dot(c::Vector{T},f::Vector{F}) where {T<:Union{Number,Fun,Multivar
 end
 
 
-function dotu(c::Vector{T},f::Vector{F}) where {T<:Union{Fun,MultivariateFun,Number},F<:Union{Fun,MultivariateFun,Number}}
+function dotu(c::AbstractVector{T},f::AbstractVector{F}) where {T<:Union{Fun,MultivariateFun,Number},F<:Union{Fun,MultivariateFun,Number}}
     @assert length(c)==length(f)
     isempty(c) && return zero(Base.promote_op(*,T,F))
     ret = c[1]*f[1]

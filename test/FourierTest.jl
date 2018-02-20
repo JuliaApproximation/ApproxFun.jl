@@ -53,8 +53,8 @@ z=Fun(Fourier(Γ))
 @test abs(Fun(cos,Circle())'(exp(0.1im))+sin(exp(0.1im)))<100eps()
 @test abs(Fun(cos,Circle())'(exp(0.1im))+Fun(sin,Circle())(exp(0.1im)))<100eps()
 
-@test norm(Fun(x->Fun(cos,Fourier,20)(x),20)-Fun(cos,20)) <100eps()
-@test norm(Fun(x->Fun(cos,Fourier)(x))-Fun(cos)) <100eps()
+@test norm(Fun(x->Fun(cos,Fourier(-π .. π),20)(x),20)-Fun(cos,20)) <100eps()
+@test norm(Fun(x->Fun(cos,Fourier(-π .. π))(x))-Fun(cos)) <100eps()
 @test norm(Fun(cos,Fourier)'+Fun(sin,Fourier)) < 100eps()
 @test norm(Fun(x->Fun(cos,Laurent)(x))-Fun(cos)) <100eps()
 @test norm(Fun(cos,Laurent)'+Fun(sin,Laurent)) < 100eps()
@@ -276,3 +276,43 @@ A = Multiplication(mySin,Fourier())
 mySin = Fun(Fourier(),[0,1])
 A = Multiplication(mySin,Fourier())
 @test A.op[1,1] == 0
+
+
+
+## Negatively oriented circles
+
+f1 = Fun(z -> exp(1/z), Circle(0.0,0.2))
+f̃1 = Fun(z -> exp(1/z), Circle(0.0,0.2,false))
+f̃2 = Fun(z -> exp(1/z), Circle(0.0,0.3,false))
+
+@test f1(0.2exp(0.1im)) ≈ exp(1/(0.2exp(0.1im)))
+@test f̃1(0.2exp(0.1im)) ≈ exp(1/(0.2exp(0.1im)))
+@test f̃2(0.3exp(0.1im)) ≈ exp(1/(0.3exp(0.1im)))
+
+@test sum(f1) ≈ -sum(f̃1)
+@test sum(f̃1) ≈ sum(f̃2)
+
+
+
+## Test inplace transform
+
+S = Fourier()
+
+x = [1.,2,3,4,5]
+y = similar(x)
+z = similar(x)
+P = ApproxFun.plan_transform(S, x)
+P! = ApproxFun.plan_transform!(S, x)
+A_mul_B!(y, P, x)
+@test x ≈ [1.,2,3,4,5]
+A_mul_B!(z, P!, x)
+@test x ≈ [1.,2,3,4,5]
+@test y ≈ z ≈ P*x ≈ P!*copy(x)
+
+P = ApproxFun.plan_itransform(S, x)
+P! = ApproxFun.plan_itransform!(S, x)
+A_mul_B!(y, P, x)
+@test x ≈ [1.,2,3,4,5]
+A_mul_B!(z, P!, x)
+@test x ≈ [1.,2,3,4,5]
+@test y ≈ z ≈ P*x ≈ P!*copy(x)

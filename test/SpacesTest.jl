@@ -1,5 +1,5 @@
 using ApproxFun, Base.Test
-    import ApproxFun: ChebyshevDirichlet,Ultraspherical,space,testspace,testbandedoperator,testcalculus,testtransforms
+    import ApproxFun: ChebyshevDirichlet,Ultraspherical,PiecewiseSegment, ContinuousSpace, space,testspace,testbandedoperator,testcalculus,testtransforms
 
 testtransforms(ChebyshevDirichlet{1,1}())
 
@@ -94,8 +94,6 @@ w=2/(sqrt(1-x)*sqrt(1+im*x))
 
 ## ContinuousSpace
 
-import ApproxFun: PiecewiseSegment,ContinuousSpace
-
 d=PiecewiseSegment(1.,2.,3.,4.)
 S=ContinuousSpace(d)
 testtransforms(S;minpoints=3,invertibletransform=false)
@@ -146,6 +144,7 @@ rsp=Legendre(0..1)⊕JacobiWeight(0.5,0.,Jacobi(0.5,0.5,0..1))
 
 
 C=Conversion(dsp,rsp)
+
 f=Fun(dsp,[1.,2.,3.,4.,5.])
 @test f(0.1) ≈ (C*f)(0.1)
 
@@ -197,6 +196,7 @@ Fun(f,JacobiWeight(1.,0.,0..1))
 ## Hermite
 f=Fun(x->x+x^2,Hermite())
 @test f(1.) ≈ 2.
+@test values(f) ≈ points(f)+points(f).^2
 
 D = Derivative(Hermite())
 testbandedoperator(D)
@@ -287,3 +287,40 @@ sqrt(x)(0.1) ≈ sqrt(0.1)
 
 f = Fun(x->x*exp(x),Ultraspherical(1,0..1))
 sqrt(f(0.1)) ≈ sqrt(f)(0.1)
+
+
+## Fast Ultraspherical*Chebyshev
+f = Fun(exp,Ultraspherical(1))
+g = Fun(exp)
+
+
+@test ApproxFun.hasfasttransform(f)
+@test ApproxFun.pointscompatible(f,g)
+@test ApproxFun.hasfasttransformtimes(f,g)
+@test ApproxFun.transformtimes(f,g)(0.1) ≈ exp(0.2)
+
+δ = Fun(ApproxFun.PointSpace([2.0]),[1.0])
+f = Fun(x->cos(50x)) + δ
+g = Fun(x->cos(50x),Ultraspherical(1)) + δ
+@test domain(f) == domain(g)
+
+@test (f*g)(0.1) ≈ cos(50*0.1)^2
+@test (f*g)(2.0) ≈ 1
+
+@test exp(f)(0.1) ≈ exp(cos(50*0.1))
+@test exp(f)(2.0) ≈ exp(1)
+
+@test sign(f)(0.1) ≈ sign(cos(50*0.1))
+@test sign(f)(2.0) ≈ 1
+@test abs(f)(0.1) ≈ abs(cos(50*0.1))
+@test abs(f)(2.0) ≈ 1
+@test angle(f)(0.1) ≈ angle(cos(50*0.1))
+@test angle(f)(2.0) ≈ 0
+
+
+
+## ones for SumSpace
+
+S = Jacobi(0,1) ⊕ JacobiWeight(1/3,0,Jacobi(1/3,2/3)) ⊕ JacobiWeight(2/3,0,Jacobi(2/3,1/3))
+o = ones(S)
+@test o(0.5) == 1

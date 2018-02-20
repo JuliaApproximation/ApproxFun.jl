@@ -1,7 +1,7 @@
 
 
-export Domain,IntervalDomain,PeriodicDomain,tocanonical,fromcanonical,fromcanonicalD,∂
-export chebyshevpoints,fourierpoints,isambiguous,arclength
+export Domain, IntervalDomain, PeriodicDomain, tocanonical, fromcanonical, fromcanonicalD, ∂
+export chebyshevpoints, fourierpoints, isambiguous, arclength
 export components, component, ncomponents
 
 
@@ -17,9 +17,14 @@ eltype(::Domain{T}) where {T} = T
 eltype(::Type{Domain{T}}) where {T} = T
 Base.isreal(::Domain{T}) where {T<:Real} = true
 Base.isreal(::Domain{T}) where {T} = false
-dimension(::Domain{<:Number}) = 1
+
+Base.copy(d::Domain) = d  # all domains are immutable
+
+dimension(::Type{Domain{TT}}) where TT<:Number = 1
 dimension(::Type{Domain{Vec{d,T}}}) where {T,d} = d
 dimension(::Type{DT}) where {DT<:Domain} = dimension(supertype(DT))
+
+dimension(d::Domain) = dimension(typeof(d))
 
 # add indexing for all spaces, not just DirectSumSpace
 # mimicking scalar vs vector
@@ -81,7 +86,7 @@ domainscompatible(a,b) = domainscompatible(domain(a),domain(b))
 domainscompatible(a::Domain,b::Domain) = isambiguous(a) || isambiguous(b) ||
                     isapprox(a,b)
 
-function chebyshevpoints(::Type{T},n::Integer;kind::Integer=1) where T<:Number
+function chebyshevpoints(::Type{T},n::Integer;kind::Int=1) where T<:Number
     if kind == 1
         T[sinpi((n-2k-one(T))/2n) for k=0:n-1]
     elseif kind == 2
@@ -92,12 +97,12 @@ function chebyshevpoints(::Type{T},n::Integer;kind::Integer=1) where T<:Number
         end
     end
 end
-chebyshevpoints(n::Integer;kind::Integer=1) = chebyshevpoints(Float64,n;kind=kind)
+chebyshevpoints(n::Integer;kind::Int=1) = chebyshevpoints(Float64,n;kind=kind)
 
 ##TODO: Should fromcanonical be fromcanonical!?
 
-points(d::IntervalDomain{T},n::Integer) where {T} =
-    fromcanonical.(d,chebyshevpoints(real(eltype(T)),n))  # eltype to handle point
+points(d::IntervalDomain{T},n::Integer;kind::Int=1) where {T} =
+    fromcanonical.(d,chebyshevpoints(real(eltype(T)),n;kind=kind))  # eltype to handle point
 bary(v::AbstractVector{Float64},d::IntervalDomain,x::Float64) = bary(v,tocanonical(d,x))
 
 #TODO consider moving these
@@ -110,10 +115,10 @@ function Base.in(x,d::IntervalDomain)
     y=tocanonical(d,x)
     ry=real(y)
     iy=imag(y)
-    sc=norm(fromcanonicalD(d,ry<-1?-one(ry):(ry>1?one(ry):ry)))  # scale based on stretch of map on projection to interal
+    sc=norm(fromcanonicalD(d,ry<-1 ? -one(ry) : (ry>1 ? one(ry) : ry)))  # scale based on stretch of map on projection to interal
     dy=fromcanonical(d,y)
     # TODO: use Base.isapprox once keywords are fast
-    ((isinf(norm(dy)) && isinf(norm(x))) ||  norm(dy-x) ≤ 1000eps(T)*norm(x)) &&
+    ((isinf(norm(dy)) && isinf(norm(x))) ||  norm(dy-x) ≤ 1000eps(T)*max(norm(x),1)) &&
         -one(T)-100eps(T)/sc ≤ ry ≤ one(T)+100eps(T)/sc &&
         -100eps(T)/sc ≤ iy ≤ 100eps(T)/sc
 end
@@ -132,13 +137,14 @@ issubcomponent(a::Domain,b::Domain) = a in components(b)
 abstract type PeriodicDomain{T} <: UnivariateDomain{T} end
 
 
-canonicaldomain(::PeriodicDomain)=PeriodicInterval()
+canonicaldomain(::PeriodicDomain) = PeriodicInterval()
+
 
 points(d::PeriodicDomain{T},n::Integer) where {T} =
     fromcanonical.(d, fourierpoints(real(eltype(T)),n))
 
 fourierpoints(n::Integer) = fourierpoints(Float64,n)
-fourierpoints(::Type{T},n::Integer) where {T<:Number}= convert(T,π)*collect(0:2:2n-2)/n
+fourierpoints(::Type{T},n::Integer) where {T<:Number} = convert(T,π)*collect(0:2:2n-2)/n
 
 
 function Base.in(x,d::PeriodicDomain{T}) where T
@@ -149,13 +155,13 @@ function Base.in(x,d::PeriodicDomain{T}) where T
 
     l=arclength(d)
     if isinf(l)
-        abs(imag(y))<20eps(T) && -2eps(T)<real(y)<2π+2eps(T)
+        abs(imag(y))<20eps(T)
     else
-        abs(imag(y))/l<20eps(T) && -2l*eps(T)<real(y)<2π+2l*eps(T)
+        abs(imag(y))/l<20eps(T)
     end
 end
 
-Base.issubset(a::Domain,b::Domain)=a==b
+Base.issubset(a::Domain,b::Domain) = a==b
 
 
 Base.first(d::PeriodicDomain) = fromcanonical(d,0)
@@ -165,7 +171,7 @@ Base.last(d::PeriodicDomain) = fromcanonical(d,2π)
 struct AnyPeriodicDomain <: PeriodicDomain{UnsetNumber} end
 isambiguous(::AnyPeriodicDomain)=true
 
-convert(::Type{D},::AnyDomain) where {D<:PeriodicDomain}=AnyPeriodicDomain()
+convert(::Type{D},::AnyDomain) where {D<:PeriodicDomain} = AnyPeriodicDomain()
 
 ## conveninece routines
 

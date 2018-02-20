@@ -8,7 +8,7 @@ include("Space.jl")
 ##  Constructors
 
 
-mutable struct Fun{S,T,VT}
+mutable struct Fun{S,T,VT} <: Function
     space::S
     coefficients::VT
     function Fun{S,T,VT}(sp::S,coeff::VT) where {S,T,VT}
@@ -30,6 +30,9 @@ function Fun(sp::Space,v::AbstractVector{Any})
         error("Cannot construct Fun with coefficients $v and space $sp")
     end
 end
+
+
+hasnumargs(f::Fun,k) = k == 1 || domaindimension(f) == k  # all funs take a single argument as a Vec
 
 ##Coefficient routines
 #TODO: domainscompatible?
@@ -152,7 +155,7 @@ setspace(f::Fun,s::Space) = Fun(s,f.coefficients)
 
 domain(f::Fun) = domain(f.space)
 domain(v::AbstractMatrix{T}) where {T<:Fun} = map(domain,v)
-
+domaindimension(f::Fun) = domaindimension(f.space)
 
 setdomain(f::Fun,d::Domain) = Fun(setdomain(space(f),d),f.coefficients)
 
@@ -170,6 +173,7 @@ end
 
 space(f::Fun) = f.space
 spacescompatible(f::Fun,g::Fun) = spacescompatible(space(f),space(g))
+pointscompatible(f::Fun,g::Fun) = pointscompatible(space(f),space(g))
 canonicalspace(f::Fun) = canonicalspace(space(f))
 canonicaldomain(f::Fun) = canonicaldomain(space(f))
 
@@ -190,6 +194,8 @@ evaluate(f::Fun,x,y,z...) = evaluate(f.coefficients,f.space,Vec(x,y,z...))
 
 
 (f::Fun)(x...) = evaluate(f,x...)
+
+dynamic(f::Fun) = f # Fun's are already dynamic in that they compile by type
 
 for op in (:(Base.first),:(Base.last))
     @eval $op(f::Fun{S,T}) where {S,T} = f($op(domain(f)))
@@ -265,7 +271,7 @@ for op in (:+,:-)
                 n = max(ncoefficients(f),ncoefficients(g))
                 f2 = pad(f,n); g2 = pad(g,n)
 
-                Fun(isambiguous(domain(f))?g.space:f.space,($op)(f2.coefficients,g2.coefficients))
+                Fun(isambiguous(domain(f)) ? g.space : f.space,($op)(f2.coefficients,g2.coefficients))
             else
                 m=union(f.space,g.space)
                 if isa(m,NoSpace)
@@ -274,7 +280,7 @@ for op in (:+,:-)
                 $op(Fun(f,m),Fun(g,m)) # convert to same space
             end
         end
-        $op(f::Fun{S,T},c::T) where {S,T<:Number} = c==0?f:$op(f,Fun(c))
+        $op(f::Fun{S,T},c::T) where {S,T<:Number} = c==0 ? f : $op(f,Fun(c))
         $op(f::Fun,c::Number) = $op(f,Fun(c))
         $op(f::Fun,c::UniformScaling) = $op(f,c.λ)
         $op(c::UniformScaling,f::Fun) = $op(c.λ,f)
@@ -422,7 +428,7 @@ Base.cumsum(f::Fun,d)=cumsum(f,Domain(d))
 
 function differentiate(f::Fun,k::Integer)
     @assert k >= 0
-    (k==0)?f:differentiate(differentiate(f),k-1)
+    (k==0) ? f : differentiate(differentiate(f),k-1)
 end
 
 

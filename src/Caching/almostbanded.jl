@@ -34,7 +34,7 @@ function CachedOperator(io::InterlaceOperator{T,1};padding::Bool=false) where T
         end
     end
 
-    numoprows=isend?md-1:md
+    numoprows=isend ? md-1 : md
     n=nds+numoprows
 
     (l,u) = (max(lin+nds,n-1),max(0,uin+1-ind[1]))
@@ -97,8 +97,8 @@ function CachedOperator(io::InterlaceOperator{T,2};padding::Bool=false) where T
 
 
     # these are the bandwidths if we only had ∞-dimensional operators
-    d∞=find(isinf,[ddims...])
-    r∞=find(isinf,[rdims...])
+    d∞=find(isinf,collect(ddims))
+    r∞=find(isinf,collect(rdims))
     p=length(d∞)
 
     # we only support block size 1 for now
@@ -122,8 +122,8 @@ function CachedOperator(io::InterlaceOperator{T,2};padding::Bool=false) where T
     end
 
     # now we move everything by the finite rank
-    ncols=mapreduce(d->isfinite(d)?d:0,+,ddims)
-    nbcs=mapreduce(d->isfinite(d)?d:0,+,rdims)
+    ncols=mapreduce(d->isfinite(d) ? d : 0,+,ddims)
+    nbcs=mapreduce(d->isfinite(d) ? d : 0,+,rdims)
     shft=ncols-nbcs
     l∞,u∞=l∞+shft,u∞+shft
 
@@ -225,8 +225,8 @@ function resizedata!(co::CachedOperator{T,AlmostBandedMatrix{T},
     ddims=dimensions(di.iterator)
     rdims=dimensions(ri.iterator)
 
-    d∞=find(isinf,[ddims...])
-    r∞=find(isinf,[rdims...])
+    d∞=find(isinf,collect(ddims))
+    r∞=find(isinf,collect(rdims))
     p=length(d∞)
 
     (l,u)=bandwidths(co.data.bands)
@@ -234,7 +234,7 @@ function resizedata!(co::CachedOperator{T,AlmostBandedMatrix{T},
     co.data
     # r is number of extra rows, ncols is number of extra columns
     r=rank(co.data.fill)
-    ncols=mapreduce(d->isfinite(d)?d:0,+,ddims)
+    ncols=mapreduce(d->isfinite(d) ? d : 0,+,ddims)
 
 
     # fill rows

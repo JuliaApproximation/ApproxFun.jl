@@ -26,12 +26,8 @@ function LeftIntegral(S::Jacobi,k)
 end
 
 function LeftIntegral(S::Ultraspherical,k)
-    if order(S) == 1/2
-        LeftIntegralWrapper(SpaceOperator(LeftIntegral(Jacobi(S),k),S,S),0.5)
-    else
-        J = Jacobi(S)
-        LeftIntegralWrapper(LeftIntegral(J,k)*Conversion(S,J),0.5)
-    end
+    J = Jacobi(S)
+    LeftIntegralWrapper(LeftIntegral(J,k)*Conversion(S,J),0.5)
 end
 
 LeftIntegral(S::Chebyshev,k) = LeftIntegralWrapper(
@@ -97,15 +93,15 @@ jacobi_frac_getindex(c::Number,α,μ,k::Integer,j::Integer) =
 
 function LeftIntegral(S::JacobiWeight{Jacobi{DD,RR}},k) where {DD,RR}
     J=S.space
-    @assert S.α==0
-    @assert S.β==J.b
+    @assert S.α ≈ 0
+    @assert S.β ≈ J.b
     ConcreteLeftIntegral(S,k)
 end
 
 function RightIntegral(S::JacobiWeight{Jacobi{DD,RR}},k) where {DD,RR}
     J=S.space
-    @assert S.α==J.a
-    @assert S.β==0
+    @assert S.α ≈ J.a
+    @assert S.β ≈ 0
     ConcreteRightIntegral(S,k)
 end
 
@@ -204,7 +200,7 @@ for (DTYP,QTYP,DWRAP,QWRAP) in ((:LeftDerivative,:LeftIntegral,:LeftDerivativeWr
         function $DTYP(S::Space,k::Real)
             i=ceil(Int,k)
             r=i-k
-            $DWRAP(i<0?$QTYP(S,-k):Derivative(i)*$QTYP(S,r),k)
+            $DWRAP(i<0 ? $QTYP(S,-k) : Derivative(i)*$QTYP(S,r),k)
         end
         $QTYP(S::SumSpace,k) = $QWRAP(InterlaceOperator(Diagonal([map(s->$QTYP(s,k),S.spaces)...]),SumSpace),k)
     end

@@ -74,8 +74,8 @@ blocklengths(sp::SubSpace{DS,UnitRange{Block}}) where {DS} = blocklengths(sp.spa
 dimension(sp::SubSpace{DS,UnitRange{Block}}) where {DS} = sum(blocklengths(sp.space)[Int.(sp.indexes)])
 
 
-block(::,B::Block) = B
-block(::,B::SubBlock) = B.block
+block(_,B::Block) = B
+block(_,B::SubBlock) = B.block
 
 
 
@@ -173,6 +173,7 @@ function subspace_coefficients(v::AbstractVector,sp::Space,dropsp::SubSpace)
             end
             push!(ret,v[k])
         end
+        ret
     else
         coefficients(v,sp,canonicalspace(dropsp),dropsp)
     end
@@ -199,15 +200,20 @@ coefficients(v::AbstractVector,sp::SubSpace,dropsp::SubSpace) = subspace_coeffic
 
 
 ## transform
-function transform(sp::SubSpace,vals::AbstractVector)
-    ret=transform(sp.space,vals)
+function transform(sp::SubSpace, vals::AbstractVector)
+    ret = transform(sp.space,vals)
     coefficients(ret,sp.space,sp)
 end
 
 itransform(sp::SubSpace,cfs::AbstractVector) =
     itransform(sp.space,coefficients(cfs,sp,sp.space))
 
-points(sp::SubSpace,n) = points(sp.space,n)
+for Tran in (:plan_transform, :plan_transform!, :plan_itransform, :plan_itransform!)
+    @eval $Tran(sp::SubSpace) = $Tran(sp, dimension(sp))
+end
+
+points(sp::SubSpace, n) = points(sp.space, n)
+points(sp::SubSpace) = points(sp, dimension(sp))
 
 
 coefficients(v::AbstractVector,::SubSpace{DS,IT,Segment{Vec{2,TT}}},::TensorSpace{SV,DD}) where {DS,IT,TT,SV,DD<:BivariateDomain} =

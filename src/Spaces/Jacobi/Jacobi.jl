@@ -38,7 +38,7 @@ const WeightedJacobi{D,R} = JacobiWeight{Jacobi{D,R},D,R}
 WeightedJacobi(β,α,d::Domain) = JacobiWeight(β,α,Jacobi(β,α,d))
 WeightedJacobi(β,α) = JacobiWeight(β,α,Jacobi(β,α))
 
-spacescompatible(a::Jacobi,b::Jacobi) = a.a ≈ b.a && a.b ≈ b.b
+spacescompatible(a::Jacobi,b::Jacobi) = a.a ≈ b.a && a.b ≈ b.b && domainscompatible(a,b)
 
 function canonicalspace(S::Jacobi)
     if isapproxinteger(S.a+0.5) && isapproxinteger(S.b+0.5)
@@ -94,12 +94,13 @@ function jacobip(::Type{T},r::Range,α,β,x::Number) where T
             v[2]=(α-β+(2+α+β)*x)/2
 
             @inbounds for k=2:n-1
-                v[k+1]=((x-jacobirecα(T,α,β,k))*v[k] - jacobirecγ(T,α,β,k)*v[k-1])/jacobirecβ(T,α,β,k)
+                v[k+1]=(jacobirecA(T,α,β,k-1)*x+jacobirecB(T,α,β,k-1))*v[k] - jacobirecC(T,α,β,k-1)*v[k-1]
             end
         end
         v[r+1]
     end
 end
+
 
 jacobip(r::Range,α,β,x::Number) = jacobip(promote_type(typeof(α),typeof(β),typeof(x)),r,α,β,x)
 
@@ -122,7 +123,7 @@ for op in (:(Base.ones),:(Base.zeros))
     @eval ($op)(S::Jacobi)=Fun(S,($op)(1))
 end
 
-function identity_fun(J::Jacobi)
+function Fun(::typeof(identity), J::Jacobi)
     if domain(J)==Segment()
         Fun(J,[(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)])
     else

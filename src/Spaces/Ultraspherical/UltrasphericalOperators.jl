@@ -4,11 +4,11 @@
 
 
 recA(::Type{T},S::Ultraspherical,k) where {T} = (2*(k+order(S)))/(k+one(T))   # one(T) ensures we get correct type
-recB(::Type{T},::Ultraspherical,::) where {T} = zero(T)
+recB(::Type{T},::Ultraspherical,_) where {T} = zero(T)
 recC(::Type{T},S::Ultraspherical,k) where {T} = (k-one(T)+2order(S))/(k+one(T))   # one(T) ensures we get correct type
 
 # x p_k
-recα(::Type{T},::Ultraspherical,::) where {T} = zero(T)
+recα(::Type{T},::Ultraspherical,_) where {T} = zero(T)
 recβ(::Type{T},S::Ultraspherical,k) where {T} = k/(2*(k-one(T)+order(S)))   # one(T) ensures we get correct type
 recγ(::Type{T},S::Ultraspherical,k) where {T} = (k-2+2order(S))/(2*(k-one(T)+order(S)))   # one(T) ensures we get correct type
 

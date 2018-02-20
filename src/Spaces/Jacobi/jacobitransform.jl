@@ -25,7 +25,7 @@ end
 # used for ProductFun
 function transform(S::Jacobi,vals,plan::JacobiTransformPlan)
     x,w = plan.points, plan.weights
-    V=jacobip.((0:length(vals)-1),S.a,S.b,x.')
+    V=broadcast(jacobip, (0:length(vals)-1), S.a,S.b, x.')
     w2=w.*(1-x).^(S.a-plan.space.a).*(1+x).^(S.b-plan.space.b)   # need to weight if plan is different
     nrm=(V.^2)*w2
 

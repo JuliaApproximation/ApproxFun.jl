@@ -37,7 +37,6 @@ function Base.first(f::Fun{<:Chebyshev})
 end
 
 Base.last(f::Fun{<:Chebyshev}) = reduce(+,coefficients(f))
-identity_fun(d::Chebyshev) = identity_fun(domain(d))
 
 spacescompatible(a::Chebyshev,b::Chebyshev) = domainscompatible(a,b)
 hasfasttransform(::Chebyshev) = true
@@ -68,8 +67,10 @@ clenshaw(sp::Chebyshev,c::AbstractVector,x::AbstractArray) =
 
 function clenshaw(::Chebyshev,c::AbstractVector,x)
     N,T = length(c),promote_type(eltype(c),typeof(x))
-    if isempty(c)
+    if N == 0
         return zero(x)
+    elseif N == 1 # avoid issues with NaN x
+        return first(c)*one(x)
     end
 
     x = 2x
@@ -224,8 +225,6 @@ integrate(f::Fun{Chebyshev{D,R}}) where {D<:Segment,R} =
     Fun(f.space,fromcanonicalD(f,0)*ultraint!(ultraconversion(f.coefficients)))
 differentiate(f::Fun{Chebyshev{D,R}}) where {D<:Segment,R} =
     Fun(f.space,1/fromcanonicalD(f,0)*ultraiconversion(ultradiff(f.coefficients)))
-
-## identity_fun
 
 
 

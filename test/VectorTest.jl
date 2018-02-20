@@ -143,6 +143,11 @@ A = [x x; x x]
 @test norm(map(norm,Array(A)*Array(A)-Array([2x^2 2x^2; 2x^2 2x^2]))) < eps()
 
 
+@test [x;x] == A[:,1]
+@test [[x;2x] [3x;4x]] == [x 3x; 2x 4x]
+@test [x x] == A[1:1,:]
+
+
 A = fill(x,3,3)
 @test norm(map(norm,A^3-fill(9x^3,3,3))) <eps()
 @test norm((A^2*Fun(A)-fill(9x^3,3,3)).coefficients) < eps()
@@ -307,8 +312,11 @@ G=Fun(z->[-1 -3; -3 -1]/z +
 @test G[1,1](exp(0.1im)) == G(exp(0.1im))[1,1]
 
 
-F̃ = (G-I)[:,1]
-F=Fun((G-I)[:,1])
+F̃ = Array((G-I)[:,1])
+F = (G-I)[:,1]
+
+@test Fun(F) ≡ F
+
 
 @test F(exp(0.1im)) ≈ [-exp(-0.1im)+1+2exp(0.1im);-3exp(-0.1im)+1+1exp(0.1im)]
 @test Fun(F̃,space(F))(exp(0.1im)) ≈ [-exp(-0.1im)+1+2exp(0.1im);-3exp(-0.1im)+1+1exp(0.1im)]
@@ -399,3 +407,21 @@ A=[ Operator(diagm(fill(ldirichlet(d),n)));
          0.732284 -0.170879 -0.612945 -0.836059;
          -0.836059 0.265569 -0.170879 -0.148885;
          -0.612945 -0.836059 0.732284 -0.170879] atol=1E-3
+
+
+
+## Conversion
+
+a = ArraySpace(JacobiWeight(1/2,1/2, Chebyshev()), 2)
+b = ArraySpace(JacobiWeight(1/2,1/2, Ultraspherical(1)), 2)
+C = Conversion(a, b)
+
+f = Fun(a, rand(10))
+@test f(0.1) ≈ (C*f)(0.1)
+
+a = ArraySpace(JacobiWeight(1/2,1/2, Chebyshev()), 2,3)
+b = ArraySpace(JacobiWeight(1/2,1/2, Ultraspherical(1)), 2,3)
+C = Conversion(a, b)
+
+f = Fun(a, rand(10))
+@test f(0.1) ≈ (C*f)(0.1)

@@ -111,13 +111,13 @@ end
 
 
 
-hasfasttransform(::)=false
-hasfasttransform(f::Fun)=hasfasttransform(space(f))
-hasfasttransformtimes(f,g)=spacescompatible(f,g) && hasfasttransform(f) && hasfasttransform(g)
+hasfasttransform(_) = false
+hasfasttransform(f::Fun) = hasfasttransform(space(f))
+hasfasttransformtimes(f,g) = pointscompatible(f,g) && hasfasttransform(f) && hasfasttransform(g)
 
 
 # This should be overriden whenever the multiplication space is different
-function *(f::Fun{S,T},g::Fun{V,N}) where {T,N,S,V}
+function default_mult(f::Fun,g::Fun)
     # When the spaces differ we promote and multiply
     if domainscompatible(space(f),space(g))
         m,n = ncoefficients(f),ncoefficients(g)
@@ -135,10 +135,12 @@ function *(f::Fun{S,T},g::Fun{V,N}) where {T,N,S,V}
     end
 end
 
+*(f::Fun,g::Fun) = default_mult(f,g)
+
 coefficienttimes(f::Fun,g::Fun) = Multiplication(f,space(g))*g
 
 function transformtimes(f::Fun,g::Fun,n)
-    @assert spacescompatible(space(f),space(g))
+    @assert pointscompatible(space(f),space(g))
     isempty(f.coefficients) && return f
     isempty(g.coefficients) && return g
     f2,g2,sp = pad(f,n),pad(g,n),space(f)

@@ -5,7 +5,7 @@ export plan_chebyshevtransform, plan_ichebyshevtransform, chebyshevtransform, ic
 #TODO confirm that this can handle T=Complex{Float64} looks like this is a real-to-real transform
 
 
-struct ChebyshevTransformPlan{T,kind,inplace,P} <: FFTW.Plan{T}
+struct ChebyshevTransformPlan{T,kind,inplace,P} <: Plan{T}
     plan::P
 end
 
@@ -14,20 +14,20 @@ ChebyshevTransformPlan{k,inp}(plan) where {k,inp} =
 
 
 
-function plan_chebyshevtransform!(x::AbstractVector{T};kind::Integer=1) where T<:FFTW.fftwNumber
+function plan_chebyshevtransform!(x::AbstractVector{T}; kind::Integer=1) where T<:fftwNumber
     if kind == 1
-        plan = FFTW.plan_r2r!(x, FFTW.REDFT10)
+        plan = plan_r2r!(x, REDFT10)
         ChebyshevTransformPlan{1,true}(plan)
     elseif kind == 2
         if length(x) ≤ 1
             error("Cannot create a length $(length(x)) chebyshev transform")
         end
-        plan = FFTW.plan_r2r!(x, FFTW.REDFT00)
+        plan = plan_r2r!(x, REDFT00)
         ChebyshevTransformPlan{2,true}(plan)
     end
 end
 
-function plan_chebyshevtransform(x::AbstractVector{T};kind::Integer=1) where T<:FFTW.fftwNumber
+function plan_chebyshevtransform(x::AbstractVector{T};kind::Integer=1) where T<:fftwNumber
     plan = plan_chebyshevtransform!(x;kind=kind)
     ChebyshevTransformPlan{kind,false}(plan)
 end
@@ -59,7 +59,7 @@ function *(P::ChebyshevTransformPlan{T,2,true},x::AbstractVector{T}) where T
     end
 end
 
-chebyshevtransform!(x::AbstractVector{T};kind::Integer=1) where {T<:FFTW.fftwNumber} =
+chebyshevtransform!(x::AbstractVector{T};kind::Integer=1) where {T<:fftwNumber} =
     plan_chebyshevtransform!(x;kind=kind)*x
 
 chebyshevtransform(x;kind::Integer=1) = chebyshevtransform!(copy(x);kind=kind)
@@ -73,12 +73,12 @@ struct IChebyshevTransformPlan{T,kind,inplace,P}
     plan::P
 end
 
-function plan_ichebyshevtransform!(x::AbstractVector{T};kind::Integer=1) where T<:FFTW.fftwNumber
+function plan_ichebyshevtransform!(x::AbstractVector{T};kind::Integer=1) where T<:fftwNumber
     if kind == 1
         if length(x) == 0
             error("Cannot create a length 0 inverse chebyshev transform")
         end
-        plan = FFTW.plan_r2r!(x, FFTW.REDFT01)
+        plan = plan_r2r!(x, REDFT01)
         IChebyshevTransformPlan{T,1,true,typeof(plan)}(plan)
     elseif kind == 2
         if length(x) ≤ 1
@@ -89,18 +89,18 @@ function plan_ichebyshevtransform!(x::AbstractVector{T};kind::Integer=1) where T
     end
 end
 
-function plan_ichebyshevtransform(x::AbstractVector{T};kind::Integer=1) where T<:FFTW.fftwNumber
+function plan_ichebyshevtransform(x::AbstractVector{T};kind::Integer=1) where T<:fftwNumber
     plan = plan_ichebyshevtransform!(similar(Vector{T},indices(x));kind=kind)
     IChebyshevTransformPlan{T,kind,false,typeof(plan)}(plan)
 end
 
-function *(P::IChebyshevTransformPlan{T,1,true},x::AbstractVector{T}) where T<:FFTW.fftwNumber
+function *(P::IChebyshevTransformPlan{T,1,true},x::AbstractVector{T}) where T<:fftwNumber
     x[1] *=2
     x = scale!(T(0.5),P.plan*x)
     x
 end
 
-function *(P::IChebyshevTransformPlan{T,2,true},x::AbstractVector{T}) where T<:FFTW.fftwNumber
+function *(P::IChebyshevTransformPlan{T,2,true},x::AbstractVector{T}) where T<:fftwNumber
     n = length(x)
     if n == 1
         x
@@ -113,7 +113,7 @@ function *(P::IChebyshevTransformPlan{T,2,true},x::AbstractVector{T}) where T<:F
     end
 end
 
-ichebyshevtransform!(x::AbstractVector{T};kind::Integer=1) where {T<:FFTW.fftwNumber} =
+ichebyshevtransform!(x::AbstractVector{T};kind::Integer=1) where {T<:fftwNumber} =
     plan_ichebyshevtransform!(x;kind=kind)*x
 
 ichebyshevtransform(x;kind::Integer=1) = ichebyshevtransform!(copy(x);kind=kind)
@@ -130,12 +130,12 @@ end
 # Matrix inputs
 
 
-function chebyshevtransform!(X::AbstractMatrix{T};kind::Integer=1) where T<:FFTW.fftwNumber
+function chebyshevtransform!(X::AbstractMatrix{T};kind::Integer=1) where T<:fftwNumber
     if kind == 1
         if size(X) == (1,1)
             X
         else
-            X=FFTW.r2r!(X,FFTW.REDFT10)
+            X=r2r!(X,REDFT10)
             X[:,1]/=2;X[1,:]/=2;
             scale!(1/(size(X,1)*size(X,2)),X)
         end
@@ -143,7 +143,7 @@ function chebyshevtransform!(X::AbstractMatrix{T};kind::Integer=1) where T<:FFTW
         if size(X) == (1,1)
             X
         else
-            X=FFTW.r2r!(X,FFTW.REDFT00)
+            X=r2r!(X,REDFT00)
             scale!(1/((size(X,1)-1)*(size(X,2)-1)),X)
             X[:,1]/=2;X[:,end]/=2
             X[1,:]/=2;X[end,:]/=2
@@ -152,13 +152,13 @@ function chebyshevtransform!(X::AbstractMatrix{T};kind::Integer=1) where T<:FFTW
     end
 end
 
-function ichebyshevtransform!(X::AbstractMatrix{T};kind::Integer=1) where T<:FFTW.fftwNumber
+function ichebyshevtransform!(X::AbstractMatrix{T};kind::Integer=1) where T<:fftwNumber
     if kind == 1
         if size(X) == (1,1)
             X
         else
             X[1,:]*=2;X[:,1]*=2
-            X = FFTW.r2r(X,FFTW.REDFT01)
+            X = r2r(X,REDFT01)
             scale!(1/4,X)
         end
     elseif kind == 2

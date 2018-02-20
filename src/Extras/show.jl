@@ -165,7 +165,9 @@ end
 
 ## Fun
 
-function Base.show(io::IO,f::Fun)
+Base.show(io::IO, ::MIME"text/plain", f::Fun) = show(io, f)
+
+function Base.show(io::IO, f::Fun)
     print(io,"Fun(")
     show(io,f.space)
     print(io,",")

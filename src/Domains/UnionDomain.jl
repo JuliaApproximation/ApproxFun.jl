@@ -15,12 +15,19 @@ end
 UnionDomain(d::Tuple{}) = error("Cannot create UnionDomain with no components")
 UnionDomain(d::Tuple) =
     UnionDomain{typeof(d),mapreduce(eltype,promote_type,d)}(d)
-UnionDomain(d::AbstractVector) = UnionDomain(tuple(d...))
+UnionDomain(d::AbstractVector) = UnionDomain{typeof(d),eltype(eltype(d))}(d)
 
 
 UnionDomain(d1::UnionDomain,d2::UnionDomain) = UnionDomain((d1.domains...,d2.domains...))
+UnionDomain(d1::UnionDomain{<:AbstractVector},d2::UnionDomain{<:AbstractVector}) =
+    UnionDomain([d1.domains ; d2.domains])
+
 UnionDomain(d1::Domain,d2::UnionDomain) = UnionDomain((d1,d2.domains...))
 UnionDomain(d1::UnionDomain,d2::Domain) = UnionDomain((d1.domains...,d2))
+UnionDomain(d1::Domain,d2::UnionDomain{<:AbstractVector}) = UnionDomain([d1;d2.domains])
+UnionDomain(d1::UnionDomain{<:AbstractVector},d2::Domain) = UnionDomain([d1.domains;d2])
+
+
 
 UnionDomain(d1::Domain,d2::Domain) = UnionDomain((d1,d2))
 
@@ -77,7 +84,7 @@ Base.setdiff(a::Domain,b::UnionDomain) = mapreduce(d->setdiff(a,d),∩,b.domains
 Base.setdiff(a::UnionDomain,b) = mapreduce(d->setdiff(d,b),∪,a.domains)
 Base.setdiff(a,b::UnionDomain) = mapreduce(d->setdiff(a,d),∩,b.domains)
 
-Base.sort(d::UnionDomain;opts...) = UnionDomain(sort([d.domains...];opts...))
+Base.sort(d::UnionDomain;opts...) = UnionDomain(sort(collect(d.domains);opts...))
 
 
 for op in (:(Base.first),:(Base.last))
@@ -85,14 +92,20 @@ for op in (:(Base.first),:(Base.last))
 end
 
 #support tuple set
-components(d::UnionDomain) = [d.domains...]
+components(d::UnionDomain) = collect(d.domains)
 component(d::UnionDomain,k) = d.domains[k]
 ncomponents(d::UnionDomain) = length(d.domains)
+
+pieces(d::UnionDomain) = collect(d.domains)
+piece(d::UnionDomain,k) = d.domains[k]
+npieces(d::UnionDomain) = length(d.domains)
+
 
 arclength(d::UnionDomain) = mapreduce(arclength,+,d.domains)
 
 ==(d1::UnionDomain,d2::UnionDomain) =
-    ncomponents(d1)==ncomponents(d2) && all(Bool[component(d1,k) == component(d2,k) for k=1:ncomponents(d1)])
+    ncomponents(d1) == ncomponents(d2) &&
+        all(Bool[component(d1,k) == component(d2,k) for k=1:ncomponents(d1)])
 
 
 Base.in(x,d::UnionDomain) = any(a->x∈a,d.domains)
@@ -101,13 +114,18 @@ Base.reverse(d::UnionDomain) = UnionDomain(reverse(map(reverse,d.domains)))
 
 ∂(d::UnionDomain) = mapreduce(∂,union,d.domains)
 
-function points(d::UnionDomain,n)
-   k=div(n,length(d))
-    r=n-length(d)*k
-
-    [vcat([points(d.domains[j],k+1) for j=1:r]...);
-        vcat([points(d.domains[j],k) for j=r+1:length(d)]...)]
+# determine the number of points per piece
+function components_npoints(d, n::Int)
+    N = ncomponents(d)
+    k = n ÷ N
+    r = n - N*k
+    [fill(k+1, r); fill(k, N-r)]
 end
+
+
+pieces_npoints(d, n::Int) = components_npoints(d, n)
+
+points(d::UnionDomain,n) = vcat(points.(pieces(d), pieces_npoints(d,n))...)
 
 Base.rand(d::UnionDomain) = rand(component(d,rand(1:length(d))))
 checkpoints(d::UnionDomain) = mapreduce(checkpoints,union,d.domains)

@@ -86,6 +86,7 @@ fromcanonicalD(d::Segment,x) = (d.b- d.a) / 2
 
 arclength(d::Segment) = norm(d.b - d.a)
 Base.angle(d::Segment) = angle(d.b-d.a)
+Base.sign(d::Segment) = sign(d.b-d.a)
 complexlength(d::Segment) = d.b-d.a
 
 
