@@ -310,5 +310,5 @@ f = exp(x)*sqrt(x)*log(1-x)
 x=Fun(identity)
 f = exp(x)/sqrt(1-x^2)
 g = cumsum(f)
-@test g(-1) ≈ 0
+@test abs(g(-1)) ≤ 1E-15
 @test g'(0.1) ≈ f(0.1)
