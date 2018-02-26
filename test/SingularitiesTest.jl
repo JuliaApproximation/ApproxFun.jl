@@ -1,4 +1,4 @@
-using ApproxFun, Base.Test
+using ApproxFun, Compat.Test
 
 
 x=Fun(identity);
@@ -305,3 +305,10 @@ f=abs(x+1.2)
 x=Fun(0..1)
 f = exp(x)*sqrt(x)*log(1-x)
 @test f(0.1) ≈ exp(0.1)*sqrt(0.1)*log(1-0.1)
+
+# sampling Chebyshev
+x=Fun(identity)
+f = exp(x)/sqrt(1-x^2)
+g = cumsum(f)
+@test abs(g(-1)) ≤ 1E-15
+@test g'(0.1) ≈ f(0.1)

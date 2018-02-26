@@ -272,7 +272,8 @@ end
 
 for op in (:(Base.maximum),:(Base.minimum),:(Base.extrema),:(Base.maxabs),:(Base.minabs))
     @eval function $op(f::Fun{S,T}) where {S<:RealSpace,T<:Real}
-        pts = extremal_args(f)
+
+        pts = iszero(f') ? [first(domain(f))] : extremal_args(f)
 
         $op(f.(pts))
     end
@@ -328,8 +329,8 @@ for op in (:(Base.findmax),:(Base.findmin))
         function $op(f::Fun{S,T}) where {S<:RealSpace,T<:Real}
             # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
-            ext,ind = $op(f(pts))
-	        ext,pts[ind]
+            ext,ind = $op(f.(pts))
+	    ext,pts[ind]
         end
     end
 end

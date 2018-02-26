@@ -14,7 +14,7 @@ ChebyshevTransformPlan{k,inp}(plan) where {k,inp} =
 
 
 
-function plan_chebyshevtransform!(x::AbstractVector{T};kind::Integer=1) where T<:fftwNumber
+function plan_chebyshevtransform!(x::AbstractVector{T}; kind::Integer=1) where T<:fftwNumber
     if kind == 1
         plan = plan_r2r!(x, REDFT10)
         ChebyshevTransformPlan{1,true}(plan)

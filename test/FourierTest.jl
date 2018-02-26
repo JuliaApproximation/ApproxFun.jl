@@ -293,3 +293,28 @@ f̃2 = Fun(z -> exp(1/z), Circle(0.0,0.3,false))
 
 @test sum(f1) ≈ -sum(f̃1)
 @test sum(f̃1) ≈ sum(f̃2)
+
+
+
+## Test inplace transform
+
+S = Fourier()
+
+x = [1.,2,3,4,5]
+y = similar(x)
+z = similar(x)
+P = ApproxFun.plan_transform(S, x)
+P! = ApproxFun.plan_transform!(S, x)
+A_mul_B!(y, P, x)
+@test x ≈ [1.,2,3,4,5]
+A_mul_B!(z, P!, x)
+@test x ≈ [1.,2,3,4,5]
+@test y ≈ z ≈ P*x ≈ P!*copy(x)
+
+P = ApproxFun.plan_itransform(S, x)
+P! = ApproxFun.plan_itransform!(S, x)
+A_mul_B!(y, P, x)
+@test x ≈ [1.,2,3,4,5]
+A_mul_B!(z, P!, x)
+@test x ≈ [1.,2,3,4,5]
+@test y ≈ z ≈ P*x ≈ P!*copy(x)
