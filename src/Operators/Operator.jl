@@ -209,6 +209,7 @@ include("SubOperator.jl")
 
 getindex(B::Operator,k,j) = defaultgetindex(B,k,j)
 getindex(B::Operator,k) = defaultgetindex(B,k)
+getindex(B::Operator,k::Block{2}) = B[Block.(k.n)...]
 
 
 
