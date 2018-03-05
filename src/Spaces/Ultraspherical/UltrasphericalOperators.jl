@@ -91,7 +91,7 @@ linesum(f::Fun{Ultraspherical{LT,DD,RR}}) where {LT,DD<:Segment,RR} =
 
 
 rangespace(D::ConcreteIntegral{Ultraspherical{LT,DD,RR}}) where {LT,DD<:Segment,RR} =
-    order(domainspace(D)) == 1 ? Chebyshev() : Ultraspherical(order(domainspace(D))-D.order,domain(D))
+    order(domainspace(D)) == 1 ? Chebyshev(domain(D)) : Ultraspherical(order(domainspace(D))-D.order,domain(D))
 
 function getindex(Q::ConcreteIntegral{Ultraspherical{LT,DD,RR}},k::Integer,j::Integer) where {LT,DD<:Segment,RR}
     T=eltype(Q)
