@@ -109,7 +109,7 @@ function resizedata!(B::CachedOperator{T,BlockBandedMatrix{T}},::Colon,col::Inte
         b_size = BlockBandedSizes(Vector{Int}(rows), Vector{Int}(cols), l, u)
 
         resize!(B.data.data, bb_numentries(b_size))
-        B.data = _BlockBandedMatrix(B.data.data, b_size, l, u)
+        B.data = _BlockBandedMatrix(B.data.data, b_size)
 
         JR = datablocksize+1:J
         KR=blockcolstart(B.data,first(JR)):blockcolstop(B.data,last(JR))

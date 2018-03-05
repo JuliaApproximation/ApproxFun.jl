@@ -7,31 +7,15 @@ using ApproxFun, Compat.Test
 S = JacobiWeight(1.,1.,Jacobi(1.,1.))^2
 Δ = Laplacian(S)
 
-@time f = Fun((x,y)->sin(π*x)*sin(π*y),S)
-    5
+f = Fun((x,y)->sin(π*x)*sin(π*y),S)
 
-@time Δ[Block.(1:40), Block.(1:40)]
-
+QR=qrfact(Δ)
+    ApproxFun.resizedata!(QR,:,400)
 QR=qrfact(Δ)
     @time Δ[Block.(1:40), Block.(1:40)]
     @time ApproxFun.resizedata!(QR,:,400)
     @time \(QR,f; tolerance=1E-10)
-
-V = view(QR.R.data, Block.(1:30), Block.(1:30))
-A = Δ[Block.(1:30), Block.(1:30)]
-
-@time copy!(V, A)
-
-
-@profile ApproxFun.resizedata!(QR,:,400)
-Profile.clear()
-@profile \(QR,f;tolerance=1E-10)
-
-UpperTriangular(view(QR.R.data, 1:10, 1:10))
-
-Profile.print()
-
-println("Laplace Dirichlet: should be ~0.015, 0.001")
+println("Laplace Dirichlet: should be ~0.015, 0.015, 0.001")
 
 
 d=Interval()^2
@@ -43,6 +27,28 @@ f=Fun((x,y)->real(exp(x+im*y)),∂(d))
 QR=qrfact(A)
     ApproxFun.resizedata!(QR,:,150)
     \(QR,[f;0.];tolerance=1E-10)
+
+
+QR.R.data.block_sizes
+
+hasmatchingblocks(A)
+
+hasmatchingblocks(A)
+
+QR.ncols
+V = view(QR.R.data,1:153,1:153)
+
+
+b = randn(153,153)
+UpperTriangular(V) \ b
+
+kr = jr = 1:153
+N,  N_n = BlockBandedMatrices._find_block(BlockBandedMatrices.block_sizes(A), 1, kr[end])
+
+view(V,
+≈
+
+
 QR=qrfact(A)
     @time ApproxFun.resizedata!(QR,:,150)
     @time u=\(QR,[f;0.];tolerance=1E-10)
