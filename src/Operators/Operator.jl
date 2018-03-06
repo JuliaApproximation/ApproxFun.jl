@@ -498,6 +498,8 @@ macro wrappergetindex(Wrap)
 
             Base.convert(::Type{$TYP},P::ApproxFun.SubOperator{T,OP}) where {T,OP<:$Wrap} =
                 $TYP(view(parent(P).op,P.indexes[1],P.indexes[2]))
+            Base.convert(::Type{$TYP},P::ApproxFun.SubOperator{T,OP,NTuple{2,UnitRange{Int}}}) where {T,OP<:$Wrap} =
+                $TYP(view(parent(P).op,P.indexes[1],P.indexes[2]))
         end
     end
 
@@ -506,8 +508,7 @@ macro wrappergetindex(Wrap)
 
         # fast converts to banded matrices would be based on indices, not blocks
         function Base.convert(::Type{BandedMatrices.BandedMatrix},
-                              S::ApproxFun.SubOperator{T,OP,Tuple{BlockRange1,
-                                                                  BlockRange1}}) where {T,OP<:$Wrap}
+                              S::ApproxFun.SubOperator{T,OP,NTuple{2,ApproxFun.BlockRange1}}) where {T,OP<:$Wrap}
             A = parent(S)
             ds = domainspace(A)
             rs = rangespace(A)

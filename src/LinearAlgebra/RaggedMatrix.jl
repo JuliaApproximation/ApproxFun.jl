@@ -119,6 +119,15 @@ function RaggedMatrix{T}(Z::Zeros, colns::AbstractVector{Int}) where {T}
     end
     RaggedMatrix(zeros(T,sum(colns)), [1;1+cumsum(colns)], size(Z,1))
 end
+
+function RaggedMatrix{T}(A::AbstractMatrix, colns::AbstractVector{Int}) where T
+    ret = RaggedMatrix{T}(uninitialized, size(A,1), colns)
+    @inbounds for j = 1:length(colns), k = 1:colns[j]
+        ret[k,j] = A[k,j]
+    end
+    ret
+end
+
 RaggedMatrix(A::AbstractMatrix, colns::AbstractVector{Int}) = RaggedMatrix{eltype(A)}(A, colns)
 
 
@@ -149,11 +158,14 @@ function BLAS.axpy!(a, X::RaggedMatrix, Y::RaggedMatrix)
         BLAS.axpy!(a,X.data,Y.data)
     else
         for j = 1:size(X,2)
-            @assert colstop(X,j) ≤ colstop(Y,j)  # check zeros otherwise
-        end
-
-        for j = 1:size(X,2)
-            cs = colstop(X,j)
+            Xn = colstop(X,j)
+            Yn = colstop(Y,j)
+            if Xn > Yn  # check zeros otherwise
+                for k = Yn+1:Xn
+                    @assert iszero(X[k,j])
+                end
+            end
+            cs = min(Xn,Yn)
             BLAS.axpy!(a,view(X.data,X.cols[j]:X.cols[j]+cs-1),
                          view(Y.data,Y.cols[j]:Y.cols[j]+cs-1))
         end

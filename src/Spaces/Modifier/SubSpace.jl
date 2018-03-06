@@ -23,7 +23,7 @@ function |(f::Fun,kr::UnitCount)
     Fun(space(f)|kr,f.coefficients[kr[1]:end])
 end
 
-block(sp::SubSpace,k::Integer) = block(sp.space,reindex(sp,sp.indexes,to_index(k))[1])
+block(sp::SubSpace, k::Integer) = block(sp.space,reindex(sp,(sp.indexes,),(k,))[1])
 
 function blocklengths(sp::SubSpace{DS,UnitRange{Int}}) where DS
     N = first(sp.indexes)

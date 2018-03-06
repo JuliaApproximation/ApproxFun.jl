@@ -288,23 +288,44 @@ end
 # once the notion of bandedness of finite dimensional operators is made sense of
 
 
+_colstops(V) = Int[max(0,colstop(V,j)) for j=1:size(V,2)]
+
 for TYP in (:RaggedMatrix, :Matrix)
     def_TYP = parse("default_" * string(TYP))
-    @eval function convert(::Type{$TYP}, S::SubOperator)
-        if isinf(size(S,1)) || isinf(size(S,2))
-            error("Cannot convert $S to a $TYP")
+    @eval begin
+        function convert(::Type{$TYP}, V::SubOperator)
+            if isinf(size(V,1)) || isinf(size(V,2))
+                error("Cannot convert $V to a $TYP")
+            end
+            A = parent(V)
+            if isbanded(A)
+                $TYP(BandedMatrix(V))
+            else
+                $def_TYP(V)
+            end
         end
 
-        if isbanded(parent(S))
-            $TYP(BandedMatrix(S))
-        else
-            $def_TYP(S)
+        function convert(::Type{$TYP}, V::SubOperator{T,BB,NTuple{2,UnitRange{Int}}}) where {T,BB}
+            if isinf(size(V,1)) || isinf(size(V,2))
+                error("Cannot convert $V to a $TYP")
+            end
+            A = parent(V)
+            if isbanded(A)
+                $TYP(BandedMatrix(V))
+            elseif isbandedblockbanded(A)
+                N = block(rangespace(A), last(parentindexes(V)[1]))
+                M = block(domainspace(A), last(parentindexes(V)[2]))
+                B = A[Block(1):N, Block(1):M]
+                RaggedMatrix(view(B, parentindexes(V)...), _colstops(V))
+            else
+                $def_TYP(V)
+            end
         end
     end
 end
 
 # fast converts to banded matrices would be based on indices, not blocks
-function convert(::Type{BandedMatrix},S::SubOperator{T,B,Tuple{BlockRange1,BlockRange1}}) where {T,B}
+function convert(::Type{BandedMatrix}, S::SubOperator{T,B,Tuple{BlockRange1,BlockRange1}}) where {T,B}
     A = parent(S)
     ds = domainspace(A)
     rs = rangespace(A)

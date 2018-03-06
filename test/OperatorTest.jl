@@ -250,6 +250,9 @@ testblockbandedoperator(A)
 ## SubSpace test
 
 S=Chebyshev()
+SS = S|(2:5)
+@test ApproxFun.block(SS,3) == Block(4)
+
 for C in (eye(S)[3:end,:], eye(S)[3:end,1:end])
     @test ApproxFun.domaindimension(domainspace(C)) == 1
     @test union(S,domainspace(C)) == S
@@ -273,6 +276,7 @@ for C in (eye(S)[3:end,:], eye(S)[3:end,1:end])
 
     @test u ≈ f
 end
+
 
 
 ## Test Zero operator has correct bandinds

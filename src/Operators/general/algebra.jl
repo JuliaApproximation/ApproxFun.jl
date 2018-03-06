@@ -108,9 +108,11 @@ end
 
 for TYP in (:RaggedMatrix,:Matrix,:BandedMatrix,
             :BlockBandedMatrix,:BandedBlockBandedMatrix)
-    @eval convert(::Type{$TYP},P::SubOperator{T,PP,Tuple{BlockRange1,BlockRange1}}) where {T,PP<:PlusOperator} =
+    @eval convert(::Type{$TYP},P::SubOperator{T,PP,NTuple{2,BlockRange1}}) where {T,PP<:PlusOperator} =
         convert_axpy!($TYP,P)   # use axpy! to copy
     @eval convert(::Type{$TYP},P::SubOperator{T,PP}) where {T,PP<:PlusOperator} =
+        convert_axpy!($TYP,P)   # use axpy! to copy
+    @eval convert(::Type{$TYP},P::SubOperator{T,PP,NTuple{2,UnitRange{Int}}}) where {T,PP<:PlusOperator} =
         convert_axpy!($TYP,P)   # use axpy! to copy
 end
 
@@ -200,7 +202,10 @@ for TYP in (:RaggedMatrix,:Matrix,:BandedMatrix,
             :BlockBandedMatrix,:BandedBlockBandedMatrix)
     @eval begin
         convert(::Type{$TYP},
-                S::SubOperator{T,OP,Tuple{BlockRange1,BlockRange1}}) where {T,OP<:ConstantTimesOperator} =
+                S::SubOperator{T,OP,NTuple{2,BlockRange1}}) where {T,OP<:ConstantTimesOperator} =
+            convert_axpy!($TYP, S)
+        convert(::Type{$TYP},
+                S::SubOperator{T,OP,NTuple{2,UnitRange{Int}}}) where {T,OP<:ConstantTimesOperator} =
             convert_axpy!($TYP, S)
         convert(::Type{$TYP},
                 S::SubOperator{T,OP}) where {T,OP<:ConstantTimesOperator} =
@@ -376,14 +381,23 @@ end
 
 for TYP in (:Matrix, :BandedMatrix, :RaggedMatrix)
     @eval function convert(::Type{$TYP},
-                         S::SubOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,TO<:TimesOperator}
-        P = parent(S)
+                         V::SubOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,TO<:TimesOperator}
+        P = parent(V)
 
-        isbanded(P) && $TYP ≠ BandedMatrix && return $TYP(convert(BandedMatrix, S))
+        if isbanded(P)
+            if $TYP ≠ BandedMatrix
+                return $TYP(convert(BandedMatrix, V))
+            end
+        elseif isbandedblockbanded(P)
+            N = block(rangespace(P), last(parentindexes(V)[1]))
+            M = block(domainspace(P), last(parentindexes(V)[2]))
+            B = P[Block(1):N, Block(1):M]
+            return $TYP(view(B, parentindexes(V)...), _colstops(V))
+        end
 
-        kr,jr = parentindexes(S)
+        kr,jr = parentindexes(V)
 
-        (isempty(kr) || isempty(jr)) && return $TYP(Zeros, S)
+        (isempty(kr) || isempty(jr)) && return $TYP(Zeros, V)
 
         if maximum(kr) > size(P,1) || maximum(jr) > size(P,2) ||
             minimum(kr) < 1 || minimum(jr) < 1
@@ -391,8 +405,8 @@ for TYP in (:Matrix, :BandedMatrix, :RaggedMatrix)
         end
 
         @assert length(P.ops) ≥ 2
-        if size(S,1)==0
-            return $TYP(Zeros, S)
+        if size(V,1)==0
+            return $TYP(Zeros, V)
         end
 
 
@@ -418,7 +432,7 @@ for TYP in (:Matrix, :BandedMatrix, :RaggedMatrix)
         # Check if any range is invalid, in which case return zero
         for m=1:length(P.ops)
             if krl[m,1]>krl[m,2]
-                return $TYP(Zeros, S)
+                return $TYP(Zeros, V)
             end
         end
 
@@ -437,13 +451,13 @@ end
 
 for TYP in (:BlockBandedMatrix, :BandedBlockBandedMatrix)
     @eval function convert(::Type{$TYP},
-                         S::SubOperator{T,TO,Tuple{BlockRange1,BlockRange1}}) where {T,TO<:TimesOperator}
-        P = parent(S)
-        KR,JR = parentindexes(S)
+                         V::SubOperator{T,TO,Tuple{BlockRange1,BlockRange1}}) where {T,TO<:TimesOperator}
+        P = parent(V)
+        KR,JR = parentindexes(V)
 
         @assert length(P.ops) ≥ 2
-        if size(S,1)==0 || isempty(KR) || isempty(JR)
-            return $TYP(Zeros, S)
+        if size(V,1)==0 || isempty(KR) || isempty(JR)
+            return $TYP(Zeros, V)
         end
 
         if Int(maximum(KR)) > nblocks(P,1) || Int(maximum(JR)) > nblocks(P,2) ||
@@ -474,7 +488,7 @@ for TYP in (:BlockBandedMatrix, :BandedBlockBandedMatrix)
         # Check if any range is invalid, in which case return zero
         for m=1:length(P.ops)
             if KRl[m,1]>KRl[m,2]
-                return $TYP(Zeros, S)
+                return $TYP(Zeros, V)
             end
         end
 

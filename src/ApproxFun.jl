@@ -20,7 +20,7 @@ end
 import Base.LinAlg: BlasInt, BlasFloat, norm, A_ldiv_B!
 
 import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, !=, eltype, start, next, done,
-                >=, /, ^, \, ∪, transpose, size, to_indexes, reindex, tail, broadcast, broadcast!, copy!
+                >=, /, ^, \, ∪, transpose, size, to_indexes, reindex, tail, broadcast, broadcast!, copy!, to_index
 
 
 # we need to import all special functions to use Calculus.symbolic_derivatives_1arg
