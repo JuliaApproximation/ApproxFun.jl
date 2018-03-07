@@ -160,6 +160,7 @@ end
 
 ^(f::Fun{<:PolynomialSpace},k::Integer) = intpow(f,k)
 function ^(f::Fun{<:PolynomialSpace},k::Real)
+    T = eltype(f)
     # Need to think what to do if this is ever not the case..
     sp = space(f)
     fc = setdomain(f,Segment()) #Project to interval
@@ -174,10 +175,10 @@ function ^(f::Fun{<:PolynomialSpace},k::Real)
     elseif length(r) == 1
         @assert isapprox(abs(r[1]),1)
 
-        if isapprox(r[1],1.)
-            Fun(JacobiWeight(0.,k,sp),coefficients(divide_singularity(true,fc)^k,csp))
+        if isapprox(r[1], 1)
+            Fun(JacobiWeight(zero(T),k,sp),coefficients(divide_singularity(true,fc)^k,csp))
         else
-            Fun(JacobiWeight(k,0.,sp),coefficients(divide_singularity(false,fc)^k,csp))
+            Fun(JacobiWeight(k,zero(T),sp),coefficients(divide_singularity(false,fc)^k,csp))
         end
     else
         @assert isapprox(r[1],-1)
