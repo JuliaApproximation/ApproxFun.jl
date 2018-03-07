@@ -222,7 +222,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
      J_col = Int(COL)
      K_end = Int(blockcolstop(MO, J_col))  # last row block in last column
      J_end = Int(blockrowstop(MO, K_end))  # QR will affect up to this column
-     j_end = blockstop(rangespace(MO), J_end)  # we need to resize up this column
+     j_end = blockstop(domainspace(MO), J_end)  # we need to resize up this column
      sz = sizeof(T)
 
      if j_end ≥ MO.datasize[2]
