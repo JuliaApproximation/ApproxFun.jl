@@ -292,38 +292,46 @@ f = Fun(x->x*exp(x),Ultraspherical(1,0..1))
 sqrt(f(0.1)) ≈ sqrt(f)(0.1)
 
 
-## Fast Ultraspherical*Chebyshev
-f = Fun(exp,Ultraspherical(1))
-g = Fun(exp)
+@testset "Fast Ultraspherical*Chebyshev" begin
+    f = Fun(exp, Ultraspherical(1))
+    g = Fun(exp)
 
 
-@test ApproxFun.hasfasttransform(f)
-@test ApproxFun.pointscompatible(f,g)
-@test ApproxFun.hasfasttransformtimes(f,g)
-@test ApproxFun.transformtimes(f,g)(0.1) ≈ exp(0.2)
+    @test ApproxFun.hasfasttransform(f)
+    @test ApproxFun.pointscompatible(f,g)
+    @test ApproxFun.hasfasttransformtimes(f,g)
+    @test ApproxFun.transformtimes(f,g)(0.1) ≈ exp(0.2)
+end
 
-δ = Fun(ApproxFun.PointSpace([2.0]),[1.0])
-f = Fun(x->cos(50x)) + δ
-g = Fun(x->cos(50x),Ultraspherical(1)) + δ
-@test domain(f) == domain(g)
+@testset "PointSpace" begin
+    δ = Fun(ApproxFun.PointSpace([2.0]),[1.0])
+    f = Fun(x->cos(50x)) + δ
+    g = Fun(x->cos(50x),Ultraspherical(1)) + δ
+    @test domain(f) == domain(g)
 
-@test (f*g)(0.1) ≈ cos(50*0.1)^2
-@test (f*g)(2.0) ≈ 1
+    @test (f*g)(0.1) ≈ cos(50*0.1)^2
+    @test (f*g)(2.0) ≈ 1
 
-@test exp(f)(0.1) ≈ exp(cos(50*0.1))
-@test exp(f)(2.0) ≈ exp(1)
+    @test exp(f)(0.1) ≈ exp(cos(50*0.1))
+    @test exp(f)(2.0) ≈ exp(1)
 
-@test sign(f)(0.1) ≈ sign(cos(50*0.1))
-@test sign(f)(2.0) ≈ 1
-@test abs(f)(0.1) ≈ abs(cos(50*0.1))
-@test abs(f)(2.0) ≈ 1
-@test angle(f)(0.1) ≈ angle(cos(50*0.1))
-@test angle(f)(2.0) ≈ 0
+    @test sign(f)(0.1) ≈ sign(cos(50*0.1))
+    @test sign(f)(2.0) ≈ 1
+    @test abs(f)(0.1) ≈ abs(cos(50*0.1))
+    @test abs(f)(2.0) ≈ 1
+    @test angle(f)(0.1) ≈ angle(cos(50*0.1))
+    @test angle(f)(2.0) ≈ 0
+end
 
 
+@testset "ones for SumSpace" begin
+    S = Jacobi(0,1) ⊕ JacobiWeight(1/3,0,Jacobi(1/3,2/3)) ⊕ JacobiWeight(2/3,0,Jacobi(2/3,1/3))
+    o = ones(S)
+    @test o(0.5) == 1
+end
 
-## ones for SumSpace
 
-S = Jacobi(0,1) ⊕ JacobiWeight(1/3,0,Jacobi(1/3,2/3)) ⊕ JacobiWeight(2/3,0,Jacobi(2/3,1/3))
-o = ones(S)
-@test o(0.5) == 1
+@testset "blockbandinds for FiniteOperator of pointscompatibleace bug" begin
+    S = ApproxFun.PointSpace([1.0,2.0])
+    @test ApproxFun.blockbandinds(FiniteOperator([1 2; 3 4],S,S)) == (0,0)
+end

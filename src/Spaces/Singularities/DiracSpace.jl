@@ -21,7 +21,7 @@ for TYP in (:DiracSpace,:PointSpace)
 
         # all points are equal, so only one block
         blocklengths(C::$TYP) = [length(C.points)]
-        block(C::$TYP,k)::Block = 1
+        block(C::$TYP,k) = Block(1)
 
         domain(DS::$TYP) = UnionDomain(Point.(DS.points))
         setdomain(DS::$TYP,d::UnionDomain) = $TYP(map(d->d.x,components(d)))
