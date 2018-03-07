@@ -640,6 +640,34 @@ for OP in (:abs,:sign,:log,:angle)
     end
 end
 
+# Return the locations of jump discontinuities
+#
+# Non Piecewise Spaces are assumed to have no jumps.
+function jumplocations(f::Fun)
+    eltype(domain(f))[]
+end
+
+# Return the locations of jump discontinuities
+function jumplocations(f::Fun{S}) where{S<:PiecewiseSpace}
+    d = domain(f)
+
+    if ncomponents(d) < 2
+      return eltype(domain(f))[]
+    end
+
+    dtol=10eps(eltype(d))
+    ftol=10eps(eltype(f))
+
+    dc = components(d)
+    fc = components(f)
+
+    isjump = isapprox.(first.(dc[2:end]), last.(dc[1:end-1]), rtol=dtol) .&
+           .!isapprox.(first.(fc[2:end]), last.(fc[1:end-1]), rtol=ftol)
+
+    locs = last.(dc[1:end-1])
+    locs[isjump]
+end
+
 #
 # These formulæ, appearing in Eq. (2.5) of:
 #

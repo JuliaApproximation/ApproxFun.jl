@@ -317,6 +317,12 @@ g = Fun(x->cos(50x),Ultraspherical(1)) + δ
 @test angle(f)(0.1) ≈ angle(cos(50*0.1))
 @test angle(f)(2.0) ≈ 0
 
+x = Fun(Domain(0..1) ∪ Domain(2..3))
+@test length(jumplocations(sign(x))) == 0
+
+x = Fun(Chebyshev(-1..1))
+@test length(jumplocations(x)) == 0
+@test all(jumplocations(sign(x) + sign(x+0.2)) .≈ [-0.2, 0])
 
 
 ## ones for SumSpace
