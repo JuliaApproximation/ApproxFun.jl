@@ -108,7 +108,11 @@ function integrate(f::Fun{JacobiWeight{SS,DD,RR}}) where {SS,DD<:Segment,RR}
     elseif isapprox(S.α,-1) && S.β > 0 && isapproxinteger(S.β)
         # convert to zero case and integrate
         integrate(Fun(f,JacobiWeight(0.,S.α,S.space)))
-    elseif isapprox(S.β,0) || isapprox(S.α,0)
+    elseif S.β ≈ 0
+        D = Derivative(JacobiWeight(S.β, S.α+1, S.space))
+        D\f   # this happens to pick out a smooth solution
+    elseif S.α ≈ 0
+        D = Derivative(JacobiWeight(S.β+1, S.α, S.space))
         D\f   # this happens to pick out a smooth solution
     else
         s=sum(f)

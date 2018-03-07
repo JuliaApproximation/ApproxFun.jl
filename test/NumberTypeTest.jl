@@ -38,7 +38,3 @@ end
     # TODO: JacobiWeight should support general types to avoid warning here
     @test f(10.0) ≈ 10.0^(ν/2-1) * exp(-10.0/2) rtol=eps()
 end
-
-x = Fun(BigFloat(0)..BigFloat(20_000));
-ν = BigFloat(1568)
-@time f = x^(ν/2-1) * exp(-x/2) # 0.05s
