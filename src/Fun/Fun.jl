@@ -340,7 +340,7 @@ function intpow(f::Fun,k::Integer)
     end
 end
 
-^(f::Fun,k::Integer) = intpow(f,k)
+^(f::Fun, k::Integer) = intpow(f,k)
 
 Base.inv(f::Fun) = 1/f
 

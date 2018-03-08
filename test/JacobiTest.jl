@@ -1,5 +1,6 @@
 using ApproxFun, Base.Test, StaticArrays
-    import ApproxFun: testbandedbelowoperator, testbandedoperator, testspace, testtransforms, Vec
+    import ApproxFun: testbandedbelowoperator, testbandedoperator, testspace, testtransforms, Vec,
+                        maxspace, NoSpace, hasconversion
 
 
 @test ApproxFun.jacobip(0:5,2,0.5,0.1) ≈ [1.,0.975,-0.28031249999999996,-0.8636328125,-0.0022111816406250743,0.7397117980957031]
@@ -273,9 +274,24 @@ end
     ν = 2
     @time f = x^(ν/2-1) * exp(-x/2) # 0.05s
     @test cumsum(f)' ≈ f
+    @test cumsum(f)(1.0) ≈ 0.7869386805747332 # Mathematic
 
     x = Fun(0.0..Inf)
     ν = 2
     @time f = x^(ν/2-1) * exp(-x/2) # 0.05s
     @test cumsum(f)' ≈ f
+    @test cumsum(f)(1.0) ≈ 0.7869386805747332
+end
+
+
+@testset "Jacobi–Chebyshev conversion tests" begin
+    a,b = (Jacobi(-0.5,-0.5), Legendre())
+    @test maxspace(a,b) == NoSpace()
+    @test union(a,b) == a
+    @test !hasconversion(a,b)
+
+    a,b = (Chebyshev(), Legendre())
+    @test maxspace(a,b) == NoSpace()
+    @test union(a,b) == Jacobi(-0.5,-0.5)
+    @test !hasconversion(a,b)
 end

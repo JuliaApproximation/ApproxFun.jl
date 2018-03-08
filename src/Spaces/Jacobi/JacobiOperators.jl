@@ -461,26 +461,55 @@ function union_rule(A::Jacobi,B::Jacobi)
         NoSpace()
     end
 end
-maxspace_rule(A::Jacobi,B::Jacobi) = Jacobi(max(A.b,B.b),max(A.a,B.a),domain(A))
+
+function maxspace_rule(A::Jacobi,B::Jacobi)
+    if isapproxinteger(A.a-B.a) && isapproxinteger(A.b-B.b)
+        Jacobi(max(A.b,B.b),max(A.a,B.a),domain(A))
+    else
+        NoSpace()
+    end
+end
 
 
-for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace),(:union_rule,:(Base.union)))
+function union_rule(A::Chebyshev,B::Jacobi)
+    if isapprox(B.a,-0.5) && isapprox(B.b,-0.5)
+        # the spaces are the same
+        A
+    else
+        union(Jacobi(A),B)
+    end
+end
+function union_rule(A::Ultraspherical,B::Jacobi)
+    m=order(A)
+    if isapprox(B.a,m-0.5) && isapprox(B.b,m-0.5)
+        # the spaces are the same
+        A
+    else
+        union(Jacobi(A),B)
+    end
+end
+
+for (OPrule,OP) in ((:conversion_rule,:conversion_type), (:maxspace_rule,:maxspace))
     @eval begin
         function $OPrule(A::Chebyshev,B::Jacobi)
-            if isapprox(B.a,-0.5)&&isapprox(B.b,-0.5)
+            if B.a ≈ -0.5 && B.b ≈ -0.5
                 # the spaces are the same
                 A
-            else
+            elseif isapproxinteger(B.a+0.5) && isapproxinteger(B.b+0.5)
                 $OP(Jacobi(A),B)
+            else
+                NoSpace()
             end
         end
         function $OPrule(A::Ultraspherical,B::Jacobi)
-            m=order(A)
-            if isapprox(B.a,m-0.5)&&isapprox(B.b,m-0.5)
+            m = order(A)
+            if B.a ≈ m-0.5 && B.b ≈ m-0.5
                 # the spaces are the same
                 A
-            else
+            elseif isapproxinteger(B.a+0.5) && isapproxinteger(B.b+0.5)
                 $OP(Jacobi(A),B)
+            else
+                NoSpace()
             end
         end
     end

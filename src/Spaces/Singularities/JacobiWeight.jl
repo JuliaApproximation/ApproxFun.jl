@@ -143,7 +143,7 @@ function /(c::Number,f::Fun{JW}) where JW<:JacobiWeight
     Fun(JacobiWeight(-f.space.β,-f.space.α,space(g)),g.coefficients)
 end
 
-function ^(f::Fun{JW},k::Float64) where JW<:JacobiWeight
+function ^(f::Fun{JW}, k::AbstractFloat) where JW<:JacobiWeight
     S=space(f)
     g=Fun(S.space,coefficients(f))^k
     Fun(JacobiWeight(k*S.β,k*S.α,space(g)),coefficients(g))

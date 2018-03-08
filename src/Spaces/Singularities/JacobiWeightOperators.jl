@@ -121,11 +121,11 @@ function integrate(f::Fun{JacobiWeight{SS,DD,RR}}) where {SS,DD<:Segment,RR}
             \(D,f; tolerance=1E-14)  # if the sum is 0 we don't get step-like behaviour
         else
             # we normalized so it sums to zero, and so backslash works
-            w=Fun(x->exp(-40x^2),81)
-            w1=Fun(S,coefficients(w))
-            w2=Fun(x->w1(x),domain(w1))
-            c=s/sum(w1)
-            v=f-w1*c
+            w = Fun(x->exp(-40x^2),81)
+            w1 = Fun(S,coefficients(w))
+            w2 = Fun(x->w1(x),domain(w1))
+            c  = s/sum(w1)
+            v  = f-w1*c
             (c*integrate(w2)) ⊕ integrate(v)
         end
     end
@@ -338,10 +338,10 @@ defaultConversion(A::JacobiWeight{JS,D},B::Space{D,R}) where {JS,D<:IntervalDoma
 
 function  Base.getindex(op::ConcreteEvaluation{<:JacobiWeight,typeof(first)},kr::Range)
     S=op.space
-    @assert op.order<=1
+    @assert op.order ≤ 1
     d=domain(op)
 
-    @assert S.β>=0
+    @assert S.β ≥ 0
     if S.β==0
         if op.order==0
             2^S.α*getindex(Evaluation(S.space,op.x),kr)

@@ -159,7 +159,7 @@ function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:Segment,RR}
 end
 
 ^(f::Fun{<:PolynomialSpace},k::Integer) = intpow(f,k)
-function ^(f::Fun{<:PolynomialSpace},k::Real)
+function ^(f::Fun{<:PolynomialSpace}, k::Real)
     T = eltype(f)
     # Need to think what to do if this is ever not the case..
     sp = space(f)
