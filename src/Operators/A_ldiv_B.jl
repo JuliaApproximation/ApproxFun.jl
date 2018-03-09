@@ -44,6 +44,7 @@ end
 
 A_ldiv_B_coefficients(A::Operator,b;kwds...) = A_ldiv_B_coefficients(qrfact(A),b;kwds...)
 
+\(A::Operator,B::Operator) = TimesOperator(inv(A),B)
 
 #TODO: Remove these when interlace is automatic
 for TYP in (:Vector,:Matrix)

@@ -1,5 +1,6 @@
 using ApproxFun, Base.Test, StaticArrays
-    import ApproxFun: testbandedbelowoperator, testbandedoperator, testspace, testtransforms, Vec
+    import ApproxFun: testbandedbelowoperator, testbandedoperator, testspace, testtransforms, Vec,
+                        maxspace, NoSpace, hasconversion
 
 
 @test ApproxFun.jacobip(0:5,2,0.5,0.1) ≈ [1.,0.975,-0.28031249999999996,-0.8636328125,-0.0022111816406250743,0.7397117980957031]
@@ -255,13 +256,42 @@ C=Conversion(Legendre(),Jacobi(1,0))
 testbandedoperator(C)
 
 
-## Test bug in addition
+@testset "Addition of piecewise Legendre bug" begin
+    f = Fun(exp,Legendre())
+    f1 = Fun(exp,Legendre(-1..0))
+    f2 = Fun(exp,Legendre(0..1))
+    fp = f1+f2
+    @test space(fp) isa PiecewiseSpace
+    @test fp(0.1) ≈ exp(0.1)
+    @test fp(0.) ≈ exp(0.)
+    @test fp(-0.1) ≈ exp(-0.1)
+end
 
-f = Fun(exp,Legendre())
-f1 = Fun(exp,Legendre(-1..0))
-f2 = Fun(exp,Legendre(0..1))
-fp = f1+f2
-@test space(fp) isa PiecewiseSpace
-@test fp(0.1) ≈ exp(0.1)
-@test fp(0.) ≈ exp(0.)
-@test fp(-0.1) ≈ exp(-0.1)
+
+
+@testset "JacobiWeight cumsum bug Issue #557" begin
+    x = Fun(0.0..1.0)
+    ν = 2
+    @time f = x^(ν/2-1) * exp(-x/2) # 0.05s
+    @test cumsum(f)' ≈ f
+    @test cumsum(f)(1.0) ≈ 0.7869386805747332 # Mathematic
+
+    x = Fun(0.0..Inf)
+    ν = 2
+    @time f = x^(ν/2-1) * exp(-x/2) # 0.05s
+    @test cumsum(f)' ≈ f
+    @test cumsum(f)(1.0) ≈ 0.7869386805747332
+end
+
+
+@testset "Jacobi–Chebyshev conversion tests" begin
+    a,b = (Jacobi(-0.5,-0.5), Legendre())
+    @test maxspace(a,b) == NoSpace()
+    @test union(a,b) == a
+    @test !hasconversion(a,b)
+
+    a,b = (Chebyshev(), Legendre())
+    @test maxspace(a,b) == NoSpace()
+    @test union(a,b) == Jacobi(-0.5,-0.5)
+    @test !hasconversion(a,b)
+end

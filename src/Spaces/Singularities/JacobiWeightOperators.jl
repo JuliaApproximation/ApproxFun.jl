@@ -108,7 +108,11 @@ function integrate(f::Fun{JacobiWeight{SS,DD,RR}}) where {SS,DD<:Segment,RR}
     elseif isapprox(S.α,-1) && S.β > 0 && isapproxinteger(S.β)
         # convert to zero case and integrate
         integrate(Fun(f,JacobiWeight(0.,S.α,S.space)))
-    elseif isapprox(S.β,0) || isapprox(S.α,0)
+    elseif S.β ≈ 0
+        D = Derivative(JacobiWeight(S.β, S.α+1, S.space))
+        D\f   # this happens to pick out a smooth solution
+    elseif S.α ≈ 0
+        D = Derivative(JacobiWeight(S.β+1, S.α, S.space))
         D\f   # this happens to pick out a smooth solution
     else
         s=sum(f)
@@ -117,11 +121,11 @@ function integrate(f::Fun{JacobiWeight{SS,DD,RR}}) where {SS,DD<:Segment,RR}
             \(D,f; tolerance=1E-14)  # if the sum is 0 we don't get step-like behaviour
         else
             # we normalized so it sums to zero, and so backslash works
-            w=Fun(x->exp(-40x^2),81)
-            w1=Fun(S,coefficients(w))
-            w2=Fun(x->w1(x),domain(w1))
-            c=s/sum(w1)
-            v=f-w1*c
+            w = Fun(x->exp(-40x^2),81)
+            w1 = Fun(S,coefficients(w))
+            w2 = Fun(x->w1(x),domain(w1))
+            c  = s/sum(w1)
+            v  = f-w1*c
             (c*integrate(w2)) ⊕ integrate(v)
         end
     end
@@ -334,10 +338,10 @@ defaultConversion(A::JacobiWeight{JS,D},B::Space{D,R}) where {JS,D<:IntervalDoma
 
 function  Base.getindex(op::ConcreteEvaluation{<:JacobiWeight,typeof(first)},kr::Range)
     S=op.space
-    @assert op.order<=1
+    @assert op.order ≤ 1
     d=domain(op)
 
-    @assert S.β>=0
+    @assert S.β ≥ 0
     if S.β==0
         if op.order==0
             2^S.α*getindex(Evaluation(S.space,op.x),kr)
