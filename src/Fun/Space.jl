@@ -324,9 +324,9 @@ function defaultcoefficients(f,a,b)
 
     if spacescompatible(a,b)
         f
-    elseif spacescompatible(ct,a)
+    elseif hasconversion(a,b)
         A_mul_B_coefficients(Conversion(a,b),f)
-    elseif spacescompatible(ct,b)
+    elseif hasconversion(b,a)
         A_ldiv_B_coefficients(Conversion(b,a),f)
     else
         csp=canonicalspace(a)

@@ -78,7 +78,7 @@ const Vec{d,T} = SVector{d,T}
 
 export pad!, pad, chop!, sample,
        complexroots, roots, svfft, isvfft,
-       reverseorientation
+       reverseorientation, jumplocations
 
 ##Testing
 export bisectioninv

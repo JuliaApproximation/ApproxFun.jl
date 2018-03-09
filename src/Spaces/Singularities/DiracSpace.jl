@@ -1,4 +1,4 @@
-export DiracDelta
+export DiracDelta, KroneckerDelta
 
 for TYP in (:DiracSpace,:PointSpace)
     @eval begin
@@ -91,11 +91,11 @@ end
 Base.sum(f::Fun{DS}) where DS<:DiracSpace =
     sum(f.coefficients[1:dimension(space(f))])
 
-
-
 DiracDelta(x::Number)=Fun(DiracSpace(x),[1.])
 DiracDelta()=DiracDelta(0.)
 
+KroneckerDelta(x::Number) = Fun(PointSpace(x),[1.])
+KroneckerDelta() = KroneckerDelta(0.)
 
 function Base.cumsum(f::Fun{S},d::Segment{T}) where {S<:DiracSpace,T<:Real}
     pts=space(f).points

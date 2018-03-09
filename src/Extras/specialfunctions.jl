@@ -159,7 +159,8 @@ function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:Segment,RR}
 end
 
 ^(f::Fun{<:PolynomialSpace},k::Integer) = intpow(f,k)
-function ^(f::Fun{<:PolynomialSpace},k::Real)
+function ^(f::Fun{<:PolynomialSpace}, k::Real)
+    T = eltype(f)
     # Need to think what to do if this is ever not the case..
     sp = space(f)
     fc = setdomain(f,Segment()) #Project to interval
@@ -174,10 +175,10 @@ function ^(f::Fun{<:PolynomialSpace},k::Real)
     elseif length(r) == 1
         @assert isapprox(abs(r[1]),1)
 
-        if isapprox(r[1],1.)
-            Fun(JacobiWeight(0.,k,sp),coefficients(divide_singularity(true,fc)^k,csp))
+        if isapprox(r[1], 1)
+            Fun(JacobiWeight(zero(T),k,sp),coefficients(divide_singularity(true,fc)^k,csp))
         else
-            Fun(JacobiWeight(k,0.,sp),coefficients(divide_singularity(false,fc)^k,csp))
+            Fun(JacobiWeight(k,zero(T),sp),coefficients(divide_singularity(false,fc)^k,csp))
         end
     else
         @assert isapprox(r[1],-1)
@@ -637,6 +638,34 @@ for OP in (:abs,:sign,:log,:angle)
             Fun(map($OP,components(f)),PiecewiseSpace)
         $OP(f::Fun{PiecewiseSpace{S,DD,RR}}) where {S,DD<:UnivariateDomain,RR} = Fun(map($OP,components(f)),PiecewiseSpace)
     end
+end
+
+# Return the locations of jump discontinuities
+#
+# Non Piecewise Spaces are assumed to have no jumps.
+function jumplocations(f::Fun)
+    eltype(domain(f))[]
+end
+
+# Return the locations of jump discontinuities
+function jumplocations(f::Fun{S}) where{S<:PiecewiseSpace}
+    d = domain(f)
+
+    if ncomponents(d) < 2
+      return eltype(domain(f))[]
+    end
+
+    dtol=10eps(eltype(d))
+    ftol=10eps(eltype(f))
+
+    dc = components(d)
+    fc = components(f)
+
+    isjump = isapprox.(first.(dc[2:end]), last.(dc[1:end-1]), rtol=dtol) .&
+           .!isapprox.(first.(fc[2:end]), last.(fc[1:end-1]), rtol=ftol)
+
+    locs = last.(dc[1:end-1])
+    locs[isjump]
 end
 
 #

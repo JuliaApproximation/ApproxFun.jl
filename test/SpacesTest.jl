@@ -323,6 +323,12 @@ end
     @test angle(f)(2.0) ≈ 0
 end
 
+x = Fun(Domain(0..1) ∪ Domain(2..3))
+@test length(jumplocations(sign(x))) == 0
+
+x = Fun(Chebyshev(-1..1))
+@test length(jumplocations(x)) == 0
+@test all(jumplocations(sign(x) + sign(x+0.2)) .≈ [-0.2, 0])
 
 @testset "ones for SumSpace" begin
     S = Jacobi(0,1) ⊕ JacobiWeight(1/3,0,Jacobi(1/3,2/3)) ⊕ JacobiWeight(2/3,0,Jacobi(2/3,1/3))
