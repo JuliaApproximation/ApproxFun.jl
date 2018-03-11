@@ -42,7 +42,7 @@ d=domain(x)
 bandinds(Σ)
 
 @test domainspace(Σ) ==
-    JacobiWeight{Chebyshev{Segment{Float64}},Segment{Float64},Float64}(-0.5,-0.5,Chebyshev())
+    JacobiWeight{Chebyshev{Segment{Float64}},Segment{Float64},Float64,Float64}(-0.5,-0.5,Chebyshev())
 
 L=I+Σ[exp(x)*w]
 bandinds(L)
@@ -66,7 +66,7 @@ B=ldirichlet(d)
 Σ=DefiniteIntegral(.5,.5,d)
 
 @test domainspace(Σ) ==
-    JacobiWeight{Ultraspherical{Int,Segment{Float64}},Segment{Float64},Float64}(.5,.5,Ultraspherical(1,d))
+    JacobiWeight{Ultraspherical{Int,Segment{Float64}},Segment{Float64},Float64,Float64}(.5,.5,Ultraspherical(1,d))
 
 K=LowRankFun((x,y)->sin(y-x)*w(y),Ultraspherical(1,d),domainspace(Σ))
 

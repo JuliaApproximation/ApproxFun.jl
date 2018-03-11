@@ -206,7 +206,7 @@ sample(f::MultivariateFun)=sample(f,1)[1,:]
 ## Special spaces
 
 # Rays may be schwartz at right endpoint so we project
-function sample(f::Fun{JacobiWeight{SS,DD,RR},Float64},n::Integer) where {SS,DD<:Ray,RR}
+function sample(f::Fun{JacobiWeight{SS,DD,RR,TT},Float64}, n::Integer) where {SS,DD<:Ray,RR,TT}
     if space(f).α == 0
         samplecdf(normalizedcumsum(f),n)
     else

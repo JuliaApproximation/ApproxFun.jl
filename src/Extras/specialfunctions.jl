@@ -161,9 +161,10 @@ end
 ^(f::Fun{<:PolynomialSpace},k::Integer) = intpow(f,k)
 function ^(f::Fun{<:PolynomialSpace}, k::Real)
     T = eltype(f)
+    RT = real(T)
     # Need to think what to do if this is ever not the case..
     sp = space(f)
-    fc = setdomain(f,Segment()) #Project to interval
+    fc = setdomain(f,Segment{prectype(sp)}()) #Project to interval
     csp = space(fc)
 
     r = sort(roots(fc))
@@ -176,9 +177,9 @@ function ^(f::Fun{<:PolynomialSpace}, k::Real)
         @assert isapprox(abs(r[1]),1)
 
         if isapprox(r[1], 1)
-            Fun(JacobiWeight(zero(T),k,sp),coefficients(divide_singularity(true,fc)^k,csp))
+            Fun(JacobiWeight(zero(RT),k,sp),coefficients(divide_singularity(true,fc)^k,csp))
         else
-            Fun(JacobiWeight(k,zero(T),sp),coefficients(divide_singularity(false,fc)^k,csp))
+            Fun(JacobiWeight(k,zero(RT),sp),coefficients(divide_singularity(false,fc)^k,csp))
         end
     else
         @assert isapprox(r[1],-1)
