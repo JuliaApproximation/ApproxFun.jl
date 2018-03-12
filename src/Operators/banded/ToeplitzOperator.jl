@@ -52,7 +52,7 @@ function toeplitz_getindex(cfs::AbstractVector{T},k::Integer,j::Integer) where T
 end
 
 function convert(::Type{BandedMatrix},S::SubOperator{T,ToeplitzOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}}) where T
-    ret=bzeros(S)
+    ret = BandedMatrix(Zeros, S)
 
     kr,jr=parentindexes(S)
 
@@ -116,7 +116,7 @@ getindex(T::HankelOperator,k::Integer,j::Integer) =
 
 
 function convert(::Type{BandedMatrix},S::SubOperator{T,HankelOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}}) where T
-    ret=bzeros(S)
+    ret=BandedMatrix(Zeros, S)
 
     kr,jr=parentindexes(S)
     cfs=parent(S).coefficients

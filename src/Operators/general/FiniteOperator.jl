@@ -60,5 +60,5 @@ end
 
 
 bandinds(T::FiniteOperator) = bandinds(T.matrix)
-blockbandinds(T::FiniteOperator) = 1-block(rangespace(T),size(T.matrix,1)).K,block(domainspace(T),size(T.matrix,2)).K-1
+blockbandinds(T::FiniteOperator) = 1-block(rangespace(T),size(T.matrix,1)).n[1],block(domainspace(T),size(T.matrix,2)).n[1]-1
 Base.maximum(K::FiniteOperator) = maximum(K.matrix)

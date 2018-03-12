@@ -1,12 +1,6 @@
 #### Caching
 
 
-# back substitution
-trtrs!(::Type{Val{'U'}},co::CachedOperator,u::Array) =
-                trtrs!(Val{'U'},resizedata!(co,size(u,1),size(u,1)).data,u)
-
-
-
 
 ## Ac_mul_B! for QROperatorQ
 

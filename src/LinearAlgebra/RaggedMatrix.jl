@@ -10,7 +10,7 @@ mutable struct RaggedMatrix{T} <: AbstractMatrix{T}
     data::Vector{T} # a Vector of non-zero entries
     cols::Vector{Int} # a Vector specifying the first index of each column
     m::Int #Number of rows
-    function RaggedMatrix{T}(data::Vector{T},cols::Vector{Int},m::Int) where T
+    function RaggedMatrix{T}(data::Vector{T}, cols::Vector{Int}, m::Int) where T
         # make sure the cols are monitonically increasing
         @assert 1==cols[1]
         for j=1:length(cols)-1
@@ -28,10 +28,8 @@ end
 RaggedMatrix(dat::Vector,cols::Vector{Int},m::Int) =
     RaggedMatrix{eltype(dat)}(dat,cols,m)
 
-RaggedMatrix(::Type{T},m::Int,colns::AbstractVector{Int}) where {T} =
+RaggedMatrix{T}(::Uninitialized, m::Int, colns::AbstractVector{Int}) where {T} =
     RaggedMatrix(Vector{T}(sum(colns)),Int[1;1+cumsum(colns)],m)
-
-RaggedMatrix(m::Int,collengths::AbstractVector{Int}) = RaggedMatrix(Float64,m,collengths)
 
 
 Base.size(A::RaggedMatrix) = (A.m,length(A.cols)-1)
@@ -84,9 +82,9 @@ convert(::Type{Matrix},A::RaggedMatrix) = Matrix{eltype(A)}(A)
 
 Base.full(A::RaggedMatrix) = convert(Matrix,A)
 
-function convert(::Type{RaggedMatrix{T}},B::BandedMatrix) where T
+function convert(::Type{RaggedMatrix{T}}, B::BandedMatrix) where T
     l = bandwidth(B,1)
-    ret = rzeros(T,size(B,1),Int[colstop(B,j) for j=1:size(B,2)])
+    ret = RaggedMatrix(Zeros{T}(size(B)), Int[colstop(B,j) for j=1:size(B,2)])
     for j=1:size(B,2),k=colrange(B,j)
         ret[k,j] = B[k,j]
     end
@@ -95,25 +93,42 @@ end
 
 convert(::Type{RaggedMatrix},B::BandedMatrix) = RaggedMatrix{eltype(B)}(B)
 
-function convert(::Type{RaggedMatrix{T}},B::AbstractMatrix) where T
-    ret = rzeros(T,size(B,1),Int[colstop(B,j) for j=1:size(B,2)])
-    for j=1:size(B,2),k=colrange(B,j)
+function convert(::Type{RaggedMatrix{T}}, B::AbstractMatrix) where T
+    ret = RaggedMatrix(Zeros{T}(size(B)), Int[colstop(B,j) for j=1:size(B,2)])
+    for j=1:size(B,2), k=colrange(B,j)
         ret[k,j] = B[k,j]
     end
     ret
 end
 
-convert(::Type{RaggedMatrix},B::AbstractMatrix) = RaggedMatrix{eltype(B)}(B)
+convert(::Type{RaggedMatrix}, B::AbstractMatrix) = RaggedMatrix{eltype(B)}(B)
 
 Base.similar(B::RaggedMatrix,::Type{T}) where {T} = RaggedMatrix(Vector{T}(length(B.data)),copy(B.cols),B.m)
 
-for (op,bop) in ((:(Base.rand),:rrand),(:(Base.zeros),:rzeros),(:(Base.ones),:rones))
+for (op,bop) in ((:(Base.rand),:rrand),)
     @eval begin
         $bop(::Type{T},m::Int,colns::AbstractVector{Int}) where {T} =
             RaggedMatrix($op(T,sum(colns)),[1;1+cumsum(colns)],m)
         $bop(m::Int,colns::AbstractVector{Int}) = $bop(Float64,m,colns)
     end
 end
+
+function RaggedMatrix{T}(Z::Zeros, colns::AbstractVector{Int}) where {T}
+    if size(Z,2) ≠ length(colns)
+        throw(DimensionMismatch())
+    end
+    RaggedMatrix(zeros(T,sum(colns)), [1;1+cumsum(colns)], size(Z,1))
+end
+
+function RaggedMatrix{T}(A::AbstractMatrix, colns::AbstractVector{Int}) where T
+    ret = RaggedMatrix{T}(uninitialized, size(A,1), colns)
+    @inbounds for j = 1:length(colns), k = 1:colns[j]
+        ret[k,j] = A[k,j]
+    end
+    ret
+end
+
+RaggedMatrix(A::AbstractMatrix, colns::AbstractVector{Int}) = RaggedMatrix{eltype(A)}(A, colns)
 
 
 ## BLAS
@@ -134,7 +149,7 @@ function Base.A_mul_B!(y::Vector,A::RaggedMatrix,b::Vector)
 end
 
 
-function BLAS.axpy!(a,X::RaggedMatrix,Y::RaggedMatrix)
+function BLAS.axpy!(a, X::RaggedMatrix, Y::RaggedMatrix)
     if size(X) ≠ size(Y)
         throw(BoundsError())
     end
@@ -143,11 +158,14 @@ function BLAS.axpy!(a,X::RaggedMatrix,Y::RaggedMatrix)
         BLAS.axpy!(a,X.data,Y.data)
     else
         for j = 1:size(X,2)
-            @assert colstop(X,j) ≤ colstop(Y,j)  # check zeros otherwise
-        end
-
-        for j = 1:size(X,2)
-            cs = colstop(X,j)
+            Xn = colstop(X,j)
+            Yn = colstop(Y,j)
+            if Xn > Yn  # check zeros otherwise
+                for k = Yn+1:Xn
+                    @assert iszero(X[k,j])
+                end
+            end
+            cs = min(Xn,Yn)
             BLAS.axpy!(a,view(X.data,X.cols[j]:X.cols[j]+cs-1),
                          view(Y.data,Y.cols[j]:Y.cols[j]+cs-1))
         end
@@ -200,7 +218,7 @@ function *(A::RaggedMatrix,B::RaggedMatrix)
         cols[j] = max(cols[j],colstop(A,k))
     end
 
-    unsafe_A_mul_B!(RaggedMatrix(T,size(A,1),cols),A,B)
+    unsafe_A_mul_B!(RaggedMatrix{T}(uninitialized, size(A,1), cols), A, B)
 end
 
 function unsafe_A_mul_B!(Y::RaggedMatrix,A::RaggedMatrix,B::RaggedMatrix)

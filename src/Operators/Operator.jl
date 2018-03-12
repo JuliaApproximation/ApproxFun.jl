@@ -81,8 +81,8 @@ macro functional(FF)
 end
 
 
-blocksize(A::Operator,k) = k==1 ? length(blocklengths(rangespace(A))) : length(blocklengths(domainspace(A)))
-blocksize(A::Operator) = (blocksize(A,1),blocksize(A,2))
+nblocks(A::Operator,k) = k==1 ? length(blocklengths(rangespace(A))) : length(blocklengths(domainspace(A)))
+nblocks(A::Operator) = (nblocks(A,1),nblocks(A,2))
 
 
 Base.size(A::Operator) = (size(A,1),size(A,2))
@@ -159,6 +159,16 @@ isblockbanded(A::Operator) = isblockbandedbelow(A) && isblockbandedabove(A)
 israggedbelow(A::Operator) = isbandedbelow(A) || isbandedblockbanded(A) || isblockbandedbelow(A)
 
 
+blockbandwidths(S::Operator) = (-blockbandinds(S,1),blockbandinds(S,2))
+blockbandinds(K::Operator,k::Integer) = blockbandinds(K)[k]
+blockbandwidth(K::Operator,k::Integer) = k==1 ? -blockbandinds(K,k) : blockbandinds(K,k)
+
+subblockbandwidths(K::Operator) = -subblockbandinds(K,1),subblockbandinds(K,2)
+subblockbandinds(K::Operator) = subblockbandinds(K,1),subblockbandinds(K,2)
+subblockbandwidth(K::Operator,k::Integer) = k==1 ? -subblockbandinds(K,k) : subblockbandinds(K,k)
+
+
+
 bandwidth(A::Operator) = bandwidth(A,1) + bandwidth(A,2) + 1
 bandwidth(A::Operator,k::Integer) = k==1?-bandinds(A,1):bandinds(A,2)
 bandwidths(A::Operator) = (bandwidth(A,1),bandwidth(A,2))
@@ -199,6 +209,7 @@ include("SubOperator.jl")
 
 getindex(B::Operator,k,j) = defaultgetindex(B,k,j)
 getindex(B::Operator,k) = defaultgetindex(B,k)
+getindex(B::Operator,k::Block{2}) = B[Block.(k.n)...]
 
 
 
@@ -221,6 +232,12 @@ defaultgetindex(B::Operator,k::Range,j::Range) = AbstractMatrix(view(B,k,j))
 defaultgetindex(op::Operator,k::Integer,j::Range) = eltype(op)[op[k,j] for j in j]
 defaultgetindex(op::Operator,k::Range,j::Integer) = eltype(op)[op[k,j] for k in k]
 
+defaultgetindex(B::Operator,k::Block,j::BlockRange) = AbstractMatrix(view(B,k,j))
+defaultgetindex(B::Operator,k::BlockRange,j::BlockRange) = AbstractMatrix(view(B,k,j))
+
+defaultgetindex(op::Operator,k::Integer,j::BlockRange) = eltype(op)[op[k,j] for j in j]
+defaultgetindex(op::Operator,k::BlockRange,j::Integer) = eltype(op)[op[k,j] for k in k]
+
 
 # Colon casdes
 defaultgetindex(A::Operator,kj::CartesianIndex{2}) = A[kj[1],kj[2]]
@@ -232,8 +249,8 @@ defaultgetindex(A::Operator,k,j) = view(A,k,j)
 # TODO: finite dimensional blocks
 blockcolstart(A::Operator,J::Integer) = Block(max(1,J-blockbandwidth(A,2)))
 blockrowstart(A::Operator,K::Integer) = Block(max(1,K-blockbandwidth(A,1)))
-blockcolstop(A::Operator,J::Integer) = Block(min(J+blockbandwidth(A,1),blocksize(A,1)))
-blockrowstop(A::Operator,K::Integer) = Block(min(K+blockbandwidth(A,2),blocksize(A,2)))
+blockcolstop(A::Operator,J::Integer) = Block(min(J+blockbandwidth(A,1),nblocks(A,1)))
+blockrowstop(A::Operator,K::Integer) = Block(min(K+blockbandwidth(A,2),nblocks(A,2)))
 
 blockrows(A::Operator,K::Integer) = blockrange(rangespace(A),K)
 blockcols(A::Operator,J::Integer) = blockrange(domainspace(A),J)
@@ -377,7 +394,7 @@ function defaultgetindex(A::Operator,::Type{FiniteRange},jr::AbstractVector{Int}
     A[1:cs,jr]
 end
 
-function defaultgetindex(A::Operator,::Type{FiniteRange},jr::AbstractVector{Block})
+function defaultgetindex(A::Operator,::Type{FiniteRange},jr::BlockRange{1})
     cs = (isbanded(A) || isblockbandedbelow(A)) ? blockcolstop(A,maximum(jr)) : mapreduce(j->blockcolstop(A,j),max,jr)
     A[Block(1):cs,jr]
 end
@@ -387,7 +404,7 @@ function Base.view(A::Operator,::Type{FiniteRange},jr::AbstractVector{Int})
     view(A,1:cs,jr)
 end
 
-function Base.view(A::Operator,::Type{FiniteRange},jr::AbstractVector{Block})
+function Base.view(A::Operator,::Type{FiniteRange},jr::BlockRange{1})
     cs = (isbanded(A) || isblockbandedbelow(A)) ? blockcolstop(A,maximum(jr)) : mapreduce(j->blockcolstop(A,j),max,jr)
     view(A,Block(1):cs,jr)
 end
@@ -481,6 +498,8 @@ macro wrappergetindex(Wrap)
 
             Base.convert(::Type{$TYP},P::ApproxFun.SubOperator{T,OP}) where {T,OP<:$Wrap} =
                 $TYP(view(parent(P).op,P.indexes[1],P.indexes[2]))
+            Base.convert(::Type{$TYP},P::ApproxFun.SubOperator{T,OP,NTuple{2,UnitRange{Int}}}) where {T,OP<:$Wrap} =
+                $TYP(view(parent(P).op,P.indexes[1],P.indexes[2]))
         end
     end
 
@@ -489,15 +508,14 @@ macro wrappergetindex(Wrap)
 
         # fast converts to banded matrices would be based on indices, not blocks
         function Base.convert(::Type{BandedMatrices.BandedMatrix},
-                              S::ApproxFun.SubOperator{T,OP,Tuple{UnitRange{ApproxFun.Block},
-                                                                  UnitRange{ApproxFun.Block}}}) where {T,OP<:$Wrap}
+                              S::ApproxFun.SubOperator{T,OP,NTuple{2,ApproxFun.BlockRange1}}) where {T,OP<:$Wrap}
             A = parent(S)
             ds = domainspace(A)
             rs = rangespace(A)
             KR,JR = parentindexes(S)
             BandedMatrix(view(A,
-                              blockstart(rs,KR[1]):blockstop(rs,KR[end]),
-                              blockstart(ds,JR[1]):blockstop(ds,JR[end])))
+                              blockstart(rs,first(KR)):blockstop(rs,last(KR)),
+                              blockstart(ds,first(JR)):blockstop(ds,last(JR))))
         end
 
 
@@ -509,7 +527,18 @@ macro wrappergetindex(Wrap)
                     blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
                 BlockBandedMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
             else
-                default_blockbandedmatrix(S)
+                default_BlockBandedMatrix(S)
+            end
+        end
+
+        function Base.convert(::Type{ApproxFun.PseudoBlockMatrix},
+                              S::ApproxFun.SubOperator{T,OP}) where {T,OP<:$Wrap}
+            P = parent(S)
+            if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
+                    blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
+                PseudoBlockMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
+            else
+                default_blockmatrix(S)
             end
         end
 
@@ -520,7 +549,7 @@ macro wrappergetindex(Wrap)
                     blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
                 BandedBlockBandedMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
             else
-                default_bandedblockbandedmatrix(S)
+                default_BandedBlockBandedMatrix(S)
             end
         end
 
@@ -643,62 +672,78 @@ const WrapperOperator = Union{SpaceOperator,MultiplicationWrapper,DerivativeWrap
 ## BLAS and matrix routines
 # We assume that copy may be overriden
 
-BLAS.axpy!(a,X::Operator,Y::AbstractMatrix) = BLAS.axpy!(a,AbstractMatrix(X),Y)
+BLAS.axpy!(a, X::Operator, Y::AbstractMatrix) = BLAS.axpy!(a,AbstractMatrix(X),Y)
+copy!(dest::AbstractMatrix, src::Operator) = copy!(dest, AbstractMatrix(src))
 
 # this is for operators that implement copy via axpy!
 
-bzeros(S::Operator) = bzeros(eltype(S),size(S,1),size(S,2),bandwidth(S,1),bandwidth(S,2))
-Base.zeros(S::Operator) = zeros(eltype(S),size(S,1),size(S,2))
-bbbzeros(S::Operator) = bbbzeros(eltype(S),blockbandwidth(S,1),blockbandwidth(S,2),
-                    subblockbandwidth(S,1),subblockbandwidth(S,2),
-            blocklengthrange(rangetensorizer(S),1:size(S,1)),
-            blocklengthrange(domaintensorizer(S),1:size(S,2)))
-bbzeros(S::Operator) = bbzeros(eltype(S),blockbandwidth(S,1),blockbandwidth(S,2),
-            blocklengths(rangespace(S)),blocklengths(domainspace(S)))
-
-rzeros(S::Operator) = rzeros(eltype(S),size(S,1),Int[max(0,colstop(S,j)) for j=1:size(S,2)])
-
-for (TYP,ZERS) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
-                   (:BandedBlockBandedMatrix,:bbbzeros),
-                   (:RaggedMatrix,:rzeros),(:BlockBandedMatrix,:bbzeros))
-    @eval convert_axpy!(::Type{$TYP},S::Operator) =
-        BLAS.axpy!(one(eltype(S)),S,$ZERS(S))
-end
+BandedMatrix(::Type{Zeros}, V::Operator) = BandedMatrix(Zeros{eltype(V)}(size(V)), bandwidths(V))
+Matrix(::Type{Zeros}, V::Operator) = Matrix(Zeros{eltype(V)}(size(V)))
+BandedBlockBandedMatrix(::Type{Zeros}, V::Operator) =
+    BandedBlockBandedMatrix(Zeros{eltype(V)}(size(V)),
+                            (blocklengths(rangespace(V)), blocklengths(domainspace(V))),
+                            blockbandwidths(V), subblockbandwidths(V))
+BlockBandedMatrix(::Type{Zeros}, V::Operator) =
+    BlockBandedMatrix(Zeros{eltype(V)}(size(V)),
+                      (AbstractVector{Int}(blocklengths(rangespace(V))),
+                       AbstractVector{Int}(blocklengths(domainspace(V)))),
+                      blockbandwidths(V))
+RaggedMatrix(::Type{Zeros}, V::Operator) =
+    RaggedMatrix(Zeros{eltype(V)}(size(V)),
+                 Int[max(0,colstop(V,j)) for j=1:size(V,2)])
 
 
+convert_axpy!(::Type{MT}, S::Operator) where {MT <: AbstractMatrix} =
+        BLAS.axpy!(one(eltype(S)), S, MT(Zeros, S))
 
-convert(::Type{BandedMatrix},S::Operator) = default_bandedmatrix(S)
 
-function convert(::Type{BlockBandedMatrix},S::Operator)
+
+convert(::Type{BandedMatrix}, S::Operator) = default_BandedMatrix(S)
+
+function convert(::Type{BlockBandedMatrix}, S::Operator)
     if isbandedblockbanded(S)
         BlockBandedMatrix(BandedBlockBandedMatrix(S))
     else
-        default_blockbandedmatrix(S)
+        default_BlockBandedMatrix(S)
+    end
+end
+
+function default_BlockMatrix(S::Operator)
+    ret = PseudoBlockArray(zeros(size(S)),
+                        AbstractVector{Int}(blocklengths(rangespace(S))),
+                        AbstractVector{Int}(blocklengths(domainspace(S))))
+    ret .= S
+    ret
+end
+
+function convert(::Type{PseudoBlockMatrix}, S::Operator)
+    if isbandedblockbanded(S)
+        PseudoBlockMatrix(BandedBlockBandedMatrix(S))
+    elseif isblockbanded(S)
+        PseudoBlockMatrix(BlockBandedMatrix(S))
+    else
+        default_BlockMatrix(S)
     end
 end
 
 
 # TODO: Unify with SubOperator
-for TYP in (:RaggedMatrix,:Matrix)
+for TYP in (:RaggedMatrix, :Matrix)
     def_TYP = parse("default_" * string(TYP))
-    @eval function convert(::Type{$TYP},S::Operator)
+    @eval function convert(::Type{$TYP}, S::Operator)
         if isinf(size(S,1)) || isinf(size(S,2))
             error("Cannot convert $S to a $TYP")
         end
 
         if isbanded(S)
             $TYP(BandedMatrix(S))
-        elseif isbandedblockbanded(S)
-            $TYP(BandedBlockBandedMatrix(S))
-        elseif isblockbanded(S)
-            $TYP(BlockBandedMatrix(S))
         else
             $def_TYP(S)
         end
     end
 end
 
-function convert(::Type{Vector},S::Operator)
+function convert(::Type{Vector}, S::Operator)
     if size(S,2) ≠ 1  || isinf(size(S,1))
         error("Cannot convert $S to a AbstractVector")
     end
@@ -707,24 +752,28 @@ function convert(::Type{Vector},S::Operator)
 end
 
 
-
-convert(::Type{AbstractMatrix},S::Operator) = Matrix(S)
-
-function convert(::Type{AbstractMatrix},S::SubOperator)
-    if isinf(size(S,1)) || isinf(size(S,2))
-        throw(BoundsError())
-    end
-    if isbanded(parent(S))
-        BandedMatrix(S)
-    elseif isbandedblockbanded(parent(S))
-        BandedBlockBandedMatrix(S)
-    elseif isblockbanded(parent(S))
-        BlockBandedMatrix(S)
-    elseif isinf(size(parent(S),1)) && israggedbelow(parent(S))
-        RaggedMatrix(S)
-    else
-        Matrix(S)
-    end
+# TODO: template out fully
+arraytype(::Operator) = Matrix
+function arraytype(V::SubOperator{T,B,Tuple{KR,JR}}) where {T, B, KR <: Union{BlockRange, Block}, JR <: Union{BlockRange, Block}}
+    P = parent(V)
+    isbandedblockbanded(V) && return BandedBlockBandedMatrix
+    isblockbanded(V) && return BlockBandedMatrix
+    return PseudoBlockMatrix
 end
 
-convert(::Type{AbstractVector},S::Operator) = Vector(S)
+function arraytype(V::SubOperator{T,B,Tuple{KR,JR}}) where {T, B, KR <: Block, JR <: Block}
+    P = parent(V)
+    isbandedblockbanded(V) && return BandedMatrix
+    return Matrix
+end
+
+
+function arraytype(V::SubOperator)
+    P = parent(V)
+    isbanded(P) && return BandedMatrix
+    isinf(size(P,1)) && israggedbelow(P) && return RaggedMatrix
+    return Matrix
+end
+
+convert(::Type{AbstractMatrix}, V::Operator) = convert(arraytype(V), V)
+convert(::Type{AbstractVector}, S::Operator) = Vector(S)

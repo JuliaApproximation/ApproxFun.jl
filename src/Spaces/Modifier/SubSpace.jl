@@ -23,7 +23,7 @@ function |(f::Fun,kr::UnitCount)
     Fun(space(f)|kr,f.coefficients[kr[1]:end])
 end
 
-block(sp::SubSpace,k::Integer) = block(sp.space,reindex(sp,sp.indexes,to_index(k))[1])
+block(sp::SubSpace, k::Integer) = block(sp.space,reindex(sp,(sp.indexes,),(k,))[1])
 
 function blocklengths(sp::SubSpace{DS,UnitRange{Int}}) where DS
     N = first(sp.indexes)
@@ -31,10 +31,10 @@ function blocklengths(sp::SubSpace{DS,UnitRange{Int}}) where DS
     B1=block(sp.space,N)
     B2=block(sp.space,M)
     # if the blocks are equal, we have only one bvlock
-    B1 == B2 && return [zeros(Int,B1.K-1);length(sp.indexes)]
+    B1 == B2 && return [zeros(Int,B1.n[1]-1);length(sp.indexes)]
 
-    [zeros(Int,B1.K-1);
-         blockstop(sp.space,B1)-N+1;blocklengths(sp.space)[B1.K+1:B2.K-1];
+    [zeros(Int,B1.n[1]-1);
+         blockstop(sp.space,B1)-N+1;blocklengths(sp.space)[B1.n[1]+1:B2.n[1]-1];
         M-blockstart(sp.space,B2)+1]
 end
 
@@ -42,40 +42,42 @@ function blocklengths(sp::SubSpace{DS,UnitCount{Int}}) where DS
     N = first(sp.indexes)
     B1=block(sp.space,N)
 
-    flatten(([zeros(Int,B1.K-1);blockstop(sp.space,B1)-N+1],
-            blocklengths(sp.space)[B1.K+1:∞]))
+    flatten(([zeros(Int,B1.n[1]-1);blockstop(sp.space,B1)-N+1],
+            blocklengths(sp.space)[B1.n[1]+1:∞]))
 end
+
+blocklengths(sp::SubSpace{DS,Block{1,T}}) where {DS, T} =
+    [blocklengths(sp.space)[Int(sp.indexes)]]
 
 blocklengths(sp::SubSpace) = error("Not implemented for non-unitrange subspaces")
 
 
 ## Block reindexing for SubSpace
-reindex(sp::SubSpace, b::Tuple{Block}, ks::Tuple{Any}) = (blockstart(sp.space,b[1])+ks[1]-1,)
-reindex(sp::SubSpace, br::Tuple{UnitRange{Block}}, ks::Tuple{Block}) = (br[1][ks[1].K],)
-reindex(sp::SubSpace, br::Tuple{UnitRange{Block}}, ks::Tuple{Any}) = (blockstart(sp.space,first(br[1]))+ks[1]-1,)
+reindex(sp::SubSpace, b::Tuple{Block{1}}, ks::Tuple{Any}) = (blockstart(sp.space,b[1])+ks[1]-1,)
+reindex(sp::SubSpace, br::Tuple{BlockRange1}, ks::Tuple{Block{1}}) = (Block(Int.(br[1])[first(ks[1].n)]),)
+reindex(sp::SubSpace, br::Tuple{BlockRange1}, ks::Tuple{Any}) = (blockstart(sp.space,first(Int.(br[1])))+ks[1]-1,)
 
 # blocks stay the same with unit range indices
-reindex(sp::SubSpace, br::Tuple{AbstractVector{Int}}, ks::Tuple{Block}) =
+reindex(sp::SubSpace, br::Tuple{AbstractVector{Int}}, ks::Tuple{Block{1}}) =
     reindex(sp, br, (blockrange(sp,first(ks)),))
-reindex(sp::SubSpace, br::Tuple{AbstractCount{Int}}, ks::Tuple{Block}) =
+reindex(sp::SubSpace, br::Tuple{AbstractCount{Int}}, ks::Tuple{Block{1}}) =
     reindex(sp, br, (blockrange(sp,first(ks)),))
-reindex(sp::SubSpace, br::Tuple{AbstractVector{Int}}, ks::Tuple{UnitRange{Block}}) =
+reindex(sp::SubSpace, br::Tuple{AbstractVector{Int}}, ks::Tuple{BlockRange1}) =
     reindex(sp, br, (blockrange(sp,first(ks)),))
-reindex(sp::SubSpace, br::Tuple{AbstractCount{Int}}, ks::Tuple{UnitRange{Block}}) =
+reindex(sp::SubSpace, br::Tuple{AbstractCount{Int}}, ks::Tuple{BlockRange1}) =
     reindex(sp, br, (blockrange(sp,first(ks)),))
 
 
 ## Block
-blocklengths(sp::SubSpace{DS,Block}) where {DS} = [blocklengths(sp.space)[sp.indexes.K]]
-dimension(sp::SubSpace{DS,Block}) where {DS} = blocklengths(sp.space)[sp.indexes.K]
+blocklengths(sp::SubSpace{DS,Block}) where {DS} = [blocklengths(sp.space)[sp.indexes.n[1]]]
+dimension(sp::SubSpace{DS,Block}) where {DS} = blocklengths(sp.space)[sp.indexes.n[1]]
 
 
-blocklengths(sp::SubSpace{DS,UnitRange{Block}}) where {DS} = blocklengths(sp.space)[Int.(sp.indexes)]
-dimension(sp::SubSpace{DS,UnitRange{Block}}) where {DS} = sum(blocklengths(sp.space)[Int.(sp.indexes)])
+blocklengths(sp::SubSpace{DS,BlockRange1}) where {DS} = blocklengths(sp.space)[Int.(sp.indexes)]
+dimension(sp::SubSpace{DS,BlockRange1}) where {DS} = sum(blocklengths(sp.space)[Int.(sp.indexes)])
 
 
 block(_,B::Block) = B
-block(_,B::SubBlock) = B.block
 
 
 
