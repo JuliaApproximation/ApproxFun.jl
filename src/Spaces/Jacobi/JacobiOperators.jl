@@ -530,7 +530,7 @@ hasconversion(a::Ultraspherical,b::Jacobi) = hasconversion(Jacobi(a),b)
 
 
 ## <: IntervalDomain avoids a julia bug
-function Multiplication(f::Fun{JacobiWeight{C,DD,RR}},S::Jacobi) where {C<:ConstantSpace,DD<:IntervalDomain,RR}
+function Multiplication(f::Fun{JacobiWeight{C,DD,RR,TT}}, S::Jacobi) where {C<:ConstantSpace,DD<:IntervalDomain,RR,TT}
     # this implements (1+x)*P and (1-x)*P special case
     # see DLMF (18.9.6)
     d=domain(f)
@@ -553,10 +553,11 @@ function Multiplication(f::Fun{JacobiWeight{C,DD,RR}},S::Jacobi) where {C<:Const
     end
 end
 
-Multiplication(f::Fun{JacobiWeight{C,DD,RR}},S::Union{Ultraspherical,Chebyshev}) where {C<:ConstantSpace,DD<:IntervalDomain,RR} =
+Multiplication(f::Fun{JacobiWeight{C,DD,RR,TT}},
+               S::Union{Ultraspherical,Chebyshev}) where {C<:ConstantSpace,DD<:IntervalDomain,RR,TT} =
     MultiplicationWrapper(f,Multiplication(f,Jacobi(S))*Conversion(S,Jacobi(S)))
 
-function rangespace(M::ConcreteMultiplication{JacobiWeight{C,DD,RR},J}) where {J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain,RR}
+function rangespace(M::ConcreteMultiplication{JacobiWeight{C,DD,RR,TT},J}) where {J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain,RR,TT}
     S=domainspace(M)
     if space(M.f).β==1
         # multiply by (1+x)
@@ -569,9 +570,9 @@ function rangespace(M::ConcreteMultiplication{JacobiWeight{C,DD,RR},J}) where {J
     end
 end
 
-bandinds(::ConcreteMultiplication{JacobiWeight{C,DD,RR},J}) where {J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain,RR}=-1,0
+bandinds(::ConcreteMultiplication{JacobiWeight{C,DD,RR,TT},J}) where {J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain,RR,TT} = -1,0
 
-function getindex(M::ConcreteMultiplication{JacobiWeight{C,DD,RR},J},k::Integer,j::Integer) where {J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain,RR}
+function getindex(M::ConcreteMultiplication{JacobiWeight{C,DD,RR,TT},J},k::Integer,j::Integer) where {J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain,RR,TT}
     @assert ncoefficients(M.f)==1
     a,b=domainspace(M).a,domainspace(M).b
     c=M.f.coefficients[1]

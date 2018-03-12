@@ -176,10 +176,11 @@ n=1;
 
 # Log with squareroot singularities
 
-a=1.0;b=2.0+im
-d=Segment(a,b)
-z=Fun(d)
-f=real(exp(z)/(sqrt(z-a)*sqrt(b-z)))
+a = 1.0; b = 2.0+im
+d = Segment(a,b)
+z = Fun(d)
+
+f = real(exp(z) / (sqrt(z-a)*sqrt(b-z)))
 S=space(f)
 x=4.0+2im;
 @test linesum(f*log(abs(x-z))) ≈ 13.740676344264614
