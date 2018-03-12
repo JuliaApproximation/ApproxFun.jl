@@ -182,7 +182,7 @@ function conversion_type(a,b)
         NoSpace()  # this avoids having to check eachtime
     else
         cr=conversion_rule(a,b)
-        cr==NoSpace()?conversion_rule(b,a):cr
+        cr==NoSpace() ? conversion_rule(b,a) : cr
     end
 end
 
@@ -295,7 +295,7 @@ Base.union(a::Space,b::Space,c::Space,d::Space...) =
 
 
 # tests whether a Conversion operator exists
-hasconversion(a,b) = maxspace(a,b)==b
+hasconversion(a,b) = maxspace(a,b) == b
 
 
 # tests whether a coefficients can be converted to b
@@ -324,9 +324,9 @@ function defaultcoefficients(f,a,b)
 
     if spacescompatible(a,b)
         f
-    elseif spacescompatible(ct,a)
+    elseif hasconversion(a,b)
         A_mul_B_coefficients(Conversion(a,b),f)
-    elseif spacescompatible(ct,b)
+    elseif hasconversion(b,a)
         A_ldiv_B_coefficients(Conversion(b,a),f)
     else
         csp=canonicalspace(a)
@@ -349,34 +349,6 @@ coefficients(f,a,b) = defaultcoefficients(f,a,b)
 
 
 
-## TODO: remove zeros
-Base.zero(S::Space) = zeros(S)
-Base.zero(::Type{T},S::Space) where {T<:Number} = zeros(T,S)
-Base.zeros(::Type{T},S::Space) where {T<:Number} = Fun(S,zeros(T,1))
-Base.zeros(S::Space) = Fun(S,zeros(1))
-
-# catch all
-Base.ones(S::Space) = Fun(x->1.0,S)
-Base.ones(::Type{T},S::Space) where {T<:Number} = Fun(x->one(T),S)
-
-identity_fun(S::Space) = identity_fun(domain(S))
-
-function identity_fun(d::Domain)
-    cd=canonicaldomain(d)
-    if typeof(d) == typeof(cd)
-        Fun(x->x,d) # fall back to constructor, can't use `identity` as that creates a loop
-    else
-        # this allows support for singularities, that the constructor doesn't
-        sf=fromcanonical(d,Fun(identity,cd))
-        Fun(setdomain(space(sf),d),coefficients(sf))
-    end
-end
-
-
-
-
-
-
 
 
 ## rand
@@ -388,11 +360,14 @@ checkpoints(d::Space) = checkpoints(domain(d))
 
 
 ## default transforms
+abstract type AbstractTransformPlan{T} <: Plan{T} end
+
+space(P::AbstractTransformPlan) = P.space
 
 # These plans are use to wrap another plan
 for Typ in (:TransformPlan,:ITransformPlan)
     @eval begin
-        struct $Typ{T,SP,inplace,PL} <: FFTW.Plan{T}
+        struct $Typ{T,SP,inplace,PL} <: AbstractTransformPlan{T}
             space::SP
             plan::PL
         end
@@ -403,7 +378,7 @@ end
 
 for Typ in (:CanonicalTransformPlan,:ICanonicalTransformPlan)
     @eval begin
-        struct $Typ{T,SP,PL,CSP} <: FFTW.Plan{T}
+        struct $Typ{T,SP,PL,CSP} <: AbstractTransformPlan{T}
             space::SP
             plan::PL
             canonicalspace::CSP
@@ -465,7 +440,7 @@ for OP in (:plan_transform,:plan_itransform,:plan_transform!,:plan_itransform!)
     # this passes an empty Float64 array
     @eval begin
         $OP(S::Space,::Type{T},n::Integer) where {T} = $OP(S,Vector{T}(n))
-        $OP(S::Space,n::Integer) = $OP(S,Float64,n)
+        $OP(S::Space,n::Integer) = $OP(S, Float64, n)
     end
 end
 

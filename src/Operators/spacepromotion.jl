@@ -31,7 +31,7 @@ end
 @wrappergetindex SpaceOperator
 
 # SpaceOperator can change blocks, so we need to override this
-getindex(A::SpaceOperator,KR::Range{Block},JR::Range{Block}) = defaultgetindex(A,KR,JR)
+getindex(A::SpaceOperator,KR::BlockRange, JR::BlockRange) = defaultgetindex(A,KR,JR)
 
 
 getindex(A::SpaceOperator,K::Block,J::Block) = A[blockrows(A,K),blockcols(A,J)]
@@ -130,7 +130,7 @@ choosedomainspace(A::Operator,sp::Space) = default_choosedomainspace(A,sp)
 choosedomainspace(A::Operator,f::Fun) = choosedomainspace(A,space(f))
 choosedomainspace(A::Operator,f::AbstractVector{FF}) where {FF<:Fun} =
     choosedomainspace(A,Fun(f))
-choosedomainspace(A::Operator,::) = choosedomainspace(A)
+choosedomainspace(A::Operator,_) = choosedomainspace(A)
 
 choosedomainspace(A) = choosedomainspace(A,UnsetSpace())
 

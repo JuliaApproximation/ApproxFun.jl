@@ -1,97 +1,147 @@
-using ApproxFun, Base.Test, Base.Test
+using ApproxFun, Compat.Test
     import ApproxFun: testbandedblockbandedoperator, testblockbandedoperator, testraggedbelowoperator
 
-## Check operators
-S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
-Δ=Laplacian(S)
+@testset "PDE" begin
+    @testset "Zero Dirichlet" begin
+        S = JacobiWeight(1.,1.,Jacobi(1.,1.))^2
+        Δ = Laplacian(S)
 
 
-testbandedblockbandedoperator(Δ)
+        testbandedblockbandedoperator(Δ)
 
-u=Fun((x,y)->sin(π*x)*sin(π*y),S)
-f=-2π^2*u
-
-
-QR=qrfact(Δ)
-ApproxFun.resizedata!(QR,:,1000)
-@time v=QR\f
-@test norm((u-v).coefficients)<100eps()
+        u = Fun((x,y)->sin(π*x)*sin(π*y),S)
+        f = -2π^2*u
 
 
-QR=qrfact(Δ)
-ApproxFun.resizedata!(QR.R,:,100)
-ApproxFun.resizedata!(QR.R,:,1000)
-@time v=QR\f
-@test norm((u-v).coefficients)<100eps()
-
-QR=qrfact(Δ)
-@time v=QR\f
-@test norm((u-v).coefficients)<100eps()
+        QR=qrfact(Δ)
+        ApproxFun.resizedata!(QR,:,1000)
+        @time v=QR\f
+        @test norm((u-v).coefficients)<100eps()
 
 
+        QR=qrfact(Δ)
+        ApproxFun.resizedata!(QR.R,:,100)
+        ApproxFun.resizedata!(QR.R,:,1000)
+        @time v=QR\f
+        @test norm((u-v).coefficients)<100eps()
 
+        QR=qrfact(Δ)
+        @time v=QR\f
+        @test norm((u-v).coefficients)<100eps()
+    end
 
+    @testset "Rectangle Laplace/Poisson" begin
+        dx=dy=Interval()
+        d=dx*dy
+        g=Fun((x,y)->exp(x)*cos(y),∂(d))
 
+        B=Dirichlet(d)
+        testblockbandedoperator(B)
+        testbandedblockbandedoperator(Laplacian(d)+0.0I)
 
+        A=[Dirichlet(d);Laplacian(d)+0.0I]
+        @time u=A\[g,0.]
+
+        @test u(.1,.2) ≈ real(exp(0.1+0.2im))
+
+        ## Poisson
+        f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),Interval()^2,500)  #default is [-1,1]^2
+        d=domain(f)
+        A=[Dirichlet(d);Laplacian(d)]
+        @time  u=\(A,[zeros(∂(d));f];tolerance=1E-7)
+        @test ≈(u(.1,.2),-0.04251891975068446;atol=1E-5)
+    end
+
+<<<<<<< HEAD
 ## Rectangle PDE
 dx=dy=ChebyshevInterval()
 d=dx×dy
 g=Fun((x,y)->exp(x)*cos(y),∂(d))
+=======
+    @testset "Bilaplacian" begin
+        dx=dy=Interval()
+        d=dx*dy
+        Dx=Derivative(dx);Dy=Derivative(dy)
+        L=Dx^4⊗I + 2*Dx^2⊗Dy^2 + I⊗Dy^4
+>>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
 
-B=Dirichlet(d)
-testblockbandedoperator(B)
-testbandedblockbandedoperator(Laplacian(d)+0.0I)
+        testbandedblockbandedoperator(L)
 
-A=[Dirichlet(d);Laplacian(d)+0.0I]
-@time u=A\[g,0.]
+        B = Dirichlet(dx) ⊗ eye(dy)
+        testraggedbelowoperator(Dirichlet(dx) ⊗ eye(dy))
+
+        A=[Dirichlet(dx) ⊗ eye(dy);
+                eye(dx)  ⊗ Dirichlet(dy);
+                Neumann(dx) ⊗ eye(dy);
+                eye(dx) ⊗ Neumann(dy);
+                 L]
+
+        testraggedbelowoperator(A)
+
+        @time u=\(A,[[1,1],[1,1],[0,0],[0,0],0];tolerance=1E-5)
+        @test u(0.1,0.2) ≈ 1.0
+    end
 
 
-@test u(.1,.2) ≈ real(exp(0.1+0.2im))
 
 
-println("    Poisson tests")
-
-
-## Poisson
-
+<<<<<<< HEAD
 f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),ChebyshevInterval()^2,500)  #default is [-1,1]^2
 d=domain(f)
 A=[Dirichlet(d);Laplacian(d)]
 @time  u=\(A,[zeros(∂(d));f];tolerance=1E-7)
 @test ≈(u(.1,.2),-0.04251891975068446;atol=1E-5)
+=======
+    @testset "Periodic x Interval" begin
+        d=PeriodicInterval()*Interval()
+>>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
 
+        u_ex=Fun((x,y)->real(cos(x+im*y)),d)
+        @test u_ex(1.0,0.1) ≈ real(cos(1.0+im*0.1)) atol=10eps()
 
+        B=Dirichlet(Space(d))
 
-# fourth order
+        @test B.order == 0  # tests stupid bug
+        g=Fun((x,y)->real(cos(x+im*y)),rangespace(B))  # boundary data
 
+<<<<<<< HEAD
 println("    Bilaplacian tests")
 dx=dy=ChebyshevInterval()
 d=dx×dy
 Dx=Derivative(dx);Dy=Derivative(dy)
 L=Dx^4⊗I + 2*Dx^2⊗Dy^2 + I⊗Dy^4
+=======
+        @test norm((B*u_ex-g).coefficients) < 100eps()
+>>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
 
-testbandedblockbandedoperator(L)
+        testbandedblockbandedoperator(Laplacian(d))
 
+        @time u=[B;Laplacian(d)]\[g;0.]
 
-B = Dirichlet(dx) ⊗ eye(dy)
-testraggedbelowoperator(Dirichlet(dx) ⊗ eye(dy))
-
-A=[Dirichlet(dx) ⊗ eye(dy);
-        eye(dx)  ⊗ Dirichlet(dy);
-        Neumann(dx) ⊗ eye(dy);
-        eye(dx) ⊗ Neumann(dy);
-         L]
-
-testraggedbelowoperator(A)
-
-@time u=\(A,[[1,1],[1,1],[0,0],[0,0],0];tolerance=1E-5)
-@test u(0.1,0.2) ≈ 1.0
+        @test u(.1,.2) ≈ real(cos(.1+.2im))
+    end
 
 
+    @testset "Schrodinger" begin
+        dx=Interval(0.,1.); dt=Interval(0.0,0.001)
+        C=Conversion(Chebyshev(dx)*Ultraspherical(1,dt),Ultraspherical(2,dx)*Ultraspherical(1,dt))
+        testbandedblockbandedoperator(C)
+        testbandedblockbandedoperator(Operator{Complex128}(C))
 
 
-## Test periodic x interval
+        d=dx*dt
 
+        x,y=Fun(d)
+        V=x^2
+
+        Dt=Derivative(d,[0,1]);Dx=Derivative(d,[1,0])
+
+        ϵ=1.
+        u0=Fun(x->exp(-100*(x-.5)^2)*exp(-1./(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
+        L=ϵ*Dt+(.5im*ϵ^2*Dx^2)
+        testbandedblockbandedoperator(L)
+
+<<<<<<< HEAD
 println("    Periodic x Interval tests")
 d=PeriodicInterval()×ChebyshevInterval()
 
@@ -145,3 +195,10 @@ testbandedblockbandedoperator(L)
 
 
 #
+=======
+
+        @time u=\([timedirichlet(d);L],[u0,[0.,0.],0.];tolerance=1E-5)
+        @test u(0.5,0.001) ≈ 0.857215539785593+0.08694948835021317im  # empircal from ≈ schurfact
+    end
+end
+>>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54

@@ -83,6 +83,14 @@ function coefficients(v::AbstractVector,a::ArraySpace,b::ArraySpace)
 end
 
 
+# ArraySpace is straight forward
+
+function Conversion(a::ArraySpace, b::ArraySpace)
+    @assert size(a) == size(b)
+    ConversionWrapper(InterlaceOperator(Diagonal(Conversion.(vec(a.spaces), vec(b.spaces))), a, b))
+end
+
+
 # Sum Space and PiecewiseSpace need to allow permutation of space orders
 for TYP in (:SumSpace,:PiecewiseSpace)
     @eval function Conversion(S1::$TYP,S2::$TYP)
@@ -98,7 +106,7 @@ for TYP in (:SumSpace,:PiecewiseSpace)
             error("Need to implement finite dimensional case")
         elseif sort1 == sort2
             # swaps sumspace order
-            ConversionWrapper(SpaceOperator(PermutationOperator(T,v1,v2),S1,S2))
+            ConversionWrapper(PermutationOperator{T}(perm(v1,v2),S1,S2))
         elseif all(map(hasconversion,v1,v2))
             # we can blocmk convert
             ConversionWrapper(SpaceOperator(
@@ -106,8 +114,8 @@ for TYP in (:SumSpace,:PiecewiseSpace)
                 S1,S2))
         elseif all(map(hasconversion,sort1,sort2))
             # we can blocmk convert
-            P1 = SpaceOperator(PermutationOperator(T,v1,sort1),S1,$TYP(sort1))
-            P2 = SpaceOperator(PermutationOperator(T,sort2,v2),$TYP(sort2),S2)
+            P1 = PermutationOperator{T}(perm(v1,sort1),S1,$TYP(sort1))
+            P2 = PermutationOperator{T}(perm(sort2,v2),$TYP(sort2),S2)
             ConversionWrapper(TimesOperator(
                 [P2,InterlaceOperator(Diagonal([map(Conversion,sort1,sort2)...]),$TYP),P1]))
         elseif map(canonicalspace,S1.spaces) == map(canonicalspace,S2.spaces)
@@ -118,11 +126,10 @@ for TYP in (:SumSpace,:PiecewiseSpace)
             csort2 = sort(collect(map(canonicalspace,v2)))
             if csort1 == csort2
                 # we can block convert after permuting
-                P=PermutationOperator(T,
-                                      map(canonicalspace,v1),
-                                      map(canonicalspace,v2))
-                ds2=$TYP(S1.spaces[P.perm])
-                ConversionWrapper(TimesOperator(Conversion(ds2,S2),SpaceOperator(P,S1,ds2)))
+                prm = perm(map(canonicalspace,v1),map(canonicalspace,v2))
+                ds2 = $TYP(S1.spaces[perm])
+                P = PermutationOperator{T}(prm, S1, ds2)
+                ConversionWrapper(TimesOperator(Conversion(ds2,S2),P))
             elseif all(map(hasconversion,csort1,csort2))
                 C1 = Conversion(S1,$TYP(csort1))
                 C2 = Conversion($TYP(csort1),$TYP(csort2))

@@ -21,11 +21,11 @@ Base.isnan(d::Point) = false
 Base.issubset(a::Point,d::UnionDomain) = a.x in d
 Base.issubset(a::Point,b::Domain) = a.x in b
 
-Base.intersect(a::Point,b::Point) = b.x in a?b:EmptyDomain()
-Base.intersect(a::UnionDomain,b::Point) = b.x in a?b:EmptyDomain()
-Base.intersect(a::Domain,b::Point) = b.x in a?b:EmptyDomain()
-Base.intersect(b::Point,a::UnionDomain) = b.x in a?b:EmptyDomain()
-Base.intersect(b::Point,a::Domain) = b.x in a?b:EmptyDomain()
+Base.intersect(a::Point,b::Point) = b.x in a ? b : EmptyDomain()
+Base.intersect(a::UnionDomain,b::Point) = b.x in a ? b : EmptyDomain()
+Base.intersect(a::Domain,b::Point) = b.x in a ? b : EmptyDomain()
+Base.intersect(b::Point,a::UnionDomain) = b.x in a ? b : EmptyDomain()
+Base.intersect(b::Point,a::Domain) = b.x in a ? b : EmptyDomain()
 
 Base.setdiff(a::Point,b::Point) = a==b ? EmptyDomain() : a
 Base.reverse(a::Point) = a

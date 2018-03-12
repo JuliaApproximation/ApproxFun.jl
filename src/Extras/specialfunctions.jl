@@ -126,13 +126,13 @@ function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:IntervalOrSegment,RR}
         #left root
         g=divide_singularity((1,0),fc)
         p=c/g
-        x=identity_fun(domain(p))
+        x = Fun(identity,domain(p))
         return scaleshiftdomain(p/(1+x),(d.b - d.a)/2,(d.a + d.b)/2 )
     elseif abs(last(fc)) ≤ tol
         #right root
         g=divide_singularity((0,1),fc)
         p=c/g
-        x=identity_fun(domain(p))
+        x=Fun(identity,domain(p))
         return scaleshiftdomain(p/(1-x),(d.b - d.a)/2,(d.a + d.b)/2 )
     else
         r = roots(fc)
@@ -143,13 +143,13 @@ function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:IntervalOrSegment,RR}
             #left root
             g=divide_singularity((1,0),fc)
             p=c/g
-            x=identity_fun(domain(p))
+            x=Fun(identity,domain(p))
             return scaleshiftdomain(p/(1+x),(d.b - d.a)/2,(d.a + d.b)/2 )
         elseif abs(last(r)-1.0)≤tol  # double check
             #right root
             g=divide_singularity((0,1),fc)
             p=c/g
-            x=identity_fun(domain(p))
+            x=Fun(identity,domain(p))
             return scaleshiftdomain(p/(1-x),(d.b - d.a)/2,(d.a + d.b)/2 )
         else
             # no roots on the boundary
@@ -159,10 +159,12 @@ function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:IntervalOrSegment,RR}
 end
 
 ^(f::Fun{<:PolynomialSpace},k::Integer) = intpow(f,k)
-function ^(f::Fun{<:PolynomialSpace},k::Real)
+function ^(f::Fun{<:PolynomialSpace}, k::Real)
+    T = eltype(f)
+    RT = real(T)
     # Need to think what to do if this is ever not the case..
     sp = space(f)
-    fc = setdomain(f,Segment()) #Project to interval
+    fc = setcanonicaldomain(f) #Project to interval
     csp = space(fc)
 
     r = sort(roots(fc))
@@ -174,10 +176,10 @@ function ^(f::Fun{<:PolynomialSpace},k::Real)
     elseif length(r) == 1
         @assert isapprox(abs(r[1]),1)
 
-        if isapprox(r[1],1.)
-            Fun(JacobiWeight(0.,k,sp),coefficients(divide_singularity(true,fc)^k,csp))
+        if isapprox(r[1], 1)
+            Fun(JacobiWeight(zero(RT),k,sp),coefficients(divide_singularity(true,fc)^k,csp))
         else
-            Fun(JacobiWeight(k,0.,sp),coefficients(divide_singularity(false,fc)^k,csp))
+            Fun(JacobiWeight(k,zero(RT),sp),coefficients(divide_singularity(false,fc)^k,csp))
         end
     else
         @assert isapprox(r[1],-1)
@@ -637,6 +639,34 @@ for OP in (:abs,:sign,:log,:angle)
             Fun(map($OP,components(f)),PiecewiseSpace)
         $OP(f::Fun{PiecewiseSpace{S,DD,RR}}) where {S,DD<:UnivariateDomain,RR} = Fun(map($OP,components(f)),PiecewiseSpace)
     end
+end
+
+# Return the locations of jump discontinuities
+#
+# Non Piecewise Spaces are assumed to have no jumps.
+function jumplocations(f::Fun)
+    eltype(domain(f))[]
+end
+
+# Return the locations of jump discontinuities
+function jumplocations(f::Fun{S}) where{S<:PiecewiseSpace}
+    d = domain(f)
+
+    if ncomponents(d) < 2
+      return eltype(domain(f))[]
+    end
+
+    dtol=10eps(eltype(d))
+    ftol=10eps(eltype(f))
+
+    dc = components(d)
+    fc = components(f)
+
+    isjump = isapprox.(first.(dc[2:end]), last.(dc[1:end-1]), rtol=dtol) .&
+           .!isapprox.(first.(fc[2:end]), last.(fc[1:end-1]), rtol=ftol)
+
+    locs = last.(dc[1:end-1])
+    locs[isjump]
 end
 
 #

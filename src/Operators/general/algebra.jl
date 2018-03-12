@@ -108,15 +108,17 @@ end
 
 for TYP in (:RaggedMatrix,:Matrix,:BandedMatrix,
             :BlockBandedMatrix,:BandedBlockBandedMatrix)
-    @eval convert(::Type{$TYP},P::SubOperator{T,PP,Tuple{UnitRange{Block},UnitRange{Block}}}) where {T,PP<:PlusOperator} =
+    @eval convert(::Type{$TYP},P::SubOperator{T,PP,NTuple{2,BlockRange1}}) where {T,PP<:PlusOperator} =
         convert_axpy!($TYP,P)   # use axpy! to copy
     @eval convert(::Type{$TYP},P::SubOperator{T,PP}) where {T,PP<:PlusOperator} =
+        convert_axpy!($TYP,P)   # use axpy! to copy
+    @eval convert(::Type{$TYP},P::SubOperator{T,PP,NTuple{2,UnitRange{Int}}}) where {T,PP<:PlusOperator} =
         convert_axpy!($TYP,P)   # use axpy! to copy
 end
 
 function BLAS.axpy!(α,P::SubOperator{T,PP},A::AbstractMatrix) where {T,PP<:PlusOperator}
     for op in parent(P).ops
-        BLAS.axpy!(α,view(op,P.indexes[1],P.indexes[2]),A)
+        BLAS.axpy!(α, view(op,P.indexes[1],P.indexes[2]), A)
     end
 
     A
@@ -195,18 +197,23 @@ end
 getindex(P::ConstantTimesOperator,k::Integer...) =
     P.λ*P.op[k...]
 
-for (TYP,ZERS) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
-                   (:BandedBlockBandedMatrix,:bbbzeros),
-                   (:RaggedMatrix,:rzeros),(:BlockBandedMatrix,:bbzeros))
+
+for TYP in (:RaggedMatrix,:Matrix,:BandedMatrix,
+            :BlockBandedMatrix,:BandedBlockBandedMatrix)
     @eval begin
-        # avoid ambiugity
         convert(::Type{$TYP},
-                     S::SubOperator{T,OP,Tuple{UnitRange{Block},UnitRange{Block}}}) where {T,OP<:ConstantTimesOperator} =
-            convert_axpy!($TYP,S)
-        convert(::Type{$TYP},S::SubOperator{T,OP}) where {T,OP<:ConstantTimesOperator} =
-            convert_axpy!($TYP,S)
+                S::SubOperator{T,OP,NTuple{2,BlockRange1}}) where {T,OP<:ConstantTimesOperator} =
+            convert_axpy!($TYP, S)
+        convert(::Type{$TYP},
+                S::SubOperator{T,OP,NTuple{2,UnitRange{Int}}}) where {T,OP<:ConstantTimesOperator} =
+            convert_axpy!($TYP, S)
+        convert(::Type{$TYP},
+                S::SubOperator{T,OP}) where {T,OP<:ConstantTimesOperator} =
+            convert_axpy!($TYP, S)
     end
 end
+
+
 
 BLAS.axpy!(α,S::SubOperator{T,OP},A::AbstractMatrix) where {T,OP<:ConstantTimesOperator} =
     unwrap_axpy!(α*parent(S).λ,S,A)
@@ -350,9 +357,9 @@ end
 
 for OP in (:colstart,:colstop)
     defOP=parse("default_"*string(OP))
-    @eval function $OP(P::TimesOperator,k::Integer)
+    @eval function $OP(P::TimesOperator, k::Integer)
         if isbanded(P)
-            return $defOP(P,k)
+            return $defOP(P, k)
         end
         for j=reverse(eachindex(P.ops))
             k=$OP(P.ops[j],k)
@@ -372,27 +379,34 @@ function getindex(P::TimesOperator,k::AbstractVector)
     vec(Matrix(P[1:1,k]))
 end
 
+for TYP in (:Matrix, :BandedMatrix, :RaggedMatrix)
+    @eval function convert(::Type{$TYP},
+                         V::SubOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,TO<:TimesOperator}
+        P = parent(V)
 
+        if isbanded(P)
+            if $TYP ≠ BandedMatrix
+                return $TYP(convert(BandedMatrix, V))
+            end
+        elseif isbandedblockbanded(P)
+            N = block(rangespace(P), last(parentindexes(V)[1]))
+            M = block(domainspace(P), last(parentindexes(V)[2]))
+            B = P[Block(1):N, Block(1):M]
+            return $TYP(view(B, parentindexes(V)...), _colstops(V))
+        end
 
-for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
-                    (:BandedBlockBandedMatrix,:bbbzeros),
-                    (:BlockBandedMatrix,:bbzeros),
-                    (:RaggedMatrix,:rzeros))
-    @eval function convert(::Type{$STyp},
-   S::SubOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,TO<:TimesOperator}
-        P=parent(S)
-        kr,jr=parentindexes(S)
+        kr,jr = parentindexes(V)
 
-        (isempty(kr) || isempty(jr)) && return $Zer(S)
+        (isempty(kr) || isempty(jr)) && return $TYP(Zeros, V)
 
         if maximum(kr) > size(P,1) || maximum(jr) > size(P,2) ||
             minimum(kr) < 1 || minimum(jr) < 1
             throw(BoundsError())
         end
 
-        @assert length(P.ops)≥2
-        if size(S,1)==0
-            return $Zer(S)
+        @assert length(P.ops) ≥ 2
+        if size(V,1)==0
+            return $TYP(Zeros, V)
         end
 
 
@@ -418,7 +432,7 @@ for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
         # Check if any range is invalid, in which case return zero
         for m=1:length(P.ops)
             if krl[m,1]>krl[m,2]
-                return $Zer(S)
+                return $TYP(Zeros, V)
             end
         end
 
@@ -426,30 +440,28 @@ for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
 
         # The following returns a banded Matrix with all rows
         # for large k its upper triangular
-        BA=$STyp{T}(P.ops[end][krl[end,1]:krl[end,2],jr])
+        BA=$TYP{T}(P.ops[end][krl[end,1]:krl[end,2],jr])
         for m=(length(P.ops)-1):-1:1
-            BA=$STyp{T}(P.ops[m][krl[m,1]:krl[m,2],krl[m+1,1]:krl[m+1,2]])*BA
+            BA=$TYP{T}(P.ops[m][krl[m,1]:krl[m,2],krl[m+1,1]:krl[m+1,2]])*BA
         end
 
-        $STyp{T}(BA)
+        $TYP{T}(BA)
     end
 end
 
+for TYP in (:BlockBandedMatrix, :BandedBlockBandedMatrix)
+    @eval function convert(::Type{$TYP},
+                         V::SubOperator{T,TO,Tuple{BlockRange1,BlockRange1}}) where {T,TO<:TimesOperator}
+        P = parent(V)
+        KR,JR = parentindexes(V)
 
-for (STyp,Zer) in ((:BandedBlockBandedMatrix,:bbbzeros),
-                    (:BlockBandedMatrix,:bbzeros))
-    @eval function convert(::Type{$STyp},
-   S::SubOperator{T,TO,Tuple{UnitRange{Block},UnitRange{Block}}}) where {T,TO<:TimesOperator}
-        P=parent(S)
-        KR,JR=parentindexes(S)
-
-        @assert length(P.ops)≥2
-        if size(S,1)==0 || isempty(KR) || isempty(JR)
-            return $Zer(S)
+        @assert length(P.ops) ≥ 2
+        if size(V,1)==0 || isempty(KR) || isempty(JR)
+            return $TYP(Zeros, V)
         end
 
-        if maximum(KR) > blocksize(P,1) || maximum(JR) > blocksize(P,2) ||
-            minimum(KR) < 1 || minimum(JR) < 1
+        if Int(maximum(KR)) > nblocks(P,1) || Int(maximum(JR)) > nblocks(P,2) ||
+            Int(minimum(KR)) < 1 || Int(minimum(JR)) < 1
             throw(BoundsError())
         end
 
@@ -458,25 +470,25 @@ for (STyp,Zer) in ((:BandedBlockBandedMatrix,:bbbzeros),
         # by finding the non-zero entries
         KRlin = Matrix{Union{Block,Infinity{Bool}}}(length(P.ops),2)
 
-        KRlin[1,1],KRlin[1,2]=KR[1],KR[end]
+        KRlin[1,1],KRlin[1,2] = first(KR),last(KR)
         for m=1:length(P.ops)-1
             KRlin[m+1,1]=blockrowstart(P.ops[m],KRlin[m,1])
             KRlin[m+1,2]=blockrowstop(P.ops[m],KRlin[m,2])
         end
-        KRlin[end,1]=max(KRlin[end,1],blockcolstart(P.ops[end],JR[1]))
-        KRlin[end,2]=min(KRlin[end,2],blockcolstop(P.ops[end],JR[end]))
+        KRlin[end,1]=max(KRlin[end,1],blockcolstart(P.ops[end],first(JR)))
+        KRlin[end,2]=min(KRlin[end,2],blockcolstop(P.ops[end],last(JR)))
         for m=length(P.ops)-1:-1:2
             KRlin[m,1]=max(KRlin[m,1],blockcolstart(P.ops[m],KRlin[m+1,1]))
             KRlin[m,2]=min(KRlin[m,2],blockcolstop(P.ops[m],KRlin[m+1,2]))
         end
 
 
-        KRl = Matrix{Block}(KRlin)
+        KRl = Matrix{Block{1}}(KRlin)
 
         # Check if any range is invalid, in which case return zero
         for m=1:length(P.ops)
             if KRl[m,1]>KRl[m,2]
-                return $Zer(S)
+                return $TYP(Zeros, V)
             end
         end
 
@@ -484,12 +496,12 @@ for (STyp,Zer) in ((:BandedBlockBandedMatrix,:bbbzeros),
 
         # The following returns a banded Matrix with all rows
         # for large k its upper triangular
-        BA=$STyp(view(P.ops[end],KRl[end,1]:KRl[end,2],JR))
-        for m=(length(P.ops)-1):-1:1
-            BA=$STyp(view(P.ops[m],KRl[m,1]:KRl[m,2],KRl[m+1,1]:KRl[m+1,2]))*BA
+        BA = $TYP(view(P.ops[end],KRl[end,1]:KRl[end,2],JR))
+        for m = (length(P.ops)-1):-1:1
+            BA = $TYP(view(P.ops[m],KRl[m,1]:KRl[m,2],KRl[m+1,1]:KRl[m+1,2]))*BA
         end
 
-        BA
+        $TYP(BA)
     end
 end
 

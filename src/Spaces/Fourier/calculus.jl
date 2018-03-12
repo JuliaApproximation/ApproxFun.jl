@@ -2,7 +2,7 @@
 
 
 Base.sum(f::Fun{Laurent{DD,RR}}) where {DD<:PeriodicInterval,RR} = coefficient(f,1).*arclength(domain(f))
-Base.sum(f::Fun{Laurent{DD,RR}}) where {DD<:Circle,RR} = coefficient(f,2).*complexlength(domain(f))
+Base.sum(f::Fun{Laurent{DD,RR}}) where {DD<:Circle,RR} = coefficient(f,3 - domain(f).orientation).*complexlength(domain(f))
 
 
 Base.sum(f::Fun{Fourier{DD,RR}}) where {DD<:PeriodicInterval,RR} = coefficient(f,1).*arclength(domain(f))

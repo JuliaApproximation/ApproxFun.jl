@@ -52,7 +52,7 @@ for OP in (:(Base.done),:(Base.stride))
     @eval $OP(f::Fun{<:ArraySpace},k) = $OP(space(f),k)
 end
 
-getindex(f::ArraySpace,k...) = component(f,k...)
+getindex(f::ArraySpace,k...) = Space(component(f,k...))
 Base.next(f::Fun{<:ArraySpace},k)=f[k],k+1
 
 
@@ -239,3 +239,12 @@ Base.ones(A::ArraySpace) = Fun(ones.(spaces(A)))
 
 const EuclideanSpace{RR} = VectorSpace{ConstantSpace{AnyDomain},AnyDomain,RR}
 EuclideanSpace(n::Integer) = ArraySpace(ConstantSpace(Float64),n)
+
+
+
+
+## support pieces
+
+npieces(f::Fun{<:ArraySpace}) = npieces(f[1])
+piece(f::Fun{<:ArraySpace}, k) = Fun(piece.(Array(f),k))
+pieces(f::Fun{<:ArraySpace}) = [piece(f,k) for k=1:npieces(f)]

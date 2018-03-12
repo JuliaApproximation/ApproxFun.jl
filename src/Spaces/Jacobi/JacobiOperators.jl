@@ -363,7 +363,7 @@ end
 
 function convert(::Type{BandedMatrix},
              S::SubOperator{T,ConcreteConversion{CC,J,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {J<:Jacobi,CC<:Chebyshev,T}
-    ret=bzeros(S)
+    ret=BandedMatrix(Zeros, S)
     kr,jr = parentindexes(S)
     k=(kr ∩ jr)
 
@@ -384,7 +384,7 @@ end
 
 function convert(::Type{BandedMatrix},
              S::SubOperator{T,ConcreteConversion{J,CC,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {J<:Jacobi,CC<:Chebyshev,T}
-    ret=bzeros(S)
+    ret=BandedMatrix(Zeros, S)
     kr,jr = parentindexes(S)
     k=(kr ∩ jr)
 
@@ -408,7 +408,7 @@ end
 
 function convert(::Type{BandedMatrix},
         S::SubOperator{T,ConcreteConversion{US,J,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {US<:Ultraspherical,J<:Jacobi,T}
-    ret=bzeros(S)
+    ret=BandedMatrix(Zeros, S)
     kr,jr = parentindexes(S)
     k=(kr ∩ jr)
 
@@ -436,7 +436,7 @@ end
 
 function convert(::Type{BandedMatrix},
         S::SubOperator{T,ConcreteConversion{J,US,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {US<:Ultraspherical,J<:Jacobi,T}
-    ret=bzeros(S)
+    ret=BandedMatrix(Zeros, S)
     kr,jr = parentindexes(S)
     k=(kr ∩ jr)
 
@@ -461,26 +461,55 @@ function union_rule(A::Jacobi,B::Jacobi)
         NoSpace()
     end
 end
-maxspace_rule(A::Jacobi,B::Jacobi) = Jacobi(max(A.b,B.b),max(A.a,B.a),domain(A))
+
+function maxspace_rule(A::Jacobi,B::Jacobi)
+    if isapproxinteger(A.a-B.a) && isapproxinteger(A.b-B.b)
+        Jacobi(max(A.b,B.b),max(A.a,B.a),domain(A))
+    else
+        NoSpace()
+    end
+end
 
 
-for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace),(:union_rule,:(Base.union)))
+function union_rule(A::Chebyshev,B::Jacobi)
+    if isapprox(B.a,-0.5) && isapprox(B.b,-0.5)
+        # the spaces are the same
+        A
+    else
+        union(Jacobi(A),B)
+    end
+end
+function union_rule(A::Ultraspherical,B::Jacobi)
+    m=order(A)
+    if isapprox(B.a,m-0.5) && isapprox(B.b,m-0.5)
+        # the spaces are the same
+        A
+    else
+        union(Jacobi(A),B)
+    end
+end
+
+for (OPrule,OP) in ((:conversion_rule,:conversion_type), (:maxspace_rule,:maxspace))
     @eval begin
         function $OPrule(A::Chebyshev,B::Jacobi)
-            if isapprox(B.a,-0.5)&&isapprox(B.b,-0.5)
+            if B.a ≈ -0.5 && B.b ≈ -0.5
                 # the spaces are the same
                 A
-            else
+            elseif isapproxinteger(B.a+0.5) && isapproxinteger(B.b+0.5)
                 $OP(Jacobi(A),B)
+            else
+                NoSpace()
             end
         end
         function $OPrule(A::Ultraspherical,B::Jacobi)
-            m=order(A)
-            if isapprox(B.a,m-0.5)&&isapprox(B.b,m-0.5)
+            m = order(A)
+            if B.a ≈ m-0.5 && B.b ≈ m-0.5
                 # the spaces are the same
                 A
-            else
+            elseif isapproxinteger(B.a+0.5) && isapproxinteger(B.b+0.5)
                 $OP(Jacobi(A),B)
+            else
+                NoSpace()
             end
         end
     end
@@ -501,7 +530,7 @@ hasconversion(a::Ultraspherical,b::Jacobi) = hasconversion(Jacobi(a),b)
 
 
 ## <: IntervalDomain avoids a julia bug
-function Multiplication(f::Fun{JacobiWeight{C,DD,RR}},S::Jacobi) where {C<:ConstantSpace,DD<:IntervalDomain,RR}
+function Multiplication(f::Fun{JacobiWeight{C,DD,RR,TT}}, S::Jacobi) where {C<:ConstantSpace,DD<:IntervalDomain,RR,TT}
     # this implements (1+x)*P and (1-x)*P special case
     # see DLMF (18.9.6)
     d=domain(f)
@@ -524,10 +553,11 @@ function Multiplication(f::Fun{JacobiWeight{C,DD,RR}},S::Jacobi) where {C<:Const
     end
 end
 
-Multiplication(f::Fun{JacobiWeight{C,DD,RR}},S::Union{Ultraspherical,Chebyshev}) where {C<:ConstantSpace,DD<:IntervalDomain,RR} =
+Multiplication(f::Fun{JacobiWeight{C,DD,RR,TT}},
+               S::Union{Ultraspherical,Chebyshev}) where {C<:ConstantSpace,DD<:IntervalDomain,RR,TT} =
     MultiplicationWrapper(f,Multiplication(f,Jacobi(S))*Conversion(S,Jacobi(S)))
 
-function rangespace(M::ConcreteMultiplication{JacobiWeight{C,DD,RR},J}) where {J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain,RR}
+function rangespace(M::ConcreteMultiplication{JacobiWeight{C,DD,RR,TT},J}) where {J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain,RR,TT}
     S=domainspace(M)
     if space(M.f).β==1
         # multiply by (1+x)
@@ -540,9 +570,9 @@ function rangespace(M::ConcreteMultiplication{JacobiWeight{C,DD,RR},J}) where {J
     end
 end
 
-bandinds(::ConcreteMultiplication{JacobiWeight{C,DD,RR},J}) where {J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain,RR}=-1,0
+bandinds(::ConcreteMultiplication{JacobiWeight{C,DD,RR,TT},J}) where {J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain,RR,TT} = -1,0
 
-function getindex(M::ConcreteMultiplication{JacobiWeight{C,DD,RR},J},k::Integer,j::Integer) where {J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain,RR}
+function getindex(M::ConcreteMultiplication{JacobiWeight{C,DD,RR,TT},J},k::Integer,j::Integer) where {J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain,RR,TT}
     @assert ncoefficients(M.f)==1
     a,b=domainspace(M).a,domainspace(M).b
     c=M.f.coefficients[1]

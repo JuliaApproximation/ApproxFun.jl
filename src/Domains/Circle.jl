@@ -55,21 +55,21 @@ end
 
 
 fromcanonical(d::Circle{T,V,Complex{V}},θ) where {T<:Number,V<:Real} =
-	d.radius*exp((d.orientation?1:-1)*1.0im*θ) + d.center
+	d.radius*exp((d.orientation ? 1 : -1)*1.0im*θ) + d.center
 fromcanonicalD(d::Circle{T},θ) where {T<:Number} =
-	(d.orientation?1:-1)*d.radius*1.0im*exp((d.orientation?1:-1)*1.0im*θ)
+	(d.orientation ? 1 : -1)*d.radius*1.0im*exp((d.orientation ? 1 : -1)*1.0im*θ)
 
 
 fromcanonical(d::Circle{T},θ::Number) where {T<:Vec} =
-	d.radius*Vec(cos((d.orientation?1:-1)*θ),sin((d.orientation?1:-1)*θ)) + d.center
+	d.radius*Vec(cos((d.orientation ? 1 : -1)*θ),sin((d.orientation ? 1 : -1)*θ)) + d.center
 fromcanonicalD(d::Circle{T},θ::Number) where {T<:Vec} =
-	d.radius*(d.orientation?1:-1)*Vec(-sin((d.orientation?1:-1)*θ),cos((d.orientation?1:-1)*θ))
+	d.radius*(d.orientation ? 1 : -1)*Vec(-sin((d.orientation ? 1 : -1)*θ),cos((d.orientation ? 1 : -1)*θ))
 
 
 indomain(z,d::Circle) = norm(z-d.center) ≈ d.radius
 
 arclength(d::Circle) = 2π*d.radius
-complexlength(d::Circle) = (d.orientation?1:-1)*im*arclength(d)  #TODO: why?
+complexlength(d::Circle) = (d.orientation ? 1 : -1)*im*arclength(d)  #TODO: why?
 
 
 ==(d::Circle,m::Circle) = d.center == m.center && d.radius == m.radius && d.orientation == m.orientation
@@ -102,12 +102,12 @@ for op in (:+,:-)
 end
 
 
-*(c::Real,d::Circle) = Circle(*(c,d.center),*(abs(c),d.radius),sign(c)<0?!d.orientation:d.orientation)
-*(d::Circle,c::Real) = Circle(*(c,d.center),*(abs(c),d.radius),sign(c)<0?!d.orientation:d.orientation)
+*(c::Real,d::Circle) = Circle(*(c,d.center),*(abs(c),d.radius),sign(c)<0 ? !d.orientation : d.orientation)
+*(d::Circle,c::Real) = Circle(*(c,d.center),*(abs(c),d.radius),sign(c)<0 ? !d.orientation : d.orientation)
 
 
 
 /(c::Number,d::Circle) =
-	c==1?(d.center==0?Circle(d.center,1/d.radius,!d.orientation):
+	c==1 ? (d.center==0 ? Circle(d.center,1/d.radius,!d.orientation) :
 				Circle(1/d.center,abs(1/(d.center+d.radius)-1/(d.center)),!d.orientation)):
 				c*(1/d)

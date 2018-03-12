@@ -1,4 +1,4 @@
-export DiracDelta
+export DiracDelta, KroneckerDelta
 
 for TYP in (:DiracSpace,:PointSpace)
     @eval begin
@@ -21,7 +21,7 @@ for TYP in (:DiracSpace,:PointSpace)
 
         # all points are equal, so only one block
         blocklengths(C::$TYP) = [length(C.points)]
-        block(C::$TYP,k)::Block = 1
+        block(C::$TYP,k) = Block(1)
 
         domain(DS::$TYP) = UnionDomain(Point.(DS.points))
         setdomain(DS::$TYP,d::UnionDomain) = $TYP(map(d->d.x,components(d)))
@@ -74,8 +74,8 @@ end
 
 Space(d::Point) = PointSpace(d)
 
-identity_fun(S::PointSpace) = Fun(S,S.points)
-identity_fun(S::DiracSpace) = Fun(PointSpace(S.points),S.points)
+Fun(::typeof(identity), S::PointSpace) = Fun(S,S.points)
+Fun(::typeof(identity), S::DiracSpace) = Fun(PointSpace(S.points),S.points)
 transform(S::PointSpace,v::AbstractVector,plan...) = v
 values(f::Fun{S}) where S<:PointSpace = coefficient(f,:)
 
@@ -91,11 +91,11 @@ end
 Base.sum(f::Fun{DS}) where DS<:DiracSpace =
     sum(f.coefficients[1:dimension(space(f))])
 
-
-
 DiracDelta(x::Number)=Fun(DiracSpace(x),[1.])
 DiracDelta()=DiracDelta(0.)
 
+KroneckerDelta(x::Number) = Fun(PointSpace(x),[1.])
+KroneckerDelta() = KroneckerDelta(0.)
 
 function Base.cumsum(f::Fun{S},d::Segment{T}) where {S<:DiracSpace,T<:Real}
     pts=space(f).points

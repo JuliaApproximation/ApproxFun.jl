@@ -97,7 +97,7 @@ function InterlaceOperator(ops::AbstractMatrix{Operator{T}},ds::Space,rs::Space)
     dsi = interlacer(ds)
     rsi = interlacer(rs)
 
-    if size(ops,2) == p && all(isbanded,ops) &&# only support blocksize 1 for now
+    if size(ops,2) == p && all(isbanded,ops) &&# only support nblocks 1 for now
             all(i->isa(i,Repeated) && i.x == 1, dsi.blocks) &&
             all(i->isa(i,Repeated) && i.x == 1, rsi.blocks)
         l,u = 0,0
@@ -228,8 +228,8 @@ function colstop(M::InterlaceOperator{T},j::Integer) where T
     if isbandedbelow(M)
         min(j+bandwidth(M,1)::Int,size(M,1))::Int
     elseif isblockbandedbelow(M)
-        J=block(domainspace(M),j)::Block
-        blockstop(rangespace(M),blockcolstop(M,J)::Block)::Int
+        J=block(domainspace(M), j)::Block{1}
+        blockstop(rangespace(M), blockcolstop(M,J)::Block{1})::Int
     else #assume is raggedbelow
         K = 0
         (J,jj) = M.domaininterlacer[j]
@@ -324,11 +324,8 @@ end
 # and no interlacing of the columns is necessary
 # this is especially important for \
 ######
-
-
-
-for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzeros),
-                    (:BlockBandedMatrix,:bbzeros))
+for TYP in (:BandedMatrix, :BlockBandedMatrix, :BandedBlockBandedMatrix, :RaggedMatrix,
+                :Matrix)
     @eval begin
         function convert(::Type{$TYP},
               S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI},
@@ -336,7 +333,7 @@ for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzero
             kr,jr=parentindexes(S)
             L=parent(S)
 
-            ret=$ZER(S)
+            ret=$TYP(Zeros, S)
 
             ds=domainspace(L)
             rs=rangespace(L)
@@ -361,7 +358,7 @@ for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzero
             kr,jr=parentindexes(S)
             L=parent(S)
 
-            ret=$ZER(S)
+            ret=$TYP(Zeros, S)
 
             if isempty(kr) || isempty(jr)
                 return ret
@@ -391,24 +388,26 @@ for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzero
 end
 
 
-
-
 ## Build block-by-block
 function blockbanded_interlace_convert!(S,ret)
     T = eltype(S)
     KR,JR = parentindexes(S)
     l,u=blockbandwidths(S)::Tuple{Int,Int}
 
-    M=map(op->BlockBandedMatrix(view(op,first(KR):min(last(KR),blocksize(op,1)),first(JR):min(last(JR),blocksize(op,2)))),parent(S).ops)
+    M = map(op -> begin
+                KR_size = Block.(Int(first(KR)):min(Int(last(KR)),nblocks(op,1)))
+                JR_size = Block.(Int(first(JR)):min(Int(last(JR)),nblocks(op,2)))
+                BlockBandedMatrix(view(op, KR_size, JR_size))
+            end, parent(S).ops)
 
-    for J=Block(1):Block(blocksize(ret,2)),K=blockcolrange(ret,J)
+    for J=Block(1):Block(nblocks(ret,2)),K=blockcolrange(ret,Int(J))
         Bs=view(ret,K,J)
         j = 0
         for ξ=1:size(M,2)
             k = 0
             m = 0
             for κ=1:size(M,1)
-                if K.K ≤ blocksize(M[κ,ξ],1) && J.K ≤ blocksize(M[κ,ξ],2)
+                if K.n[1] ≤ nblocks(M[κ,ξ],1) && J.n[1] ≤ nblocks(M[κ,ξ],2)
                     MKJ = M[κ,ξ][K,J]::Matrix{T}
                     n,m = size(MKJ)
                     Bs[k+1:k+n,j+1:j+m] = MKJ
@@ -424,8 +423,8 @@ end
 for d in (:1,:2)
     @eval convert(::Type{BlockBandedMatrix},
           S::SubOperator{T,InterlaceOperator{T,$d,SS,PS,DI,RI,BI},
-                          Tuple{UnitRange{Block},UnitRange{Block}}}) where {SS,PS,DI,RI,BI,T} =
-    blockbanded_interlace_convert!(S,bbzeros(S))
+                          Tuple{BlockRange1,BlockRange1}}) where {SS,PS,DI,RI,BI,T} =
+    blockbanded_interlace_convert!(S, BlockBandedMatrix(Zeros, S))
 end
 
 

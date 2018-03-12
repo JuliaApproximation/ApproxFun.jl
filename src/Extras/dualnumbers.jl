@@ -97,7 +97,7 @@ function dualcfsFun(f,S)
         return dualcfsFun(f,Space(fill(S,size(f0))))
     end
 
-    tol =T==Any?100eps():100eps(T)
+    tol =T==Any ? 100eps() : 100eps(T)
 
 
     fr=typeof(f0)[f(x) for x=r]

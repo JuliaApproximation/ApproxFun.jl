@@ -15,6 +15,9 @@ QROperator(R::CachedOperator,H::AbstractArray,ncs::Int) =
 convert(::Type{Operator{T}},QR::QROperator) where {T} =
     QROperator(Operator{T}(QR.R),AbstractArray{T}(QR.H),QR.ncols)
 
+Base.qrfact(QR::QROperator) = QR
+Base.factorize(QR::QROperator) = QR
+
 for OP in (:domainspace,:rangespace)
     @eval $OP(QR::QROperator) = $OP(QR.R)
 end
@@ -146,22 +149,22 @@ Base.Ac_mul_B(A::QROperatorQ,b;kwds...) =
     Fun(domainspace(A),Ac_mul_B_coefficients(A,coefficients(b,rangespace(A));kwds...))
 
 
-A_ldiv_B_coefficients(A::QROperatorQ,B;opts...) = Ac_mul_B_coefficients(A,B;opts...)
-\(A::QROperatorQ,B::Fun;opts...) = Ac_mul_B(A,B;opts...)
+A_ldiv_B_coefficients(A::QROperatorQ, B; opts...) = Ac_mul_B_coefficients(A, B; opts...)
+\(A::QROperatorQ, B::Fun; opts...) = Ac_mul_B(A, B; opts...)
 
 
 # R
-function A_ldiv_B_coefficients(R::QROperatorR,b::AbstractVector)
+function A_ldiv_B_coefficients(R::QROperatorR, b::AbstractVector)
     if length(b) > R.QR.ncols
         # upper triangularize columns
-        resizedata!(R.QR,:,length(b))
+        resizedata!(R.QR, :, length(b))
     end
-    trtrs!(Val{'U'},R.QR.R,copy(b))
+    UpperTriangular(view(R.QR.R.data, 1:length(b), 1:length(b))) \ b
 end
 
 \(R::QROperatorR,b::Fun{SequenceSpace};kwds...) =
     Fun(domainspace(R),A_ldiv_B_coefficients(R,b.coefficients;kwds...))
-\(A::QROperatorR,b::Fun;kwds...) = error("\ not implement for $(typeof(b)) right-hand sides")
+\(A::QROperatorR,b::Fun;kwds...) = error("\\ not implement for $(typeof(b)) right-hand sides")
 
 
 # QR

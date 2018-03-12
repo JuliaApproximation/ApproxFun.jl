@@ -63,20 +63,22 @@ end
 
 ## Basis Functional
 
-struct BasisFunctional{T} <: Operator{T}
-    k::Integer
+struct BasisFunctional{T,DS} <: Operator{T}
+    k::Int
+    space::DS
 end
 
 @functional BasisFunctional
 
-BasisFunctional(k) = BasisFunctional{Float64}(k)
+BasisFunctional(k,sp) = BasisFunctional{Float64,typeof(sp)}(k, sp)
+BasisFunctional(k) = BasisFunctional(k, ℓ⁰)
 
 bandinds(B::BasisFunctional) = 0,B.k-1
-domainspace(B::BasisFunctional) = ℓ⁰
+domainspace(B::BasisFunctional) = B.space
 
-convert(::Type{Operator{T}},B::BasisFunctional) where {T} = BasisFunctional{T}(B.k)
+convert(::Type{Operator{T}},B::BasisFunctional) where {T} = BasisFunctional{T,typeof(B.space)}(B.k,B.space)
 
-Base.getindex(op::BasisFunctional{T},k::Integer) where {T} = (k==op.k)?one(T):zero(T)
+Base.getindex(op::BasisFunctional{T},k::Integer) where {T} = (k==op.k) ? one(T) : zero(T)
 Base.getindex(op::BasisFunctional{T},k::Range) where {T} = convert(Vector{T},k.==op.k)
 
 struct FillFunctional{T} <: Operator{T}
@@ -149,7 +151,7 @@ convert(::Type{T},S::SpaceOperator) where {T<:Number} = convert(T,S.op)
 
 ## SubOperator convert
 ## Special case for ZeroOperator
-for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzeros),
-                    (:BlockBandedMatrix,:bbzeros))
-    @eval convert(::Type{$TYP},S::SubOperator{T,ZO}) where {T,ZO<:ZeroOperator} = $ZER(S)
+for TYP in (:RaggedMatrix,:Matrix,:BandedMatrix,
+            :BlockBandedMatrix,:BandedBlockBandedMatrix)
+    @eval convert(::Type{$TYP}, S::SubOperator{T,ZO}) where {T,ZO<:ZeroOperator} = $TYP(Zeros, S)
 end

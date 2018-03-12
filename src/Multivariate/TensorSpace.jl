@@ -94,47 +94,45 @@ end
 # which block of the tensor
 # equivalent to sum of indices -1
 
-# block(it::Tensorizer,k)::Block = sum(it[k])-length(it.blocks)+1
-block{T}(ci::CachedIterator{T,TrivialTensorizer{2}},k::Int)::Block =
-    k == 0 ? 0 : sum(ci[k])-length(ci.iterator.blocks)+1
+# block(it::Tensorizer,k) = Block(sum(it[k])-length(it.blocks)+1)
+block{T}(ci::CachedIterator{T,TrivialTensorizer{2}},k::Int) =
+    Block(k == 0 ? 0 : sum(ci[k])-length(ci.iterator.blocks)+1)
 
-block(::TrivialTensorizer{2},n::Int)::Block =
-    floor(Integer,sqrt(2n) + 1/2)
+block(::TrivialTensorizer{2},n::Int) =
+    Block(floor(Integer,sqrt(2n) + 1/2))
 
-block{S,T}(sp::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Int)::Block =
-    floor(Integer,sqrt(2floor(Integer,(n-1)/(sp.blocks[1].x*sp.blocks[2].x))+1) + 1/2)
-block(sp::Tensorizer,k::Int)::Block = findfirst(x->x≥k,cumsum(blocklengths(sp)))
+block{S,T}(sp::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Int) =
+    Block(floor(Integer,sqrt(2floor(Integer,(n-1)/(sp.blocks[1].x*sp.blocks[2].x))+1) + 1/2))
+block(sp::Tensorizer,k::Int) = Block(findfirst(x->x≥k,cumsum(blocklengths(sp))))
 block(sp::CachedIterator,k::Int) = block(sp.iterator,k)
 
 # [1,2,3] x 1:∞
-function block(it::Tensorizer{Tuple{Vector{Bool},Repeated{Bool}}},n::Int)::Block
+function block(it::Tensorizer{Tuple{Vector{Bool},Repeated{Bool}}},n::Int)
     m=sum(it.blocks[1])
     if m == length(it.blocks[1])  # trivial blocks
         N=(m*(m+1))÷2
         if n < N
-            return floor(Integer,sqrt(2n)+1/2)
+            return Block(floor(Integer,sqrt(2n)+1/2))
         else
-            return m+(n-N)÷m
+            return Block(m+(n-N)÷m)
         end
     else
-        return findfirst(x->x≥n,cumsum(blocklengths(it)))
+        return Block(findfirst(x->x≥n,cumsum(blocklengths(it))))
     end
 end
 
 # 1:∞ x 1:m
-function block(it::Tensorizer{Tuple{Repeated{Bool},Vector{Bool}}},n::Int)::Block
+function block(it::Tensorizer{Tuple{Repeated{Bool},Vector{Bool}}},n::Int)
     m=length(it.blocks[2])  # assume all true
     N=(m*(m+1))÷2
-    if n < N
-        floor(Integer,sqrt(2n)+1/2)
-    else
-        m+(n-N)÷m
-    end
+    Block(n < N ?
+        floor(Integer,sqrt(2n)+1/2) :
+        m+(n-N)÷m)
 end
 
 blocklength(it,k) = blocklengths(it)[k]
-blocklength(it,k::Block) = blocklength(it,k.K)
-blocklength(it,k::Range{Block}) = blocklength(it,Int.(k))
+blocklength(it,k::Block) = blocklength(it,k.n[1])
+blocklength(it,k::BlockRange) = blocklength(it,Int.(k))
 
 blocklengths(::TrivialTensorizer{2}) = 1:∞
 
@@ -154,7 +152,7 @@ end
 function getindex(it::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Integer) where {S,T}
     a,b = it.blocks[1].x,it.blocks[2].x
     nb1,nr = fldmod(n-1,a*b) # nb1 = "nb" - 1, i.e. using zero-base
-    m1=block(it,n).K-1
+    m1=block(it,n).n[1]-1
     pb1=fld(findfirst(it,(1,b*m1+1))-1,a*b)
     jb1=nb1-pb1
     kr1,jr1 = fldmod(nr,a)
@@ -166,22 +164,22 @@ blockstart(it,K)::Int = K==1?1:sum(blocklengths(it)[1:K-1])+1
 blockstop(it,::Infinity{Bool}) = ∞
 blockstop(it,K)::Int = sum(blocklengths(it)[1:K])
 
-blockstart(it,K::Block) = blockstart(it,K.K)
-blockstop(it,K::Block) = blockstop(it,K.K)
+blockstart(it,K::Block) = blockstart(it,K.n[1])
+blockstop(it,K::Block) = blockstop(it,K.n[1])
 
 
 blockrange(it,K) = blockstart(it,K):blockstop(it,K)
-blockrange(it,K::UnitRange{Block}) = blockstart(it,K[1]):blockstop(it,K[end])
+blockrange(it,K::BlockRange) = blockstart(it,first(K)):blockstop(it,last(K))
 
 
 
 
 # convert from block, subblock to tensor
 subblock2tensor(rt::TrivialTensorizer{2},K,k) =
-    (k,K.K-k+1)
+    (k,K.n[1]-k+1)
 
 subblock2tensor(rt::CachedIterator{II,TrivialTensorizer{2}},K,k) where {II} =
-    (k,K.K-k+1)
+    (k,K.n[1]-k+1)
 
 
 subblock2tensor(rt::CachedIterator,K,k) = rt[blockstart(rt,K)+k-1]
@@ -350,7 +348,7 @@ getindex(sp::TensorSpace{Tuple{S1,S2}},k::Integer) where {S1,S2<:Space{D,R}} whe
 
 # every column is in the same space for a TensorSpace
 # TODO: remove
-columnspace(S::TensorSpace,::) = S.spaces[1]
+columnspace(S::TensorSpace,_) = S.spaces[1]
 
 
 struct ProductSpace{S<:Space,V<:Space,D,R} <: AbstractProductSpace{Tuple{S,V},D,R}
@@ -566,8 +564,8 @@ function totensor(it::Tensorizer,M::AbstractVector)
     B=block(it,n)
     ds = dimensions(it)
 
-    ret=zeros(eltype(M),sum(it.blocks[1][1:min(B.K,length(it.blocks[1]))]),
-                        sum(it.blocks[2][1:min(B.K,length(it.blocks[2]))]))
+    ret=zeros(eltype(M),sum(it.blocks[1][1:min(B.n[1],length(it.blocks[1]))]),
+                        sum(it.blocks[2][1:min(B.n[1],length(it.blocks[2]))]))
     k=1
     for (K,J) in it
         if k > n
@@ -581,9 +579,9 @@ end
 
 for OP in (:block,:blockstart,:blockstop)
     @eval begin
-        $OP(s::TensorSpace,::Infinity{Bool}) = ∞
-        $OP(s::TensorSpace,M::Block) = $OP(tensorizer(s),M)
-        $OP(s::TensorSpace,M) = $OP(tensorizer(s),M)
+        $OP(s::TensorSpace, ::Infinity{Bool}) = ∞
+        $OP(s::TensorSpace, M::Block) = $OP(tensorizer(s),M)
+        $OP(s::TensorSpace, M) = $OP(tensorizer(s),M)
     end
 end
 
@@ -711,4 +709,4 @@ end
 
 
 
-identity_fun(S::TensorSpace) = Fun(xyz->collect(xyz),S)
+Fun(::typeof(identity), S::TensorSpace) = Fun(xyz->collect(xyz),S)

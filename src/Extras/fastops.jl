@@ -7,9 +7,8 @@
 
 # default copy is to loop through
 # override this for most operators.
-function default_bandedmatrix(S::Operator)
-    l,u = bandwidth(S,1),bandwidth(S,2)
-    Y=BandedMatrix(eltype(S),size(S,1),size(S,2),l,u)
+function default_BandedMatrix(S::Operator)
+    Y=BandedMatrix{eltype(S)}(uninitialized, size(S), bandwidths(S))
 
     for j=1:size(S,2),k=colrange(Y,j)
         @inbounds inbands_setindex!(Y,S[k,j],k,j)
@@ -74,7 +73,7 @@ function convert(::Type{BandedMatrix},
                S::SubOperator{T,ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR},T},
                               Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,DD,RR}
     # we can assume order is 1
-    ret = BandedMatrix(eltype(S),size(S,1),size(S,2),bandwidth(S,1),bandwidth(S,2))
+    ret = BandedMatrix{eltype(S)}(uninitialized, size(S), bandwidths(S))
     kr,jr = parentindexes(S)
     dg = diagindshift(S)
 
@@ -92,25 +91,26 @@ function convert(::Type{BandedMatrix},
     ret
 end
 
-function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteConversion{Ultraspherical{LT,DD,RR},Ultraspherical{LT,DD,RR},T},
+function convert(::Type{BandedMatrix},V::SubOperator{T,ConcreteConversion{Ultraspherical{LT,DD,RR},Ultraspherical{LT,DD,RR},T},
                                                                   Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,LT,DD,RR}
 
-    n,m = size(S)
-    ret = BandedMatrix(eltype(S),n,m,bandwidth(S,1),bandwidth(S,2))
-    kr,jr = parentindexes(S)
-    dg = diagindshift(S)
+    n,m = size(V)
+    V_l, V_u = bandwidths(V)
+    ret = BandedMatrix{eltype(V)}(uninitialized, (n,m), (V_l,V_u))
+    kr,jr = parentindexes(V)
+    dg = diagindshift(V)
 
 
-    λ = order(rangespace(parent(S)))
+    λ = order(rangespace(parent(V)))
     c = λ-one(T)
 
     # need to drop columns
 
 
 
-    ret[band(dg)] .= c./(jr[max(0,dg)+1:min(n+dg,m)] .- 2 .+ λ)
-    ret[band(dg+1)] = 0
-    ret[band(dg+2)] .= c./(2 .- λ .- jr[max(0,dg+2)+1:min(n+dg+2,m)])
+    1-n ≤ dg ≤ m-1 && (ret[band(dg)] .= c./(jr[max(0,dg)+1:min(n+dg,m)] .- 2 .+ λ))
+    1-n ≤ dg+1 ≤ m-1 && (ret[band(dg+1)] = 0)
+    1-n ≤ dg+2 ≤ m-1 && (ret[band(dg+2)] .= c./(2 .- λ .- jr[max(0,dg+2)+1:min(n+dg+2,m)]))
 
     ret
 end
@@ -126,7 +126,7 @@ function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Chebys
                                                      Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,K,DD,RR}
 
     n,m = size(S)
-    ret = BandedMatrix(eltype(S),n,m,bandwidth(S,1),bandwidth(S,2))
+    ret = BandedMatrix{eltype(S)}(uninitialized, (n,m), bandwidths(S))
     kr,jr = parentindexes(S)
     dg = diagindshift(S)
 
@@ -138,7 +138,9 @@ function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Chebys
     # need to drop columns
 
 
-    ret[band(dg+k)] .= C.*(jr[max(0,dg+k)+1:min(n+dg+k,m)] .- one(T))
+    if 1-n ≤ dg+k ≤ m-1
+        ret[band(dg+k)] .= C.*(jr[max(0,dg+k)+1:min(n+dg+k,m)] .- one(T))
+    end
 
     ret
 end
@@ -147,7 +149,7 @@ end
 function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Ultraspherical{LT,DD,RR},K,T},
                                                   Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,K,DD,RR,LT}
     n,m = size(S)
-    ret = BandedMatrix(eltype(S),n,m,bandwidth(S,1),bandwidth(S,2))
+    ret = BandedMatrix{eltype(S)}(uninitialized, (n,m), bandwidths(S))
     kr,jr = parentindexes(S)
     dg = diagindshift(S)
 

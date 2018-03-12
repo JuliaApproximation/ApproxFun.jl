@@ -5,7 +5,8 @@ export continuity
 Space(d::IntervalDomain) = Chebyshev(d)
 Space(d::FullSpace{<:Real}) = Chebyshev(Line())
 
-identity_fun(d::Segment{T}) where {T<:Number} = Fun(Chebyshev(d),T[(d.b+d.a)/2,(d.b-d.a)/2])
+Fun(::typeof(identity), d::Segment{T}) where {T<:Number} =
+    Fun(Chebyshev(d), T[(d.b+d.a)/2,(d.b-d.a)/2])
 
 
 ## Calculus

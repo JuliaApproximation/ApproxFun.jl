@@ -3,7 +3,7 @@ export lanczos
 
 # this finds the OPs and recurrence for a
 function lanczos(w,N)
-    x = identity_fun(space(w))
+    x = Fun(identity,space(w))
 
     f1=Fun(1./sqrt(sum(w)),space(x))
 

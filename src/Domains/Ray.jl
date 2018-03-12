@@ -33,7 +33,7 @@ Ray{a}() where {a} = Ray{a,Float64}()
 Base.angle(d::Ray{a}) where {a} = a*π
 
 # ensure the angle is always in (-1,1]
-Ray(c,a,o) = Ray{a==0?false:(abs(a)==(1.0π)?true:mod(a/π-1,-2)+1),typeof(c)}(c,o)
+Ray(c,a,o) = Ray{a==0 ? false : (abs(a)≈(1.0π) ? true : mod(a/π-1,-2)+1),typeof(c)}(c,o)
 Ray(c,a) = Ray(c,a,true)
 
 Ray() = Ray{false}()
@@ -64,7 +64,7 @@ convert(::Type{IT},::AnyDomain) where {IT<:Ray} = Ray(NaN,NaN)
 ## Map interval
 
 function mobiuspars(d::Ray)
-    s=(d.orientation?1:-1)
+    s=(d.orientation ? 1 : -1)
     α=conj(cisangle(d))
     c=d.center
     s*α,-s*(1+α*c),α,1-α*c
@@ -83,11 +83,11 @@ ray_invfromcanonicalD(x) = (x-1)^2/2
 
 
 for op in (:ray_tocanonical,:ray_tocanonicalD)
-    @eval $op(o,x)=(o?1:-1)*$op(x)
+    @eval $op(o,x)=(o ? 1 : -1)*$op(x)
 end
-ray_fromcanonical(o,x)=ray_fromcanonical((o?1:-1)*x)
-ray_fromcanonicalD(o,x)=(o?1:-1)*ray_fromcanonicalD((o?1:-1)*x)
-ray_invfromcanonicalD(o,x)=(o?1:-1)*ray_invfromcanonicalD((o?1:-1)*x)
+ray_fromcanonical(o,x)=ray_fromcanonical((o ? 1 : -1)*x)
+ray_fromcanonicalD(o,x)=(o ? 1 : -1)*ray_fromcanonicalD((o ? 1 : -1)*x)
+ray_invfromcanonicalD(o,x)=(o ? 1 : -1)*ray_invfromcanonicalD((o ? 1 : -1)*x)
 
 cisangle(::Ray{a}) where {a}=cis(a*π)
 cisangle(::Ray{false})=1
@@ -98,6 +98,8 @@ tocanonical(d::Ray,x) =
 tocanonicalD(d::Ray,x) =
     conj(cisangle(d)).*ray_tocanonicalD(d.orientation,conj(cisangle(d)).*(x-d.center))
 fromcanonical(d::Ray,x) = cisangle(d)*ray_fromcanonical(d.orientation,x)+d.center
+fromcanonical(d::Ray{false},x) = ray_fromcanonical(d.orientation,x)+d.center
+fromcanonical(d::Ray{true},x) = -ray_fromcanonical(d.orientation,x)+d.center
 fromcanonicalD(d::Ray,x) = cisangle(d)*ray_fromcanonicalD(d.orientation,x)
 invfromcanonicalD(d::Ray,x) = conj(cisangle(d))*ray_invfromcanonicalD(d.orientation,x)
 

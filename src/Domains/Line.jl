@@ -61,8 +61,6 @@ convert(::Type{IT},::AnyDomain) where {IT<:Line}=Line(NaN,NaN)
 
 
 function line_tocanonical(α,β,x)
-
-
     @assert α==β==-1. || α==β==-.5
 
     if α==β==-1.
@@ -136,9 +134,9 @@ invfromcanonicalD(d::Line{true},x) = -line_invfromcanonicalD(d.α,d.β,x)
 
 
 # algebra
-*(c::Real,d::Line{false}) = Line{sign(c)>0?false:true}(isapprox(d.center,0)?d.center:c*d.center,d.α,d.β)
-*(c::Real,d::Line{true}) = Line{sign(c)>0?true:false}(isapprox(d.center,0)?d.center:c*d.center,d.α,d.β)
-*(c::Number,d::Line) = Line(isapprox(d.center,0)?d.center:c*d.center,angle(d)+angle(c),d.α,d.β)
+*(c::Real,d::Line{false}) = Line{sign(c)>0 ? false : true}(isapprox(d.center,0) ? d.center : c*d.center,d.α,d.β)
+*(c::Real,d::Line{true}) = Line{sign(c)>0 ? true : false}(isapprox(d.center,0) ? d.center : c*d.center,d.α,d.β)
+*(c::Number,d::Line) = Line(isapprox(d.center,0) ? d.center : c*d.center,angle(d)+angle(c),d.α,d.β)
 *(d::Line,c::Number) = c*d
 for OP in (:+,:-)
     @eval begin

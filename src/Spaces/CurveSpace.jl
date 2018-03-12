@@ -15,7 +15,7 @@ convert(::Type{Curve},f::Fun)=isa(domain(f),IntervalDomain)?IntervalCurve(f):Per
 
 
 
-identity_fun(d::Space{<:Curve}) = Fun(setdomain(space(domain(d).curve),domain(d)),
+Fun(::typeof(identity), d::Space{<:Curve}) = Fun(setdomain(space(domain(d).curve),domain(d)),
                                                 domain(d).curve.coefficients)
 
 # Bernstein polynomials are given by:
@@ -47,7 +47,8 @@ spacescompatible(a::Bernstein{O,T},b::Bernstein{O,T}) where {O,T}=domainscompati
 
 setdomain(S::Bernstein{O},d::Domain) where {O}=Bernstein{O}(d)
 
-identity_fun(B::Bernstein{order,T}) where {order,T}=Fun(B,collect(-one(T):2one(T)/order:one(T)))
+Fun(::typeof(identity), B::Bernstein{order,T}) where {order,T} =
+    Fun(B,collect(-one(T):2one(T)/order:one(T)))
 
 evaluate(f::AbstractVector,S::Bernstein,z) = decasteljau(f,S,tocanonical(S,z))
 

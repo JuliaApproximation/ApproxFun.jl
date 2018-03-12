@@ -34,7 +34,7 @@ function CachedOperator(io::InterlaceOperator{T,1};padding::Bool=false) where T
         end
     end
 
-    numoprows=isend?md-1:md
+    numoprows=isend ? md-1 : md
     n=nds+numoprows
 
     (l,u) = (max(lin+nds,n-1),max(0,uin+1-ind[1]))
@@ -45,7 +45,7 @@ function CachedOperator(io::InterlaceOperator{T,1};padding::Bool=false) where T
     end
 
 
-    ret=abzeros(T,n,n+u,l,u,nds)
+    ret=AlmostBandedMatrix(Zeros{T}(n,n+u),(l,u),nds)
 
     # populate the finite rows
     jr=1:n+u
@@ -122,8 +122,8 @@ function CachedOperator(io::InterlaceOperator{T,2};padding::Bool=false) where T
     end
 
     # now we move everything by the finite rank
-    ncols=mapreduce(d->isfinite(d)?d:0,+,ddims)
-    nbcs=mapreduce(d->isfinite(d)?d:0,+,rdims)
+    ncols=mapreduce(d->isfinite(d) ? d : 0,+,ddims)
+    nbcs=mapreduce(d->isfinite(d) ? d : 0,+,rdims)
     shft=ncols-nbcs
     l∞,u∞=l∞+shft,u∞+shft
 
@@ -143,7 +143,7 @@ function CachedOperator(io::InterlaceOperator{T,2};padding::Bool=false) where T
     end
 
     n=1+nbcs+p
-    ret=abzeros(T,n,n+u,-l,u,nbcs)
+    ret=AlmostBandedMatrix(Zeros{T}(n,n+u),(-l,u),nbcs)
 
     # populate entries and fill functionals
     bcrow=1
@@ -234,7 +234,7 @@ function resizedata!(co::CachedOperator{T,AlmostBandedMatrix{T},
     co.data
     # r is number of extra rows, ncols is number of extra columns
     r=rank(co.data.fill)
-    ncols=mapreduce(d->isfinite(d)?d:0,+,ddims)
+    ncols=mapreduce(d->isfinite(d) ? d : 0,+,ddims)
 
 
     # fill rows
@@ -418,45 +418,55 @@ end
 
 
 ## back substitution
+# loop to avoid ambiguity with AbstractTRiangular
+for ArrTyp in (:AbstractVector, :AbstractMatrix)
+    @eval function A_ldiv_B!(U::UpperTriangular{T, SubArray{T, 2, AlmostBandedMatrix{T}, Tuple{UnitRange{Int}, UnitRange{Int}}, false}},
+                       u::$ArrTyp{T}) where T
+        n = size(u,1)
+        n == size(U,1) || throw(DimensionMismatch())
 
+        V = parent(U)
+        @assert parentindexes(V)[1][1] == 1
+        @assert parentindexes(V)[2][1] == 1
 
-function trtrs!(::Type{Val{'U'}},B::AlmostBandedMatrix,u::Array)
-    n=size(u,1)
-    A=B.bands
-    F=B.fill
-    b=bandwidth(A,2)
-    nbc = rank(B.fill)
-    T=eltype(u)
-    pk = zeros(T,nbc)
+        B = parent(V)
 
-    for c=1:size(u,2)
-        fill!(pk,zero(T))
+        A = B.bands
+        F = B.fill
+        b=bandwidth(A,2)
+        nbc = rank(B.fill)
 
-        # before we get to filled rows
-        for k=n:-1:max(1,n-b)
-            @simd for j=k+1:n
-                @inbounds u[k,c]=muladd(-A.data[k-j+A.u+1,j],u[j,c],u[k,c])
+        pk = zeros(T,nbc)
+
+        for c=1:size(u,2)
+            fill!(pk,zero(T))
+
+            # before we get to filled rows
+            for k=n:-1:max(1,n-b)
+                @simd for j=k+1:n
+                    @inbounds u[k,c] = muladd(-A.data[k-j+A.u+1,j],u[j,c],u[k,c])
+                end
+
+                @inbounds u[k,c] /= A.data[A.u+1,k]
             end
 
-            @inbounds u[k,c] /= A.data[A.u+1,k]
+           #filled rows
+            for k=n-b-1:-1:1
+                @simd for j=1:nbc
+                    @inbounds pk[j] = muladd(u[k+b+1,c],F.V[k+b+1,j],pk[j])
+                end
+
+                @simd for j=k+1:k+b
+                    @inbounds u[k,c]=muladd(-A.data[k-j+A.u+1,j],u[j,c],u[k,c])
+                end
+
+                @simd for j=1:nbc
+                    @inbounds u[k,c] = muladd(-F.U[k,j],pk[j],u[k,c])
+                end
+
+                @inbounds u[k,c] /= A.data[A.u+1,k]
+            end
         end
-
-       #filled rows
-        for k=n-b-1:-1:1
-            @simd for j=1:nbc
-                @inbounds pk[j] = muladd(u[k+b+1,c],F.V[k+b+1,j],pk[j])
-            end
-
-            @simd for j=k+1:k+b
-                @inbounds u[k,c]=muladd(-A.data[k-j+A.u+1,j],u[j,c],u[k,c])
-            end
-
-            @simd for j=1:nbc
-                @inbounds u[k,c] = muladd(-F.U[k,j],pk[j],u[k,c])
-            end
-
-            @inbounds u[k,c] /= A.data[A.u+1,k]
-        end
+        u
     end
-    u
 end
