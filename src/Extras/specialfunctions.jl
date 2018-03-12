@@ -164,7 +164,7 @@ function ^(f::Fun{<:PolynomialSpace}, k::Real)
     RT = real(T)
     # Need to think what to do if this is ever not the case..
     sp = space(f)
-    fc = setdomain(f,Segment{prectype(sp)}()) #Project to interval
+    fc = setcanonicaldomain(f) #Project to interval
     csp = space(fc)
 
     r = sort(roots(fc))

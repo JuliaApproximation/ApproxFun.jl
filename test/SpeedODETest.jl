@@ -1,4 +1,4 @@
-using ApproxFun, Base.Test
+using ApproxFun, Compat.Test
     import ApproxFun: A_ldiv_B_coefficients
 
 ## ODEs

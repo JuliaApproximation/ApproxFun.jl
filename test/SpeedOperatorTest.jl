@@ -1,4 +1,4 @@
-using ApproxFun, Base.Test
+using ApproxFun, Compat.Test
 
 
 d=Interval(-1000.,5.)
