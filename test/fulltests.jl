@@ -1,4 +1,4 @@
-using ApproxFun, Base.Test
+using ApproxFun, Compat.Test
     import ApproxFun: testbandedoperator, testraggedbelowoperator, InterlaceOperator, testspace,
                         testbandedbelowoperator, testbandedblockbandedoperator, testfunctional, factor
 ## This includes extra tests that are too time consuming for Travis
@@ -55,8 +55,6 @@ A=[Z                      Evaluation(S,0);
                       0         D^2+I+3u^2]
 
 ApproxFun.backend_testinfoperator(A)
-
-# This is surprisingly slow...
 
 DS=WeightedJacobi(0.1+1,0.2+1)
 D=Derivative(DS)[2:end,:]
@@ -137,19 +135,18 @@ end
 println("Full Jacobi tests")
 
 
-sp=Jacobi(.5,2.124)
-f=Fun(exp,sp)
-sp2=Jacobi(1.5,2.124)
-M=Multiplication(f,sp2)
+sp = Jacobi(.5,2.124)
+f = Fun(exp,sp)
+sp2 = Jacobi(1.5,2.124)
+M = Multiplication(f,sp2)
 @time testbandedoperator(M)
 
 
 ## Legendre conversions
-testspace(Ultraspherical(1);haslineintegral=false)
-testspace(Ultraspherical(2);haslineintegral=false)
+testspace(Ultraspherical(1); haslineintegral=false)
+testspace(Ultraspherical(2); haslineintegral=false)
 # minpoints is a tempory fix a bug
-@time testspace(Ultraspherical(1//2);haslineintegral=false,minpoints=2)
-
+@time testspace(Ultraspherical(1//2); haslineintegral=false, minpoints=2)
 @test norm(Fun(exp,Ultraspherical(1//2))-Fun(exp,Jacobi(0,0))) < 100eps()
 
 C=Conversion(Jacobi(0,0),Chebyshev())

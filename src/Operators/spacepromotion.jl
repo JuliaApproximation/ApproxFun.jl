@@ -31,7 +31,7 @@ end
 @wrappergetindex SpaceOperator
 
 # SpaceOperator can change blocks, so we need to override this
-getindex(A::SpaceOperator,KR::Range{Block},JR::Range{Block}) = defaultgetindex(A,KR,JR)
+getindex(A::SpaceOperator,KR::BlockRange, JR::BlockRange) = defaultgetindex(A,KR,JR)
 
 
 getindex(A::SpaceOperator,K::Block,J::Block) = A[blockrows(A,K),blockcols(A,J)]

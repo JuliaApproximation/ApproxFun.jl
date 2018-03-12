@@ -151,7 +151,7 @@ convert(::Type{T},S::SpaceOperator) where {T<:Number} = convert(T,S.op)
 
 ## SubOperator convert
 ## Special case for ZeroOperator
-for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzeros),
-                    (:BlockBandedMatrix,:bbzeros))
-    @eval convert(::Type{$TYP},S::SubOperator{T,ZO}) where {T,ZO<:ZeroOperator} = $ZER(S)
+for TYP in (:RaggedMatrix,:Matrix,:BandedMatrix,
+            :BlockBandedMatrix,:BandedBlockBandedMatrix)
+    @eval convert(::Type{$TYP}, S::SubOperator{T,ZO}) where {T,ZO<:ZeroOperator} = $TYP(Zeros, S)
 end

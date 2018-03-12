@@ -196,7 +196,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
     header && println(io,summary(B))
     dsp=domainspace(B)
 
-    if !isambiguous(domainspace(B)) && eltype(B) <: Number
+    if !isambiguous(domainspace(B)) && (eltype(B) <: Number)
         if isbanded(B) && isinf(size(B,1)) && isinf(size(B,2))
             BM=B[1:10,1:10]
 

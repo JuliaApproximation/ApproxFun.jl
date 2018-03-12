@@ -1,5 +1,5 @@
 export Fun, evaluate, values, points, extrapolate, setdomain
-export coefficients, ncoefficients, coefficient, nblocks
+export coefficients, ncoefficients, coefficient
 export integrate, differentiate, domain, space, linesum, linenorm
 
 include("Domain.jl")
@@ -69,7 +69,7 @@ function coefficient(f::Fun,kr::Range)
     end
 end
 
-coefficient(f::Fun,K::Block) = coefficient(f,blockrange(space(f),K.K))
+coefficient(f::Fun,K::Block) = coefficient(f,blockrange(space(f),K.n[1]))
 coefficient(f::Fun,::Colon) = coefficient(f,1:dimension(space(f)))
 
 ##Convert routines
@@ -220,7 +220,7 @@ extrapolate(f::Fun,x,y,z...) = extrapolate(f.coefficients,f.space,Vec(x,y,z...))
 values(f::Fun,dat...) = itransform(f.space,f.coefficients,dat...)
 points(f::Fun) = points(f.space,ncoefficients(f))
 ncoefficients(f::Fun) = length(f.coefficients)
-nblocks(f::Fun) = block(space(f),ncoefficients(f)).K
+nblocks(f::Fun) = block(space(f),ncoefficients(f)).n[1]
 
 function Base.stride(f::Fun)
     # Check only for stride 2 at the moment

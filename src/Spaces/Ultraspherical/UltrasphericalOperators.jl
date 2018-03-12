@@ -344,5 +344,5 @@ function getindex(M::ConcreteConversion{Ultraspherical{LT,DD,RR},
 end
 
 
-ReverseOrientation(S::Ultraspherical) = ReverseOrientationWrapper(SpaceOperator(NegateEven(),S,reverseorientation(S)))
-Reverse(S::Ultraspherical) = ReverseWrapper(SpaceOperator(NegateEven(),S,S))
+ReverseOrientation(S::Ultraspherical) = ReverseOrientationWrapper(NegateEven(S,reverseorientation(S)))
+Reverse(S::Ultraspherical) = ReverseWrapper(NegateEven(S,S))

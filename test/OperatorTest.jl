@@ -1,5 +1,5 @@
-using ApproxFun, Base.Test
-    import ApproxFun: Multiplication,InterlaceOperator
+using ApproxFun, BlockBandedMatrices,  Base.Test
+    import ApproxFun: Multiplication,InterlaceOperator, Block, ∞
     import ApproxFun: testfunctional, testbandedoperator, testraggedbelowoperator, testinfoperator, testblockbandedoperator
 
 
@@ -74,10 +74,9 @@ X=Multiplication(x,space(x))
 testbandedoperator(X)
 
 d=Interval()
-
-
 A=Conversion(Chebyshev(d),Ultraspherical(2,d))
 
+@test AbstractMatrix(view(A.op, Block.(1:3), Block.(1:3))) isa BlockBandedMatrix
 testbandedoperator(A)
 
 @test norm(A\Fun(x.*f,rangespace(A))-(x.*f)) < 100eps()
@@ -87,8 +86,9 @@ testbandedoperator(A)
 @test norm(X*f-(x.*f)) < 100eps()
 
 A=Conversion(Chebyshev(d),Ultraspherical(2,d))*X
-
 @time testbandedoperator(A)
+
+
 
 @test norm((A_mul_B_coefficients(A,f.coefficients))-coefficients(x.*f,rangespace(A))) < 100eps()
 
@@ -156,12 +156,12 @@ u=L\f
 
 ## Check mixed
 
-d=Interval()
-D=Derivative(d)
-x=Fun(identity,d)
-A=D*(x*D)
-B=D+x*D^2
-C=x*D^2+D
+d = Interval()
+D = Derivative(d)
+x = Fun(identity,d)
+A = D*(x*D)
+B = D+x*D^2
+C = x*D^2+D
 
 testbandedoperator(A)
 testbandedoperator(B)
@@ -175,21 +175,22 @@ f=Fun(exp)
 @test (B*f)(0.1) ≈ f'(0.1)+0.1*f''(0.1)
 @test (C*f)(0.1) ≈ f'(0.1)+0.1*f''(0.1)
 
+
 testbandedoperator(A-B)
 testbandedoperator(B-A)
 testbandedoperator(A-C)
 
-@test norm((A-B)[1:10,1:10]|>full)<eps()
-@test norm((B-A)[1:10,1:10]|>full)<eps()
-@test norm((A-C)[1:10,1:10]|>full)<eps()
-@test norm((C-A)[1:10,1:10]|>full)<eps()
-@test norm((C-B)[1:10,1:10]|>full)<eps()
-@test norm((B-C)[1:10,1:10]|>full)<eps()
+@test norm((A-B)[1:10,1:10]|>full) < eps()
+@test norm((B-A)[1:10,1:10]|>full) < eps()
+@test norm((A-C)[1:10,1:10]|>full) < eps()
+@test norm((C-A)[1:10,1:10]|>full) < eps()
+@test norm((C-B)[1:10,1:10]|>full) < eps()
+@test norm((B-C)[1:10,1:10]|>full) < eps()
 
 
 
 ## Cached operator
-@test cache(Derivative(Chebyshev(),2))[1,1]==0
+@test cache(Derivative(Chebyshev(),2))[1,1] == 0
 
 
 S=Chebyshev()
@@ -220,7 +221,7 @@ testbandedoperator(ApproxFun.ReverseOrientation(Chebyshev()))
 
 
 ## Sub interval
-f=Fun(exp)
+f = Fun(exp)
 
 D = Derivative(Chebyshev())
 u = D[:,2:end] \ f
@@ -238,14 +239,20 @@ u = D[1:ApproxFun.∞,2:ApproxFun.∞] \ f
 
 
 A = InterlaceOperator(Diagonal([eye(2),Derivative(Chebyshev())]))
+@test A[Block(1):Block(2), Block(1):Block(2)] isa BlockBandedMatrix
+
+@test Matrix(view(A, Block(1), Block(1))) == A[1:3,1:3]
+@test Matrix(view(A, Block(1):Block(2), Block(1):Block(2))) == A[1:4,1:4]
 testblockbandedoperator(A)
 
+
 ## Projection
-
-
 ## SubSpace test
 
 S=Chebyshev()
+SS = S|(2:5)
+@test ApproxFun.block(SS,3) == Block(4)
+
 for C in (eye(S)[3:end,:], eye(S)[3:end,1:end])
     @test ApproxFun.domaindimension(domainspace(C)) == 1
     @test union(S,domainspace(C)) == S
@@ -269,6 +276,7 @@ for C in (eye(S)[3:end,:], eye(S)[3:end,1:end])
 
     @test u ≈ f
 end
+
 
 
 ## Test Zero operator has correct bandinds

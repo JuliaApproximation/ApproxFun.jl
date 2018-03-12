@@ -3,11 +3,12 @@ using ApproxFun, Base.Test
 
 ## ODEs
 
-d=Interval(-20000.,20000.)
-x=Fun(identity,d)
-u=[Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
-u=[Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
-@time u=[Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
+d = Interval(-20000.,20000.)
+x = Fun(identity,d)
+u = [Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
+u = [Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
+@time u = [Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
+
 println("Cos/Sin: should be ~0.016920 seconds (3.19 k allocations: 12.593 MiB)")
 
 d=Interval(-1000.,5.)

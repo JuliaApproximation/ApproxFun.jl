@@ -5,6 +5,9 @@ using ApproxFun, Base.Test
 @test Fun(x->4).coefficients == [4.0]
 @test Fun(4).coefficients == [4.0]
 
+ef = Fun(exp)
+@test ef(0.1) ≈ exp(0.1)
+
 for d in (Interval(),Interval(1.,2.),Segment(1.0+im,2.0+2im))
     testspace(Chebyshev(d))
 end
@@ -127,8 +130,6 @@ f=Fun(x->cos(50acos(x)))
 
 @test Fun(Chebyshev,Float64[]).([0.,1.]) ≈ [0.,0.]
 @test Fun(Chebyshev,[])(0.) ≈ 0.
-@test Fun(x->[1.,0.])(0.) ≈ [1.,0.]
-
 
 
 

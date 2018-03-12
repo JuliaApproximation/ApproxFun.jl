@@ -412,7 +412,7 @@ function *(P::IFourierTransformPlan{T,Fourier{DD,RR}},cfs::AbstractVector{T}) wh
 end
 
 
-transform(sp::Fourier{DD,RR},vals::AbstractVector,plan) where {DD,RR} = plan*valså
+transform(sp::Fourier{DD,RR},vals::AbstractVector,plan) where {DD,RR} = plan*vals
 itransform(sp::Fourier{DD,RR},cfs::AbstractVector,plan) where {DD,RR} = plan*cfs
 
 transform(sp::Fourier{DD,RR},vals::AbstractVector) where {DD,RR} = plan_transform(sp,vals)*vals

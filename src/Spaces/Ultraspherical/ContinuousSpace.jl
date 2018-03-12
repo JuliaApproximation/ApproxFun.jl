@@ -97,7 +97,7 @@ canonicalspace(S::ContinuousSpace) = PiecewiseSpace(map(ChebyshevDirichlet{1,1},
 
 blocklengths(C::ContinuousSpace) = repeated(ncomponents(C.domain))
 
-block(C::ContinuousSpace,k)::Block = (k-1)÷ncomponents(C.domain)+1
+block(C::ContinuousSpace,k) = Block((k-1)÷ncomponents(C.domain)+1)
 
 
 ## components
@@ -231,7 +231,7 @@ blockbandinds(::Dirichlet{TensorSpace{Tuple{CD,CD},DD,RR}}) where {CD<:Chebyshev
     (0,2)
 
 colstop(B::Dirichlet{TensorSpace{Tuple{CD,CD},DD,RR}},j::Integer) where {CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR} =
-    j ≤ 3 ? 4 : 4(block(domainspace(B),j).K-1)
+    j ≤ 3 ? 4 : 4(block(domainspace(B),j).n[1]-1)
 
 
 function getindex(B::ConcreteDirichlet{TensorSpace{Tuple{CD,CD},DD,RR}},
@@ -256,8 +256,8 @@ k::Integer,j::Integer) where {CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR}
     elseif j == 5 || j ≤ 3
         zero(T)
     else
-        K = block(rs,k)
-        J = block(ds,j)
+        K = Int(block(rs,k))
+        J = Int(block(ds,j))
         m = mod(k-1,4)
         s,t =  blockstart(ds,J),  blockstop(ds,J)
         if K == J-1 && (m == 1  && j == s ||
@@ -265,15 +265,15 @@ k::Integer,j::Integer) where {CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR}
             one(T)
         elseif K == J-1 && ((m == 3 && j == s) ||
                             (m == 2 && j == t))
-            iseven(K)?one(T):-one(T)
+            iseven(K) ? one(T) : -one(T)
         elseif K == J-2 && m == 1 && j == s+1
             one(T)
         elseif K == J-2 && m == 2 && j == t-1
-            iseven(K)?one(T):-one(T)
+            iseven(K) ? one(T) : -one(T)
         elseif K == J-2 && m == 0 && j == t-1
             -one(T)
         elseif K == J-2 && m == 3 && j == s+1
-            iseven(K)?-one(T):one(T)
+            iseven(K) ? -one(T) : one(T)
         else
             zero(T)
         end
@@ -282,11 +282,11 @@ end
 
 
 function convert(::Type{BlockBandedMatrix},
-S::SubOperator{T,ConcreteDirichlet{TensorSpace{Tuple{CD,CD},DD,RR},
-        CSP,TT},
-Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR,CSP,TT}
+                 S::SubOperator{T,ConcreteDirichlet{TensorSpace{Tuple{CD,CD},DD,RR},
+                                                    CSP,TT},
+                                Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR,CSP,TT}
     P=parent(S)
-    ret=bbzeros(S)
+    ret=BlockBandedMatrix(Zeros, S)
     kr,jr=parentindexes(S)
 
     K1=block(rangespace(P),kr[1])
@@ -331,8 +331,8 @@ Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,CD<:ChebyshevDirichlet,DD<:Bivar
     end
     for K=Block(2):2:Block(min(length(ret.rows),length(ret.cols)-1))
         J = K+1  # super-diagonal block
-        N = ret.rows[K.K]
-        M = ret.cols[J.K]
+        N = ret.rows[K.n[1]]
+        M = ret.cols[J.n[1]]
         if N ≠ 0 && M ≠ 0
             # calculate shift
             k_sh = K == K1 ? kr[1]-Kr1 : 0
@@ -341,14 +341,14 @@ Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,CD<:ChebyshevDirichlet,DD<:Bivar
 
             1 ≤ 2-k_sh ≤ N && j_sh == 0 && (B[2-k_sh,1-j_sh]=1)
             1 ≤ 4-k_sh ≤ N && j_sh == 0 && (B[4-k_sh,1-j_sh]=1)
-            k_sh == 0 && 1 ≤ J.K-j_sh ≤ M && (B[1-k_sh,J.K-j_sh]=1)
-            k_sh ≤ 2 &&  1 ≤ J.K-j_sh ≤ M && (B[3-k_sh,J.K-j_sh]=1)
+            k_sh == 0 && 1 ≤ J.n[1]-j_sh ≤ M && (B[1-k_sh,J.n[1]-j_sh]=1)
+            k_sh ≤ 2 &&  1 ≤ J.n[1]-j_sh ≤ M && (B[3-k_sh,J.n[1]-j_sh]=1)
         end
     end
     for K=Block(3):2:Block(min(length(ret.rows),length(ret.cols)-1))
         J = K+1  # super-diagonal block
-        N = ret.rows[K.K]
-        M = ret.cols[J.K]
+        N = ret.rows[K.n[1]]
+        M = ret.cols[J.n[1]]
         if N ≠ 0 && M ≠ 0
             # calculate shift
             k_sh = K == K1 ? kr[1]-Kr1 : 0
@@ -357,14 +357,14 @@ Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,CD<:ChebyshevDirichlet,DD<:Bivar
 
             1 ≤ 2-k_sh ≤ N && j_sh == 0 && (B[2-k_sh,1-j_sh]=1)
             1 ≤ 4-k_sh ≤ N && j_sh == 0 && (B[4-k_sh,1-j_sh]=-1)
-            k_sh == 0 && 1 ≤ J.K-j_sh ≤ M && (B[1-k_sh,J.K-j_sh]=1)
-            1 ≤ 3-k_sh ≤ N &&  1 ≤ J.K-j_sh ≤ M && (B[3-k_sh,J.K-j_sh]=-1)
+            k_sh == 0 && 1 ≤ J.n[1]-j_sh ≤ M && (B[1-k_sh,J.n[1]-j_sh]=1)
+            1 ≤ 3-k_sh ≤ N &&  1 ≤ J.n[1]-j_sh ≤ M && (B[3-k_sh,J.n[1]-j_sh]=-1)
         end
     end
     for K=Block(2):2:Block(min(length(ret.rows),length(ret.cols)-2))
         J = K+2  # super-diagonal block
-        N = ret.rows[K.K]
-        M = ret.cols[J.K]
+        N = ret.rows[K.n[1]]
+        M = ret.cols[J.n[1]]
 
         if N ≠ 0 && M ≠ 0
             B=view(ret,K,J)
@@ -375,15 +375,15 @@ Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,CD<:ChebyshevDirichlet,DD<:Bivar
 
             1 ≤ 2-k_sh ≤ N && 1 ≤ 2-j_sh ≤ M && (B[2-k_sh,2-j_sh]=1)
             1 ≤ 4-k_sh ≤ N && 1 ≤ 2-j_sh ≤ M && (B[4-k_sh,2-j_sh]=-1)
-            k_sh == 0 && 1 ≤ J.K-j_sh-1 ≤ M && (B[1,J.K-j_sh-1]=-1)
-            1 ≤ 3-k_sh ≤ N &&  1 ≤ J.K-j_sh-1 ≤ M && (B[3-k_sh,J.K-j_sh-1]=1)
+            k_sh == 0 && 1 ≤ J.n[1]-j_sh-1 ≤ M && (B[1,J.n[1]-j_sh-1]=-1)
+            1 ≤ 3-k_sh ≤ N &&  1 ≤ J.n[1]-j_sh-1 ≤ M && (B[3-k_sh,J.n[1]-j_sh-1]=1)
         end
     end
     for K=Block(3):2:Block(min(length(ret.rows),length(ret.cols)-2))
         J = K+2
         B=view(ret,K,J)
-        N = ret.rows[K.K]
-        M = ret.cols[J.K]
+        N = ret.rows[K.n[1]]
+        M = ret.cols[J.n[1]]
 
         if N ≠ 0 && M ≠ 0
             B=view(ret,K,J)
@@ -394,8 +394,8 @@ Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,CD<:ChebyshevDirichlet,DD<:Bivar
 
             1 ≤ 2-k_sh ≤ N && 1 ≤ 2-j_sh ≤ M && (B[2-k_sh,2-j_sh]=1)
             1 ≤ 4-k_sh ≤ N && 1 ≤ 2-j_sh ≤ M && (B[4-k_sh,2-j_sh]=1)
-            k_sh == 0 && 1 ≤ J.K-j_sh-1 ≤ M && (B[1,J.K-j_sh-1]=-1)
-            1 ≤ 3-k_sh ≤ N &&  1 ≤ J.K-j_sh-1 ≤ M && (B[3-k_sh,J.K-j_sh-1]=-1)
+            k_sh == 0 && 1 ≤ J.n[1]-j_sh-1 ≤ M && (B[1,J.n[1]-j_sh-1]=-1)
+            1 ≤ 3-k_sh ≤ N &&  1 ≤ J.n[1]-j_sh-1 ≤ M && (B[3-k_sh,J.n[1]-j_sh-1]=-1)
         end
     end
 

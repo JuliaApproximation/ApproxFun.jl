@@ -24,6 +24,24 @@ end
     @test exp(im*π/4)+∞ == ∞
     @test ∞ ≠ 1
 
+    @test isless(1, ∞)
+    @test !isless(Inf, ∞)
+    @test !isless(∞, Inf)
+    @test !isless(∞, 1)
+
+    @test isless(-∞, 1)
+    @test !isless(-∞, -Inf)
+    @test !isless(-Inf, -∞)
+    @test !isless(1, -∞)
+
+
+    @test (1:∞) ∩ (2:10) == (2:10)
+    @test (2:10) ∩ (1:∞) == (2:10)
+    @test (3:∞) ∩ (2:2:10) == (4:2:10)
+    @test (2:2:10) ∩ (3:∞) == (4:2:10)
+    @test (3:3:∞) ∩ (2:2:10) == 6:6:6
+    @test (2:2:10) ∩ (3:3:∞) == 6:6:6
+
     @test maximum([1,∞]) == ∞
     @test minimum([1,∞]) == 1
 

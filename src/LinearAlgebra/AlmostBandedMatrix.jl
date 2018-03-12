@@ -5,7 +5,7 @@
 struct AlmostBandedMatrix{T} <: AbstractMatrix{T}
     bands::BandedMatrix{T}
     fill::LowRankMatrix{T}
-    function AlmostBandedMatrix{T}(bands::BandedMatrix{T},fill::LowRankMatrix{T}) where T
+    function AlmostBandedMatrix{T}(bands::BandedMatrix{T}, fill::LowRankMatrix{T}) where T
         if size(bands) ≠ size(fill)
             error("Data and fill must be compatible size")
         end
@@ -13,19 +13,21 @@ struct AlmostBandedMatrix{T} <: AbstractMatrix{T}
     end
 end
 
-AlmostBandedMatrix(bands::BandedMatrix,fill::LowRankMatrix) =
+AlmostBandedMatrix(bands::BandedMatrix, fill::LowRankMatrix) =
     AlmostBandedMatrix{promote_type(eltype(bands),eltype(fill))}(bands,fill)
 
-AlmostBandedMatrix(::Type{T},n::Integer,m::Integer,l::Integer,u::Integer,r::Integer) where {T} =
-    AlmostBandedMatrix(BandedMatrix(T,n,m,l,u),LowRankMatrix(T,n,m,r))
+AlmostBandedMatrix{T}(nm::NTuple{2,Integer}, lu::NTuple{2,Integer}, r::Integer) where {T} =
+    AlmostBandedMatrix(BandedMatrix{T}(nm,lu), LowRankMatrix{T}(nm,r))
 
 
-abzeros(::Type{T},n::Integer,m::Integer,l::Integer,u::Integer,r::Integer) where {T} =
-    AlmostBandedMatrix(bzeros(T,n,m,l,u),lrzeros(T,n,m,r))
+AlmostBandedMatrix{T}(Z::Zeros, lu::NTuple{2,Integer}, r::Integer) where {T} =
+    AlmostBandedMatrix(BandedMatrix{T}(Z, lu), LowRankMatrix{T}(Z, r))
 
+AlmostBandedMatrix(Z::AbstractMatrix, lu::NTuple{2,Integer}, r::Integer) =
+    AlmostBandedMatrix{eltype(Z)}(Z, lu, r)
 
 for MAT in (:AlmostBandedMatrix, :AbstractMatrix, :AbstractArray)
-    @eval convert(::Type{$MAT{T}},A::AlmostBandedMatrix) where {T} =
+    @eval convert(::Type{$MAT{T}}, A::AlmostBandedMatrix) where {T} =
         AlmostBandedMatrix(AbstractMatrix{T}(A.bands),AbstractMatrix{T}(A.fill))
 end
 

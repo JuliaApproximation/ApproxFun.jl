@@ -13,8 +13,8 @@ S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
 Δ=Laplacian(S)
 
 f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),rangespace(Δ))  #default is [-1,1]^2
-@time v=\(Δ,f;tolerance=1E-14)
-@test norm((Δ*v-f).coefficients)<1E-14
+@time v = \(Δ,f;tolerance=1E-14)
+@test norm((Δ*v-f).coefficients) < 1E-14
 
 
 
@@ -160,8 +160,8 @@ for col in (1,2,3,10,11,40)
     resizedata!(QR.R,:,col+100)
     resizedata!(QR,:,col)
     QR2=qrfact!(CachedOperator(RaggedMatrix,Δ;padding=true))
-    resizedata!(QR2.R,:,col+100)
-    resizedata!(QR2,:,col)
+    resizedata!(QR2.R,:,QR.ncols+100)
+    resizedata!(QR2,:,QR.ncols)
     n=min(size(QR.H,1),size(QR2.H,1))
     @test QR.H[1:n,1:col] ≈ QR2.H[1:n,1:col]
     @test QR.R[1:col,1:col] ≈ QR2.R[1:col,1:col]
@@ -172,7 +172,7 @@ QR=qrfact(Δ)
 QR2=qrfact!(CachedOperator(RaggedMatrix,Δ;padding=true))
 for col in (80,200)
     resizedata!(QR,:,col)
-    resizedata!(QR2,:,col)
+    resizedata!(QR2,:,QR.ncols)
     n=min(size(QR.H,1),size(QR2.H,1))
     @test QR.H[1:n,1:col] ≈ QR2.H[1:n,1:col]
     @test QR.R[1:col,1:col] ≈ QR2.R[1:col,1:col]

@@ -363,7 +363,7 @@ end
 
 function convert(::Type{BandedMatrix},
              S::SubOperator{T,ConcreteConversion{CC,J,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {J<:Jacobi,CC<:Chebyshev,T}
-    ret=bzeros(S)
+    ret=BandedMatrix(Zeros, S)
     kr,jr = parentindexes(S)
     k=(kr ∩ jr)
 
@@ -384,7 +384,7 @@ end
 
 function convert(::Type{BandedMatrix},
              S::SubOperator{T,ConcreteConversion{J,CC,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {J<:Jacobi,CC<:Chebyshev,T}
-    ret=bzeros(S)
+    ret=BandedMatrix(Zeros, S)
     kr,jr = parentindexes(S)
     k=(kr ∩ jr)
 
@@ -408,7 +408,7 @@ end
 
 function convert(::Type{BandedMatrix},
         S::SubOperator{T,ConcreteConversion{US,J,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {US<:Ultraspherical,J<:Jacobi,T}
-    ret=bzeros(S)
+    ret=BandedMatrix(Zeros, S)
     kr,jr = parentindexes(S)
     k=(kr ∩ jr)
 
@@ -436,7 +436,7 @@ end
 
 function convert(::Type{BandedMatrix},
         S::SubOperator{T,ConcreteConversion{J,US,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {US<:Ultraspherical,J<:Jacobi,T}
-    ret=bzeros(S)
+    ret=BandedMatrix(Zeros, S)
     kr,jr = parentindexes(S)
     k=(kr ∩ jr)
 

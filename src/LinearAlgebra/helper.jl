@@ -512,14 +512,15 @@ for TYP in (:Dual,:Number)
         ==(y::$TYP,x::Infinity) = x == y
     end
 end
-Base.isless(x::Infinity{Bool},y::Infinity{Bool}) = x.angle && !y.angle
-Base.isless(x::Number,y::Infinity{Bool}) = y.angle && (x ≠ ∞)
-Base.isless(x::Infinity{Bool},y::Number) = !x.angle && (y ≠ -∞)
-
+Base.isless(x::Infinity{Bool}, y::Infinity{Bool}) = x.angle && !y.angle
+Base.isless(x::Number, y::Infinity{Bool}) = !y.angle && x ≠ ∞
+Base.isless(x::Infinity{Bool}, y::Number) = x.angle && y ≠ -∞
+Base.isless(x::Block{1}, y::Infinity{Bool}) = isless(Int(x), y)
+Base.isless(x::Infinity{Bool}, y::Block{1}) = isless(x, Int(y))
 
 -(y::Infinity{B}) where {B<:Integer} = sign(y)==1?Infinity(one(B)):Infinity(zero(B))
 
-function +(x::Infinity{B},y::Infinity{B}) where B
+function +(x::Infinity{B}, y::Infinity{B}) where B
     if x.angle != y.angle
         error("Angles must be the same to add ∞")
     end
@@ -726,13 +727,13 @@ repeated(x,::Infinity{Bool}) = repeated(x)
 repeated(x,m::Integer) = take(repeated(x),m)
 
 
-abstract type AbstractCount{S<:Number} <: Iterator end
+abstract type AbstractCount{S} <: Iterator end
 
-struct UnitCount{S<:Number} <: AbstractCount{S}
+struct UnitCount{S} <: AbstractCount{S}
     start::S
 end
 
-struct Count{S<:Number} <: AbstractCount{S}
+struct Count{S} <: AbstractCount{S}
     start::S
     step::S
 end
