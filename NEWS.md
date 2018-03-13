@@ -3,11 +3,13 @@
 
 ### notes on release changes, ongoing development, and future planned work
 
-#### 0.7.2- (current master)
+#### 0.8 (current master)
+- In-place transform functionality for `Fourier`
+- Use BandedBlockBandedMatrices.jl for more reliable solution of PDEs
 - Adds `jumplocations` for finding discontinuities of a piecewise `Fun` (thanks lcw)
 - Adds `KroneckerDelta` (thaks marcusdavidwebb)
 - Improvements for `BigFloat` with `JacobiWeight`
-- Fix several bugs
+- Fix several bugs and performance enhancements
 
 #### 0.7.1
 - `F` was renamed `DFunction` for dynamic funtion
