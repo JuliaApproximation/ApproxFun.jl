@@ -249,9 +249,9 @@ end
 # union combines two spaces
 # this is used primarily for addition of two funs
 # that may be incompatible
-Base.union(a::AmbiguousSpace,b::AmbiguousSpace)=b
-Base.union(a::AmbiguousSpace,b::Space)=b
-Base.union(a::Space,b::AmbiguousSpace)=a
+Base.union(a::AmbiguousSpace, b::AmbiguousSpace) = b
+Base.union(a::AmbiguousSpace, b::Space) = b
+Base.union(a::Space, b::AmbiguousSpace) = a
 
 
 function union_by_union_rule(a::Space,b::Space)
@@ -263,13 +263,13 @@ function union_by_union_rule(a::Space,b::Space)
         end
     end
 
-    cr=union_rule(a,b)
+    cr = union_rule(a,b)
     cr isa NoSpace || return cr
 
     union_rule(b,a)
 end
 
-function Base.union(a::Space,b::Space)
+function Base.union(a::Space, b::Space)
     cr = union_by_union_rule(a,b)
     cr isa NoSpace || return cr
 
@@ -278,11 +278,11 @@ function Base.union(a::Space,b::Space)
     if cspa!=a || cspb!=b
         cr = union_by_union_rule(cspa,cspb)
     end
-    #TODO: Uncomment when Julia bug is fixed
-    # cr=maxspace(a,b)  #Max space since we can convert both to it
-    # if !isa(cr,NoSpace)
-    #     return cr
-    # end
+    # TODO: Uncomment when Julia bug is fixed
+    cr=maxspace(a,b)  #Max space since we can convert both to it
+    if !isa(cr,NoSpace)
+        return cr
+    end
 
     a ⊕ b
 end

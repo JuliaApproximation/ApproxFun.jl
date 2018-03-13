@@ -70,18 +70,8 @@ using ApproxFun, Compat.Test
         @test cumsum(ApproxFun.Flatten(([3],ApproxFun.repeated(2)))).it[2] ==
             ApproxFun.Count(5,2)
 
-<<<<<<< HEAD
-@test 0.45-0.65im ∉ Segment()
-@test cumsum(ApproxFun.Flatten(([3],ApproxFun.repeated(2)))).it[2] ==
-    ApproxFun.Count(5,2)
-@test reverse(Arc(1,2,(0.1,0.2))) == Arc(1,2,(0.2,0.1))
-@test 0.1 ∈ PeriodicInterval(2π,0)
-@test 100.0 ∈ PeriodicInterval(0,2π)
-@test -100.0 ∈ PeriodicInterval(0,2π)
-=======
         @test cache(ApproxFun.BlockInterlacer((1:∞,[2],[2])))[1:6] ==
             [(1,1),(2,1),(2,2),(3,1),(3,2),(1,2)]
->>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
 
         @test collect(ApproxFun.BlockInterlacer(([2],[2],[2]))) ==
             [(1,1),(1,2),(2,1),(2,2),(3,1),(3,2)]
@@ -91,45 +81,34 @@ using ApproxFun, Compat.Test
 end
 
 @testset "Domain" begin
-    @test 0.45-0.65im ∉ Interval()
+    @test 0.45-0.65im ∉ Segment()
 
     @test reverse(Arc(1,2,(0.1,0.2))) == Arc(1,2,(0.2,0.1))
     @test 0.1 ∈ PeriodicInterval(2π,0)
     @test 100.0 ∈ PeriodicInterval(0,2π)
     @test -100.0 ∈ PeriodicInterval(0,2π)
 
-<<<<<<< HEAD
-@test ApproxFun.AnySegment() == ApproxFun.AnySegment()
-=======
+
+    @test ApproxFun.AnySegment() == ApproxFun.AnySegment()
+
     @test 10.0 ∈ PeriodicLine()
     @test -10.0 ∈ PeriodicLine()
     @test -10.0+im ∉ PeriodicLine()
->>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
 
     @test ApproxFun.Vec(0,0.5) ∈ PeriodicInterval(ApproxFun.Vec(0.0,0), ApproxFun.Vec(0,1))
 
-<<<<<<< HEAD
-@test ApproxFun.dimension(Domain{Float64}) == 1
-@test ApproxFun.dimension(Segment{Float64}) == 1
-@test ApproxFun.dimension(ChebyshevInterval()) == 1
-@test ApproxFun.dimension(ChebyshevInterval()^2) == 2
-@test ApproxFun.dimension(ChebyshevInterval()^3) == 3
-=======
+    @test ApproxFun.dimension(Domain{Float64}) == 1
+    @test ApproxFun.dimension(Segment{Float64}) == 1
+    @test ApproxFun.dimension(ChebyshevInterval()) == 1
+    @test ApproxFun.dimension(ChebyshevInterval()^2) == 2
+    @test ApproxFun.dimension(ChebyshevInterval()^3) == 3
+
     @test ApproxFun.Vec(1,0) ∈ Circle((0.,0.),1.)
->>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
 
     @test isambiguous(convert(ApproxFun.Point,ApproxFun.AnyDomain()))
     @test isambiguous(ApproxFun.Point(ApproxFun.AnyDomain()))
 
-    @test ApproxFun.AnySegment() == ApproxFun.AnySegment()
-    @test ApproxFun.Point(NaN) == ApproxFun.Point(NaN)
-
-
-    @test ApproxFun.dimension(Domain{Float64}) == 1
-    @test ApproxFun.dimension(Segment{Float64}) == 1
-    @test ApproxFun.dimension(Interval()) == 1
-    @test ApproxFun.dimension(Interval()^2) == 2
-    @test ApproxFun.dimension(Interval()^3) == 3
+    @test_skip ApproxFun.Point(NaN) == ApproxFun.Point(NaN)
 end
 
 @time include("MatrixTest.jl")

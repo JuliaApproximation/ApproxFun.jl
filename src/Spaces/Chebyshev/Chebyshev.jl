@@ -17,7 +17,7 @@ struct Chebyshev{D<:Domain,R} <: PolynomialSpace{D,R}
 end
 
 Chebyshev(d::Domain) = Chebyshev{typeof(d),real(prectype(d))}(d)
-Chebyshev() = Chebyshev{Segment{Float64},Float64}()
+Chebyshev() = Chebyshev(ChebyshevInterval())
 Chebyshev(d) = Chebyshev(Domain(d))
 
 
