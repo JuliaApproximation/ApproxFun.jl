@@ -106,7 +106,7 @@ where $\lambda_i$ is the $i^{th}$ eigenvalue of the $L$ and has a corresponding 
 $$L = -\frac{1}{2}\frac{d^2}{dx^2} + \frac{1}{2} x^2$$
 and one demands that $u(\infty) = u(-\infty) = 0$. Because we expect the solutions to be exponentially suppressed for large $x$, we can approximate this with Dirichlet boundary conditions at a 'reasonably large' $x$ without much difference. 
 
-We can express this in `ApproxFun` as the following:
+We can express this in ApproxFun as the following:
 ```jldoctest
 x = Fun(-8 .. 8)
 L = -𝒟^2/2 + x^2/2
@@ -119,6 +119,8 @@ note that boundary conditions must be specified in the call to `eigs`. Plotting 
 ![harmonic_eigs](../assets/Harmonic_eigs.pdf)
 
 If the solutions are not relatively constant near the boundary then one should push the boundaries further out. 
+
+For problems with different contraints or boundary conditions, B can be any zero functional constraint, eg. `DefiniteIntegra()`.
 
 ## Systems of equations
 
