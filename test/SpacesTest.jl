@@ -316,6 +316,13 @@ using ApproxFun, Compat.Test
         @test exp(f)(0.1) ≈ exp(cos(50*0.1))
         @test exp(f)(2.0) ≈ exp(1)
 
+        @test iszero(sign(-Fun(zero)))
+        @test iszero(sign(Fun(zero)))
+        @test iszero(abs(-Fun(zero)))
+        @test iszero(abs(Fun(zero)))
+        @test angle(-Fun(zero)) ≈ Fun(π)
+        @test iszero(angle(Fun(zero)))
+
         @test sign(f)(0.1) ≈ sign(cos(50*0.1))
         @test sign(f)(2.0) ≈ 1
         @test abs(f)(0.1) ≈ abs(cos(50*0.1))
