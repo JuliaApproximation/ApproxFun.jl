@@ -116,7 +116,7 @@ B = Dirichlet(S)
 ```
 note that boundary conditions must be specified in the call to `eigs`. Plotting the first $20$ eigenfunctions offset vertically by their eigenvalue, we see
 
-![ode_tutorial_linear_plot](../assets/Harmonic_eigs.pdf)
+![harmonic_eigs](../assets/Harmonic_eigs.pdf)
 
 If the solutions are not relatively constant near the boundary then one should push the boundaries further out. 
 
