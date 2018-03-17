@@ -478,103 +478,13 @@ slnorm(m::AbstractMatrix,k::Integer,::Colon) = slnorm(m,k,1:size(m,2))
 slnorm(m::AbstractMatrix,::Colon,j::Integer) = slnorm(m,1:size(m,1),j)
 
 
-
-## New Inf
-
-# angle is π*a where a is (false==0) and (true==1)
-struct Infinity{T}
-    angle::T
-end
-
-Infinity() = Infinity(false)
-const ∞ = Infinity()
+## Infinity
 
 
-Base.isinf(::Infinity) = true
-Base.isfinite(::Infinity) = false
-Base.sign(y::Infinity{B}) where {B<:Integer} = mod(y.angle,2)==0 ? 1 : -1
-Base.angle(x::Infinity) = π*x.angle
-
-function Base.show(io::IO, y::Infinity{B}) where B<:Integer
-    if sign(y) == 1
-        print(io, "∞")
-    else
-        print(io, "-∞")
-    end
-end
-
-Base.show(io::IO,x::Infinity) = print(io,"$(exp(im*π*x.angle))∞")
-
-==(x::Infinity,y::Infinity) = x.angle == y.angle
-for TYP in (:Dual,:Number)
-    @eval begin
-        ==(x::Infinity,y::$TYP) = isinf(y) && angle(y) == angle(x)
-        ==(y::$TYP,x::Infinity) = x == y
-    end
-end
-Base.isless(x::Infinity{Bool}, y::Infinity{Bool}) = x.angle && !y.angle
-Base.isless(x::Number, y::Infinity{Bool}) = !y.angle && x ≠ ∞
-Base.isless(x::Infinity{Bool}, y::Number) = x.angle && y ≠ -∞
 Base.isless(x::Block{1}, y::Infinity{Bool}) = isless(Int(x), y)
 Base.isless(x::Infinity{Bool}, y::Block{1}) = isless(x, Int(y))
 
--(y::Infinity{B}) where {B<:Integer} = sign(y)==1?Infinity(one(B)):Infinity(zero(B))
 
-function +(x::Infinity{B}, y::Infinity{B}) where B
-    if x.angle != y.angle
-        error("Angles must be the same to add ∞")
-    end
-    x
-end
-
-for T in (:BlasFloat,:Integer,:(Complex{Int}))
-    @eval begin
-        +(::$T,y::Infinity) = y
-        +(y::Infinity,::$T) = y
-        -(y::Infinity,::$T) = y
-        -(::$T,y::Infinity) = -y
-    end
-end
-
-
-# ⊻ is xor
-*(a::Infinity{Bool},b::Infinity{Bool}) = Infinity(a.angle ⊻ b.angle)
-*(a::Infinity,b::Infinity) = Infinity(a.angle + b.angle)
-
-for T in (:Dual,:Bool,:Integer,:AbstractFloat)
-    @eval begin
-        *(a::$T,y::Infinity) = a>0?y:(-y)
-        *(y::Infinity,a::$T) = a*y
-    end
-end
-
-*(a::Number,y::Infinity) = Infinity(y.angle+angle(a)/π)
-*(y::Infinity,a::Number) = a*y
-
-for OP in (:fld,:cld,:div)
-  @eval Base.$OP(y::Infinity,a::Number) = y*(1/sign(a))
-end
-
-Base.min(x::Infinity{B},y::Infinity{B}) where {B<:Integer} = sign(x)==-1?x:y
-Base.max(x::Infinity{B},::Infinity{B}) where {B<:Integer} = sign(x)==1?x:y
-Base.min(x::Real,y::Infinity{B}) where {B<:Integer} = sign(y)==1?x:y
-Base.min(x::Infinity{B},y::Real) where {B<:Integer} = min(y,x)
-Base.max(x::Real,y::Infinity{B}) where {B<:Integer} = sign(y)==1?y:x
-Base.max(x::Infinity{B},y::Real) where {B<:Integer} = max(y,x)
-
-for OP in (:<,:<=)
-    @eval begin
-        $OP(x::Real,y::Infinity{B}) where {B<:Integer} = sign(y)==1
-        $OP(y::Infinity{B},x::Real) where {B<:Integer} = sign(y)==-1
-    end
-end
-
-for OP in (:>,:>=)
-    @eval begin
-        $OP(x::Real,y::Infinity{B}) where {B<:Integer} = sign(y)==-1
-        $OP(y::Infinity{B},x::Real) where {B<:Integer} = sign(y)==1
-    end
-end
 
 
 abstract type Iterator end
