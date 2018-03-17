@@ -5,15 +5,15 @@
 
 export ProductFun
 
-struct ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,SS<:AbstractProductSpace,T}<:BivariateFun{T}
+struct ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,SS<:AbstractProductSpace,T} <: BivariateFun{T}
     coefficients::Vector{VFun{S,T}}     # coefficients are in x
     space::SS
 end
 
-ProductFun(cfs::Vector{VFun{S,T}},sp::AbstractProductSpace{Tuple{S,V},DD}) where {S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,DD<:BivariateDomain} =
+ProductFun(cfs::Vector{VFun{S,T}},sp::AbstractProductSpace{Tuple{S,V},DD}) where {S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,DD} =
     ProductFun{S,V,typeof(sp),T}(cfs,sp)
 ProductFun(cfs::Vector{VFun{S,T}},sp::AbstractProductSpace{Tuple{W,V},DD}) where {S<:UnivariateSpace,V<:UnivariateSpace,
-         W<:UnivariateSpace,T<:Number,DD<:BivariateDomain} =
+         W<:UnivariateSpace,T<:Number,DD} =
    ProductFun{W,V,typeof(sp),T}(VFun{W,T}[Fun(cfs[k],columnspace(sp,k)) for k=1:length(cfs)],sp)
 
 Base.size(f::ProductFun,k::Integer) =
@@ -23,7 +23,7 @@ Base.size(f::ProductFun) = (size(f,1),size(f,2))
 ## Construction in an AbstractProductSpace via a Matrix of coefficients
 
 function ProductFun(cfs::AbstractMatrix{T},sp::AbstractProductSpace{Tuple{S,V},DD};
-  tol::Real=100eps(T),chopping::Bool=false) where {S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,DD<:BivariateDomain}
+  tol::Real=100eps(T),chopping::Bool=false) where {S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,DD}
     if chopping
         ncfs,kend=norm(cfs,Inf),size(cfs,2)
         if kend > 1 while isempty(chop(cfs[:,kend],ncfs*tol)) kend-=1 end end
@@ -72,7 +72,7 @@ ProductFun(f::Function,dx::Space,dy::Space)=ProductFun(dynamic(f),TensorSpace(dx
 
 ## Domains promoted to Spaces
 
-ProductFun(f::Function,D::BivariateDomain,M::Integer,N::Integer) = ProductFun(dynamic(f),Space(D),M,N)
+ProductFun(f::Function,D::Domain,M::Integer,N::Integer) = ProductFun(dynamic(f),Space(D),M,N)
 ProductFun(f::Function,d::Domain) = ProductFun(dynamic(f),Space(d))
 ProductFun(f::Function,dx::UnivariateDomain,dy::UnivariateDomain) = ProductFun(dynamic(f),Space(dx),Space(dy))
 ProductFun(f::Function) = ProductFun(dynamic(f),Interval(),Interval())
@@ -174,6 +174,7 @@ function coefficients(f::ProductFun,ox::Space,oy::Space)
 end
 
 (f::ProductFun)(x,y) = evaluate(f,x,y)
+(f::ProductFun)(x,y,z) = evaluate(f,x,y,z)
 
 coefficients(f::ProductFun,ox::TensorSpace) = coefficients(f,ox[1],ox[2])
 
@@ -208,6 +209,7 @@ canonicalevaluate(f::ProductFun,xx::AbstractVector,yy::AbstractVector) =
 
 
 evaluate(f::ProductFun,x,y) = canonicalevaluate(f,tocanonical(f,x,y)...)
+evaluate(f::ProductFun,x,y,z) = canonicalevaluate(f,tocanonical(f,x,y,z)...)
 
 # TensorSpace does not use map
 evaluate(f::ProductFun{S,V,SS,T},x::Number,::Colon) where {S<:UnivariateSpace,V<:UnivariateSpace,SS<:TensorSpace,T} =
