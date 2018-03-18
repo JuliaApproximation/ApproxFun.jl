@@ -1,3 +1,4 @@
+
 using ApproxFun, Compat.Test
 
 @testset "BigFloat" begin
@@ -23,10 +24,12 @@ using ApproxFun, Compat.Test
 
     @testset "BigFloat roots" begin
         a = Fun(Segment{BigFloat}(),BigFloat[1,2,3])
-        @test norm(a.(roots(a))) == 0
+        # 12 is some bound on how accurately the polynomial can be evaluated
+        # near its roots, where its evaluation is ill-conditioned
+        @test norm(a.(roots(a))) ≤ 12eps(BigFloat)
 
         a = Fun(Taylor(Circle(BigFloat)),BigFloat[0.5,2,3])
-        @test norm(a.(complexroots(a)))  ≤ eps(BigFloat)
+        @test norm(a.(complexroots(a)))  ≤ 12eps(BigFloat)
     end
 
     @testset "BigFloat relative tolerance bug test Issue #557" begin
@@ -44,4 +47,6 @@ using ApproxFun, Compat.Test
         @test f(10.0) ≈ 10.0^(ν/2-1) * exp(-10.0/2) rtol=eps()
         @test_skip (cumsum(f)(10.0) - ex_mathematica)/ex_mathematica ≤ eps()
     end
+ 
 end
+
