@@ -10,14 +10,14 @@ end
 
 function abs(f::Fun{S,T}) where {S<:RealUnivariateSpace,T<:Real}
     d=domain(f)
-    pts=roots(f)
+    pts = iszero(f) ? T[] : roots(f)
     splitmap(x->abs(f(x)),d,pts)
 end
 
 function abs(f::Fun)
     d=domain(f)
 
-    pts=roots(f)
+    pts = iszero(f) ? eltype(f)[] : roots(f)
 
     if isempty(pts)
         # This makes sure Laurent returns real type
@@ -36,7 +36,7 @@ for OP in (:sign,:angle)
     @eval function $OP(f::Fun{S,T}) where {S<:RealUnivariateSpace,T<:Real}
         d=domain(f)
 
-        pts=roots(f)
+        pts = iszero(f) ? T[] : roots(f)
 
         if isempty(pts)
             $OP(first(f))*one(f)
@@ -53,7 +53,7 @@ for op in (:(max),:(min))
         function $op(f::Fun{S,T1},g::Fun{V,T2}) where {S<:RealUnivariateSpace,V<:RealUnivariateSpace,T1<:Real,T2<:Real}
             h=f-g
             d=domain(h)
-            pts=roots(h)
+            pts=iszero(h)?eltype(h)[]:roots(h)
             splitmap(x->$op(f(x),g(x)),d,pts)
         end
         $op(f::Fun{S,T},g::Real) where {S<:RealUnivariateSpace,T<:Real} = $op(f,Fun(g,domain(f)))

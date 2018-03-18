@@ -61,6 +61,10 @@ using ApproxFun, Compat.Test
     f=max(-1,g)
     f2=min(f,1)
 
+
+    @test norm(max(x,x)-x)<100eps()
+    @test norm(min(x,x)-x)<100eps()
+
     f3=Fun(x->x<-0.05?-1.0:(x<0.45?4*(x-.2):1),Domain(-1..1) \ [-0.05,0.45])
     @test norm(f2.(linspace(-1,1,10))-f3.(linspace(-1,1,10))) < 2eps()
 
@@ -315,6 +319,13 @@ using ApproxFun, Compat.Test
 
         @test exp(f)(0.1) ≈ exp(cos(50*0.1))
         @test exp(f)(2.0) ≈ exp(1)
+
+        @test iszero(sign(-Fun(zero)))
+        @test iszero(sign(Fun(zero)))
+        @test iszero(abs(-Fun(zero)))
+        @test iszero(abs(Fun(zero)))
+        @test angle(-Fun(zero)) ≈ Fun(π)
+        @test iszero(angle(Fun(zero)))
 
         @test sign(f)(0.1) ≈ sign(cos(50*0.1))
         @test sign(f)(2.0) ≈ 1
