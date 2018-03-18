@@ -10,11 +10,11 @@ hasnumargs(f,k) = applicable(f,zeros(k)...)
 
 
 isapprox(a,b;kwds...) = Base.isapprox(a,b;kwds...)
-isapprox(a::Vec,b::Vec;kwds...) = isapprox([a...],[b...];kwds...)
+isapprox(a::Vec,b::Vec;kwds...) = isapprox(collect(a),collect(b);kwds...)
 
 # fast implementation of isapprox with atol a non-keyword argument in most cases
 isapprox_atol(a,b,atol;kwds...) = isapprox(a,b;atol=atol,kwds...)
-isapprox_atol(a::Vec,b::Vec,atol::Real=0;kwds...) = isapprox_atol([a...],[b...],atol;kwds...)
+isapprox_atol(a::Vec,b::Vec,atol::Real=0;kwds...) = isapprox_atol(collect(a),collect(b),atol;kwds...)
 function isapprox_atol(x::Number, y::Number, atol::Real=0; rtol::Real=Base.rtoldefault(x,y))
     x == y || (isfinite(x) && isfinite(y) && abs(x-y) <= atol + rtol*max(abs(x), abs(y)))
 end
@@ -492,7 +492,7 @@ const ∞ = Infinity()
 
 Base.isinf(::Infinity) = true
 Base.isfinite(::Infinity) = false
-Base.sign(y::Infinity{B}) where {B<:Integer} = mod(y.angle,2)==0?1:-1
+Base.sign(y::Infinity{B}) where {B<:Integer} = mod(y.angle,2)==0 ? 1 : -1
 Base.angle(x::Infinity) = π*x.angle
 
 function Base.show(io::IO, y::Infinity{B}) where B<:Integer
@@ -512,14 +512,15 @@ for TYP in (:Dual,:Number)
         ==(y::$TYP,x::Infinity) = x == y
     end
 end
-Base.isless(x::Infinity{Bool},y::Infinity{Bool}) = x.angle && !y.angle
-Base.isless(x::Number,y::Infinity{Bool}) = y.angle && (x ≠ ∞)
-Base.isless(x::Infinity{Bool},y::Number) = !x.angle && (y ≠ -∞)
-
+Base.isless(x::Infinity{Bool}, y::Infinity{Bool}) = x.angle && !y.angle
+Base.isless(x::Number, y::Infinity{Bool}) = !y.angle && x ≠ ∞
+Base.isless(x::Infinity{Bool}, y::Number) = x.angle && y ≠ -∞
+Base.isless(x::Block{1}, y::Infinity{Bool}) = isless(Int(x), y)
+Base.isless(x::Infinity{Bool}, y::Block{1}) = isless(x, Int(y))
 
 -(y::Infinity{B}) where {B<:Integer} = sign(y)==1?Infinity(one(B)):Infinity(zero(B))
 
-function +(x::Infinity{B},y::Infinity{B}) where B
+function +(x::Infinity{B}, y::Infinity{B}) where B
     if x.angle != y.angle
         error("Angles must be the same to add ∞")
     end
@@ -575,6 +576,16 @@ for OP in (:>,:>=)
     end
 end
 
+
+abstract type Iterator end
+
+
+function Base.findfirst(testf::Function, A::Iterator)
+    for (k,v) in enumerate(A)
+        testf(v) && return k
+    end
+    return 0
+end
 
 # Take -- iterate through the first n elements
 
@@ -655,7 +666,7 @@ pad(it::Take,n::Integer) = pad!(collect(it),n)
 # Re-implementation of Base iterators
 # to use ∞ and allow getindex
 
-abstract type AbstractRepeated{T} end
+abstract type AbstractRepeated{T} <: Iterator end
 
 Base.eltype(::Type{AbstractRepeated{T}}) where {T} = T
 Base.eltype(::Type{R}) where {R<:AbstractRepeated} = eltype(super(R))
@@ -716,13 +727,13 @@ repeated(x,::Infinity{Bool}) = repeated(x)
 repeated(x,m::Integer) = take(repeated(x),m)
 
 
-abstract type AbstractCount{S<:Number} end
+abstract type AbstractCount{S} <: Iterator end
 
-struct UnitCount{S<:Number} <: AbstractCount{S}
+struct UnitCount{S} <: AbstractCount{S}
     start::S
 end
 
-struct Count{S<:Number} <: AbstractCount{S}
+struct Count{S} <: AbstractCount{S}
     start::S
     step::S
 end
@@ -764,6 +775,8 @@ Base.minimum(it::Count{S}) where {S<:Real} = it.step < 0 ? -∞ : it.start
 Base.sum(it::UnitCount) = ∞
 Base.sum(it::Count) = it.step > 0 ? ∞ : -∞
 
+@inline Base.first(it::AbstractCount) = it.start
+
 Base.last(it::UnitCount{S}) where {S<:Real} = ∞
 Base.last(it::Count{S}) where {S<:Real} =
     it.step > 0 ? ∞ : (it.step < 0 ? -∞ : error("zero step not supported"))
@@ -793,8 +806,18 @@ end
 
 
 
+Base.intersect(a::UnitCount, b::UnitCount) = UnitCount(max(first(a), first(b)))
+Base.intersect(a::AbstractCount, b::AbstractCount) = error("Not implemented")
 
-struct CumSumIterator{CC}
+Base.intersect(a::UnitCount, b::Range) = intersect(first(a):last(b), b)
+Base.intersect(a::Range, b::UnitCount) = intersect(a, first(b):last(a))
+
+Base.intersect(a::Count, b::Range) = intersect(first(a):step(a):last(b), b)
+Base.intersect(a::Range, b::Count) = intersect(a, first(b):step(b):last(a))
+
+
+
+struct CumSumIterator{CC} <: Iterator
     iterator::CC
 end
 
@@ -828,7 +851,7 @@ columnrange(A,row::Integer) = max(1,row+bandinds(A,1)):row+bandinds(A,2)
 
 
 ## Store iterator
-mutable struct CachedIterator{T,IT,ST}
+mutable struct CachedIterator{T,IT,ST} <: Iterator
     iterator::IT
     storage::Vector{T}
     state::ST
@@ -1162,7 +1185,8 @@ end
 Base.cumsum(r::Repeated) = r.x:r.x:(r.x>0?∞:-∞)
 Base.cumsum(r::Repeated{Bool}) = 1:∞
 Base.cumsum(r::ZeroRepeated) = r
-Base.cumsum(r::AbstractCount) = CumSumIterator(r)
+Base.cumsum(r::Iterator) = CumSumIterator(r)
+
 
 
 
@@ -1215,3 +1239,17 @@ macro nocat(x)
     end
     esc(ex)
 end
+
+
+
+## Dynamic functions
+
+struct DFunction <: Function
+    f
+end
+(f::DFunction)(args...) = f.f(args...)
+
+hasnumargs(f::DFunction, k) = hasnumargs(f.f, k)
+
+dynamic(f) = f
+dynamic(f::Function) = DFunction(f) # Assume f has to compile every time

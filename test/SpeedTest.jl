@@ -1,4 +1,4 @@
-using ApproxFun, Base.Test
+using ApproxFun, Compat.Test
 
 
 c = rand(1000)

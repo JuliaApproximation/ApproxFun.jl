@@ -52,7 +52,7 @@ for OP in (:(Base.done),:(Base.stride))
     @eval $OP(f::Fun{<:ArraySpace},k) = $OP(space(f),k)
 end
 
-getindex(f::ArraySpace,k...) = component(f,k...)
+getindex(f::ArraySpace,k...) = Space(component(f,k...))
 Base.next(f::Fun{<:ArraySpace},k)=f[k],k+1
 
 
@@ -62,6 +62,11 @@ dimension(AS::ArraySpace) = mapreduce(dimension,+,AS.spaces)
 # TODO: union domain
 domain(AS::ArraySpace) = domain(AS.spaces[1])
 setdomain(A::ArraySpace,d::Domain) = ArraySpace(map(sp->setdomain(sp,d),A.spaces))
+
+
+
+# support for Array of PiecewiseSpace
+
 
 ## transforms
 
@@ -76,7 +81,7 @@ transform(AS::ArraySpace{SS,1},vals::AbstractVector{Vector{V}}) where {SS,V} =
 function transform(AS::ArraySpace{SS,1,T},M::AbstractArray{V,2}) where {SS,T,V<:Number}
     n=length(AS)
 
-    @assert size(M,2)==n
+    @assert size(M,2) == n
     plan = plan_transform(AS.spaces[1],M[:,1])
     cfs=Vector{V}[plan*M[:,k]  for k=1:size(M,2)]
 
@@ -90,6 +95,13 @@ transform(AS::VectorSpace{SS},vals::AbstractVector{AV}) where {SS,AV<:AbstractVe
     transform(AS,map(Vector,vals))
 transform(AS::VectorSpace{SS},vals::AbstractVector{Vec{V,n}}) where {SS,n,V} =
     transform(AS,map(Vector,vals))
+
+function itransform(AS::VectorSpace,cfs::AbstractVector)
+    vf = vec(Fun(AS, cfs))
+    n = maximum(ncoefficients, vf)
+    vcat.(values.(pad!.(vf, n))...)
+end
+
 
 Base.vec(AS::ArraySpace) = ArraySpace(vec(AS.spaces))
 Base.vec(f::Fun{ArraySpace{S,n,DD,RR}}) where {S,n,DD,RR} =
@@ -227,3 +239,12 @@ Base.ones(A::ArraySpace) = Fun(ones.(spaces(A)))
 
 const EuclideanSpace{RR} = VectorSpace{ConstantSpace{AnyDomain},AnyDomain,RR}
 EuclideanSpace(n::Integer) = ArraySpace(ConstantSpace(Float64),n)
+
+
+
+
+## support pieces
+
+npieces(f::Fun{<:ArraySpace}) = npieces(f[1])
+piece(f::Fun{<:ArraySpace}, k) = Fun(piece.(Array(f),k))
+pieces(f::Fun{<:ArraySpace}) = [piece(f,k) for k=1:npieces(f)]

@@ -1,13 +1,26 @@
 __precompile__()
 
 module ApproxFun
-    using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers, BandedMatrices, IntervalSets, Compat
+    using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers,
+            BlockArrays, BandedMatrices, BlockBandedMatrices, IntervalSets, Compat
     import StaticArrays, ToeplitzMatrices, Calculus
 
-import Base.LinAlg: BlasInt, BlasFloat, norm
+if VERSION < v"0.7-"
+    using Base.FFTW
+    import Base.FFTW: Plan
+    import Base.FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
+                    r2r!, r2r
+else
+    using AbstractFFTs, FFTW
+    import AbstractFFTs: Plan
+    import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
+                    r2r!, r2r
+end
+
+import Base.LinAlg: BlasInt, BlasFloat, norm, A_ldiv_B!
 
 import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, !=, eltype, start, next, done,
-                >=, /, ^, \, ∪, transpose, size, to_indexes, reindex, tail, broadcast, broadcast!
+                >=, /, ^, \, ∪, transpose, size, to_indexes, reindex, tail, broadcast, broadcast!, copy!, to_index
 
 
 # we need to import all special functions to use Calculus.symbolic_derivatives_1arg
@@ -26,21 +39,46 @@ import Base: sinpi, cospi, airy, besselh, exp,
                     atan, acos, asin, erfc, inv
 
 
-import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, bandshift,
+import BlockArrays: nblocks, blocksize, global2blockindex, globalrange, BlockSizes
+
+import BandedMatrices: bandinds, bandrange, PrintShow, bandshift,
                         inbands_getindex, inbands_setindex!, bandwidth, AbstractBandedMatrix,
                         dot, dotu, normalize!, flipsign,
                         colstart, colstop, colrange, rowstart, rowstop, rowrange,
-                        bandwidths, αA_mul_B_plus_βC!, showarray
+                        bandwidths, showarray, _BandedMatrix, BandedMatrix
+
+import BlockBandedMatrices: blockbandwidth, blockbandwidths, blockcolstop, blockcolrange,
+                            blockcolstart, blockrowstop, blockrowstart, blockrowrange,
+                            subblockbandwidth, subblockbandwidths, _BlockBandedMatrix,
+                            _BandedBlockBandedMatrix, BandedBlockBandedMatrix, BlockBandedMatrix,
+                            isblockbanded, isbandedblockbanded, bb_numentries, BlockBandedSizes,
+                            BandedBlockBandedSizes
+
+# convenience for 1-d block ranges
+const BlockRange1 = BlockRange{1,Tuple{UnitRange{Int}}}
 
 import Base: view
 
 import StaticArrays: SVector
 
+import AbstractFFTs: Plan
+
+if VERSION < v"0.7-"
+    using Base.FFTW
+    import Base.FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
+                    r2r!, r2r
+else
+    using FFTW
+    import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
+                    r2r!, r2r
+end
+
+
 const Vec{d,T} = SVector{d,T}
 
 export pad!, pad, chop!, sample,
        complexroots, roots, svfft, isvfft,
-       reverseorientation
+       reverseorientation, jumplocations
 
 ##Testing
 export bisectioninv

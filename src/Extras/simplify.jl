@@ -9,7 +9,7 @@
 # to recognize M[f,C^(1)] Conversion(T,C^(1))==Conversion(T,C^(1))M[f,T]
 ##
 
-simplifytimes(A::Operator,B::Operator) = isconstop(A)||isconstop(B)?A*B:[A;B]
+simplifytimes(A::Operator,B::Operator) = isconstop(A)||isconstop(B) ? A*B : [A;B]
 simplifytimes(A::Operator,B::AbstractVector) = [simplifytimes(A,B[1]);B[2:end]]
 simplifytimes(A::AbstractVector,B::Operator) = [A[1:end-1];simplifytimes(A[end],B)]
 function simplifytimes(A::ConstantOperator,B::ConstantOperator)

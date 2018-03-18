@@ -26,12 +26,8 @@ function LeftIntegral(S::Jacobi,k)
 end
 
 function LeftIntegral(S::Ultraspherical,k)
-    if order(S) == 1/2
-        LeftIntegralWrapper(SpaceOperator(LeftIntegral(Jacobi(S),k),S,S),0.5)
-    else
-        J = Jacobi(S)
-        LeftIntegralWrapper(LeftIntegral(J,k)*Conversion(S,J),0.5)
-    end
+    J = Jacobi(S)
+    LeftIntegralWrapper(LeftIntegral(J,k)*Conversion(S,J),0.5)
 end
 
 LeftIntegral(S::Chebyshev,k) = LeftIntegralWrapper(
@@ -97,15 +93,15 @@ jacobi_frac_getindex(c::Number,α,μ,k::Integer,j::Integer) =
 
 function LeftIntegral(S::JacobiWeight{Jacobi{DD,RR}},k) where {DD,RR}
     J=S.space
-    @assert S.α==0
-    @assert S.β==J.b
+    @assert S.α ≈ 0
+    @assert S.β ≈ J.b
     ConcreteLeftIntegral(S,k)
 end
 
 function RightIntegral(S::JacobiWeight{Jacobi{DD,RR}},k) where {DD,RR}
     J=S.space
-    @assert S.α==J.a
-    @assert S.β==0
+    @assert S.α ≈ J.a
+    @assert S.β ≈ 0
     ConcreteRightIntegral(S,k)
 end
 
@@ -133,7 +129,7 @@ end
 
 
 #DLMF18.17.9
-function rangespace(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR},Float64}) where {DD<:Segment,RR}
+function rangespace(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR,TT},Float64}) where {DD<:Segment,RR,TT}
     μ=Q.order
     S=domainspace(Q)
     J=S.space
@@ -144,7 +140,7 @@ function rangespace(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR},Fl
     end
 end
 
-function rangespace(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR},Float64}) where {DD<:Segment,RR}
+function rangespace(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR,TT},Float64}) where {DD<:Segment,RR,TT}
     μ=Q.order
     S=domainspace(Q)
     J=S.space
@@ -158,13 +154,13 @@ function rangespace(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR},F
 end
 
 for TYP in (:ConcreteLeftIntegral,:ConcreteRightIntegral)
-    @eval bandinds(Q::$TYP{JacobiWeight{Jacobi{DD,RR},DD,RR},Float64}) where {DD<:Segment,RR}=(0,0)
+    @eval bandinds(Q::$TYP{JacobiWeight{Jacobi{DD,RR},DD,RR,TT},Float64}) where {DD<:Segment,RR,TT} = (0,0)
 end
 
-getindex(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR},Float64},k::Integer,j::Integer) where {DD<:Segment,RR} =
+getindex(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR,TT},Float64},k::Integer,j::Integer) where {DD<:Segment,RR,TT} =
     jacobi_frac_getindex(domain(Q),domainspace(Q).β,Q.order,k,j)
 
-getindex(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR},Float64},k::Integer,j::Integer) where {DD<:Segment,RR} =
+getindex(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR,TT},Float64},k::Integer,j::Integer) where {DD<:Segment,RR,TT} =
     jacobi_frac_getindex(domain(Q),domainspace(Q).α,Q.order,k,j)
 
 function choosedomainspace(Q::LeftIntegral{UnsetSpace,T},sp::JacobiWeight) where T<:Float64
@@ -204,7 +200,7 @@ for (DTYP,QTYP,DWRAP,QWRAP) in ((:LeftDerivative,:LeftIntegral,:LeftDerivativeWr
         function $DTYP(S::Space,k::Real)
             i=ceil(Int,k)
             r=i-k
-            $DWRAP(i<0?$QTYP(S,-k):Derivative(i)*$QTYP(S,r),k)
+            $DWRAP(i<0 ? $QTYP(S,-k) : Derivative(i)*$QTYP(S,r),k)
         end
         $QTYP(S::SumSpace,k) = $QWRAP(InterlaceOperator(Diagonal([map(s->$QTYP(s,k),S.spaces)...]),SumSpace),k)
     end

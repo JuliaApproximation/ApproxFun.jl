@@ -103,11 +103,11 @@ end
 end
 
 @recipe function f(dd::UnionDomain)
-    @series dd[1]
-    for k=2:length(dd)
+    @series component(dd,1)
+    for k=2:ncomponents(dd)
         @series begin
             primary := false
-            dd[k]
+            component(dd,k)
         end
     end
 end
@@ -177,16 +177,22 @@ end
 
     xlims --> (minimum(pts)-1.,maximum(pts)+1.)
 
-    for k=1:length(pts)
+    @series begin
+        primary --> true
+        ones(2)*pts[1],[0,1]*ws[1]
+    end
+
+    if length(ws) > 1
         @series begin
-            primary --> (k==1)
-            ones(2)*pts[k],[0,1]*ws[k]
-        end
-        @series begin
-            linestyle := :dot
             primary := false
-            ones(2)*pts[k],[1,2]*ws[k]
+            ones(2)*pts[2:end]',[0,1]*ws[2:end]'
         end
+    end
+
+    @series begin
+        primary := false
+        linestyle := :dot
+        ones(2)*pts',[1,2]*ws'
     end
 end
 
@@ -197,10 +203,14 @@ end
 
     xlims --> (minimum(pts)-1.,maximum(pts)+1.)
 
-    for k=1:length(pts)
+    @series begin
+        primary --> true
+        ones(2)*pts[1],[0,1]*ws[1]
+    end
+    if length(ws) > 1
         @series begin
-            primary := (k==1)
-            ones(2)*pts[k],[0,1]*ws[k]
+            primary := false
+            ones(2)*pts[2:end]',[0,1]*ws[2:end]'
         end
     end
 end

@@ -1,9 +1,9 @@
 
 recA(::Type{T},::Chebyshev,k) where {T} = 2one(T)
-recB(::Type{T},::Chebyshev,::) where {T} = zero(T)
+recB(::Type{T},::Chebyshev,_) where {T} = zero(T)
 recC(::Type{T},::Chebyshev,k) where {T} = one(T)   # one(T) ensures we get correct type
 
-recα(::Type{T},::Chebyshev,::) where {T} = zero(T)
+recα(::Type{T},::Chebyshev,_) where {T} = zero(T)
 recβ(::Type{T},::Chebyshev,k) where {T} = ifelse(k==1,one(T),one(T)/2)   # one(T) ensures we get correct type,ifelse ensures inlining
 recγ(::Type{T},::Chebyshev,k) where {T} = one(T)/2   # one(T) ensures we get correct type
 
@@ -203,7 +203,7 @@ getindex(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) where {PS<:Pol
 
 
 function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,C,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {C<:Chebyshev,T}
-    ret=bzeros(S)
+    ret = BandedMatrix(Zeros, S)
 
     kr,jr=parentindexes(S)
     cfs=parent(S).f.coefficients
@@ -278,5 +278,5 @@ end
 
 
 
-ReverseOrientation(S::Chebyshev) = ReverseOrientationWrapper(SpaceOperator(NegateEven(),S,reverseorientation(S)))
-Reverse(S::Chebyshev) = ReverseWrapper(SpaceOperator(NegateEven(),S,S))
+ReverseOrientation(S::Chebyshev) = ReverseOrientationWrapper(NegateEven(S,reverseorientation(S)))
+Reverse(S::Chebyshev) = ReverseWrapper(NegateEven(S,S))

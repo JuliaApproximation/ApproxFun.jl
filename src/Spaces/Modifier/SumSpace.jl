@@ -1,4 +1,4 @@
-export ⊕,components,PiecewiseSpace
+export ⊕, components, PiecewiseSpace
 
 
 
@@ -95,7 +95,7 @@ function blocklengths(sp::DirectSumSpace)
     N=mapreduce(length,max,bl)
     mapreduce(b->pad(b,N),+,bl)
 end
-block(sp::DirectSumSpace,k::Int)::Block = findfirst(x->x≥k,cumsum(blocklengths(sp)))
+block(sp::DirectSumSpace,k::Int) = Block(findfirst(x->x≥k,cumsum(blocklengths(sp))))
 
 
 
@@ -141,9 +141,18 @@ for TYP in (:SumSpace,:PiecewiseSpace)
         $TYP(A::Space...) = $TYP(A)
         $TYP(sp::AbstractArray) = $TYP(tuple(sp...))
 
-        canonicalspace(A::$TYP) = $TYP(sort([A.spaces...]))
+        canonicalspace(A::$TYP) = $TYP(sort(collect(A.spaces)))
     end
 end
+
+
+pieces(sp::PiecewiseSpace) = sp.spaces
+piece(s::Space,k) = pieces(s)[k]
+pieces(f::Fun{<:PiecewiseSpace}) = components(f)
+piece(f::Fun{<:PiecewiseSpace},k) = component(f,k)
+
+npieces(s::Space) = length(pieces(s))
+npieces(f::Fun) = npieces(space(f))
 
 
 
@@ -215,7 +224,7 @@ function spacescompatible(A::Tuple,B::Tuple)
         return false
     end
     #assumes domain doesn't impact sorting
-    asort=sort([A...]);bsort=sort([B...])
+    asort=sort(collect(A));bsort=sort(collect(B))
     for k=1:length(asort)
         if !spacescompatible(asort[k],bsort[k])
             return false
@@ -392,12 +401,13 @@ linebilinearform(f::Fun{S},g::Fun{V}) where {S<:PiecewiseSpace,V<:PiecewiseSpace
 
 
 function Base.ones(::Type{T},S::SumSpace) where T<:Number
-    @assert ncomponents(S) == 2
-    if isconvertible(ConstantSpace(),component(S,1))
-        ones(T,component(S,1)) ⊕ zeros(T,component(S,2))
-    else
-        zeros(T,component(S,1)) ⊕ ones(T,component(S,2))
+    for sp in components(S)
+        if isconvertible(ConstantSpace(),sp)
+            return Fun(ones(T,sp), S)
+        end
     end
+
+    error("$S does not contain constants")
 end
 
 Base.ones(S::SumSpace) = ones(Float64,S)
@@ -407,7 +417,7 @@ Base.ones(::Type{T},S::PiecewiseSpace{SS,V}) where {T<:Number,SS,V} =
 Base.ones(S::PiecewiseSpace) = ones(Float64,S)
 
 
-identity_fun(S::PiecewiseSpace) = Fun(map(identity_fun,S.spaces),PiecewiseSpace)
+Fun(::typeof(identity), S::PiecewiseSpace) = Fun(Fun.(identity,S.spaces),PiecewiseSpace)
 
 
 # interlace coefficients according to iterator
@@ -470,15 +480,8 @@ end
 Fun(v::AbstractVector{Any},::Type{PiecewiseSpace}) = Fun(tuple(v...),PiecewiseSpace)
 
 ## transforms
+points(d::PiecewiseSpace,n) = vcat(points.(pieces(d), pieces_npoints(d,n))...)
 
-
-function points(d::PiecewiseSpace,n)
-   k=div(n,ncomponents(d))
-    r=n-ncomponents(d)*k
-
-    [vcat([points(d.spaces[j],k+1) for j=1:r]...);
-        vcat([points(d.spaces[j],k) for j=r+1:ncomponents(d)]...)]
-end
 
 plan_transform(sp::PiecewiseSpace,vals::AbstractVector) =
     TransformPlan{eltype(vals),typeof(sp),false,Void}(sp,nothing)
@@ -533,6 +536,14 @@ end
 union_rule(P::PiecewiseSpace,C::ConstantSpace{AnyDomain}) =
     PiecewiseSpace(map(sp->union(sp,C),P.spaces))
 
+
+
+## Multiplication
+function *(f::Fun{<:PiecewiseSpace,T},g::Fun{<:PiecewiseSpace,N}) where {T,N}
+    domain(f) ≠ domain(g) && return default_mult(f,g)
+
+    Fun(map(*,components(f),components(g)),PiecewiseSpace)
+end
 
 
 

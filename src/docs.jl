@@ -20,7 +20,7 @@ return a `Fun` representing the function, number, or vector `f` in the
 space `s`.  If `f` is vector-valued, it returns a vector-valued analogue
 of `s`.
 """
-Fun(::,::Space)
+Fun(_,::Space)
 
 doc"""
     Fun(f,d::Domain)
@@ -28,7 +28,7 @@ doc"""
 returns `Fun(f,Space(d))`, that is, it uses the default space for the specified
 domain.
 """
-Fun(::,::Domain)
+Fun(_,::Domain)
 
 
 doc"""
@@ -43,7 +43,7 @@ doc"""
 
 returns `Fun(f,Chebyshev())`
 """
-Fun(::)
+Fun(f)
 
 doc"""
     Fun()
@@ -175,7 +175,7 @@ doc"""
 
 reduces the number of coefficients by dropping the tail that is below the specified tolerance.
 """
-chop(::Fun,::)
+chop(::Fun,_)
 
 doc"""
     reverseorientation(f::Fun)
@@ -217,7 +217,7 @@ doc"""
 Evaluates the expansion at a point `x`.
 If `x` is in the domain, then this should return zero.
 """
-evaluate(::Space,::AbstractVector,::)
+evaluate(::Space,::AbstractVector,_)
 
 
 
@@ -308,7 +308,7 @@ doc"""
 
 returns the `k`th coefficient of `op*Fun([zeros(j-1);1],domainspace(op))`.
 """
-Base.getindex(::Operator,::,::)
+Base.getindex(::Operator,k,j)
 
 
 doc"""

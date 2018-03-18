@@ -21,7 +21,7 @@ solves a linear equation, usually differential equation, where `A` is an operato
 or array of operators and `b` is a `Fun` or array of funs.  The result `u`
 will approximately satisfy `A*u = b`.
 """
-\(::Operator,::)
+\(::Operator,_)
 
 # Solve each column separately
 function \(A::Operator,B::AbstractMatrix;kwds...)
@@ -31,9 +31,11 @@ function \(A::Operator,B::AbstractMatrix;kwds...)
     end
 
     ret=Matrix{VFun{typeof(ds),
-               promote_type(mapreduce(eltype,promote_type,B),prectype(ds))}}(1,size(B,2))
+               promote_type(eltype(A),mapreduce(eltype,promote_type,B))}}(1,size(B,2))
+
+    QR = factorize(A) # reuse computation
     for j=1:size(B,2)
-        ret[:,j]=\(A,B[:,j];kwds...)
+        ret[:,j]=\(QR,B[:,j];kwds...)
     end
     Fun(ret)
 end
@@ -42,6 +44,7 @@ end
 
 A_ldiv_B_coefficients(A::Operator,b;kwds...) = A_ldiv_B_coefficients(qrfact(A),b;kwds...)
 
+\(A::Operator,B::Operator) = TimesOperator(inv(A),B)
 
 #TODO: Remove these when interlace is automatic
 for TYP in (:Vector,:Matrix)

@@ -14,7 +14,7 @@ function ConcreteMultiplication(::Type{V},f::Fun{D,T},sp::Space) where {V,D,T}
         error("Domain mismatch: cannot multiply function on $(domain(f)) to function on $(domain(sp))")
     end
     ConcreteMultiplication{D,typeof(sp),V}(
-        convert(Fun{D,V},chop(f,maximum(abs,f.coefficients)*40*eps(eltype(f)))),sp)
+        convert(Fun{D,V},chop(f,40*eps(eltype(f)))),sp)
 end
 
 
@@ -23,7 +23,7 @@ function ConcreteMultiplication(f::Fun{D,T},sp::Space) where {D,T}
         error("Domain mismatch: cannot multiply function on $(domain(f)) to function on $(domain(sp))")
     end
     V = promote_type(T,rangetype(sp))
-    ConcreteMultiplication{D,typeof(sp),V}(convert(Fun{D,V},chop(f,maximum(abs,f.coefficients)*40*eps(eltype(f)))),sp)
+    ConcreteMultiplication{D,typeof(sp),V}(convert(Fun{D,V},chop(f,40*eps(eltype(f)))),sp)
 end
 
 # We do this in two stages to support Modifier spaces
@@ -111,13 +111,13 @@ end
 
 
 
-hasfasttransform(::)=false
-hasfasttransform(f::Fun)=hasfasttransform(space(f))
-hasfasttransformtimes(f,g)=spacescompatible(f,g) && hasfasttransform(f) && hasfasttransform(g)
+hasfasttransform(_) = false
+hasfasttransform(f::Fun) = hasfasttransform(space(f))
+hasfasttransformtimes(f,g) = pointscompatible(f,g) && hasfasttransform(f) && hasfasttransform(g)
 
 
 # This should be overriden whenever the multiplication space is different
-function *(f::Fun{S,T},g::Fun{V,N}) where {T,N,S,V}
+function default_mult(f::Fun,g::Fun)
     # When the spaces differ we promote and multiply
     if domainscompatible(space(f),space(g))
         m,n = ncoefficients(f),ncoefficients(g)
@@ -135,10 +135,12 @@ function *(f::Fun{S,T},g::Fun{V,N}) where {T,N,S,V}
     end
 end
 
+*(f::Fun,g::Fun) = default_mult(f,g)
+
 coefficienttimes(f::Fun,g::Fun) = Multiplication(f,space(g))*g
 
 function transformtimes(f::Fun,g::Fun,n)
-    @assert spacescompatible(space(f),space(g))
+    @assert pointscompatible(space(f),space(g))
     isempty(f.coefficients) && return f
     isempty(g.coefficients) && return g
     f2,g2,sp = pad(f,n),pad(g,n),space(f)

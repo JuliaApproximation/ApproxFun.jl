@@ -11,7 +11,7 @@ mutable struct LowRankMatrix{T} <: AbstractMatrix{T}
     U::Matrix{T} # m x r Matrix
     V::Matrix{T} # n x r Matrix
 
-    function LowRankMatrix{T}(U::Matrix{T},V::Matrix{T}) where T
+    function LowRankMatrix{T}(U::Matrix{T}, V::Matrix{T}) where T
         m,r = size(U)
         n,rv = size(V)
         @assert r == rv
@@ -19,16 +19,18 @@ mutable struct LowRankMatrix{T} <: AbstractMatrix{T}
     end
 end
 
-LowRankMatrix(U::Matrix{T},V::Matrix{T}) where {T}=LowRankMatrix{T}(U,V)
+LowRankMatrix(U::Matrix{T}, V::Matrix{T}) where {T} = LowRankMatrix{T}(U,V)
 
-LowRankMatrix(U::Matrix,V::Matrix) = LowRankMatrix{promote_type(eltype(U),eltype(V))}(promote(U,V)...)
-LowRankMatrix(U::Vector,V::Matrix) = LowRankMatrix(reshape(U,length(U),1),V)
-LowRankMatrix(U::Matrix,V::Vector) = LowRankMatrix(U,reshape(V,length(V),1))
-LowRankMatrix(U::Vector,V::Vector) = LowRankMatrix(reshape(U,length(U),1),reshape(V,length(V),1))
-LowRankMatrix(a::Number,m::Int,n::Int) = LowRankMatrix(a*ones(eltype(a),m),ones(eltype(a),n))
+LowRankMatrix(U::Matrix, V::Matrix) = LowRankMatrix{promote_type(eltype(U),eltype(V))}(promote(U,V)...)
+LowRankMatrix(U::Vector, V::Matrix) = LowRankMatrix(reshape(U,length(U),1),V)
+LowRankMatrix(U::Matrix, V::Vector) = LowRankMatrix(U,reshape(V,length(V),1))
+LowRankMatrix(U::Vector, V::Vector) = LowRankMatrix(reshape(U,length(U),1),reshape(V,length(V),1))
+LowRankMatrix(a::Number, m::Int, n::Int) = LowRankMatrix(a*ones(eltype(a),m),ones(eltype(a),n))
 
-LowRankMatrix(::Type{T},m::Int,n::Int,r::Int) where {T} = LowRankMatrix(Matrix{T}(m,r),Matrix{T}(n,r))
-lrzeros(::Type{T},m::Int,n::Int,r::Int) where {T} = LowRankMatrix(zeros(T,m,r),zeros(T,n,r))
+LowRankMatrix{T}(mn::Int, n::Int, r::Int) where {T} = LowRankMatrix(Matrix{T}(m,r),Matrix{T}(n,r))
+LowRankMatrix{T}(Z::Zeros, r::Int) where {T} =
+    LowRankMatrix(zeros(T,size(Z,1),r),zeros(T,size(Z,2),r))
+LowRankMatrix(Z::Zeros, r::Int) = LowRankMatrix{eltype(Z)}(Z, r)
 
 Base.similar(L::LowRankMatrix, ::Type{T}, dims::Dims) where {T} = (@assert length(dims) == 2;r = rank(L); LowRankMatrix(Matrix{T}(dims[1],r),Matrix{T}(dims[2],r)))
 Base.similar(L::LowRankMatrix{T}) where {T} = ((m,n) = size(L); r = rank(L); LowRankMatrix(Matrix{T}(m,r),Matrix{T}(n,r)))
@@ -36,7 +38,7 @@ Base.similar(L::LowRankMatrix{T}, dims::Dims) where {T} = (@assert length(dims) 
 Base.similar(L::LowRankMatrix{T}, m::Int) where {T} = Vector{T}( m)
 Base.similar(L::LowRankMatrix{T}, S) where {T} = ((m,n) = size(L); r = rank(L); LowRankMatrix(Matrix{S}(m,r),Matrix{S}(n,r)))
 
-function LowRankMatrix(A::Matrix)
+function LowRankMatrix(A::AbstractMatrix)
     U,Σ,V = svd(A)
     r = refactorsvd!(U,Σ,V)
     LowRankMatrix(U[:,1:r],V[:,1:r])

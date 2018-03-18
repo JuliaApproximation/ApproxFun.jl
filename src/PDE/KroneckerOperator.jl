@@ -298,9 +298,9 @@ DefiniteIntegral(S::TensorSpace) = DefiniteIntegralWrapper(mapreduce(DefiniteInt
 ### Copy
 
 # finds block lengths for a subrange
-blocklengthrange(rt,B::Block) = [blocklength(rt,B)]
-blocklengthrange(rt,B::Range{Block}) = blocklength(rt,B)
-function blocklengthrange(rt,kr)
+blocklengthrange(rt, B::Block) = [blocklength(rt,B)]
+blocklengthrange(rt, B::BlockRange) = blocklength(rt,B)
+function blocklengthrange(rt, kr)
     KR=block(rt,first(kr)):block(rt,last(kr))
     Klengths=Vector{Int}(length(KR))
     for ν in eachindex(KR)
@@ -311,7 +311,7 @@ function blocklengthrange(rt,kr)
     Klengths
 end
 
-function bandedblockbanded_convert!(ret,S::SubOperator,KO,rt,dt)
+function bandedblockbanded_convert!(ret, S::SubOperator, KO, rt, dt)
     pinds = parentindexes(S)
     kr,jr = pinds
 
@@ -322,7 +322,7 @@ function bandedblockbanded_convert!(ret,S::SubOperator,KO,rt,dt)
 
 
 
-    for J=Block(1):Block(blocksize(ret,2))
+    for J=Block(1):Block(nblocks(ret,2))
         jshft = (J==Block(1) ? jr1 : blockstart(dt,J+Jshft)) - 1
         for K=blockcolrange(ret,J)
             Bs = view(ret,K,J)
@@ -339,46 +339,15 @@ end
 
 
 
-function default_bandedblockbandedmatrix(S)
+function default_BandedBlockBandedMatrix(S)
     KO = parent(S)
     rt=rangespace(KO)
     dt=domainspace(KO)
-    ret=bbbzeros(S)
-    bandedblockbanded_convert!(ret,S,parent(S),rt,dt)
+    ret = BandedBlockBandedMatrix(Zeros, S)
+    bandedblockbanded_convert!(ret, S, parent(S), rt, dt)
 end
 
-convert(::Type{BandedBlockBandedMatrix},S::SubOperator) = default_bandedblockbandedmatrix(S)
-
-
-function convert(::Type{BandedBlockBandedMatrix},
-                      S::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}}) where {KKO<:KroneckerOperator,T}
-    kr,jr = parentindexes(S)
-    (isempty(kr) || isempty(jr)) && return bbbzeros(S)
-    KO = parent(S)
-
-    rt = rangetensorizer(KO)
-    dt = domaintensorizer(KO)
-
-    KR = block(rt,kr[1]):block(rt,kr[end])
-    JR = block(dt,jr[1]):block(dt,jr[end])
-
-    # use fast block version
-    M = BandedBlockBandedMatrix(view(KO,KR,JR))
-    k_st = kr[1]-blockstart(rt,KR[1])+1
-    j_st = jr[1]-blockstart(dt,JR[1])+1
-    ret = M[k_st:k_st+length(kr)-1,j_st:j_st+length(jr)-1]
-
-    # add zero blocks
-    prepend!(ret.rows,zeros(Int,KR[1].K-1))
-    prepend!(ret.cols,zeros(Int,JR[1].K-1))
-    ret.rowblocks[:] += KR[1].K-1
-    ret.colblocks[:] += JR[1].K-1
-    BSH = (JR[1].K-1) - (KR[1].K-1)
-    ret.l -= BSH
-    ret.u += BSH
-
-    ret
-end
+convert(::Type{BandedBlockBandedMatrix}, S::SubOperator) = default_BandedBlockBandedMatrix(S)
 
 
 const Trivial2DTensorizer = CachedIterator{Tuple{Int64,Int64},
@@ -393,27 +362,31 @@ const Trivial2DTensorizer = CachedIterator{Tuple{Int64,Int64},
 function convert(::Type{BandedBlockBandedMatrix},
                       S::SubOperator{T,KroneckerOperator{SS,V,DS,RS,
                                      Trivial2DTensorizer,Trivial2DTensorizer,T},
-                                     Tuple{UnitRange{Block},UnitRange{Block}}}) where {SS,V,DS,RS,T}
-    KR,JR=parentindexes(S)
+                                     Tuple{BlockRange1,BlockRange1}}) where {SS,V,DS,RS,T}
+    KR,JR = parentindexes(S)
+    KR_i, JR_i = Int.(KR), Int.(JR)
+
     KO=parent(S)
 
-    ret=bbbzeros(S)
+    ret = BandedBlockBandedMatrix(Zeros, S)
 
-    A,B=KO.ops
-    AA=A[Block(1):KR[end],Block(1):JR[end]]::BandedMatrix{eltype(S)}
+    A,B = KO.ops
+
+
+    AA = convert(BandedMatrix, view(A, Block(1):last(KR),Block(1):last(JR)))::BandedMatrix{eltype(S)}
     Al,Au = bandwidths(AA)
-    BB=B[Block(1):KR[end],Block(1):JR[end]]::BandedMatrix{eltype(S)}
+    BB = convert(BandedMatrix, view(B, Block(1):last(KR),Block(1):last(JR)))::BandedMatrix{eltype(S)}
     Bl,Bu = bandwidths(BB)
     λ,μ = subblockbandwidths(ret)
 
-    for J in Block(1):Block(blocksize(ret,2)), K in blockcolrange(ret,J)
-        n,m=KR[K.K].K,JR[J.K].K
-        Bs = view(ret,K,J)
+    for J in Block(1):Block(nblocks(ret,2)), K in blockcolrange(ret,J)
+        n,m = KR_i[Int(K)],JR_i[Int(J)]
+        Bs = view(ret, K, J)
         l = min(Al,Bu+n-m,λ)
         u = min(Au,Bl+m-n,μ)
         @inbounds for j=1:m, k=max(1,j-u):min(n,j+l)
-            a = inbands_getindex(AA,k,j)
-            b = inbands_getindex(BB,n-k+1,m-j+1)
+            a = AA[k,j]
+            b = BB[n-k+1,m-j+1]
             c = a*b
             inbands_setindex!(Bs,c,k,j)
         end
@@ -456,11 +429,11 @@ Evaluation(sp::TensorSpace,x::Tuple) = Evaluation(sp,Vec(x...))
 
 
 # it's faster to build the operators to the last b
-function A_mul_B_coefficients(A::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}},b) where {T,KKO<:KroneckerOperator}
+function A_mul_B_coefficients(A::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}}, b) where {T,KKO<:KroneckerOperator}
     P = parent(A)
     kr,jr = parentindexes(A)
     dt,rt = domaintensorizer(P),rangetensorizer(P)
     KR,JR = Block(1):block(rt,kr[end]),Block(1):block(dt,jr[end])
     M = P[KR,JR]
-    view(M,kr,jr)*b
+    M*pad(b, size(M,2))
 end

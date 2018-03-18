@@ -1,5 +1,6 @@
 export Jacobi, Legendre, WeightedJacobi
 
+
 doc"""
 `Jacobi(b,a)` represents the space spanned by Jacobi polynomials `P_k^{(a,b)}`,
 which are orthogonal with respect to the weight `(1+x)^β*(1-x)^α`
@@ -33,12 +34,12 @@ Base.promote_rule(::Type{Jacobi{D,R1}},::Type{Jacobi{D,R2}}) where {D,R1,R2} =
 convert(::Type{Jacobi{D,R1}},J::Jacobi{D,R2}) where {D,R1,R2} =
     Jacobi{D,R1}(J.b,J.a,J.domain)
 
-const WeightedJacobi{D,R} = JacobiWeight{Jacobi{D,R},D,R}
+const WeightedJacobi{D,R} = JacobiWeight{Jacobi{D,R},D,R,R}
 
 WeightedJacobi(β,α,d::Domain) = JacobiWeight(β,α,Jacobi(β,α,d))
 WeightedJacobi(β,α) = JacobiWeight(β,α,Jacobi(β,α))
 
-spacescompatible(a::Jacobi,b::Jacobi) = a.a ≈ b.a && a.b ≈ b.b
+spacescompatible(a::Jacobi,b::Jacobi) = a.a ≈ b.a && a.b ≈ b.b && domainscompatible(a,b)
 
 function canonicalspace(S::Jacobi)
     if isapproxinteger(S.a+0.5) && isapproxinteger(S.b+0.5)
@@ -94,12 +95,13 @@ function jacobip(::Type{T},r::Range,α,β,x::Number) where T
             v[2]=(α-β+(2+α+β)*x)/2
 
             @inbounds for k=2:n-1
-                v[k+1]=((x-jacobirecα(T,α,β,k))*v[k] - jacobirecγ(T,α,β,k)*v[k-1])/jacobirecβ(T,α,β,k)
+                v[k+1]=(jacobirecA(T,α,β,k-1)*x+jacobirecB(T,α,β,k-1))*v[k] - jacobirecC(T,α,β,k-1)*v[k-1]
             end
         end
         v[r+1]
     end
 end
+
 
 jacobip(r::Range,α,β,x::Number) = jacobip(promote_type(typeof(α),typeof(β),typeof(x)),r,α,β,x)
 
@@ -122,7 +124,7 @@ for op in (:(Base.ones),:(Base.zeros))
     @eval ($op)(S::Jacobi)=Fun(S,($op)(1))
 end
 
-function identity_fun(J::Jacobi)
+function Fun(::typeof(identity), J::Jacobi)
     if domain(J)==Segment()
         Fun(J,[(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)])
     else
@@ -165,7 +167,7 @@ function bilinearform(f::Fun{J},g::Fun{J}) where {J<:Jacobi}
     end
 end
 
-function bilinearform(f::Fun{JacobiWeight{J,DD,RR}},g::Fun{J}) where {J<:Jacobi,DD<:Segment,RR}
+function bilinearform(f::Fun{JacobiWeight{J,DD,RR,TT}},g::Fun{J}) where {J<:Jacobi,DD<:Segment,RR,TT}
     @assert domain(f) == domain(g)
     if f.space.β == f.space.space.a == g.space.a && f.space.α == f.space.space.b == g.space.b
         return complexlength(domain(f))/2*conjugatedinnerproduct(g.space,f.coefficients,g.coefficients)
@@ -175,7 +177,7 @@ function bilinearform(f::Fun{JacobiWeight{J,DD,RR}},g::Fun{J}) where {J<:Jacobi,
 end
 
 function bilinearform(f::Fun{J},
-                      g::Fun{JacobiWeight{J,DD,RR}}) where {J<:Jacobi,DD<:Segment,RR}
+                      g::Fun{JacobiWeight{J,DD,RR,TT}}) where {J<:Jacobi,DD<:Segment,RR,TT}
     @assert domain(f) == domain(g)
     if g.space.β == g.space.space.a == f.space.a && g.space.α == g.space.space.b == f.space.b
         return complexlength(domain(f))/2*conjugatedinnerproduct(f.space,f.coefficients,g.coefficients)
@@ -184,8 +186,8 @@ function bilinearform(f::Fun{J},
     end
 end
 
-function bilinearform(f::Fun{JacobiWeight{J,DD,RR}},
-                      g::Fun{JacobiWeight{J,DD,RR}}) where {J<:Jacobi,DD<:Segment,RR}
+function bilinearform(f::Fun{JacobiWeight{J,DD,RR,TT}},
+                      g::Fun{JacobiWeight{J,DD,RR,TT}}) where {J<:Jacobi,DD<:Segment,RR,TT}
     @assert domain(f) == domain(g)
     if f.space.β + g.space.β == f.space.space.a == g.space.space.a && f.space.α + g.space.α == f.space.space.b == g.space.space.b
         return complexlength(domain(f))/2*conjugatedinnerproduct(f.space.space,f.coefficients,g.coefficients)
@@ -203,7 +205,7 @@ function linebilinearform(f::Fun{J},g::Fun{J}) where {J<:Jacobi}
     end
 end
 
-function linebilinearform(f::Fun{JacobiWeight{J,DD,RR}},g::Fun{J}) where {J<:Jacobi,DD<:Segment,RR}
+function linebilinearform(f::Fun{JacobiWeight{J,DD,RR,TT}},g::Fun{J}) where {J<:Jacobi,DD<:Segment,RR,TT}
     @assert domain(f) == domain(g)
     if f.space.β == f.space.space.a == g.space.a && f.space.α == f.space.space.b == g.space.b
         return arclength(domain(f))/2*conjugatedinnerproduct(g.space,f.coefficients,g.coefficients)
@@ -212,7 +214,7 @@ function linebilinearform(f::Fun{JacobiWeight{J,DD,RR}},g::Fun{J}) where {J<:Jac
     end
 end
 
-function linebilinearform(f::Fun{J},g::Fun{JacobiWeight{J,DD,RR}}) where {J<:Jacobi,DD<:Segment,RR}
+function linebilinearform(f::Fun{J},g::Fun{JacobiWeight{J,DD,RR,TT}}) where {J<:Jacobi,DD<:Segment,RR,TT}
     @assert domain(f) == domain(g)
     if g.space.β == g.space.space.a == f.space.a && g.space.α == g.space.space.b == f.space.b
         return arclength(domain(f))/2*conjugatedinnerproduct(f.space,f.coefficients,g.coefficients)
@@ -221,7 +223,7 @@ function linebilinearform(f::Fun{J},g::Fun{JacobiWeight{J,DD,RR}}) where {J<:Jac
     end
 end
 
-function linebilinearform(f::Fun{JacobiWeight{J,DD,RR}},g::Fun{JacobiWeight{J,DD,RR}}) where {J<:Jacobi,DD<:Segment,RR}
+function linebilinearform(f::Fun{JacobiWeight{J,DD,RR,TT}}, g::Fun{JacobiWeight{J,DD,RR,TT}}) where {J<:Jacobi,DD<:Segment,RR,TT}
     @assert domain(f) == domain(g)
     if f.space.β + g.space.β == f.space.space.a == g.space.space.a && f.space.α + g.space.α == f.space.space.b == g.space.space.b
         return arclength(domain(f))/2*conjugatedinnerproduct(f.space.space,f.coefficients,g.coefficients)

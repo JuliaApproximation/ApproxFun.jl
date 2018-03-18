@@ -97,7 +97,7 @@ reverseorientation(S::Space) = setdomain(S,reverse(domain(S)))
 struct UnsetSpace <: AmbiguousSpace end
 struct NoSpace <: AmbiguousSpace end
 
-isambiguous(::) = false
+isambiguous(_) = false
 isambiguous(::Type{UnsetNumber}) = true
 isambiguous(::Type{Array{T}}) where {T} = isambiguous(T)
 isambiguous(sp::Space) = isambiguous(rangetype(sp))
@@ -114,12 +114,14 @@ canonicaldomain(S::Space) = canonicaldomain(domain(S))
 
 # Check whether spaces are the same, override when you need to check parameters
 # This is used in place of == to support AnyDomain
-spacescompatible(f::D,g::D) where {D<:Space} = error("Override spacescompatible for "*string(D))
+spacescompatible(f::D,g::D) where D<:Space = error("Override spacescompatible for "*string(D))
 spacescompatible(::UnsetSpace,::UnsetSpace) = true
 spacescompatible(::NoSpace,::NoSpace) = true
 spacescompatible(f,g) = false
-==(A::Space,B::Space) = spacescompatible(A,B)&&domain(A)==domain(B)
+==(A::Space,B::Space) = spacescompatible(A,B) && domain(A)==domain(B)
 spacesequal(A::Space,B::Space) = A==B
+
+pointscompatible(f,g) = spacescompatible(f,g)
 
 # check a list of spaces for compatibility
 for OP in (:spacescompatible,:domainscompatible,:spacesequal),TYP in (:AbstractArray,:Tuple)
@@ -180,7 +182,7 @@ function conversion_type(a,b)
         NoSpace()  # this avoids having to check eachtime
     else
         cr=conversion_rule(a,b)
-        cr==NoSpace()?conversion_rule(b,a):cr
+        cr==NoSpace() ? conversion_rule(b,a) : cr
     end
 end
 
@@ -293,7 +295,7 @@ Base.union(a::Space,b::Space,c::Space,d::Space...) =
 
 
 # tests whether a Conversion operator exists
-hasconversion(a,b) = maxspace(a,b)==b
+hasconversion(a,b) = maxspace(a,b) == b
 
 
 # tests whether a coefficients can be converted to b
@@ -322,9 +324,9 @@ function defaultcoefficients(f,a,b)
 
     if spacescompatible(a,b)
         f
-    elseif spacescompatible(ct,a)
+    elseif hasconversion(a,b)
         A_mul_B_coefficients(Conversion(a,b),f)
-    elseif spacescompatible(ct,b)
+    elseif hasconversion(b,a)
         A_ldiv_B_coefficients(Conversion(b,a),f)
     else
         csp=canonicalspace(a)
@@ -332,22 +334,9 @@ function defaultcoefficients(f,a,b)
         if spacescompatible(a,csp)# a is csp, so try b
             csp=canonicalspace(b)
         end
-        if spacescompatible(a,csp)||spacescompatible(b,csp)
+        if spacescompatible(a,csp) || spacescompatible(b,csp)
             # b is csp too, so we are stuck, try Fun constructor
-            if domain(b)⊆domain(a)
-                coefficients(Fun(x->Fun(a,f)(x),b))
-            else
-                # we set the value to be zero off the domain of definition
-                # but first ensure that domain(b) has a jump
-                # TODO: this is disabled as it breaks the case of splitting
-                #       one interval into two
-                d=domain(a)
-#                 if !issubcomponent(d,domain(b))
-#                     error("$(d) is not a subcomponent of $(domain(b))")
-#                 end
-
-                coefficients(Fun(x->x∈d?Fun(a,f)(x):zero(Fun(a,f)(x)),b))
-            end
+            coefficients(default_Fun(Fun(a,f),b))
         else
             coefficients(f,a,csp,b)
         end
@@ -355,34 +344,6 @@ function defaultcoefficients(f,a,b)
 end
 
 coefficients(f,a,b) = defaultcoefficients(f,a,b)
-
-
-
-
-
-## TODO: remove zeros
-Base.zero(S::Space) = zeros(S)
-Base.zero(::Type{T},S::Space) where {T<:Number} = zeros(T,S)
-Base.zeros(::Type{T},S::Space) where {T<:Number} = Fun(S,zeros(T,1))
-Base.zeros(S::Space) = Fun(S,zeros(1))
-
-# catch all
-Base.ones(S::Space) = Fun(x->1.0,S)
-Base.ones(::Type{T},S::Space) where {T<:Number} = Fun(x->one(T),S)
-
-identity_fun(S::Space) = identity_fun(domain(S))
-
-function identity_fun(d::Domain)
-    cd=canonicaldomain(d)
-    if typeof(d) == typeof(cd)
-        Fun(x->x,d) # fall back to constructor
-    else
-        # this allows support for singularities, that the constructor doesn't
-        sf=fromcanonical(d,Fun(identity,cd))
-        Fun(setdomain(space(sf),d),coefficients(sf))
-    end
-end
-
 
 
 
@@ -399,11 +360,14 @@ checkpoints(d::Space) = checkpoints(domain(d))
 
 
 ## default transforms
+abstract type AbstractTransformPlan{T} <: Plan{T} end
+
+space(P::AbstractTransformPlan) = P.space
 
 # These plans are use to wrap another plan
 for Typ in (:TransformPlan,:ITransformPlan)
     @eval begin
-        struct $Typ{T,SP,inplace,PL} <: FFTW.Plan{T}
+        struct $Typ{T,SP,inplace,PL} <: AbstractTransformPlan{T}
             space::SP
             plan::PL
         end
@@ -414,7 +378,7 @@ end
 
 for Typ in (:CanonicalTransformPlan,:ICanonicalTransformPlan)
     @eval begin
-        struct $Typ{T,SP,PL,CSP} <: FFTW.Plan{T}
+        struct $Typ{T,SP,PL,CSP} <: AbstractTransformPlan{T}
             space::SP
             plan::PL
             canonicalspace::CSP
@@ -476,7 +440,7 @@ for OP in (:plan_transform,:plan_itransform,:plan_transform!,:plan_itransform!)
     # this passes an empty Float64 array
     @eval begin
         $OP(S::Space,::Type{T},n::Integer) where {T} = $OP(S,Vector{T}(n))
-        $OP(S::Space,n::Integer) = $OP(S,Float64,n)
+        $OP(S::Space,n::Integer) = $OP(S, Float64, n)
     end
 end
 

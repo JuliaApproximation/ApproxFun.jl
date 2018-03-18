@@ -7,9 +7,12 @@
 
 
 ApproxFun is a package for approximating functions. It is in a similar vein to the Matlab
-package [`Chebfun`](http://www.chebfun.org) and the Mathematica package [`RHPackage`](http://www.maths.usyd.edu.au/u/olver/projects/RHPackage.html).  
+package [`Chebfun`](http://www.chebfun.org) and the Mathematica package [`RHPackage`](https://github.com/dlfivefifty/RHPackage).  
 
 The  [`ApproxFun Documentation`](https://JuliaApproximation.github.io/ApproxFun.jl/latest) contains detailed information, or read on for a brief overview of the package.
+
+The  [`ApproxFun Examples`](https://github.com/JuliaApproximation/ApproxFunExamples) contains many examples of
+using this package, in Jupyter notebooks and Julia scripts.
 
 ## Introduction
 

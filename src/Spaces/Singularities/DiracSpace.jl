@@ -1,18 +1,17 @@
-export DiracDelta
+export DiracDelta, KroneckerDelta
 
 for TYP in (:DiracSpace,:PointSpace)
     @eval begin
-        struct $TYP{T,D,R}<:Space{D,R}
+        struct $TYP{T,D,R} <: Space{D,R}
           points::Vector{T}
           $TYP{T,D,R}(pts::AbstractVector{T}) where {T,D,R} = new(sort(pts))
         end
 
-        function $TYP(points::AbstractVector)
-            d = mapreduce(Point,union,points)
-            $TYP{eltype(points),typeof(d),real(prectype(d))}(points)
+        function $TYP(points::AbstractVector{T}) where T
+            $TYP{eltype(points),UnionDomain{Vector{Point{T}},Point{T}},real(T)}(points)
         end
 
-        $TYP(points::Tuple) = $TYP([points...])
+        $TYP(points::Tuple) = $TYP(collect(points))
         $TYP() = $TYP(Float64[])
         $TYP(point::Number) = $TYP([point])
         $TYP(p::Point)=$TYP(p.x)
@@ -22,16 +21,16 @@ for TYP in (:DiracSpace,:PointSpace)
 
         # all points are equal, so only one block
         blocklengths(C::$TYP) = [length(C.points)]
-        block(C::$TYP,k)::Block = 1
+        block(C::$TYP,k) = Block(1)
 
-        domain(DS::$TYP)=mapreduce(Point,union,DS.points)
-        setdomain(DS::$TYP,d::UnionDomain) = $TYP(map(d->d.x,d))
+        domain(DS::$TYP) = UnionDomain(Point.(DS.points))
+        setdomain(DS::$TYP,d::UnionDomain) = $TYP(map(d->d.x,components(d)))
         points(sp::$TYP,n::Integer)=sp.points[1:n]
 
-        spacescompatible(a::$TYP,b::$TYP)=a.points==b.points
-        canonicalspace(a::$TYP)=a
+        spacescompatible(a::$TYP,b::$TYP) = a.points == b.points
+        canonicalspace(a::$TYP) = a
 
-        union_rule(a::$TYP,b::$TYP)=$TYP(sort(union(a.points,b.points)))
+        union_rule(a::$TYP,b::$TYP) = $TYP(sort(union(a.points,b.points)))
 
         function coefficients(cfs::AbstractVector,fromspace::$TYP,tospace::$TYP)
             if spacescompatible(fromspace,tospace)
@@ -75,10 +74,10 @@ end
 
 Space(d::Point) = PointSpace(d)
 
-identity_fun(S::PointSpace) = Fun(S,S.points)
-identity_fun(S::DiracSpace) = Fun(PointSpace(S.points),S.points)
+Fun(::typeof(identity), S::PointSpace) = Fun(S,S.points)
+Fun(::typeof(identity), S::DiracSpace) = Fun(PointSpace(S.points),S.points)
 transform(S::PointSpace,v::AbstractVector,plan...) = v
-values(f::Fun{S}) where {S<:PointSpace} = coefficient(f,:)
+values(f::Fun{S}) where S<:PointSpace = coefficient(f,:)
 
 function evaluate(f::AbstractVector,PS::PointSpace,x::Number)
     p = findfirst(y->isapprox(x,y),PS.points)
@@ -89,14 +88,14 @@ function evaluate(f::AbstractVector,PS::PointSpace,x::Number)
     end
 end
 
-Base.sum(f::Fun{DS}) where {DS<:DiracSpace} =
+Base.sum(f::Fun{DS}) where DS<:DiracSpace =
     sum(f.coefficients[1:dimension(space(f))])
-
-
 
 DiracDelta(x::Number)=Fun(DiracSpace(x),[1.])
 DiracDelta()=DiracDelta(0.)
 
+KroneckerDelta(x::Number) = Fun(PointSpace(x),[1.])
+KroneckerDelta() = KroneckerDelta(0.)
 
 function Base.cumsum(f::Fun{S},d::Segment{T}) where {S<:DiracSpace,T<:Real}
     pts=space(f).points
@@ -163,5 +162,5 @@ function coefficienttimes(f::Fun{PS},g::Fun{PS2}) where {PS<:PointSpace,PS2<:Poi
     Fun(space(g),f.coefficients.*g.coefficients)
 end
 
-/(f::Fun,g::Fun{PS}) where {PS<:PointSpace} = f*inv(g)
-Base.inv(f::Fun{PS}) where {PS<:PointSpace} = Fun(space(f),1./f.coefficients)
+/(f::Fun,g::Fun{PS}) where PS<:PointSpace = f*inv(g)
+Base.inv(f::Fun{PS}) where PS<:PointSpace = Fun(space(f),1./f.coefficients)

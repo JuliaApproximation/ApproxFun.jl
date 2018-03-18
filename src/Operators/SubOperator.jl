@@ -1,4 +1,4 @@
-checkbounds(A::Operator,kr::Colon) = nothing
+Vcheckbounds(A::Operator,kr::Colon) = nothing
 
 checkbounds(A::Operator,kr) =
     (maximum(kr) > length(A) || minimum(kr) < 1) && throw(BoundsError(A,kr))
@@ -19,10 +19,12 @@ checkbounds(A::Operator,kr,jr) =
 
 
 checkbounds(A::Operator,K::Block,J::Block) =
-     1 ≤ K.K ≤ length(blocklengths(rangespace(A))) && 1 ≤ J.K ≤ length(blocklengths(domainspace(A)))
+     1 ≤ first(K.n[1]) ≤ length(blocklengths(rangespace(A))) &&
+     1 ≤ first(J.n[1]) ≤ length(blocklengths(domainspace(A)))
 
-checkbounds(A::Operator,K::Range{Block},J::Range{Block}) =
-    isempty(K) || isempty(J) || checkbounds(A,maximum(K),maximum(J))
+checkbounds(A::Operator,K::BlockRange{1},J::BlockRange{1}) =
+    isempty(K) || isempty(J) ||
+        checkbounds(A, Block(maximum(K.indices[1])), Block(maximum(J.indices[1])))
 
 
 
@@ -48,13 +50,14 @@ SubOperator(A,inds,dims::Tuple{Bool,Bool},lu) = SubOperator(A,inds,Int.(dims),lu
 
 function SubOperator(A,inds::Tuple{Block,Block},lu)
     checkbounds(A,inds...)
-    SubOperator(A,inds,(blocklengths(rangespace(A))[inds[1].K],blocklengths(domainspace(A))[inds[2].K]),lu)
+    SubOperator(A,inds,(blocklengths(rangespace(A))[inds[1].n[1]],blocklengths(domainspace(A))[inds[2].n[1]]),lu)
 end
 
-SubOperator(A,inds::Tuple{Block,Block}) = SubOperator(A,inds,subblockbandwidths(A))
-function SubOperator(A,inds::Tuple{UnitRange{Block},UnitRange{Block}})
+SubOperator(A, inds::Tuple{Block,Block}) = SubOperator(A,inds,subblockbandwidths(A))
+function SubOperator(A, inds::Tuple{BlockRange{1,R},BlockRange{1,R}}) where R
     checkbounds(A,inds...)
-    dims = (sum(blocklengths(rangespace(A))[Int.(inds[1])]),sum(blocklengths(domainspace(A))[Int.(inds[2])]))
+    dims = (sum(blocklengths(rangespace(A))[inds[1].indices[1]]),
+            sum(blocklengths(domainspace(A))[inds[2].indices[1]]))
     SubOperator(A,inds,dims,(dims[1]-1,dims[2]-1))
 end
 
@@ -111,9 +114,9 @@ view(A::Operator,kr,::Colon) = view(A,kr,1:size(A,2))
 view(A::Operator,K::Block,J::Block) = SubOperator(A,(K,J))
 view(A::Operator,K::Block,j::Colon) = view(A,blockrows(A,K),j)
 view(A::Operator,k::Colon,J::Block) = view(A,k,blockcols(A,J))
-view(A::Operator,K::Block,j) = view(A,blockrows(A,K),j)
-view(A::Operator,k,J::Block) = view(A,k,blockcols(A,J))
-view(A::Operator,KR::UnitRange{Block},JR::UnitRange{Block}) = SubOperator(A,(KR,JR))
+view(A::Operator, K::Block, j) = view(A,blockrows(A,Int(K)),j)
+view(A::Operator, k, J::Block) = view(A,k,blockcols(A,Int(J))) #TODO: fix view
+view(A::Operator,KR::BlockRange,JR::BlockRange) = SubOperator(A,(KR,JR))
 
 view(A::Operator,k,j) = SubOperator(A,(k,j))
 
@@ -127,16 +130,16 @@ reindex(A::Operator, B::Tuple{Block,Any}, kj::Tuple{Any,Any}) =
     (reindex(rangespace(A),(B[1],), (kj[1],))[1], reindex(domainspace(A),tail(B), tail(kj))[1])
 # always reindex left-to-right, so if we have only a single tuple, then
 # we must be the domainspace
-reindex(A::Operator, B::Tuple{Block}, kj::Tuple{Any}) = reindex(domainspace(A),B,kj)
+reindex(A::Operator, B::Tuple{Block{1}}, kj::Tuple{Any}) = reindex(domainspace(A),B,kj)
 
-reindex(A::Operator, B::Tuple{AbstractVector{Block},Any}, kj::Tuple{Any,Any}) =
+reindex(A::Operator, B::Tuple{BlockRange1,Any}, kj::Tuple{Any,Any}) =
     (reindex(rangespace(A),(B[1],), (kj[1],))[1], reindex(domainspace(A),tail(B), tail(kj))[1])
 # always reindex left-to-right, so if we have only a single tuple, then
 # we must be the domainspace
-reindex(A::Operator, B::Tuple{AbstractVector{Block}}, kj::Tuple{Any}) =
+reindex(A::Operator, B::Tuple{BlockRange1}, kj::Tuple{Any}) =
     reindex(domainspace(A),B,kj)
 # Blocks are preserved under ranges
-for TYP in (:Block,:(AbstractVector{Block}),:(AbstractCount{Block})),
+for TYP in (:Block,:BlockRange1,:(AbstractVector{Block{1}}),:(AbstractCount{Block{1}})),
         VTYP in (:AbstractVector,:AbstractCount)
     @eval begin
         reindex(A::Operator, B::Tuple{$VTYP{Int},Any}, kj::Tuple{$TYP,Any}) =
@@ -148,14 +151,16 @@ end
 
 
 
-view(A::SubOperator,kr::UnitRange,jr::UnitRange) = view(A.parent,reindex(A,parentindexes(A),(kr,jr))...)
-view(A::SubOperator,K::Block,J::Block) = view(A.parent,reindex(A,parentindexes(A),(K,J))...)
-function Base.view(A::SubOperator,::Type{FiniteRange},jr::AbstractVector{Int})
-    cs = (isbanded(A) || isblockbandedbelow(A)) ? colstop(A,maximum(jr)) : mapreduce(j->colstop(A,j),max,jr)
-    view(A,1:cs,jr)
+view(V::SubOperator,kr::UnitRange,jr::UnitRange) = view(V.parent,reindex(V,parentindexes(V),(kr,jr))...)
+view(V::SubOperator,K::Block,J::Block) = view(V.parent,reindex(V,parentindexes(V),(K,J))...)
+view(V::SubOperator,KR::BlockRange,JR::BlockRange) = SubOperator(V.parent, reindex(V,parentindexes(V),(KR,JR)))
+function view(V::SubOperator,::Type{FiniteRange},jr::AbstractVector{Int})
+    cs = (isbanded(V) || isblockbandedbelow(V)) ? colstop(V,maximum(jr)) : mapreduce(j->colstop(V,j),max,jr)
+    view(V,1:cs,jr)
 end
-view(A::SubOperator,kr,jr) = view(A.parent,reindex(A,parentindexes(A),(kr,jr))...)
 
+view(V::SubOperator,kr,jr) = view(V.parent,reindex(V,parentindexes(V),(kr,jr))...)
+view(V::SubOperator,kr::AbstractCount,jr::AbstractCount) = view(V.parent,reindex(V,parentindexes(V),(kr,jr))...)
 
 
 bandwidth(S::SubOperator,k::Int) = S.bandwidths[k]
@@ -189,10 +194,10 @@ israggedbelow(S::SubOperator) = israggedbelow(parent(S))
 # since blocks don't change with indexex, neither do blockbandinds
 blockbandinds(S::SubOperator{T,OP,Tuple{II,JJ}}) where {T,OP,II<:Range{Int},JJ<:Range{Int}} =
     blockbandinds(parent(S))
-function blockbandinds(S::SubOperator{T,B,Tuple{UnitRange{Block},UnitRange{Block}}}) where {T,B}
+function blockbandinds(S::SubOperator{T,B,Tuple{BlockRange1,BlockRange1}}) where {T,B}
     KR,JR = parentindexes(S)
     l,u = blockbandinds(parent(S))
-    sh = first(KR).K-first(JR).K
+    sh = first(KR).n[1]-first(JR).n[1]
     l+sh,u+sh
 end
 
@@ -201,7 +206,7 @@ isbanded(S::SubOperator{T,B,Tuple{Block,Block}}) where {T,B} = isbandedblockband
 bandinds(S::SubOperator{T,B,Tuple{Block,Block}}) where {T,B} = subblockbandinds(parent(S))
 blockbandinds(S::SubOperator{T,B,Tuple{Block,Block}}) where {T,B} = 0,0
 
-function bbbzeros(S::SubOperator)
+function BandedBlockBandedMatrix(::Type{Zeros}, S::SubOperator)
     kr,jr=parentindexes(S)
     KO=parent(S)
     l,u=blockbandinds(KO)
@@ -219,28 +224,29 @@ function bbbzeros(S::SubOperator)
     jsh=j1-blockstart(dt,J)
     ksh=k1-blockstart(rt,K)
 
-    ret=bbbzeros(eltype(KO),-l,u,-λ+jsh,μ+ksh,
-            blocklengths(rangespace(S)),
-            blocklengths(domainspace(S)))
+    rows,cols = blocklengths(rangespace(S)), blocklengths(domainspace(S))
+
+    BandedBlockBandedMatrix(Zeros{eltype(KO)}(sum(rows),sum(cols)),
+                                (rows,cols), (-l,u), (-λ+jsh,μ+ksh))
 end
 
-function bbbzeros(S::SubOperator{T,B,Tuple{UnitRange{Block},UnitRange{Block}}}) where {T,B}
-    KR,JR=parentindexes(S)
-    KO=parent(S)
-    l,u=blockbandinds(KO)::Tuple{Int,Int}
-    λ,μ=subblockbandinds(KO)::Tuple{Int,Int}
+function BandedBlockBandedMatrix(::Type{Zeros}, S::SubOperator{T,B,Tuple{BlockRange1,BlockRange1}}) where {T,B}
+    KR,JR = parentindexes(S)
+    KO = parent(S)
+    l,u = blockbandwidths(KO)::Tuple{Int,Int}
+    λ,μ = subblockbandwidths(KO)::Tuple{Int,Int}
 
-    rt=rangespace(KO)
-    dt=domainspace(KO)
-    J=JR[1]
-    K=KR[1]
-    bl_sh = J.K-K.K
+    rt = rangespace(KO)
+    dt = domainspace(KO)
+    J = first(JR)
+    K = first(KR)
+    bl_sh = Int(J) - Int(K)
 
     KBR = blocklengthrange(rt,KR)
     KJR = blocklengthrange(dt,JR)
 
-    ret=bbbzeros(eltype(KO),-l+bl_sh,u-bl_sh,-λ,μ,
-            KBR,KJR)
+    BandedBlockBandedMatrix(Zeros{eltype(KO)}(sum(KBR),sum(KJR)),
+                                (AbstractVector{Int}(KBR),AbstractVector{Int}(KJR)), (l+bl_sh,u-bl_sh), (λ,μ))
 end
 
 
@@ -282,34 +288,51 @@ end
 # once the notion of bandedness of finite dimensional operators is made sense of
 
 
-for TYP in (:RaggedMatrix,:Matrix)
+_colstops(V) = Int[max(0,colstop(V,j)) for j=1:size(V,2)]
+
+for TYP in (:RaggedMatrix, :Matrix)
     def_TYP = parse("default_" * string(TYP))
-    @eval function convert(::Type{$TYP},S::SubOperator)
-        if isinf(size(S,1)) || isinf(size(S,2))
-            error("Cannot convert $S to a $TYP")
+    @eval begin
+        function convert(::Type{$TYP}, V::SubOperator)
+            if isinf(size(V,1)) || isinf(size(V,2))
+                error("Cannot convert $V to a $TYP")
+            end
+            A = parent(V)
+            if isbanded(A)
+                $TYP(BandedMatrix(V))
+            else
+                $def_TYP(V)
+            end
         end
 
-        if isbanded(parent(S))
-            $TYP(BandedMatrix(S))
-        elseif isbandedblockbanded(parent(S))
-            $TYP(BandedBlockBandedMatrix(S))
-        elseif isblockbanded(parent(S))
-            $TYP(BlockBandedMatrix(S))
-        else
-            $def_TYP(S)
+        function convert(::Type{$TYP}, V::SubOperator{T,BB,NTuple{2,UnitRange{Int}}}) where {T,BB}
+            if isinf(size(V,1)) || isinf(size(V,2))
+                error("Cannot convert $V to a $TYP")
+            end
+            A = parent(V)
+            if isbanded(A)
+                $TYP(BandedMatrix(V))
+            elseif isbandedblockbanded(A)
+                N = block(rangespace(A), last(parentindexes(V)[1]))
+                M = block(domainspace(A), last(parentindexes(V)[2]))
+                B = A[Block(1):N, Block(1):M]
+                RaggedMatrix(view(B, parentindexes(V)...), _colstops(V))
+            else
+                $def_TYP(V)
+            end
         end
     end
 end
 
 # fast converts to banded matrices would be based on indices, not blocks
-function convert(::Type{BandedMatrix},S::SubOperator{T,B,Tuple{UnitRange{Block},UnitRange{Block}}}) where {T,B}
+function convert(::Type{BandedMatrix}, S::SubOperator{T,B,Tuple{BlockRange1,BlockRange1}}) where {T,B}
     A = parent(S)
     ds = domainspace(A)
     rs = rangespace(A)
     KR,JR = parentindexes(S)
     BandedMatrix(view(A,
-                      blockstart(rs,KR[1]):blockstop(rs,KR[end]),
-                      blockstart(ds,JR[1]):blockstop(ds,JR[end])))
+                      blockstart(rs,first(KR)):blockstop(rs,last(KR)),
+                      blockstart(ds,first(JR)):blockstop(ds,last(JR))))
 end
 
 

@@ -43,9 +43,9 @@ function defaultConversion(a::Space,b::Space)
     end
 end
 
-Conversion(a::Space,b::Space)=defaultConversion(a,b)
-Conversion(a::Space)=ConversionWrapper(eye(a))
-Conversion()=ConversionWrapper(eye(UnsetSpace()))
+Conversion(a::Space,b::Space) = defaultConversion(a,b)
+Conversion(a::Space) = ConversionWrapper(eye(a))
+Conversion() = ConversionWrapper(eye(UnsetSpace()))
 
 
 ## Wrapper

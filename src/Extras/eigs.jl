@@ -22,7 +22,9 @@ end
 Base.eigvals(Bcs::Operator,A::Operator,n::Integer;tolerance::Float64=100eps()) =
     eigs(Bcs,A,n;tolerance=tolerance)[1]
 
-function Base.eigs(Bcs::Operator,A::Operator,n::Integer;tolerance::Float64=100eps())
+function Base.eigs(Bcs_in::Operator,A_in::Operator,n::Integer;tolerance::Float64=100eps())
+    Bcs, A = promotedomainspace([Bcs_in, A_in])
+
     nf = size(Bcs,1)
     @assert isfinite(nf)
 

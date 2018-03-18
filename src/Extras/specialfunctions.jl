@@ -10,40 +10,40 @@ end
 
 function abs(f::Fun{S,T}) where {S<:RealUnivariateSpace,T<:Real}
     d=domain(f)
-    pts=roots(f)
+    pts = iszero(f) ? T[] : roots(f)
     splitmap(x->abs(f(x)),d,pts)
 end
 
 function abs(f::Fun)
     d=domain(f)
 
-    pts=roots(f)
+    pts = iszero(f) ? eltype(f)[] : roots(f)
 
     if isempty(pts)
         # This makes sure Laurent returns real type
-        real(Fun(x->abs(f(x)),space(f)))
+        real(Fun(abs∘f,space(f)))
     else
-        splitmap(x->abs(f(x)),d,pts)
+        splitmap(abs∘f,d,pts)
     end
 end
 
 
-midpoints(d::Segment) = (d.b+d.a)/2
-midpoints(d::UnionDomain) = map(midpoints,d.domains)
+midpoints(d::Segment) = [(d.b+d.a)/2]
+midpoints(d::UnionDomain) = mapreduce(midpoints,vcat,d.domains)
 
 
 for OP in (:sign,:angle)
     @eval function $OP(f::Fun{S,T}) where {S<:RealUnivariateSpace,T<:Real}
         d=domain(f)
 
-        pts=roots(f)
+        pts = iszero(f) ? T[] : roots(f)
 
         if isempty(pts)
             $OP(first(f))*one(f)
         else
-            d_split= d \ pts
-            midpts = [midpoints(d)...]
-            Fun(d_split,$OP.(f.(midpts)))
+            d = d \ pts
+            midpts = midpoints(d)
+            Fun(d, $OP.(f.(midpts)))
         end
     end
 end
@@ -53,7 +53,7 @@ for op in (:(max),:(min))
         function $op(f::Fun{S,T1},g::Fun{V,T2}) where {S<:RealUnivariateSpace,V<:RealUnivariateSpace,T1<:Real,T2<:Real}
             h=f-g
             d=domain(h)
-            pts=roots(h)
+            pts=iszero(h)?eltype(h)[]:roots(h)
             splitmap(x->$op(f(x),g(x)),d,pts)
         end
         $op(f::Fun{S,T},g::Real) where {S<:RealUnivariateSpace,T<:Real} = $op(f,Fun(g,domain(f)))
@@ -126,13 +126,13 @@ function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:Segment,RR}
         #left root
         g=divide_singularity((1,0),fc)
         p=c/g
-        x=identity_fun(domain(p))
+        x = Fun(identity,domain(p))
         return scaleshiftdomain(p/(1+x),(d.b - d.a)/2,(d.a + d.b)/2 )
     elseif abs(last(fc))≤tol
         #right root
         g=divide_singularity((0,1),fc)
         p=c/g
-        x=identity_fun(domain(p))
+        x=Fun(identity,domain(p))
         return scaleshiftdomain(p/(1-x),(d.b - d.a)/2,(d.a + d.b)/2 )
     else
         r = roots(fc)
@@ -143,13 +143,13 @@ function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:Segment,RR}
             #left root
             g=divide_singularity((1,0),fc)
             p=c/g
-            x=identity_fun(domain(p))
+            x=Fun(identity,domain(p))
             return scaleshiftdomain(p/(1+x),(d.b - d.a)/2,(d.a + d.b)/2 )
         elseif abs(last(r)-1.0)≤tol  # double check
             #right root
             g=divide_singularity((0,1),fc)
             p=c/g
-            x=identity_fun(domain(p))
+            x=Fun(identity,domain(p))
             return scaleshiftdomain(p/(1-x),(d.b - d.a)/2,(d.a + d.b)/2 )
         else
             # no roots on the boundary
@@ -159,10 +159,12 @@ function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:Segment,RR}
 end
 
 ^(f::Fun{<:PolynomialSpace},k::Integer) = intpow(f,k)
-function ^(f::Fun{<:PolynomialSpace},k::Real)
+function ^(f::Fun{<:PolynomialSpace}, k::Real)
+    T = eltype(f)
+    RT = real(T)
     # Need to think what to do if this is ever not the case..
     sp = space(f)
-    fc = setdomain(f,Segment()) #Project to interval
+    fc = setcanonicaldomain(f) #Project to interval
     csp = space(fc)
 
     r = sort(roots(fc))
@@ -170,14 +172,14 @@ function ^(f::Fun{<:PolynomialSpace},k::Real)
     @assert length(r) <= 2
 
     if length(r) == 0
-        setdomain(Fun(x->fc(x)^k,csp),domain(f))
+        setdomain(Fun((x->x^k) ∘ fc,csp),domain(f))  # using ∘ supports fast transforms for fc
     elseif length(r) == 1
         @assert isapprox(abs(r[1]),1)
 
-        if isapprox(r[1],1.)
-            Fun(JacobiWeight(0.,k,sp),coefficients(divide_singularity(true,fc)^k,csp))
+        if isapprox(r[1], 1)
+            Fun(JacobiWeight(zero(RT),k,sp),coefficients(divide_singularity(true,fc)^k,csp))
         else
-            Fun(JacobiWeight(k,0.,sp),coefficients(divide_singularity(false,fc)^k,csp))
+            Fun(JacobiWeight(k,zero(RT),sp),coefficients(divide_singularity(false,fc)^k,csp))
         end
     else
         @assert isapprox(r[1],-1)
@@ -539,7 +541,7 @@ for op in (:(expm1),:(log1p),:(lfact),:(sinc),:(cosc),
            :(eta),:(zeta),:(gamma),:(lgamma),
            :(polygamma),:(invdigamma),:(digamma),:(trigamma))
     @eval begin
-        $op(f::Fun{S,T}) where {S,T}=Fun(x->$op(f(x)),domain(f))
+        $op(f::Fun{S,T}) where {S,T}=Fun($op ∘ f,domain(f))
     end
 end
 
@@ -631,7 +633,7 @@ end
 
 
 
-for OP in (:(abs),:(sign),:(log))
+for OP in (:abs,:sign,:log,:angle)
     @eval begin
         $OP(f::Fun{PiecewiseSpace{S,DD,RR},T}) where {S,DD,RR<:Real,T<:Real} =
             Fun(map($OP,components(f)),PiecewiseSpace)
@@ -639,16 +641,33 @@ for OP in (:(abs),:(sign),:(log))
     end
 end
 
-## PointSpace
-
-for OP in (:(abs),:(sign))
-    # ambiguity warnings
-    @eval $OP(f::Fun{S,T}) where {S<:PointSpace,T<:Real}=Fun(space(f),map($OP,f.coefficients))
-end
-for OP in (:(exp),:(abs),:(sign))
-    @eval $OP(f::Fun{S}) where {S<:PointSpace}=Fun(space(f),map($OP,f.coefficients))
+# Return the locations of jump discontinuities
+#
+# Non Piecewise Spaces are assumed to have no jumps.
+function jumplocations(f::Fun)
+    eltype(domain(f))[]
 end
 
+# Return the locations of jump discontinuities
+function jumplocations(f::Fun{S}) where{S<:PiecewiseSpace}
+    d = domain(f)
+
+    if ncomponents(d) < 2
+      return eltype(domain(f))[]
+    end
+
+    dtol=10eps(eltype(d))
+    ftol=10eps(eltype(f))
+
+    dc = components(d)
+    fc = components(f)
+
+    isjump = isapprox.(first.(dc[2:end]), last.(dc[1:end-1]), rtol=dtol) .&
+           .!isapprox.(first.(fc[2:end]), last.(fc[1:end-1]), rtol=ftol)
+
+    locs = last.(dc[1:end-1])
+    locs[isjump]
+end
 
 #
 # These formulæ, appearing in Eq. (2.5) of:
@@ -687,20 +706,32 @@ end
 
 
 
-## ConstantSpace default overrides
+## ConstantSpace and PointSpace default overrides
 
+for SP in (:ConstantSpace,:PointSpace)
+    for OP in (:abs,:sign,:exp,:sqrt,:angle)
+        @eval begin
+            $OP(z::Fun{<:$SP,<:Complex}) = Fun(space(z),$OP.(coefficients(z)))
+            $OP(z::Fun{<:$SP,<:Real}) = Fun(space(z),$OP.(coefficients(z)))
+            $OP(z::Fun{<:$SP}) = Fun(space(z),$OP.(coefficients(z)))
+        end
+    end
 
-# ambiguity
-for OP in (:(Base.abs),)
-    @eval begin
-        $OP(z::Fun{CS,T}) where {CS<:ConstantSpace,T<:Complex} =
-            Fun($OP(Number(z)),space(z))
-        $OP(z::Fun{CS,T}) where {CS<:ConstantSpace,T<:Real} =
-            Fun($OP(Number(z)),space(z))
-        $OP(z::Fun{CS,T}) where {CS<:ConstantSpace,T} =
-            Fun($OP(Number(z)),space(z))
+    # we need to pad coefficients since 0^0 == 1
+    for OP in (:^,)
+        @eval begin
+            function $OP(z::Fun{<:$SP},k::Integer)
+                k ≠ 0 && return Fun(space(z),$OP.(coefficients(z),k))
+                Fun(space(z),$OP.(pad(coefficients(z),dimension(space(z))),k))
+            end
+            function $OP(z::Fun{<:$SP},k::Number)
+                k ≠ 0 && return Fun(space(z),$OP.(coefficients(z),k))
+                Fun(space(z),$OP.(pad(coefficients(z),dimension(space(z))),k))
+            end
+        end
     end
 end
+
 
 for OP in (:(Base.max),:(Base.min))
     @eval begin
@@ -723,6 +754,10 @@ end
 
 # from DualNumbers
 for (funsym, exp) in Calculus.symbolic_derivatives_1arg()
+    funsym == :abs && continue
+    funsym == :sign && continue
+    funsym == :exp && continue
+    funsym == :sqrt && continue
     @eval begin
         $(funsym)(z::Fun{CS,T}) where {CS<:ConstantSpace,T<:Real} =
             Fun($(funsym)(Number(z)),space(z))
