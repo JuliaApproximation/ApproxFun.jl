@@ -304,10 +304,6 @@ using ApproxFun, Compat.Test, StaticArrays
     end
 end
 
-
-B[1]
-
-
 @testset "Definite integral tests" begin
     for S in (WeightedJacobi(0,0), JacobiWeight(0,0, Legendre(1.1..2.3)), Legendre())
         B = DefiniteIntegral(S)

@@ -176,7 +176,7 @@ function testraggedbelowoperator(A)
         @test isfinite(colstop(A,k))
     end
 
-    R = RaggedMatrix(view(A, 1:10, 1:10))
+    R = RaggedMatrix(view(A, 1:10, 1:min(10,size(A,2))))
     for j=1:size(R,2)
         @test colstop(R,j) == min(colstop(A,j),10)
     end
