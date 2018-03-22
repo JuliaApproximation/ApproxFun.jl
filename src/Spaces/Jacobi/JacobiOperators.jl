@@ -184,6 +184,56 @@ function getindex(V::ConcreteVolterra{J},k::Integer,j::Integer) where J<:Jacobi
 end
 
 
+for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineIntegral,:arclength,:linesum))
+    ConcFunc = parse("Concrete"*string(Func))
+
+    @eval begin
+        $Func(S::Jacobi{<:Segment}) = $ConcFunc(S)
+
+        function getindex(Σ::$ConcFunc{Jacobi{D,R},T},k::Integer) where {D<:Segment,R,T}
+            dsp = domainspace(Σ)
+
+            if dsp.b == dsp.a == 0
+                # TODO: copy and paste
+                k == 1? T($Sum(Fun(dsp,[one(T)]))) : zero(T)
+            else
+                T($Sum(Fun(dsp,[zeros(T,k-1);1])))
+            end
+        end
+
+
+        function getindex(Σ::$ConcFunc{JacobiWeight{Jacobi{D,R},D,R,TT},T},k::Integer) where {D<:Segment,R,T,TT}
+            dsp = domainspace(Σ)
+
+            if dsp.β == dsp.space.b && dsp.α == dsp.space.a
+                # TODO: copy and paste
+                k == 1? T($Sum(Fun(dsp,[one(T)]))) : zero(T)
+            else
+                T($Sum(Fun(dsp,[zeros(T,k-1);1])))
+            end
+        end
+
+        function bandinds(Σ::$ConcFunc{JacobiWeight{Jacobi{D,R},D,R,TT}}) where {D<:Segment,R,TT}
+            β,α = domainspace(Σ).β,domainspace(Σ).α
+            if domainspace(Σ).β == domainspace(Σ).space.b && domainspace(Σ).α == domainspace(Σ).space.a
+                0,0  # first entry
+            else
+                0,∞
+            end
+        end
+
+        function bandinds(Σ::$ConcFunc{Jacobi{D,R}}) where {D<:Segment,R}
+            if domainspace(Σ).b == domainspace(Σ).a == 0
+                0,0  # first entry
+            else
+                0,∞
+            end
+        end
+    end
+end
+
+
+
 ## Conversion
 # We can only increment by a or b by one, so the following
 # multiplies conversion operators to handle otherwise
