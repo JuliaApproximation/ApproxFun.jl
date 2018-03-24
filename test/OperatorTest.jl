@@ -4,14 +4,20 @@ using ApproxFun, BlockBandedMatrices,  Compat.Test
 
 @testset "Operator" begin
     # test row/colstarts
-    testfunctional(Evaluation(Ultraspherical(1),0.1))
-    testbandedoperator(Derivative(Ultraspherical(1)))
-    testfunctional(Evaluation(Chebyshev(),0.1,1))
-    testfunctional(Evaluation(Chebyshev(),0.1,1)-Evaluation(Chebyshev(),0.1,1))
+    @testset "Evaluation" begin
+        testfunctional(Evaluation(Ultraspherical(1),0.1))
+        d = -4 .. 4
+        f = Fun(exp, Ultraspherical(1,d))
+        @test f(-4) ≈ Number(ldirichlet()*f) ≈ Number(Evaluation(Ultraspherical(1,d),-4)*f)
 
-    let f = Fun(cos)
-        @test (Evaluation(Chebyshev(),0.1,1)*f)(0.1)  ≈ f'(0.1)
+        testfunctional(Evaluation(Chebyshev(),0.1,1))
+        testfunctional(Evaluation(Chebyshev(),0.1,1)-Evaluation(Chebyshev(),0.1,1))
+
+        let f = Fun(cos)
+            @test (Evaluation(Chebyshev(),0.1,1)*f)(0.1)  ≈ f'(0.1)
+        end
     end
+    testbandedoperator(Derivative(Ultraspherical(1)))
 
 
     # test fast copy is consistent with getindex
