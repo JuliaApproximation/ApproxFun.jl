@@ -263,7 +263,7 @@ function union_by_union_rule(a::Space,b::Space)
         end
     end
 
-    cr=union_rule(a,b)
+    cr = union_rule(a,b)
     cr isa NoSpace || return cr
 
     union_rule(b,a)
