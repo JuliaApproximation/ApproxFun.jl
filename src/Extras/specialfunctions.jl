@@ -701,7 +701,10 @@ expγ(x) = expγ_asy(x)
 
 
 for f in (:(exp),:(expm1),:expα,:expβ,:expγ)
-    @eval $f(op::Operator) = OperatorFunction(op,$f)
+    @eval begin
+        $f(op::Operator) = OperatorFunction(op,$f)
+        $f(M::Multiplication) = Multiplication($f(M.f), domainspace(M))
+    end
 end
 
 
