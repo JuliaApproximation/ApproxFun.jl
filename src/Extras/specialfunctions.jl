@@ -701,13 +701,20 @@ expγ(x) = expγ_asy(x)
 
 
 for f in (:(exp),:(expm1),:expα,:expβ,:expγ)
-    @eval begin
-        $f(op::Operator) = OperatorFunction(op,$f)
-        $f(M::Multiplication) = Multiplication($f(M.f), domainspace(M))
-    end
+    @eval $f(op::Operator) = OperatorFunction(op,$f)
 end
 
+## Special Multiplication
+for f in (:+, :-, :*, :exp, :sin, :cos)
+    @eval $f(M::Multiplication) = Multiplication($f(M.f), domainspace(M))
+end
 
+for f in (:+, :-, :*, :/, :\)
+    @eval begin
+        $f(M::Multiplication, c::Number) = Multiplication($f(M.f, c), domainspace(M))
+        $f(c::Number, M::Multiplication) = Multiplication($f(c, M.f), domainspace(M))
+    end
+end
 
 ## ConstantSpace and PointSpace default overrides
 

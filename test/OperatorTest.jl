@@ -298,10 +298,14 @@ using ApproxFun, BlockBandedMatrices,  Compat.Test
         @test A[3:2:∞,5:2:∞] == C
     end
 
-    @testset "Multiplication exponential" begin
+    @testset "Multiplication functions" begin
         x = Fun()
         M = Multiplication(x, Chebyshev())
         @test exp(M).f == Multiplication(exp(x), Chebyshev()).f
+        @test (-M).f == Multiplication(-x, Chebyshev()).f
+        @test exp(-M).f == Multiplication(exp(-x), Chebyshev()).f
+        @test (M/3).f == (3\M).f == Multiplication(x/3, Chebyshev()).f
+        @test (M*3).f == (3*M).f == Multiplication(x*3, Chebyshev()).f
 
         M = Multiplication(x, JacobiWeight(0,0,Chebyshev()))
         @test exp(M).f == Multiplication(exp(x), Chebyshev()).f

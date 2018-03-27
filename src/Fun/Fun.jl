@@ -319,13 +319,15 @@ end
 
 
 for op = (:*,:/)
-    @eval $op(f::Fun,c::Number) = Fun(f.space,$op(f.coefficients,c))
+    @eval $op(f::Fun, c::Number) = Fun(f.space,$op(f.coefficients,c))
 end
 
 
 for op = (:*,:+)
-    @eval $op(c::Number,f::Fun) = $op(f,c)
+    @eval $op(c::Number, f::Fun) = $op(f,c)
 end
+
+\(c::Number, f::Fun) = Fun(f.space, c \ f.coefficients)
 
 
 function intpow(f::Fun,k::Integer)
