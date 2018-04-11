@@ -120,7 +120,7 @@ note that boundary conditions must be specified in the call to `eigs`. Plotting 
 
 If the solutions are not relatively constant near the boundary then one should push the boundaries further out. 
 
-For problems with different contraints or boundary conditions, B can be any zero functional constraint, eg. `DefiniteIntegra()`.
+For problems with different contraints or boundary conditions, `B` can be any zero functional constraint, eg. `DefiniteIntegral()`.
 
 ## Systems of equations
 
