@@ -46,6 +46,7 @@ for OP in (:(getindex),:(Base.next),:(Base.done),:(Base.stride),:(Base.size))
     @eval $OP(S::ArraySpace,k) = $OP(components(S),k)
 end
 
+getindex(S::ArraySpace,kr::AbstractVector) = ArraySpace(components(S)[kr])
 
 #support tuple set
 for OP in (:(Base.done),:(Base.stride))
