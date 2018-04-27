@@ -15,6 +15,10 @@ ToeplitzOperator(V::AbstractVector,W::AbstractVector) =
 convert(::Type{Operator{TT}},T::ToeplitzOperator) where {TT} =
     ToeplitzOperator(convert(Vector{TT},T.negative),convert(Vector{TT},T.nonnegative))
 
+for op in (:(Base.real), :(Base.imag))
+    @eval $op(T::ToeplitzOperator) = ToeplitzOperator($op(T.negative), $op(T.nonnegative))
+end
+
 function SymToeplitzOperator(V::Vector)
     W=V[2:end]
     V=copy(V)
