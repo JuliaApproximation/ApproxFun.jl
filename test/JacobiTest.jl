@@ -240,6 +240,13 @@ using ApproxFun, Compat.Test, StaticArrays
     D=Derivative(S)
     u=[ldirichlet();D^2-x]\[airyai(0.0);0.0]
     @test u(1.0) ≈ airyai(1.0)
+
+    w = Fun(WeightedLaguerre(), [1.0])
+    @test sum(w) == 1
+    t = Fun(identity, space(w))
+    @test t(10.0) == 10.0
+    M = Multiplication(t^2+1, space(w))
+    (M \ w)(1.0) ≈ exp(-1)/2
     #
 
 

@@ -67,8 +67,8 @@ Base.isfinite(f::Fun) = isfinite(maximum(abs,f)) && isfinite(minabs(f))
 
 function /(c::Fun,f::Fun)
     d=domain(f)
-    @assert domain(c)==d
-    cd=canonicaldomain(d)
+    @assert domain(c) == d
+    cd = canonicaldomain(f)
     if typeof(d)!=typeof(cd)
         # project first to simplify
         return setdomain(setdomain(c,cd)/setdomain(f,cd),d)
