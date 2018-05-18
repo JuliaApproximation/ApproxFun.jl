@@ -4,49 +4,55 @@ using ApproxFun, BlockBandedMatrices,  Compat.Test
 
 @testset "Operator" begin
     # test row/colstarts
-    testfunctional(Evaluation(Ultraspherical(1),0.1))
-    testfunctional(Evaluation(Chebyshev(),0.1,1))
-    testfunctional(Evaluation(Chebyshev(),0.1,1)-Evaluation(Chebyshev(),0.1,1))
+    @testset "Evaluation" begin
+        testfunctional(Evaluation(Ultraspherical(1),0.1))
+        d = -4 .. 4
+        f = Fun(exp, Ultraspherical(1,d))
+        @test f(-4) ≈ Number(ldirichlet()*f) ≈ Number(Evaluation(Ultraspherical(1,d),-4)*f)
 
-    let f = Fun(cos)
-        @test (Evaluation(Chebyshev(),0.1,1)*f)(0.1)  ≈ f'(0.1)
+        testfunctional(Evaluation(Chebyshev(),0.1,1))
+        testfunctional(Evaluation(Chebyshev(),0.1,1)-Evaluation(Chebyshev(),0.1,1))
+
+        let f = Fun(cos)
+            @test (Evaluation(Chebyshev(),0.1,1)*f)(0.1)  ≈ f'(0.1)
+        end
     end
 
-    testbandedoperator(Derivative(Ultraspherical(1)))
+    @testset "Derivative" begin
+        testbandedoperator(Derivative(Ultraspherical(1)))
+    end
 
 
     # test fast copy is consistent with getindex
 
+    @testset "Toeplitz" begin
+        C=ToeplitzOperator([1.,2.,3.],[4.,5.,6.])
 
-    C=ToeplitzOperator([1.,2.,3.],[4.,5.,6.])
+        @time testbandedoperator(C)
 
-    @time testbandedoperator(C)
+        @test full(C[1:5,1:5])  ≈  [4.0 5.0 6.0 0.0  0.0
+                                             1.0 4.0 5.0 6.0 0.0
+                                             2.0 1.0 4.0 5.0 6.0
+                                             3.0 2.0 1.0 4.0 5.0
+                                             0.0 3.0 2.0 1.0 4.0]
 
-    @test full(C[1:5,1:5])  ≈  [4.0 5.0 6.0 0.0  0.0
-                                         1.0 4.0 5.0 6.0 0.0
-                                         2.0 1.0 4.0 5.0 6.0
-                                         3.0 2.0 1.0 4.0 5.0
-                                         0.0 3.0 2.0 1.0 4.0]
+         testbandedoperator(HankelOperator([1.,2.,3.,4.,5.,6.,7.]))
+    end
+    @testset "Conversion" begin
+        C=Conversion(Ultraspherical(1),Ultraspherical(2))
+        testbandedoperator(C)
 
-    C=Conversion(Ultraspherical(1),Ultraspherical(2))
+        @test full(C[1:5,1:5])  ≈   [1.0 0.0 -0.3333333333333333 0.0  0.0
+                                              0.0 0.5  0.0               -0.25 0.0
+                                              0.0 0.0  0.3333333333333333 0.0 -0.2
+                                              0.0 0.0  0.0                0.25 0.0
+                                              0.0 0.0  0.0                0.0  0.2]
 
-    testbandedoperator(C)
-
-    @test full(C[1:5,1:5])  ≈   [1.0 0.0 -0.3333333333333333 0.0  0.0
-                                          0.0 0.5  0.0               -0.25 0.0
-                                          0.0 0.0  0.3333333333333333 0.0 -0.2
-                                          0.0 0.0  0.0                0.25 0.0
-                                          0.0 0.0  0.0                0.0  0.2]
-
-
-
-
-    @time for M in (HankelOperator([1.,2.,3.,4.,5.,6.,7.]),
-                Multiplication(Fun(Chebyshev(),[1.,2.,3.]),Chebyshev()))
-        testbandedoperator(M)
     end
 
-
+    @testset "Multiplication" begin
+        testbandedoperator(Multiplication(Fun(Chebyshev(),[1.,2.,3.]),Chebyshev()))
+    end
 
     d=Interval(-10.,5.);
     S=Chebyshev(d)

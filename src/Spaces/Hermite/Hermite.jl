@@ -52,7 +52,7 @@ function hermitep(r::Range,x::Number)
 end
 hermitep(n::Integer,v::Number) = hermitep(n:n,v)[1]
 
-Fun(::typeof(identity), sp::Hermite) = Fun(sp,[0.,0.5])
+
 
 
 # exp(-Lx^2)
@@ -65,6 +65,7 @@ GaussWeight(H::Hermite)=GaussWeight(H,H.L)
 GaussWeight()=GaussWeight(Hermite())
 
 
+Fun(::typeof(identity), sp::Hermite) = Fun(sp,[0.,0.5])
 Fun(::typeof(identity), sp::GaussWeight) = Fun(identity, sp.space)
 
 spacescompatible(a::GaussWeight,b::GaussWeight)=spacescompatible(a.space,b.space)&&isapprox(a.L,b.L)

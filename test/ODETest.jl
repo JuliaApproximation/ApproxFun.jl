@@ -222,4 +222,23 @@ using ApproxFun, Compat.Test
     u1=[B;D]\[0.;Fun(exp)+0im]
     u2=[B;D]\[0.;Fun(exp)]
     @test u1(0.1) ≈ u2(0.1)
+
+    @testset "Delay" begin
+        S = Chebyshev(0..1)
+        D = Derivative(S)
+        L = [D            0I      0I;
+             I             D      0I;
+             0I           I        D]
+
+
+        B = [ldirichlet(S)   0                 0;
+             rdirichlet(S)  -ldirichlet(S)     0;
+             0              rdirichlet(S)      -ldirichlet(S)]
+
+        v = [B; L] \ [2.3; zeros(2); zeros(3)]
+
+        u = v[1] + setdomain(v[2], Domain(1..2)) + setdomain(v[3], Domain(2..3))
+
+        @test abs(u'(1.3) + u(1.3-1) ) ≤ 10eps()
+    end
 end

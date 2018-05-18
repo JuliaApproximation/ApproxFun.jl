@@ -84,14 +84,21 @@ end
 
 function rowstart(A::KroneckerOperator,k::Integer)
     K=block(rangespace(A),k)
-    blockstart(domainspace(A),max(Block(1),K-blockbandwidth(A,1)))
+    K2 = Int(K)-blockbandwidth(A,1)
+    K2 ≤ 1 && return 1
+    ds = domainspace(A)
+    K2 ≥ nblocks(ds) && return size(A,2)
+    blockstart(ds,K2)
 end
 
 function rowstop(A::KroneckerOperator,k::Integer)
     K=block(rangespace(A),k)
-    st=blockstop(domainspace(A),K+blockbandwidth(A,2))
+    ds = domainspace(A)
+    K2 = Int(K)+blockbandwidth(A,2)
+    K2 ≥ nblocks(ds) && return size(A,2)
+    st=blockstop(ds,K2)
     # zero indicates above dimension
-    st==0?size(A,2):min(size(A,2),st)
+    st==0 ? size(A,2) : min(size(A,2),st)
 end
 
 

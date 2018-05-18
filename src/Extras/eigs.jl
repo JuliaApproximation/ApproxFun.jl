@@ -38,9 +38,11 @@ function Base.eigs(Bcs_in::Operator,A_in::Operator,n::Integer;tolerance::Float64
     A1[nf+1:end,1:n] = A[1:n-nf,1:n]
     C1[nf+1:end,1:n] = C[1:n-nf,1:n]
 
-    λ,V=eig(A1,C1)
+    λ,V = eig(A1,C1)
 
-    pruneeigs(λ,V,ds,tolerance)
+    λ, V = pruneeigs(λ,V,ds,tolerance)
+    p = sortperm(λ; lt=(x,y) -> isless(abs(x),abs(y)))
+    λ[p], V[p]
 end
 
 function pruneeigs(λ,V,ds,tolerance)

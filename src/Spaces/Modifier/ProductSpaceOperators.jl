@@ -246,6 +246,8 @@ Multiplication(f::Fun{SumSpace{SV1,D,R1}},sp::SumSpace{SV2,D,R2}) where {SV1,SV2
 Multiplication(f::Fun,sp::SumSpace) =
     MultiplicationWrapper(f,InterlaceOperator(Diagonal([map(s->Multiplication(f,s),components(sp))...]),SumSpace))
 
+Multiplication(f::Fun, sp::PiecewiseSpace) = MultiplicationWrapper(f, Multiplication(Fun(f,sp),sp))
+
 
 # we override coefficienttimes to split the multiplication down to components as union may combine spaes
 

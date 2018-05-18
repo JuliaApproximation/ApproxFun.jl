@@ -286,8 +286,8 @@ using ApproxFun, Compat.Test
     a = Fun(0..1) + Fun(2..3)
     f = a ⊗ a
     @test f(0.1,0.2) ≈ 0.1*0.2
-    @test f(1.1,0.2) == 0
-    @test f(2.1,0.2) == 2.1*0.2
+    @test f(1.1,0.2) ≈ 0
+    @test f(2.1,0.2) ≈ 2.1*0.2
 
     @test component(space(f),1,1) == Chebyshev(0..1)^2
     @test component(space(f),1,2) == Chebyshev(0..1)*Chebyshev(2..3)

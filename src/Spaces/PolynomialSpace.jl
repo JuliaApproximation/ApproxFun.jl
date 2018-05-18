@@ -331,5 +331,5 @@ function getindex(op::ConcreteEvaluation{J,TT},kr::Range) where {J<:PolynomialSp
     T=eltype(op)
     x=op.x
 
-    forwardrecurrence(T,sp,kr-1,x)
+    forwardrecurrence(T,sp,kr-1,tocanonical(sp,x))
 end

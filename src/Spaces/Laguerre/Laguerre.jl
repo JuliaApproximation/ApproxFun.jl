@@ -147,16 +147,30 @@ struct LaguerreWeight{S,T} <: WeightSpace{S,Ray{false,Float64},Float64}
     space::S
 end
 
-LaguerreWeight(α,space::Space) = LaguerreWeight(α,1.0,space)
+LaguerreWeight(α, space::Space) = LaguerreWeight(α, one(α),space)
 
-WeightedLaguerre(α) = LaguerreWeight(α,Laguerre(α))
+WeightedLaguerre(α) = LaguerreWeight(α, Laguerre(α))
+WeightedLaguerre() = WeightedLaguerre(0)
 
 @inline laguerreweight(α,L,x) = x.^α.*exp(-L*x)
 @inline weight(L::LaguerreWeight,x) = laguerreweight(L.α,L.L,x)
 
 
+Fun(::typeof(identity), sp::Laguerre) = Fun(sp,[sp.α+1,-1])
+Fun(::typeof(identity), sp::LaguerreWeight) = Fun(identity, sp.space)
+
+
 spacescompatible(a::LaguerreWeight,b::LaguerreWeight) =
     spacescompatible(a.space,b.space) && isapprox(a.α,b.α) && isapprox(a.L,b.L)
+
+function Base.sum(f::Fun{LaguerreWeight{H,T}}) where {H<:Laguerre,T}
+    @assert space(f).L == 1  # only implemented with matching weight
+    @assert space(f).α == space(f).space.α  # only implemented with matching weight
+    f.coefficients[1]*gamma(1+space(f).α)
+end
+
+
+
 
 function Derivative(sp::LaguerreWeight,k)
     @assert sp.α == 0
@@ -230,3 +244,18 @@ Conversion(A::LaguerreWeight,B::Space{D,RR}) where {D<:Ray,RR<:Real} = Conversio
     SpaceOperator(
         Conversion(A,LaguerreWeight(0,0,B)),
         A,B))
+
+
+## Combine later
+
+function Multiplication(f::Fun{H},S::LaguerreWeight{H}) where H<:Laguerre
+    M=Multiplication(f,S.space)
+    rs=rangespace(M)
+    MultiplicationWrapper(f,SpaceOperator(M,S,LaguerreWeight(rs.α, rs)))
+end
+
+function Multiplication(f::Fun{LaguerreWeight{H,T}},S::Laguerre) where {H<:Laguerre,T}
+    M=Multiplication(Fun(space(f).space,f.coefficients),S)
+    rs=rangespace(M)
+    MultiplicationWrapper(f,SpaceOperator(M,S,LaguerreWeight(rs.α, rs)))
+end
