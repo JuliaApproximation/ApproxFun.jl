@@ -41,8 +41,6 @@ for (REC,JREC) in ((:recα,:laguerrerecα),(:recβ,:laguerrerecβ),(:recγ,:lagu
 end
 
 
-Fun(::typeof(identity), L::Laguerre) = Fun(L,[1+L.α,-1.0])
-
 
 
 function laguerrel(::Type{T},r::Range,α,x) where T
