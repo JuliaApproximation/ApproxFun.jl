@@ -612,7 +612,7 @@ function A_mul_B_coefficients(A::TimesOperator,b)
 end
 
 
-function *(A::Operator,b)
+function *(A::Operator, b)
     ds = domainspace(A)
     rs = rangespace(A)
     if isambiguous(ds)
@@ -628,8 +628,8 @@ end
 A_mul_B_coefficients(A::PlusOperator,b::Fun) =
     mapreduce(x->A_mul_B_coefficients(x,b),+,A.ops)
 
-*(A::Operator,b::AbstractMatrix{<:Fun}) = A*Fun(b)
-*(A::Vector{<:Operator},b::Fun) = map(a->a*b,convert(Array{Any,1},A))
+*(A::Operator, b::AbstractMatrix{<:Fun}) = A*Fun(b)
+*(A::Vector{<:Operator}, b::Fun) = map(a->a*b,convert(Array{Any,1},A))
 
 
 

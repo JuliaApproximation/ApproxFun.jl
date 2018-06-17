@@ -361,6 +361,8 @@ for (Typ,Pltr!,Pltr) in ((:TransformPlan,:plan_transform!,:plan_transform),
             error("transform for Fourier only implemented for fftwNumbers")
 
         *(P::$Typ{T,Fourier{DD,RR},false},vals::AbstractVector{T}) where {T,DD,RR} = P.plan*copy(vals)
+        *(P::$Typ{T,Fourier{DD,RR},false},vals::AbstractVector{<:Complex}) where {T,DD,RR} =
+                P.plan*real(vals) .+ im.*(P.plan*imag(vals))
     end
 end
 

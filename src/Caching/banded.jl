@@ -10,7 +10,7 @@ end
 ## Grow cached operator
 
 
-function resizedata!(B::CachedOperator{T,BandedMatrix{T}},n::Integer,::Colon) where T<:Number
+function resizedata!(B::CachedOperator{T,<:BandedMatrix{T}},n::Integer,::Colon) where T<:Number
     if n > size(B,1)
         throw(ArgumentError("Cannot resize beyound size of operator"))
     end
@@ -28,20 +28,20 @@ function resizedata!(B::CachedOperator{T,BandedMatrix{T}},n::Integer,::Colon) wh
     B
 end
 
-resizedata!(B::CachedOperator{T,BandedMatrix{T}},n::Integer,m::Integer) where {T<:Number} =
+resizedata!(B::CachedOperator{T,<:BandedMatrix{T}},n::Integer,m::Integer) where {T<:Number} =
     resizedata!(B,n,:)
 
 
 ## Grow QR
 
-function QROperator(R::CachedOperator{T,BandedMatrix{T}}) where T
+function QROperator(R::CachedOperator{T,<:BandedMatrix{T}}) where T
     M = R.data.l+1   # number of diag+subdiagonal bands
     H = Array{T}(M,100)
     QROperator(R,H,0)
 end
 
 
-function resizedata!(QR::QROperator{CachedOperator{T,BandedMatrix{T},
+function resizedata!(QR::QROperator{<:CachedOperator{T,<:BandedMatrix{T},
                                                   MM,DS,RS,BI}},
          ::Colon,col) where {T,MM,DS,RS,BI}
     if col ≤ QR.ncols
@@ -94,7 +94,7 @@ end
 
 
 
-function resizedata!(QR::QROperator{CachedOperator{T,BandedMatrix{T},
+function resizedata!(QR::QROperator{<:CachedOperator{T,<:BandedMatrix{T},
                                        MM,DS,RS,BI}},
 ::Colon,col) where {T<:BlasFloat,MM,DS,RS,BI}
     if col ≤ QR.ncols
@@ -150,7 +150,7 @@ end
 ## back substitution
 # loop to avoid ambiguity with AbstractTRiangular
 for ArrTyp in (:AbstractVector, :AbstractMatrix)
-    @eval function A_ldiv_B!(U::UpperTriangular{T, SubArray{T, 2, BandedMatrix{T}, Tuple{UnitRange{Int}, UnitRange{Int}}, false}},
+    @eval function A_ldiv_B!(U::UpperTriangular{T, <:SubArray{T, 2, <:BandedMatrix{T}, Tuple{UnitRange{Int}, UnitRange{Int}}, false}},
                              u::$ArrTyp{T}) where T
         n = size(u,1)
         n == size(U,1) || throw(DimensionMismatch())

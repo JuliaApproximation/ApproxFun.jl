@@ -17,41 +17,42 @@ using ApproxFun, BlockBandedMatrices,  Compat.Test
             @test (Evaluation(Chebyshev(),0.1,1)*f)(0.1)  ≈ f'(0.1)
         end
     end
-    testbandedoperator(Derivative(Ultraspherical(1)))
+
+    @testset "Derivative" begin
+        testbandedoperator(Derivative(Ultraspherical(1)))
+    end
 
 
     # test fast copy is consistent with getindex
 
+    @testset "Toeplitz" begin
+        C=ToeplitzOperator([1.,2.,3.],[4.,5.,6.])
 
-    C=ToeplitzOperator([1.,2.,3.],[4.,5.,6.])
+        @time testbandedoperator(C)
 
-    @time testbandedoperator(C)
+        @test full(C[1:5,1:5])  ≈  [4.0 5.0 6.0 0.0  0.0
+                                             1.0 4.0 5.0 6.0 0.0
+                                             2.0 1.0 4.0 5.0 6.0
+                                             3.0 2.0 1.0 4.0 5.0
+                                             0.0 3.0 2.0 1.0 4.0]
 
-    @test full(C[1:5,1:5])  ≈  [4.0 5.0 6.0 0.0  0.0
-                                         1.0 4.0 5.0 6.0 0.0
-                                         2.0 1.0 4.0 5.0 6.0
-                                         3.0 2.0 1.0 4.0 5.0
-                                         0.0 3.0 2.0 1.0 4.0]
+         testbandedoperator(HankelOperator([1.,2.,3.,4.,5.,6.,7.]))
+    end
+    @testset "Conversion" begin
+        C=Conversion(Ultraspherical(1),Ultraspherical(2))
+        testbandedoperator(C)
 
-    C=Conversion(Ultraspherical(1),Ultraspherical(2))
+        @test full(C[1:5,1:5])  ≈   [1.0 0.0 -0.3333333333333333 0.0  0.0
+                                              0.0 0.5  0.0               -0.25 0.0
+                                              0.0 0.0  0.3333333333333333 0.0 -0.2
+                                              0.0 0.0  0.0                0.25 0.0
+                                              0.0 0.0  0.0                0.0  0.2]
 
-    testbandedoperator(C)
-
-    @test full(C[1:5,1:5])  ≈   [1.0 0.0 -0.3333333333333333 0.0  0.0
-                                          0.0 0.5  0.0               -0.25 0.0
-                                          0.0 0.0  0.3333333333333333 0.0 -0.2
-                                          0.0 0.0  0.0                0.25 0.0
-                                          0.0 0.0  0.0                0.0  0.2]
-
-
-
-
-    @time for M in (HankelOperator([1.,2.,3.,4.,5.,6.,7.]),
-                Multiplication(Fun(Chebyshev(),[1.,2.,3.]),Chebyshev()))
-        testbandedoperator(M)
     end
 
-
+    @testset "Multiplication" begin
+        testbandedoperator(Multiplication(Fun(Chebyshev(),[1.,2.,3.]),Chebyshev()))
+    end
 
     d=Interval(-10.,5.);
     S=Chebyshev(d)
@@ -252,55 +253,67 @@ using ApproxFun, BlockBandedMatrices,  Compat.Test
     testblockbandedoperator(A)
 
 
-    ## Projection
-    ## SubSpace test
+    @testset "Projection and subspaces" begin
+        S=Chebyshev()
+        SS = S|(2:5)
+        @test ApproxFun.block(SS,3) == Block(4)
 
-    S=Chebyshev()
-    SS = S|(2:5)
-    @test ApproxFun.block(SS,3) == Block(4)
+        for C in (eye(S)[3:end,:], eye(S)[3:end,1:end])
+            @test ApproxFun.domaindimension(domainspace(C)) == 1
+            @test union(S,domainspace(C)) == S
 
-    for C in (eye(S)[3:end,:], eye(S)[3:end,1:end])
-        @test ApproxFun.domaindimension(domainspace(C)) == 1
-        @test union(S,domainspace(C)) == S
+            B=Dirichlet(S)
 
-        B=Dirichlet(S)
+            Ai=[B;C]
 
-        Ai=[B;C]
+            @test ApproxFun.colstop(Ai,1) == 2
 
-        @test ApproxFun.colstop(Ai,1) == 2
+            x=Fun()
+            f=exp(x)
+            u=[B;C]\[[0.,0.],f]
 
-        x=Fun()
-        f=exp(x)
-        u=[B;C]\[[0.,0.],f]
-
-        @test abs(u(-1)) ≤ 10eps()
-        @test abs(u(1)) ≤ 10eps()
+            @test abs(u(-1)) ≤ 10eps()
+            @test abs(u(1)) ≤ 10eps()
 
 
-        f=(1-x^2)*exp(x)
-        u=[B;C]\[[0.,0.],f]
+            f=(1-x^2)*exp(x)
+            u=[B;C]\[[0.,0.],f]
 
-        @test u ≈ f
+            @test u ≈ f
+        end
     end
 
 
-
-    ## Test Zero operator has correct bandinds
-
-    Z=ApproxFun.ZeroOperator(Chebyshev())
-    @test ApproxFun.bandinds(Z) == ApproxFun.bandinds(Z+Z)
-
-
-    ## Issue 407
-    x = Fun()
-    B = [1 ldirichlet()]
-    @test (B*[1;x])[1] == Fun(ConstantSpace(ApproxFun.Point(-1.0)),[0.0])
+    @testset "Zero operator has correct bandinds" begin
+        Z=ApproxFun.ZeroOperator(Chebyshev())
+        @test ApproxFun.bandinds(Z) == ApproxFun.bandinds(Z+Z)
+    end
 
 
+    @testset "hcat of functionals (#407)" begin
+        x = Fun()
+        B = [1 ldirichlet()]
+        @test (B*[1;x])[1] == Fun(ConstantSpace(ApproxFun.Point(-1.0)),[0.0])
+    end
 
-    ## views of views
-    A = Derivative(Chebyshev()) + I
-    B = A[1:2:∞,1:2:∞]
-    C = B[2:∞,3:∞]
-    @test A[3:2:∞,5:2:∞] == C
+
+    @testset "views of views" begin
+        A = Derivative(Chebyshev()) + I
+        B = A[1:2:∞,1:2:∞]
+        C = B[2:∞,3:∞]
+        @test A[3:2:∞,5:2:∞] == C
+    end
+
+    @testset "Multiplication functions" begin
+        x = Fun()
+        M = Multiplication(x, Chebyshev())
+        @test exp(M).f == Multiplication(exp(x), Chebyshev()).f
+        @test (-M).f == Multiplication(-x, Chebyshev()).f
+        @test exp(-M).f == Multiplication(exp(-x), Chebyshev()).f
+        @test (M/3).f == (3\M).f == Multiplication(x/3, Chebyshev()).f
+        @test (M*3).f == (3*M).f == Multiplication(x*3, Chebyshev()).f
+
+        M = Multiplication(x, JacobiWeight(0,0,Chebyshev()))
+        @test exp(M).f == Multiplication(exp(x), Chebyshev()).f
+    end
 end

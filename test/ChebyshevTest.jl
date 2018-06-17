@@ -24,6 +24,8 @@ using ApproxFun, Compat.Test
     @test ef == -(-ef)
     @test ef == (ef-1) + 1
 
+    @test ef / 3 == (3 \ ef)
+
 
     cf = Fun(cos)
 

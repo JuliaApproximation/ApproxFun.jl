@@ -168,6 +168,11 @@ getindex(D::ConcreteMultiplication{F,UnsetSpace,T},k::Integer,j::Integer) where 
 
 
 bandinds(D::ConcreteMultiplication{CS,F,T}) where {CS<:ConstantSpace,F<:Space,T} = 0,0
+blockbandinds(D::ConcreteMultiplication{CS,F,T}) where {CS<:ConstantSpace,F<:Space,T} = 0,0
+subblockbandinds(D::ConcreteMultiplication{CS,F,T}) where {CS<:ConstantSpace,F<:Space,T} = 0,0
+subblockbandinds(D::ConcreteMultiplication{CS,F,T}, k) where {CS<:ConstantSpace,F<:Space,T} = 0
+isbandedblockbanded(D::ConcreteMultiplication{CS,F,T}) where {CS<:ConstantSpace,F<:Space,T} = true
+isblockbanded(D::ConcreteMultiplication{CS,F,T}) where {CS<:ConstantSpace,F<:Space,T} = true
 getindex(D::ConcreteMultiplication{CS,F,T},k::Integer,j::Integer) where {CS<:ConstantSpace,F<:Space,T} =
     k==j?T(D.f):zero(T)
 rangespace(D::ConcreteMultiplication{CS,F,T}) where {CS<:ConstantSpace,F<:Space,T} = D.space
