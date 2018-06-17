@@ -1,5 +1,5 @@
-import Base.BLAS: @blasfunc, libblas
-import Base.LAPACK: liblapack
+import Compat.LinearAlgebra.BLAS: @blasfunc, libblas
+import Compat.LinearAlgebra.LAPACK: liblapack
 # Level 2
 ## mv
 ### gemv

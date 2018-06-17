@@ -270,7 +270,7 @@ function extremal_args(f::Fun)
     end
 end
 
-for op in (:(Base.maximum),:(Base.minimum),:(Base.extrema),:(Base.maxabs),:(Base.minabs))
+for op in (:(Base.maximum),:(Base.minimum),:(Base.extrema))
     @eval function $op(f::Fun{S,T}) where {S<:RealSpace,T<:Real}
 
         pts = iszero(f') ? [first(domain(f))] : extremal_args(f)
@@ -279,21 +279,25 @@ for op in (:(Base.maximum),:(Base.minimum),:(Base.extrema),:(Base.maxabs),:(Base
     end
 end
 
-for op in (:(Base.maxabs),:(Base.minabs))
-    @eval function $op(f::Fun)
-        # complex spaces/types can have different extrema
-        pts = extremal_args(abs(f))
-
-        $op(f.(pts))
-    end
-end
-
-for op in (:(Base.maximum),:(Base.minimum),:(Base.maxabs),:(Base.minabs))
+for op in (:(Base.maximum),:(Base.minimum))
     @eval begin
+        function $op(::typeof(abs), f::Fun{S,T}) where {S<:RealSpace,T<:Real}
+            pts = iszero(f') ? [first(domain(f))] : extremal_args(f)
+            $op(f.(pts))
+        end
+        function $op(::typeof(abs), f::Fun)
+            # complex spaces/types can have different extrema
+            pts = extremal_args(abs(f))
+            $op(f.(pts))
+        end
         $op(f::Fun{PiecewiseSpace{SV,DD,RR},T}) where {SV,DD<:UnionDomain,RR<:Real,T<:Real} =
             $op(map($op,components(f)))
+        $op(::typeof(abs), f::Fun{PiecewiseSpace{SV,DD,RR},T}) where {SV,DD<:UnionDomain,RR<:Real,T<:Real} =
+            $op(abs, map(g -> $op(abs, g),components(f))) 
     end
 end
+
+
 
 Base.extrema(f::Fun{PiecewiseSpace{SV,DD,RR},T}) where {SV,DD<:UnionDomain,RR<:Real,T<:Real} =
     mapreduce(extrema,(x,y)->extrema([x...;y...]),components(f))

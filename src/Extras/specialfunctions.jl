@@ -529,7 +529,7 @@ besselh(ν,k::Integer,f::Fun) = k == 1 ? hankelh1(ν,f) : k == 2 ? hankelh2(ν,f
 
 for jy in ("j","y"), ν in (0,1)
     bjy = Symbol(string("bessel",jy))
-    bjynu = parse(string("Base.bessel",jy,ν))
+    bjynu = parse(string("SpecialFunctions.bessel",jy,ν))
     @eval begin
         $bjynu(f::Fun) = $bjy($ν,f)
     end

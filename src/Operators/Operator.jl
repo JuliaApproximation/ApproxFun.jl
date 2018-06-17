@@ -229,14 +229,14 @@ defaultgetindex(B::Operator,k::Range,j::Block) = AbstractMatrix(view(B,k,j))
 defaultgetindex(B::Operator,k::Block,j::Range) = AbstractMatrix(view(B,k,j))
 defaultgetindex(B::Operator,k::Range,j::Range) = AbstractMatrix(view(B,k,j))
 
-defaultgetindex(op::Operator,k::Integer,j::Range) = eltype(op)[op[k,j] for j in j]
-defaultgetindex(op::Operator,k::Range,j::Integer) = eltype(op)[op[k,j] for k in k]
+defaultgetindex(op::Operator,k::Integer,jr::Range) = eltype(op)[op[k,j] for j in jr]
+defaultgetindex(op::Operator,kr::Range,j::Integer) = eltype(op)[op[k,j] for k in kr]
 
 defaultgetindex(B::Operator,k::Block,j::BlockRange) = AbstractMatrix(view(B,k,j))
 defaultgetindex(B::Operator,k::BlockRange,j::BlockRange) = AbstractMatrix(view(B,k,j))
 
-defaultgetindex(op::Operator,k::Integer,j::BlockRange) = eltype(op)[op[k,j] for j in j]
-defaultgetindex(op::Operator,k::BlockRange,j::Integer) = eltype(op)[op[k,j] for k in k]
+defaultgetindex(op::Operator,k::Integer,jr::BlockRange) = eltype(op)[op[k,j] for j in jr]
+defaultgetindex(op::Operator,kr::BlockRange,j::Integer) = eltype(op)[op[k,j] for k in kr]
 
 
 # Colon casdes

@@ -120,7 +120,7 @@ end
     if length(rowvec) != length(vec)
         throw(DimensionMismatch("A has dimensions $(size(rowvec)) but B has dimensions $(size(vec))"))
     end
-    sum(@inbounds(return rowvec[i]*vec[i]) for i = 1:length(vec))
+    sum(@inbounds(rowvec[i]*vec[i]) for i = 1:length(vec))
 end
 @inline *(rowvec::RowVector, mat::AbstractMatrix) = RowVector(mat.' * rowvec.vec)
 *(::RowVector, ::RowVector) = throw(DimensionMismatch("Cannot multiply two transposed vectors"))

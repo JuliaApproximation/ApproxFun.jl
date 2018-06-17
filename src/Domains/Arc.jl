@@ -90,7 +90,7 @@ Base.issubset(a::Arc,b::Arc) =
 
 *(c::Real,d::Arc) =
     Arc(c*d.center,c*d.radius,(sign(c)*d.angles[1],sign(c)*d.angles[2]))
-*(d::Arc,c::Real) = $op(c,d)
+*(d::Arc,c::Real) = *(c,d)
 
 for op in (:+,:-)
     @eval begin
