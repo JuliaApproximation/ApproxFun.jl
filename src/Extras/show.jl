@@ -201,7 +201,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
             BM=B[1:10,1:10]
 
             M=Matrix{Any}(11,11)
-            fill!(M,PrintShow(""))
+            fill!(M,PrintShow("⋅"))
             for j = 1:size(BM,2),k = colrange(BM,j)
                 M[k,j]=BM[k,j]
             end
