@@ -86,7 +86,7 @@ weight(H::GaussWeight,x) = exp(-H.L*x^2)
 
 function Base.sum(f::Fun{GaussWeight{H,T}}) where {H<:Hermite,T}
     @assert space(f).space.L==space(f).L  # only implemented with matching weight
-    f.coefficients[1]*sqrt(π)/sqrt(space(f).L)
+    f.coefficients[1]*sqrt(T(π))/sqrt(space(f).L)
 end
 
 include("hermitetransform.jl")
