@@ -3,7 +3,11 @@
 
 ### notes on release changes, ongoing development, and future planned work
 
-#### 0.8 (current master)
+#### 0.8.1 (current master)
+ - Support BandedMatrices v0.5
+ - Bug fixes and minor improvements
+
+#### 0.8
 - In-place transform functionality for `Fourier`
 - Use BandedBlockBandedMatrices.jl for more reliable solution of PDEs
 - Adds `jumplocations` for finding discontinuities of a piecewise `Fun` (thanks lcw)
