@@ -554,9 +554,9 @@ end
 *(A::Conversion,B::TimesOperator) = TimesOperator(A,B)
 *(A::TimesOperator,B::Conversion) = TimesOperator(A,B)
 *(A::Operator,B::Conversion) =
-    isconstop(A)?promoterangespace(convert(Number,A)*B,rangespace(A)):TimesOperator(A,B)
+    isconstop(A) ? promoterangespace(convert(Number,A)*B,rangespace(A)) : TimesOperator(A,B)
 *(A::Conversion,B::Operator) =
-    isconstop(B)?promotedomainspace(convert(Number,B)*A,domainspace(B)):TimesOperator(A,B)
+    isconstop(B) ? promotedomainspace(convert(Number,B)*A,domainspace(B)) : TimesOperator(A,B)
 
 
 +(A::Operator) = A

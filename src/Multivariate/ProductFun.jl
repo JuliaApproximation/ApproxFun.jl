@@ -17,7 +17,7 @@ ProductFun(cfs::Vector{VFun{S,T}},sp::AbstractProductSpace{Tuple{W,V},DD}) where
    ProductFun{W,V,typeof(sp),T}(VFun{W,T}[Fun(cfs[k],columnspace(sp,k)) for k=1:length(cfs)],sp)
 
 Base.size(f::ProductFun,k::Integer) =
-    k==1?mapreduce(ncoefficients,max,f.coefficients):length(f.coefficients)
+    k==1 ? mapreduce(ncoefficients,max,f.coefficients) : length(f.coefficients)
 Base.size(f::ProductFun) = (size(f,1),size(f,2))
 
 ## Construction in an AbstractProductSpace via a Matrix of coefficients
@@ -84,7 +84,7 @@ ProductFun(f::Fun{S}) where {S<:AbstractProductSpace} = ProductFun(coefficientma
 
 ## Conversion to other ProductSpaces with the same coefficients
 
-ProductFun(f::ProductFun,sp::TensorSpace)=space(f)==sp?f:ProductFun(coefficients(f,sp),sp)
+ProductFun(f::ProductFun,sp::TensorSpace)=space(f)==sp ? f : ProductFun(coefficients(f,sp),sp)
 ProductFun(f::ProductFun{S,V,SS},sp::ProductDomain) where {S,V,SS<:TensorSpace}=ProductFun(f,Space(sp))
 
 function ProductFun(f::ProductFun,sp::AbstractProductSpace)

@@ -95,13 +95,13 @@ end
 # equivalent to sum of indices -1
 
 # block(it::Tensorizer,k) = Block(sum(it[k])-length(it.blocks)+1)
-block{T}(ci::CachedIterator{T,TrivialTensorizer{2}},k::Int) =
+block(ci::CachedIterator{T,TrivialTensorizer{2}},k::Int) where {T} =
     Block(k == 0 ? 0 : sum(ci[k])-length(ci.iterator.blocks)+1)
 
 block(::TrivialTensorizer{2},n::Int) =
     Block(floor(Integer,sqrt(2n) + 1/2))
 
-block{S,T}(sp::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Int) =
+block(sp::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Int) where {S,T} =
     Block(floor(Integer,sqrt(2floor(Integer,(n-1)/(sp.blocks[1].x*sp.blocks[2].x))+1) + 1/2))
 block(sp::Tensorizer,k::Int) = Block(findfirst(x->x≥k,cumsum(blocklengths(sp))))
 block(sp::CachedIterator,k::Int) = block(sp.iterator,k)
@@ -160,7 +160,7 @@ function getindex(it::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Integer) whe
 end
 
 
-blockstart(it,K)::Int = K==1?1:sum(blocklengths(it)[1:K-1])+1
+blockstart(it,K)::Int = K==1 ? 1 : sum(blocklengths(it)[1:K-1])+1
 blockstop(it,::Infinity{Bool}) = ∞
 blockstop(it,K)::Int = sum(blocklengths(it)[1:K])
 

@@ -10,7 +10,7 @@ domain(f::MultivariateFun{T,N}) where {T,N}=mapreduce(k->domain(f,k),*,1:N)
 domain(f::MultivariateFun,k::Integer)=domain(space(f,k))
 
 differentiate(u::BivariateFun,i::Integer,j::Integer) =
-    j==0?u:differentiate(differentiate(u,i),i,j-1)
+    j==0 ? u : differentiate(differentiate(u,i),i,j-1)
 grad(u::BivariateFun) = [differentiate(u,1),differentiate(u,2)]
 lap(u::BivariateFun) = differentiate(u,1,2)+differentiate(u,2,2)
 Base.div(u::AbstractVector{B}) where {B<:BivariateFun} =

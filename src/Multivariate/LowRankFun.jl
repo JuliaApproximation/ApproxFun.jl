@@ -32,7 +32,7 @@ LowRankFun(A::Vector{VFun{S,T}},B::Vector{VFun{M,V}}) where {S,M,T,V} =
                convert(Vector{VFun{M,promote_type(T,V)}},B),
                space(first(A))⊗space(first(B)))
 Base.rank(f::LowRankFun) = length(f.A)
-Base.size(f::LowRankFun,k::Integer) = k==1?mapreduce(length,max,f.A):mapreduce(length,max,f.B)
+Base.size(f::LowRankFun,k::Integer) = k==1 ? mapreduce(length,max,f.A) : mapreduce(length,max,f.B)
 Base.size(f::LowRankFun) = size(f,1),size(f,2)
 
 ## Construction via a Matrix of coefficients
@@ -285,8 +285,8 @@ end
 
 (f::LowRankFun)(x,y)=evaluate(f,x,y)
 
-domain(f::LowRankFun,k::Integer) = k==1? domain(first(f.A)) : domain(first(f.B))
-space(f::LowRankFun,k::Integer) = k==1? space(first(f.A)) : space(first(f.B))
+domain(f::LowRankFun,k::Integer) = k==1 ? domain(first(f.A)) : domain(first(f.B))
+space(f::LowRankFun,k::Integer) = k==1 ? space(first(f.A)) : space(first(f.B))
 space(f::LowRankFun)=f.space
 
 Base.transpose(f::LowRankFun{S,M,SS,T}) where {S,M,SS,T}=LowRankFun(f.B,f.A,transpose(space(f)))
@@ -421,7 +421,7 @@ Base.imag(u::LowRankFun)=LowRankFun([map(real,u.A),map(imag,u.A)],[map(imag,u.B)
 
 
 Base.sum(g::LowRankFun)=dotu(map(sum,g.A),map(sum,g.B))
-Base.sum(g::LowRankFun,n::Integer)=(n==1)?dotu(g.B,map(sum,g.A)):dotu(g.A,map(sum,g.B))
-Base.cumsum(g::LowRankFun,n::Integer)=(n==1)?LowRankFun(map(cumsum,g.A),copy(g.B)):LowRankFun(copy(g.A),map(cumsum,g.B))
-differentiate(g::LowRankFun,n::Integer)=(n==1)?LowRankFun(map(differentiate,g.A),copy(g.B)):LowRankFun(copy(g.A),map(differentiate,g.B))
-integrate(g::LowRankFun,n::Integer)=(n==1)?LowRankFun(map(integrate,g.A),copy(g.B)):LowRankFun(copy(g.A),map(integrate,g.B))
+Base.sum(g::LowRankFun,n::Integer)=(n==1) ? dotu(g.B,map(sum,g.A)) : dotu(g.A,map(sum,g.B))
+Base.cumsum(g::LowRankFun,n::Integer)=(n==1) ? LowRankFun(map(cumsum,g.A),copy(g.B)) : LowRankFun(copy(g.A),map(cumsum,g.B))
+differentiate(g::LowRankFun,n::Integer)=(n==1) ? LowRankFun(map(differentiate,g.A),copy(g.B)) : LowRankFun(copy(g.A),map(differentiate,g.B))
+integrate(g::LowRankFun,n::Integer)=(n==1) ? LowRankFun(map(integrate,g.A),copy(g.B)) : LowRankFun(copy(g.A),map(integrate,g.B))
