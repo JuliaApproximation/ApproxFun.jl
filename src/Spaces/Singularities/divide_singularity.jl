@@ -6,7 +6,7 @@
 function dirichlet_divide_singularity(b::Bool,v::AbstractVector{T}) where T<:Number
     n=length(v)
     w=zeros(T,n-1)
-    s=b?1:-1
+    s=b ? 1 : -1
 
     if n==1
         return w

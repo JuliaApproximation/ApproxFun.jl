@@ -65,7 +65,7 @@ using ApproxFun, Compat.Test
     @test norm(max(x,x)-x)<100eps()
     @test norm(min(x,x)-x)<100eps()
 
-    f3=Fun(x->x<-0.05?-1.0:(x<0.45?4*(x-.2):1),Domain(-1..1) \ [-0.05,0.45])
+    f3=Fun(x->x<-0.05 ? -1.0 : (x<0.45 ? 4*(x-.2) : 1),Domain(-1..1) \ [-0.05,0.45])
     @test norm(f2.(linspace(-1,1,10))-f3.(linspace(-1,1,10))) < 2eps()
 
     x=Fun(identity, Segment(im,0) ∪ Segment(0,1))
@@ -167,7 +167,7 @@ using ApproxFun, Compat.Test
     @test o(1.) ≈ 1.0
     @test o(0.4) ≈ 1.0
 
-    G=Fun(z->in(z,component(Γ,2))?[1 0; -1/z 1]:[z 0; 0 1/z],Γ)
+    G=Fun(z->in(z,component(Γ,2)) ? [1 0; -1/z 1] : [z 0; 0 1/z],Γ)
     @test (G-I)(exp(0.1im)) ≈ (G(exp(0.1im))-I)
 
 

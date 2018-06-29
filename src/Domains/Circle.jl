@@ -109,5 +109,5 @@ end
 
 /(c::Number,d::Circle) =
 	c==1 ? (d.center==0 ? Circle(d.center,1/d.radius,!d.orientation) :
-				Circle(1/d.center,abs(1/(d.center+d.radius)-1/(d.center)),!d.orientation)):
+				Circle(1/d.center,abs(1/(d.center+d.radius)-1/(d.center)),!d.orientation)) :
 				c*(1/d)

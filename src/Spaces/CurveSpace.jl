@@ -5,7 +5,7 @@ Space(d::PeriodicCurve{S}) where {S<:Fourier}=Fourier(d)
 Space(d::PeriodicCurve{S}) where {S<:Laurent}=Laurent(d)
 
 #TODO: Make type stable
-convert(::Type{Curve},f::Fun)=isa(domain(f),IntervalDomain)?IntervalCurve(f):PeriodicCurve(f)
+convert(::Type{Curve},f::Fun)=isa(domain(f),IntervalDomain) ? IntervalCurve(f) : PeriodicCurve(f)
 
 # function evaluate{C<:Curve,TT}(f::AbstractVector,S::Space{TT,C},x::Number)
 #     rts=roots(domain(S).curve-x)

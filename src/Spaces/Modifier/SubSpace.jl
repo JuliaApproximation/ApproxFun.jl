@@ -14,7 +14,7 @@ domain(DS::SubSpace) = domain(DS.space)
 dimension(sp::SubSpace) = length(sp.indexes)
 
 
-|(sp::Space,kr::UnitCount) = first(kr)==1?sp:SubSpace(sp,kr)
+|(sp::Space,kr::UnitCount) = first(kr)==1 ? sp : SubSpace(sp,kr)
 |(sp::Space,kr::Union{AbstractCount,Range}) = SubSpace(sp,kr)
 
 
@@ -109,7 +109,7 @@ bandinds(C::ConcreteConversion{SubSpace{S,UnitCount{Int},DD,RR},S}) where {S,DD,
 
 getindex(C::ConcreteConversion{SubSpace{S,IT,DD,RR},S},
        k::Integer,j::Integer) where {S,IT,DD,RR} =
-    domainspace(C).indexes[j]==k?one(eltype(C)):zero(eltype(C))
+    domainspace(C).indexes[j]==k ? one(eltype(C)) : zero(eltype(C))
 
 
 # avoid ambiguity
