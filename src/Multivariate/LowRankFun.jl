@@ -31,9 +31,9 @@ LowRankFun(A::Vector{VFun{S,T}},B::Vector{VFun{M,V}}) where {S,M,T,V} =
     LowRankFun(convert(Vector{VFun{S,promote_type(T,V)}},A),
                convert(Vector{VFun{M,promote_type(T,V)}},B),
                space(first(A))⊗space(first(B)))
-Base.rank(f::LowRankFun) = length(f.A)
-Base.size(f::LowRankFun,k::Integer) = k==1 ? mapreduce(length,max,f.A) : mapreduce(length,max,f.B)
-Base.size(f::LowRankFun) = size(f,1),size(f,2)
+rank(f::LowRankFun) = length(f.A)
+size(f::LowRankFun,k::Integer) = k==1 ? mapreduce(length,max,f.A) : mapreduce(length,max,f.B)
+size(f::LowRankFun) = size(f,1),size(f,2)
 
 ## Construction via a Matrix of coefficients
 
@@ -289,7 +289,7 @@ domain(f::LowRankFun,k::Integer) = k==1 ? domain(first(f.A)) : domain(first(f.B)
 space(f::LowRankFun,k::Integer) = k==1 ? space(first(f.A)) : space(first(f.B))
 space(f::LowRankFun)=f.space
 
-Base.transpose(f::LowRankFun{S,M,SS,T}) where {S,M,SS,T}=LowRankFun(f.B,f.A,transpose(space(f)))
+transpose(f::LowRankFun{S,M,SS,T}) where {S,M,SS,T}=LowRankFun(f.B,f.A,transpose(space(f)))
 
 function values(f::LowRankFun)
     xm=mapreduce(ncoefficients,max,f.A)
@@ -358,7 +358,7 @@ end
     f.(x::AbstractVector, y':::AbstractMatrix)
 Fast evaluation of a LowRankFun on a cartesian grid x ⨂ y.
 """
-function Base.broadcast(f::LowRankFun, x::AbstractVector, y::AbstractMatrix)
+function broadcast(f::LowRankFun, x::AbstractVector, y::AbstractMatrix)
     ret = zeros(length(y), length(x))
     #println(InRed * "FROM BROADCAST" * InDefault)
     for k = 1:rank(f)
@@ -369,7 +369,7 @@ end
 
 ## Truncate
 #TODO: should reduce rank if needed
-Base.chop(f::LowRankFun,tol)=LowRankFun(map(g->chop(g,tol),f.A),map(g->chop(g,tol),f.B),f.space)
+chop(f::LowRankFun,tol)=LowRankFun(map(g->chop(g,tol),f.A),map(g->chop(g,tol),f.B),f.space)
 function pad(f::LowRankFun,m::Integer,n::Integer)
     A,B = deepcopy(f.A),deepcopy(f.B)
 
@@ -404,7 +404,7 @@ end
 
 ## QR factorization of a LowRankFun
 
-function Base.qr(f::LowRankFun)
+function qr(f::LowRankFun)
     sp,r = space(f),rank(f)
     Q,R = qr(coefficients(f.A))
     BR = coefficients(f.B)*transpose(R)
@@ -413,15 +413,15 @@ end
 
 ## Special functions
 
-Base.real(u::LowRankFun)=LowRankFun([map(real,u.A),map(imag,u.A)],[map(real,u.B),-map(imag,u.B)])
-Base.imag(u::LowRankFun)=LowRankFun([map(real,u.A),map(imag,u.A)],[map(imag,u.B),map(real,u.B)])
+real(u::LowRankFun)=LowRankFun([map(real,u.A),map(imag,u.A)],[map(real,u.B),-map(imag,u.B)])
+imag(u::LowRankFun)=LowRankFun([map(real,u.A),map(imag,u.A)],[map(imag,u.B),map(real,u.B)])
 
 
 ## Calculus
 
 
-Base.sum(g::LowRankFun)=dotu(map(sum,g.A),map(sum,g.B))
-Base.sum(g::LowRankFun,n::Integer)=(n==1) ? dotu(g.B,map(sum,g.A)) : dotu(g.A,map(sum,g.B))
-Base.cumsum(g::LowRankFun,n::Integer)=(n==1) ? LowRankFun(map(cumsum,g.A),copy(g.B)) : LowRankFun(copy(g.A),map(cumsum,g.B))
+sum(g::LowRankFun)=dotu(map(sum,g.A),map(sum,g.B))
+sum(g::LowRankFun,n::Integer)=(n==1) ? dotu(g.B,map(sum,g.A)) : dotu(g.A,map(sum,g.B))
+cumsum(g::LowRankFun,n::Integer)=(n==1) ? LowRankFun(map(cumsum,g.A),copy(g.B)) : LowRankFun(copy(g.A),map(cumsum,g.B))
 differentiate(g::LowRankFun,n::Integer)=(n==1) ? LowRankFun(map(differentiate,g.A),copy(g.B)) : LowRankFun(copy(g.A),map(differentiate,g.B))
 integrate(g::LowRankFun,n::Integer)=(n==1) ? LowRankFun(map(integrate,g.A),copy(g.B)) : LowRankFun(copy(g.A),map(integrate,g.B))

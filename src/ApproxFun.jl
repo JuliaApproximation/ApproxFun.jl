@@ -4,7 +4,7 @@ module ApproxFun
     using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers,
             BlockArrays, BandedMatrices, BlockBandedMatrices, IntervalSets,
             SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions,
-            LinearAlgebra, LowRankApprox
+            LinearAlgebra, LowRankApprox, Arpack
     import StaticArrays, ToeplitzMatrices, Calculus
 
 
@@ -23,7 +23,10 @@ import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, 
 import Base.Broadcast: BroadcastStyle, Broadcasted
 
 
-import LinearAlgebra: BlasInt, BlasFloat, norm, ldiv!, mul!, det, eigvals, eigs, dot, cross
+import LinearAlgebra: BlasInt, BlasFloat, norm, ldiv!, mul!, det, eigvals, dot, cross,
+                        qr, isdiag, rank, issymmetric, ishermitian, Tridiagonal
+
+import Arpack: eigs
 
 # we need to import all special functions to use Calculus.symbolic_derivatives_1arg
 # we can't do importall Base as we replace some Base definitions

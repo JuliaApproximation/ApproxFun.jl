@@ -14,7 +14,7 @@ bandinds(::DiagonalOperator)=0,0
 
 
 
-Base.Tridiagonal(J::TridiagonalOperator{T},n::Integer) where {T}=Tridiagonal(T[J.γ(k) for k=2:n],
+Tridiagonal(J::TridiagonalOperator{T},n::Integer) where {T}=Tridiagonal(T[J.γ(k) for k=2:n],
 T[J.α(k) for k=1:n],
 T[J.β(k) for k=1:n-1])
 

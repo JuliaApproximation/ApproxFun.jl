@@ -8,9 +8,9 @@ export domainspace,rangespace
 
 abstract type Operator{T} end #T is the entry type, Float64 or Complex{Float64}
 
-Base.eltype(::Operator{T}) where {T} = T
-Base.eltype(::Type{Operator{T}}) where {T} = T
-Base.eltype(::Type{OT}) where {OT<:Operator} = eltype(supertype(OT))
+eltype(::Operator{T}) where {T} = T
+eltype(::Type{Operator{T}}) where {T} = T
+eltype(::Type{OT}) where {OT<:Operator} = eltype(supertype(OT))
 
 
 # default entry type
@@ -21,7 +21,7 @@ Base.eltype(::Type{OT}) where {OT<:Operator} = eltype(supertype(OT))
 prectype(sp::Space) = promote_type(prectype(domaintype(sp)),eltype(rangetype(sp)))
 
  #Operators are struct
-Base.copy(A::Operator) = A
+copy(A::Operator) = A
 
 
 ## We assume operators are T->T
@@ -185,10 +185,10 @@ bandrange(b::Operator) = UnitRange(bandinds(b)...)
 # A diagonal operator has essentially infinite stride
 # which we represent by a factorial, so that
 # the gcd with any number < 10 is the number
-Base.stride(A::Operator) =
+stride(A::Operator) =
     isdiag(A) ? factorial(10) : 1
 
-Base.isdiag(A::Operator) = bandinds(A)==(0,0)
+isdiag(A::Operator) = bandinds(A)==(0,0)
 
 
 ## Construct operators
@@ -198,10 +198,10 @@ include("SubOperator.jl")
 
 
 #
-# Base.sparse(B::Operator,n::Integer)=sparse(BandedMatrix(B,n))
-# Base.sparse(B::Operator,n::AbstractRange,m::AbstractRange)=sparse(BandedMatrix(B,n,m))
-# Base.sparse(B::Operator,n::Colon,m::AbstractRange)=sparse(BandedMatrix(B,n,m))
-# Base.sparse(B::Operator,n::AbstractRange,m::Colon)=sparse(BandedMatrix(B,n,m))
+# sparse(B::Operator,n::Integer)=sparse(BandedMatrix(B,n))
+# sparse(B::Operator,n::AbstractRange,m::AbstractRange)=sparse(BandedMatrix(B,n,m))
+# sparse(B::Operator,n::Colon,m::AbstractRange)=sparse(BandedMatrix(B,n,m))
+# sparse(B::Operator,n::AbstractRange,m::Colon)=sparse(BandedMatrix(B,n,m))
 
 ## geteindex
 
@@ -399,12 +399,12 @@ function defaultgetindex(A::Operator,::Type{FiniteRange},jr::BlockRange{1})
     A[Block(1):cs,jr]
 end
 
-function Base.view(A::Operator,::Type{FiniteRange},jr::AbstractVector{Int})
+function view(A::Operator,::Type{FiniteRange},jr::AbstractVector{Int})
     cs = (isbanded(A) || isblockbandedbelow(A)) ? colstop(A,maximum(jr)) : mapreduce(j->colstop(A,j),max,jr)
     view(A,1:cs,jr)
 end
 
-function Base.view(A::Operator,::Type{FiniteRange},jr::BlockRange{1})
+function view(A::Operator,::Type{FiniteRange},jr::BlockRange{1})
     cs = (isbanded(A) || isblockbandedbelow(A)) ? blockcolstop(A,maximum(jr)) : mapreduce(j->blockcolstop(A,j),max,jr)
     view(A,Block(1):cs,jr)
 end
@@ -443,12 +443,12 @@ macro wrapperstructure(Wrap)
         haswrapperstructure(::$Wrap) = true
     end
 
-    for func in (:(ApproxFun.bandinds),:(Base.stride),
+    for func in (:(ApproxFun.bandinds),:(LinearAlgebra.stride),
                  :(ApproxFun.isbandedblockbanded),:(ApproxFun.isblockbanded),
                  :(ApproxFun.israggedbelow),:(Base.size),:(ApproxFun.isbanded),
                  :(ApproxFun.bandwidth),:(ApproxFun.bandwidths),
                  :(ApproxFun.blockbandinds),:(ApproxFun.subblockbandinds),
-                 :(Base.issymmetric))
+                 :(LinearAlgebra.issymmetric))
         ret = quote
             $ret
 
@@ -617,12 +617,12 @@ include("nullspace.jl")
 
 
 
-Base.zero(::Type{Operator{T}}) where {T<:Number} = ZeroOperator(T)
-Base.zero(::Type{O}) where {O<:Operator} = ZeroOperator(eltype(O))
+zero(::Type{Operator{T}}) where {T<:Number} = ZeroOperator(T)
+zero(::Type{O}) where {O<:Operator} = ZeroOperator(eltype(O))
 
 
-Base.eye(S::Space) = IdentityOperator(S)
-Base.eye(S::Domain) = eye(Space(S))
+eye(S::Space) = IdentityOperator(S)
+eye(S::Domain) = eye(Space(S))
 
 convert(A::Type{Operator{T}},f::Fun) where {T} =
     norm(f.coefficients)==0 ? zero(A) : convert(A,Multiplication(f))
@@ -640,18 +640,18 @@ convert(A::Type{Operator},f::Fun) =
 
 
 
-Base.promote_rule(::Type{N},::Type{Operator}) where {N<:Number} = Operator{N}
-Base.promote_rule(::Type{UniformScaling{N}},::Type{Operator}) where {N<:Number} =
+promote_rule(::Type{N},::Type{Operator}) where {N<:Number} = Operator{N}
+promote_rule(::Type{UniformScaling{N}},::Type{Operator}) where {N<:Number} =
     Operator{N}
-Base.promote_rule(::Type{Fun{S,N,VN}},::Type{Operator}) where {S,N<:Number,VN} = Operator{N}
-Base.promote_rule(::Type{N},::Type{O}) where {N<:Number,O<:Operator} =
+promote_rule(::Type{Fun{S,N,VN}},::Type{Operator}) where {S,N<:Number,VN} = Operator{N}
+promote_rule(::Type{N},::Type{O}) where {N<:Number,O<:Operator} =
     Operator{promote_type(N,eltype(O))}  # float because numbers are promoted to Fun
-Base.promote_rule(::Type{UniformScaling{N}},::Type{O}) where {N<:Number,O<:Operator} =
+promote_rule(::Type{UniformScaling{N}},::Type{O}) where {N<:Number,O<:Operator} =
     Operator{promote_type(N,eltype(O))}
-Base.promote_rule(::Type{Fun{S,N,VN}},::Type{O}) where {S,N<:Number,O<:Operator,VN} =
+promote_rule(::Type{Fun{S,N,VN}},::Type{O}) where {S,N<:Number,O<:Operator,VN} =
     Operator{promote_type(N,eltype(O))}
 
-Base.promote_rule(::Type{BO1},::Type{BO2}) where {BO1<:Operator,BO2<:Operator} =
+promote_rule(::Type{BO1},::Type{BO2}) where {BO1<:Operator,BO2<:Operator} =
     Operator{promote_type(eltype(BO1),eltype(BO2))}
 
 
