@@ -53,7 +53,7 @@ for op in (:(max),:(min))
         function $op(f::Fun{S,T1},g::Fun{V,T2}) where {S<:RealUnivariateSpace,V<:RealUnivariateSpace,T1<:Real,T2<:Real}
             h=f-g
             d=domain(h)
-            pts=iszero(h)?eltype(h)[]:roots(h)
+            pts=iszero(h) ? eltype(h)[] : roots(h)
             splitmap(x->$op(f(x),g(x)),d,pts)
         end
         $op(f::Fun{S,T},g::Real) where {S<:RealUnivariateSpace,T<:Real} = $op(f,Fun(g,domain(f)))

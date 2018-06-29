@@ -165,20 +165,20 @@ function jacobiweightDerivative(S::JacobiWeight{SS,DDD}) where {SS,DDD<:Segment}
         w=Fun(JacobiWeight(0,1,ConstantSpace(d)),[1.])
 
         DD=-S.α + w*Derivative(S.space)
-        rs=S.α==1?rangespace(DD):JacobiWeight(0.,S.α-1,rangespace(DD))
+        rs=S.α==1 ? rangespace(DD) : JacobiWeight(0.,S.α-1,rangespace(DD))
         DerivativeWrapper(SpaceOperator(DD,S,rs),1)
     elseif S.α==0
         w=Fun(JacobiWeight(1,0,ConstantSpace(d)),[1.])
 
         DD=S.β + w*Derivative(S.space)
-        rs=S.β==1?rangespace(DD):JacobiWeight(S.β-1,0.,rangespace(DD))
+        rs=S.β==1 ? rangespace(DD) : JacobiWeight(S.β-1,0.,rangespace(DD))
         DerivativeWrapper(SpaceOperator(DD,S,rs),1)
     else
         w=Fun(JacobiWeight(1,1,ConstantSpace(d)),[1.])
         x=Fun()
 
         DD=S.β*(1-x) - S.α*(1+x) + w*Derivative(S.space)
-        rs=S.β==1&&S.α==1?rangespace(DD):JacobiWeight(S.β-1,S.α-1,rangespace(DD))
+        rs=S.β==1&&S.α==1 ? rangespace(DD) : JacobiWeight(S.β-1,S.α-1,rangespace(DD))
         DerivativeWrapper(SpaceOperator(DD,S,rs),1)
     end
 end
@@ -281,7 +281,7 @@ end
 function conversion_rule(A::JacobiWeight,B::JacobiWeight)
     if isapproxinteger(A.β-B.β) && isapproxinteger(A.α-B.α)
         ct=conversion_type(A.space,B.space)
-        ct==NoSpace()?NoSpace():JacobiWeight(max(A.β,B.β),max(A.α,B.α),ct)
+        ct==NoSpace() ? NoSpace() : JacobiWeight(max(A.β,B.β),max(A.α,B.α),ct)
     else
         NoSpace()
     end
@@ -393,7 +393,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             C = $Len(d)/2
 
             if dsp.β==dsp.α==λ-0.5
-                k == 1? T(C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T))) : zero(T)
+                k == 1 ? T(C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T))) : zero(T)
             else
                 T($Sum(Fun(dsp,[zeros(T,k-1);1])))
             end
@@ -406,7 +406,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             C = $Len(d)/2
 
             if dsp.β==dsp.α==λ-0.5
-                T[k == 1? C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T) for k=kr]
+                T[k == 1 ? C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T) for k=kr]
             else
                 T[$Sum(Fun(dsp,[zeros(T,k-1);1])) for k=kr]
             end
@@ -429,7 +429,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             C = $Len(d)/2
 
             if dsp.β==dsp.α==-0.5
-                k == 1? T(C*π) : zero(T)
+                k == 1 ? T(C*π) : zero(T)
             else
                 T($Sum(Fun(dsp,[zeros(T,k-1);1])))
             end
@@ -441,7 +441,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             C = $Len(d)/2
 
             if dsp.β==dsp.α==-0.5
-                T[k == 1? C*π : zero(T) for k=kr]
+                T[k == 1 ? C*π : zero(T) for k=kr]
             else
                 T[$Sum(Fun(dsp,[zeros(T,k-1);1])) for k=kr]
             end

@@ -67,8 +67,8 @@ weight(sp::JacobiWeight,x) = jacobiweight(sp.β,sp.α,tocanonical(sp,x))
 dimension(sp::JacobiWeight) = dimension(sp.space)
 
 
-Base.first(f::Fun{JW}) where {JW<:JacobiWeight} = space(f).β>0?zero(eltype(f)):f(first(domain(f)))
-Base.last(f::Fun{JW}) where {JW<:JacobiWeight} = space(f).α>0?zero(eltype(f)):f(last(domain(f)))
+Base.first(f::Fun{JW}) where {JW<:JacobiWeight} = space(f).β>0 ? zero(eltype(f)) : f(first(domain(f)))
+Base.last(f::Fun{JW}) where {JW<:JacobiWeight} = space(f).α>0 ? zero(eltype(f)) : f(last(domain(f)))
 
 setdomain(sp::JacobiWeight,d::Domain)=JacobiWeight(sp.β,sp.α,setdomain(sp.space,d))
 
@@ -113,7 +113,7 @@ coefficients(f::AbstractVector,S2::Space{DD,RR},sp::JacobiWeight{SJ,DD}) where {
 On other domains this is accomplished by mapping to the unit interval.
 """
 increase_jacobi_parameter(f) = Fun(f,JacobiWeight(f.space.β+1,f.space.α+1,space(f).space))
-increase_jacobi_parameter(s,f) = s==-1?Fun(f,JacobiWeight(f.space.β+1,f.space.α,space(f).space)):
+increase_jacobi_parameter(s,f) = s==-1 ? Fun(f,JacobiWeight(f.space.β+1,f.space.α,space(f).space)) :
                                        Fun(f,JacobiWeight(f.space.β,f.space.α+1,space(f).space))
 
 

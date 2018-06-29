@@ -96,7 +96,7 @@ end
 
 ## Derivative
 
-Derivative(J::Jacobi,k::Integer)=k==1?ConcreteDerivative(J,1):DerivativeWrapper(TimesOperator(Derivative(Jacobi(J.b+1,J.a+1,J.domain),k-1),ConcreteDerivative(J,1)),k)
+Derivative(J::Jacobi,k::Integer)=k==1 ? ConcreteDerivative(J,1) : DerivativeWrapper(TimesOperator(Derivative(Jacobi(J.b+1,J.a+1,J.domain),k-1),ConcreteDerivative(J,1)),k)
 
 
 
@@ -104,7 +104,7 @@ rangespace(D::ConcreteDerivative{J}) where {J<:Jacobi}=Jacobi(D.space.b+D.order,
 bandinds(D::ConcreteDerivative{J}) where {J<:Jacobi}=0,D.order
 
 getindex(T::ConcreteDerivative{J},k::Integer,j::Integer) where {J<:Jacobi} =
-    j==k+1? eltype(T)((k+1+T.space.a+T.space.b)/complexlength(domain(T))) : zero(eltype(T))
+    j==k+1 ? eltype(T)((k+1+T.space.a+T.space.b)/complexlength(domain(T))) : zero(eltype(T))
 
 
 
@@ -122,7 +122,7 @@ rangespace(D::ConcreteDerivative{WeightedJacobi{DDD,RR}}) where {DDD<:Segment,RR
 
 
 getindex(D::ConcreteDerivative{WeightedJacobi{DDD,RR}},k::Integer,j::Integer) where {DDD<:Segment,RR} =
-    j==k-1? eltype(D)(-4(k-1)./complexlength(domain(D))) : zero(eltype(D))
+    j==k-1 ? eltype(D)(-4(k-1)./complexlength(domain(D))) : zero(eltype(D))
 
 
 ## Integral
@@ -195,7 +195,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
 
             if dsp.b == dsp.a == 0
                 # TODO: copy and paste
-                k == 1? T($Sum(Fun(dsp,[one(T)]))) : zero(T)
+                k == 1 ? T($Sum(Fun(dsp,[one(T)]))) : zero(T)
             else
                 T($Sum(Fun(dsp,[zeros(T,k-1);1])))
             end
@@ -207,7 +207,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
 
             if dsp.β == dsp.space.b && dsp.α == dsp.space.a
                 # TODO: copy and paste
-                k == 1? T($Sum(Fun(dsp,[one(T)]))) : zero(T)
+                k == 1 ? T($Sum(Fun(dsp,[one(T)]))) : zero(T)
             else
                 T($Sum(Fun(dsp,[zeros(T,k-1);1])))
             end
@@ -270,7 +270,7 @@ function Base.getindex(C::ConcreteConversion{J1,J2,T},k::Integer,j::Integer) whe
     L=C.domainspace
     if L.b+1==C.rangespace.b
         if j==k
-            k==1?T(1):T((L.a+L.b+k)/(L.a+L.b+2k-1))
+            k==1 ? T(1) : T((L.a+L.b+k)/(L.a+L.b+2k-1))
         elseif j==k+1
             T((L.a+k)./(L.a+L.b+2k+1))
         else
@@ -278,7 +278,7 @@ function Base.getindex(C::ConcreteConversion{J1,J2,T},k::Integer,j::Integer) whe
         end
     elseif L.a+1==C.rangespace.a
         if j==k
-            k==1?T(1):T((L.a+L.b+k)/(L.a+L.b+2k-1))
+            k==1 ? T(1) : T((L.a+L.b+k)/(L.a+L.b+2k-1))
         elseif j==k+1
             T(-(L.b+k)./(L.a+L.b+2k+1))
         else
@@ -683,11 +683,11 @@ convert(::Type{Operator{T}},SD::JacobiSD) where {T}=JacobiSD{T}(SD.lr,SD.S)
 
 domain(op::JacobiSD)=domain(op.S)
 domainspace(op::JacobiSD)=op.S
-rangespace(op::JacobiSD)=op.lr?Jacobi(op.S.b+1,op.S.a-1,domain(op.S)):Jacobi(op.S.b-1,op.S.a+1,domain(op.S))
+rangespace(op::JacobiSD)=op.lr ? Jacobi(op.S.b+1,op.S.a-1,domain(op.S)) : Jacobi(op.S.b-1,op.S.a+1,domain(op.S))
 bandinds(::JacobiSD)=0,0
 
 function getindex(op::JacobiSD,A,k::Integer,j::Integer)
-    m=op.lr?op.S.a:op.S.b
+    m=op.lr ? op.S.a : op.S.b
     if k==j
         k+m-1
     else

@@ -31,7 +31,7 @@ blockbandinds(::ConstantOperator) = 0,0
 subblockbandinds(::ConstantOperator,k::Integer) = 0
 
 getindex(C::ConstantOperator,k::Integer,j::Integer) =
-    k==j?eltype(C)(C.λ):zero(eltype(C))
+    k==j ? eltype(C)(C.λ) : zero(eltype(C))
 
 
 ==(C1::ConstantOperator,C2::ConstantOperator) = C1.λ==C2.λ
