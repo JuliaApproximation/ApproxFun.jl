@@ -1,4 +1,4 @@
-using ApproxFun, Compat.Test
+using ApproxFun, Test
     import ApproxFun: ChebyshevDirichlet, Ultraspherical, PiecewiseSegment, ContinuousSpace, space,
                         testspace, testbandedoperator, testraggedbelowoperator, testcalculus, testtransforms
 

@@ -1,4 +1,4 @@
-using ApproxFun, Compat.Test
+using ApproxFun, Test
     import ApproxFun: interlace, Multiplication, ConstantSpace, PointSpace,
     ArraySpace, testblockbandedoperator
 

@@ -1,4 +1,4 @@
-using ApproxFun, Compat.Test, DualNumbers
+using ApproxFun, Test, DualNumbers
 
 @testset "Extras" begin
     @testset "Dual numbers" begin

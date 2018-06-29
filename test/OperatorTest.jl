@@ -1,4 +1,4 @@
-using ApproxFun, BlockBandedMatrices,  Compat.Test
+using ApproxFun, BlockBandedMatrices,  Test
     import ApproxFun: Multiplication,InterlaceOperator, Block, ∞
     import ApproxFun: testfunctional, testbandedoperator, testraggedbelowoperator, testinfoperator, testblockbandedoperator
 

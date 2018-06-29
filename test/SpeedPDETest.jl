@@ -1,4 +1,4 @@
-using ApproxFun, Compat.Test
+using ApproxFun, Test
     import ApproxFun: Block, BlockBandedMatrix
 
 ## PDEs

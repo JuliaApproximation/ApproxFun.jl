@@ -3,20 +3,13 @@ __precompile__()
 module ApproxFun
     using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers,
             BlockArrays, BandedMatrices, BlockBandedMatrices, IntervalSets,
-            SpecialFunctions, Compat
+            SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions
     import StaticArrays, ToeplitzMatrices, Calculus
 
-if VERSION < v"0.7-"
-    using Base.FFTW
-    import Base.FFTW: Plan
-    import Base.FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
-                    r2r!, r2r
-else
-    using AbstractFFTs, FFTW
-    import AbstractFFTs: Plan
-    import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
-                    r2r!, r2r
-end
+
+import AbstractFFTs: Plan
+import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
+                r2r!, r2r
 
 import Base.LinAlg: BlasInt, BlasFloat, norm, A_ldiv_B!
 
@@ -26,7 +19,7 @@ import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, 
 
 # we need to import all special functions to use Calculus.symbolic_derivatives_1arg
 # we can't do importall Base as we replace some Base definitions
-import Base: sinpi, cospi, airy, besselh, exp,
+import SpecialFunctions: sinpi, cospi, airy, besselh, exp,
                     asinh, acosh,atanh, erfcx, dawson, erf, erfi,
                     sin, cos, sinh, cosh, airyai, airybi, airyaiprime, airybiprime,
                     hankelh1, hankelh2, besselj, bessely, besseli, besselk,
@@ -64,15 +57,10 @@ import StaticArrays: SVector
 
 import AbstractFFTs: Plan
 
-if VERSION < v"0.7-"
-    using Base.FFTW
-    import Base.FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
-                    r2r!, r2r
-else
-    using FFTW
-    import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
-                    r2r!, r2r
-end
+
+import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
+                r2r!, r2r
+
 
 
 const Vec{d,T} = SVector{d,T}

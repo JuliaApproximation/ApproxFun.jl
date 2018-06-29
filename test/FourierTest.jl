@@ -1,4 +1,4 @@
-using ApproxFun, Compat.Test, BlockArrays, BlockBandedMatrices
+using ApproxFun, Test, BlockArrays, BlockBandedMatrices
     import ApproxFun: testspace, testtransforms, testmultiplication,
                       testbandedoperator, testcalculus, Block
 

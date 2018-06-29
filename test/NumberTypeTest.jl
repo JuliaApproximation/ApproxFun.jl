@@ -1,5 +1,5 @@
 
-using ApproxFun, Compat.Test
+using ApproxFun, Test
 
 @testset "BigFloat" begin
     @testset "BigFloat constructor" begin

@@ -1,4 +1,4 @@
-using ApproxFun, Compat.Test
+using ApproxFun, Test
     import ApproxFun: testbandedoperator, testraggedbelowoperator, InterlaceOperator, testspace,
                         testbandedbelowoperator, testbandedblockbandedoperator, testfunctional, factor
 ## This includes extra tests that are too time consuming for Travis

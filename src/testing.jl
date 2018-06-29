@@ -1,7 +1,7 @@
 ## Testing
 # These routines are for the unit tests
 
-using Compat.Test
+using Test
 
 ## Supports @test_approx_eq
 

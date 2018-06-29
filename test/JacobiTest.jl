@@ -1,4 +1,4 @@
-using ApproxFun, Compat.Test, StaticArrays
+using ApproxFun, Test, StaticArrays
     import ApproxFun: testbandedbelowoperator, testbandedoperator, testspace, testtransforms, Vec,
                         maxspace, NoSpace, hasconversion, testfunctional
 
