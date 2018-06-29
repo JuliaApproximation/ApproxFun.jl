@@ -12,7 +12,7 @@ export Line, PeriodicLine
 # angle is π*a where a is (false==0) and (true==1)
 # or ranges from (-1,1].  We use 1 as 1==true.
 
-doc"""
+"""
     Line{a}(c)
 
 represents the line at angle `a` in the complex plane, centred at `c`.
@@ -34,11 +34,11 @@ Line{a}(c,α,β) where {a} = Line{a,typeof(c)}(c,α,β)
 Line{a}(c::Number) where {a} = Line{a,typeof(c)}(c)
 Line{a}() where {a} = Line{a,Float64}()
 
-Base.angle(d::Line{a}) where {a} = a*π
+angle(d::Line{a}) where {a} = a*π
 
-Base.reverse(d::Line{true}) = Line{false}(d.center,d.β,d.α)
-Base.reverse(d::Line{false}) = Line{true}(d.center,d.β,d.α)
-Base.reverse(d::Line{a}) where {a} = Line{a-1}(d.center,d.β,d.α)
+reverse(d::Line{true}) = Line{false}(d.center,d.β,d.α)
+reverse(d::Line{false}) = Line{true}(d.center,d.β,d.α)
+reverse(d::Line{a}) where {a} = Line{a-1}(d.center,d.β,d.α)
 
 # ensure the angle is always in (-1,1]
 Line(c,a,α,β) = Line{mod(a/π-1,-2)+1,typeof(c)}(c,α,β)
@@ -173,11 +173,11 @@ isambiguous(d::PeriodicLine) = isnan(d.center) && isnan(d.angle)
 convert(::Type{PeriodicLine{T,TT}},::AnyDomain) where {T<:Number,TT} = PeriodicLine{T,TT}(NaN,NaN)
 convert(::Type{IT},::AnyDomain) where {IT<:PeriodicLine} = PeriodicLine(NaN,NaN)
 
-Base.angle(d::PeriodicLine{a}) where {a}=a*π
+angle(d::PeriodicLine{a}) where {a}=a*π
 
-Base.reverse(d::PeriodicLine{true})=PeriodicLine{false}(d.center,d.L)
-Base.reverse(d::PeriodicLine{false})=PeriodicLine{true}(d.center,d.L)
-Base.reverse(d::PeriodicLine{a}) where {a}=PeriodicLine{a-1}(d.center,d.L)
+reverse(d::PeriodicLine{true})=PeriodicLine{false}(d.center,d.L)
+reverse(d::PeriodicLine{false})=PeriodicLine{true}(d.center,d.L)
+reverse(d::PeriodicLine{a}) where {a}=PeriodicLine{a-1}(d.center,d.L)
 
 tocanonical(d::PeriodicLine{false},x) = real(2atan((x-d.center)/d.L))
 fromcanonical(d::PeriodicLine{false},v::AbstractArray) =
@@ -215,8 +215,8 @@ end
 
 
 arclength(d::Union{Line,PeriodicLine}) = Inf
-Base.first(d::Union{Line,PeriodicLine})= -Inf
-Base.last(d::Union{Line,PeriodicLine})= Inf
+first(d::Union{Line,PeriodicLine})= -Inf
+last(d::Union{Line,PeriodicLine})= Inf
 complexlength(d::Union{Line,PeriodicLine})=Inf
 
 ## vectorized

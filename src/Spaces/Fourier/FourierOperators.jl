@@ -4,9 +4,9 @@
 
 #ensure that COnversion is called
 coefficients(cfs::AbstractVector,A::Fourier{DD,R1},B::Laurent{DD,R2}) where {DD,R1,R2} =
-    A_mul_B_coefficients(Conversion(A,B),cfs)
+    mul_coefficients(Conversion(A,B),cfs)
 coefficients(cfs::AbstractVector,A::Laurent{DD,R1},B::Fourier{DD,R2}) where {DD,R1,R2} =
-    A_mul_B_coefficients(Conversion(A,B),cfs)
+    mul_coefficients(Conversion(A,B),cfs)
 
 hasconversion(::Fourier{DD,R1},::Laurent{DD,R2}) where {DD,R1,R2} = true
 hasconversion(::Laurent{DD,R1},::Fourier{DD,R2}) where {DD,R1,R2} = true

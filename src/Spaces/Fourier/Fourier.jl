@@ -18,19 +18,19 @@ for T in (:CosSpace,:SinSpace)
     end
 end
 
-doc"""
+"""
 `CosSpace()` is the space spanned by `[1,cos θ,cos 2θ,...]`
 """
 CosSpace()
 
-doc"""
+"""
 `SinSpace()` is the space spanned by `[sin θ,sin 2θ,...]`
 """
 SinSpace()
 
 # s == true means analytic inside, taylor series
 # s == false means anlytic outside and decaying at infinity
-doc"""
+"""
 `Hardy{false}()` is the space spanned by `[1/z,1/z^2,...]`.
 `Hardy{true}()` is the space spanned by `[1,z,z^2,...]`.
 """
@@ -41,7 +41,7 @@ struct Hardy{s,D<:Domain,R} <: Space{D,R}
 end
 
 # The <: Domain is crucial for matching Basecall overrides
-doc"""
+"""
 `Taylor()` is the space spanned by `[1,z,z^2,...]`.
 This is a type alias for `Hardy{true}`.
 """
@@ -122,7 +122,7 @@ end
 
 ##TODO: fast routine
 
-function horner(c::AbstractVector,kr::Range{Int64},x)
+function horner(c::AbstractVector,kr::AbstractRange{Int64},x)
     T = promote_type(eltype(c),eltype(x))
     if isempty(c)
         return zero(x)
@@ -136,7 +136,7 @@ function horner(c::AbstractVector,kr::Range{Int64},x)
     ret
 end
 
-function horner(c::AbstractVector,kr::Range{Int64},x::AbstractVector)
+function horner(c::AbstractVector,kr::AbstractRange{Int64},x::AbstractVector)
     n,T = length(x),promote_type(eltype(c),eltype(x))
     if isempty(c)
         return zero(x)
@@ -155,7 +155,7 @@ end
 
 horner(c::AbstractVector,x) = horner(c,1:length(c),x)
 horner(c::AbstractVector,x::AbstractArray) = horner(c,1:length(c),x)
-horner(c::AbstractVector,kr::Range{Int64},x::AbstractArray) = reshape(horner(c,kr,vec(x)),size(x))
+horner(c::AbstractVector,kr::AbstractRange{Int64},x::AbstractArray) = reshape(horner(c,kr,vec(x)),size(x))
 
 ## Cos and Sin space
 
@@ -211,7 +211,7 @@ evaluate(f::AbstractVector,S::SinSpace,t) = sineshaw(f,tocanonical(S,t))
 
 
 ## Laurent space
-doc"""
+"""
 `Laurent()` is the space spanned by the complex exponentials
 ```
     1,exp(-im*θ),exp(im*θ),exp(-2im*θ),…
@@ -304,7 +304,7 @@ end
 
 ## Fourier space
 
-doc"""
+"""
 `Fourier()` is the space spanned by the trigonemtric polynomials
 ```
     1,sin(θ),cos(θ),sin(2θ),cos(2θ),…
@@ -366,11 +366,11 @@ for (Typ,Pltr!,Pltr) in ((:TransformPlan,:plan_transform!,:plan_transform),
     end
 end
 
-Base.A_mul_B!(cfs::AbstractVector{T}, P::TransformPlan{T,Fourier{DD,RR},true}, vals::AbstractVector{T}) where {T,DD,RR} =
-    P*copy!(cfs, vals)
+mul!(cfs::AbstractVector{T}, P::TransformPlan{T,Fourier{DD,RR},true}, vals::AbstractVector{T}) where {T,DD,RR} =
+    P*copyto!(cfs, vals)
 
-Base.A_mul_B!(cfs::AbstractVector{T}, P::TransformPlan{T,Fourier{DD,RR},false}, vals::AbstractVector{T}) where {T,DD,RR} =
-    P.plan*copy!(cfs, vals)
+mul!(cfs::AbstractVector{T}, P::TransformPlan{T,Fourier{DD,RR},false}, vals::AbstractVector{T}) where {T,DD,RR} =
+    P.plan*copyto!(cfs, vals)
 
 function *(P::TransformPlan{T,Fourier{DD,RR},true},vals::AbstractVector{T}) where {T,DD,RR}
     n = length(vals)
@@ -383,11 +383,11 @@ function *(P::TransformPlan{T,Fourier{DD,RR},true},vals::AbstractVector{T}) wher
     negateeven!(reverseeven!(interlace!(cfs,1)))
 end
 
-Base.A_mul_B!(vals::AbstractVector{T}, P::IFourierTransformPlan{T,Fourier{DD,RR}}, cfs::AbstractVector{T}) where {T,DD,RR} =
-    P*copy!(vals, cfs)
+mul!(vals::AbstractVector{T}, P::IFourierTransformPlan{T,Fourier{DD,RR}}, cfs::AbstractVector{T}) where {T,DD,RR} =
+    P*copyto!(vals, cfs)
 
-Base.A_mul_B!(vals::AbstractVector{T}, P::ITransformPlan{T,Fourier{DD,RR},false},cfs::AbstractVector{T}) where {T,DD,RR} =
-    A_mul_B!(vals, P.plan, cfs)
+mul!(vals::AbstractVector{T}, P::ITransformPlan{T,Fourier{DD,RR},false},cfs::AbstractVector{T}) where {T,DD,RR} =
+    mul!(vals, P.plan, cfs)
 
 function *(P::IFourierTransformPlan{T,Fourier{DD,RR}},cfs::AbstractVector{T}) where {T,DD,RR}
     n = length(cfs)

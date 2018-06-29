@@ -73,7 +73,7 @@ function resizedata!(QR::QROperator{<:CachedOperator{T,<:BandedMatrix{T},
             dind=R.u+1+k-j
             v=view(R.data,dind:dind+M-1,j)
             dt=dot(wp,v)
-            Base.axpy!(-2*dt,wp,v)
+            LinearAlgebra.axpy!(-2*dt,wp,v)
         end
 
         # scale banded/filled entries
@@ -82,7 +82,7 @@ function resizedata!(QR::QROperator{<:CachedOperator{T,<:BandedMatrix{T},
             v=view(R.data,1:M-p,j)  # shift down each time
             wp2=view(wp,p+1:M)
             dt=dot(wp2,v)
-            Base.axpy!(-2*dt,wp2,v)
+            LinearAlgebra.axpy!(-2*dt,wp2,v)
         end
     end
     QR.ncols=col
@@ -150,7 +150,7 @@ end
 ## back substitution
 # loop to avoid ambiguity with AbstractTRiangular
 for ArrTyp in (:AbstractVector, :AbstractMatrix)
-    @eval function A_ldiv_B!(U::UpperTriangular{T, <:SubArray{T, 2, <:BandedMatrix{T}, Tuple{UnitRange{Int}, UnitRange{Int}}, false}},
+    @eval function ldiv!(U::UpperTriangular{T, <:SubArray{T, 2, <:BandedMatrix{T}, Tuple{UnitRange{Int}, UnitRange{Int}}, false}},
                              u::$ArrTyp{T}) where T
         n = size(u,1)
         n == size(U,1) || throw(DimensionMismatch())

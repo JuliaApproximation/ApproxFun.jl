@@ -1,7 +1,7 @@
 export Jacobi, Legendre, WeightedJacobi
 
 
-doc"""
+"""
 `Jacobi(b,a)` represents the space spanned by Jacobi polynomials `P_k^{(a,b)}`,
 which are orthogonal with respect to the weight `(1+x)^β*(1-x)^α`
 """
@@ -78,7 +78,7 @@ for (REC,JREC) in ((:recα,:jacobirecα),(:recβ,:jacobirecβ),(:recγ,:jacobire
 end
 
 
-function jacobip(::Type{T},r::Range,α,β,x::Number) where T
+function jacobip(::Type{T},r::AbstractRange,α,β,x::Number) where T
     if x==1 && α==0
         ones(T,length(r))
     elseif x==-1 && β==0
@@ -103,7 +103,7 @@ function jacobip(::Type{T},r::Range,α,β,x::Number) where T
 end
 
 
-jacobip(r::Range,α,β,x::Number) = jacobip(promote_type(typeof(α),typeof(β),typeof(x)),r,α,β,x)
+jacobip(r::AbstractRange,α,β,x::Number) = jacobip(promote_type(typeof(α),typeof(β),typeof(x)),r,α,β,x)
 
 jacobip(::Type{T},n::Integer,α,β,v) where {T} = jacobip(T,n:n,α,β,v)[1]
 jacobip(n::Integer,α,β,v) = jacobip(n:n,α,β,v)[1]

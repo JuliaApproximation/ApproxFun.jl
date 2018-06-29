@@ -37,7 +37,7 @@ macro calculus_functional(Op)
         ApproxFun.domain(Σ::$ConcOp) = domain(Σ.domainspace)
         ApproxFun.domainspace(Σ::$ConcOp) = Σ.domainspace
 
-        Base.getindex(::$ConcOp{UnsetSpace},kr::Range) =
+        Base.getindex(::$ConcOp{UnsetSpace},kr::AbstractRange) =
             error("Spaces cannot be inferred for operator")
 
         $WrappOp(op::Operator) =

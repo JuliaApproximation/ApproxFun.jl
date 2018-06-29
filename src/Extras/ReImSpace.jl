@@ -30,5 +30,5 @@ end
 
 
 # TODO: can't do this because UnsetSpace might change type
-#Base.real{T<:Real}(op::Operator{T})=op
-Base.real(op::Operator) = ReOperator(op)
+#real{T<:Real}(op::Operator{T})=op
+real(op::Operator) = ReOperator(op)

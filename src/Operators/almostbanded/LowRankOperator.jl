@@ -74,7 +74,7 @@ Base.rank(L::LowRankOperator) = length(L.U)
 *(L::LowRankOperator,f::Fun) = sum(map((u,v)->u*(v*f),L.U,L.V))
 
 
-*(A::LowRankOperator,B::LowRankOperator) = LowRankOperator((A.V*B.U.').'*A.U,B.V)
+*(A::LowRankOperator,B::LowRankOperator) = LowRankOperator(transpose(A.V*B.transpose(U))*A.U,B.V)
 # avoid ambiguituy
 for TYP in (:TimesOperator,:PlusOperator,:Conversion,:Operator)
     @eval *(L::LowRankOperator,B::$TYP) = LowRankOperator(L.U,map(v->v*B,L.V))

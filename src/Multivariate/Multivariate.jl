@@ -55,7 +55,7 @@ function *(vx::LowRankFun,u0::ProductFun)
     ret=zeros(space(u0))
     for k=1:length(vx.A)
         a,b=vx.A[k],vx.B[k]
-        ret+=((b*((a*u0).')).')
+        ret+=transpose(b*(transpose(a*u0)))
     end
     ret
 end

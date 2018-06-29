@@ -79,7 +79,7 @@ domainspace(B::BasisFunctional) = B.space
 convert(::Type{Operator{T}},B::BasisFunctional) where {T} = BasisFunctional{T,typeof(B.space)}(B.k,B.space)
 
 Base.getindex(op::BasisFunctional{T},k::Integer) where {T} = (k==op.k) ? one(T) : zero(T)
-Base.getindex(op::BasisFunctional{T},k::Range) where {T} = convert(Vector{T},k.==op.k)
+Base.getindex(op::BasisFunctional{T},k::AbstractRange) where {T} = convert(Vector{T},k.==op.k)
 
 struct FillFunctional{T} <: Operator{T}
     λ::T
@@ -90,7 +90,7 @@ end
 domainspace(B::FillFunctional) = ℓ⁰
 
 Base.getindex(op::FillFunctional,k::Integer)=op.λ
-Base.getindex(op::FillFunctional,k::Range)=fill(op.λ,length(k))
+Base.getindex(op::FillFunctional,k::AbstractRange)=fill(op.λ,length(k))
 
 ## Zero is a special operator: it makes sense on all spaces, and between all spaces
 

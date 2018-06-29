@@ -2,7 +2,7 @@
 
 export PeriodicInterval
 
-doc"""
+"""
 	PeriodicInterval(a,b)
 
 represents a periodic interval from `a` to `b`, that is, the point
@@ -40,9 +40,9 @@ convert(::Type{PeriodicInterval{T}},::AnyDomain) where {T} = PeriodicInterval(na
 
 ## Information
 
-Base.first(d::PeriodicInterval) = d.a
+first(d::PeriodicInterval) = d.a
 
-Base.issubset(a::PeriodicInterval,b::PeriodicInterval) = first(a)∈b && (a.b∈b || a.b == b.b)
+issubset(a::PeriodicInterval,b::PeriodicInterval) = first(a)∈b && (a.b∈b || a.b == b.b)
 
 # we disable last since the domain is "periodic"
 
@@ -58,9 +58,9 @@ fromcanonicalD(d::PeriodicInterval,θ) = fromcanonicalD(Segment(d),θ/π-1)/π
 
 
 arclength(d::PeriodicInterval) = norm(d.b - d.a)
-Base.angle(d::PeriodicInterval) = angle(d.b - d.a)
+angle(d::PeriodicInterval) = angle(d.b - d.a)
 complexlength(d::PeriodicInterval) = d.b-d.a
-Base.reverse(d::PeriodicInterval) = PeriodicInterval(d.b,d.a)
+reverse(d::PeriodicInterval) = PeriodicInterval(d.b,d.a)
 
 
 

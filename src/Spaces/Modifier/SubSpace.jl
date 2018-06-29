@@ -119,7 +119,7 @@ for OP in (:first,:last)
 end
 getindex(E::ConcreteEvaluation{SubSpace{DS,IT,DD,RR}},k::Integer) where {IT,DS,DD,RR}=
     Evaluation(E.space.space,E.x,E.order)[E.space.indexes[k]]
-getindex(E::ConcreteEvaluation{SubSpace{DS,IT,DD,RR}},kr::Range) where {IT,DS,DD,RR} =
+getindex(E::ConcreteEvaluation{SubSpace{DS,IT,DD,RR}},kr::AbstractRange) where {IT,DS,DD,RR} =
     Evaluation(E.space.space,E.x,E.order)[E.space.indexes[kr]]
 
 

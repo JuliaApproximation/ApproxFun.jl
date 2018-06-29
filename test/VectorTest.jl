@@ -43,7 +43,7 @@ using ApproxFun, Test
     @test (f+1)(0.1) ≈ f(0.1)+1
     @test (1+f)(0.1) ≈ f(0.1)+1
 
-    @test_broken f.'*[1,2] ≈ f(0.1).'*[1,2]
+    @test_broken transpose(f)*[1,2] ≈ transpose(f(0.1))*[1,2]
 
     @test norm(f) ≈ sqrt(sinh(2)+1+cos(1)sin(1))
     @test norm(f,2) ≈ sqrt(sinh(2)+1+cos(1)sin(1))

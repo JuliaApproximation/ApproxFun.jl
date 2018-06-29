@@ -46,22 +46,22 @@ convert(::Type{Space},d::ClosedInterval) = Space(Domain(d))
 
 #issubset between domains
 
-Base.issubset(a::PeriodicInterval,b::Segment) = Segment(a.a,a.b)⊆b
-Base.issubset(a::Segment,b::PeriodicInterval) = PeriodicInterval(a.a,a.b)⊆b
-Base.issubset(a::Segment{T},b::PiecewiseSegment{T}) where {T<:Real} =
+issubset(a::PeriodicInterval,b::Segment) = Segment(a.a,a.b)⊆b
+issubset(a::Segment,b::PeriodicInterval) = PeriodicInterval(a.a,a.b)⊆b
+issubset(a::Segment{T},b::PiecewiseSegment{T}) where {T<:Real} =
     a⊆Segment(first(b.points),last(b.points))
-Base.issubset(a::Segment,b::Line) = first(a)∈b && last(a)∈b
+issubset(a::Segment,b::Line) = first(a)∈b && last(a)∈b
 
 
-function Base.intersect(a::Segment,b::Line)
+function intersect(a::Segment,b::Line)
     @assert a ⊆ b
     a
 end
 
-Base.intersect(b::Line,a::Segment) = intersect(a,b)
+intersect(b::Line,a::Segment) = intersect(a,b)
 
 
-function Base.setdiff(b::Line,a::Segment)
+function setdiff(b::Line,a::Segment)
     @assert a ⊆ b
     if first(a)>last(a)
         b\reverse(a)
@@ -70,7 +70,7 @@ function Base.setdiff(b::Line,a::Segment)
     end
 end
 
-function Base.setdiff(b::Segment,a::Point)
+function setdiff(b::Segment,a::Point)
     if !(a ⊆ b)
         b
     elseif first(b) == a.x  || last(b) == a.x
@@ -82,8 +82,8 @@ end
 
 # sort
 
-Base.isless(d1::Segment{T1},d2::Ray{false,T2}) where {T1<:Real,T2<:Real} = d1 ≤ d2.center
-Base.isless(d2::Ray{true,T2},d1::Segment{T1}) where {T1<:Real,T2<:Real} = d2.center ≤ d1
+isless(d1::Segment{T1},d2::Ray{false,T2}) where {T1<:Real,T2<:Real} = d1 ≤ d2.center
+isless(d2::Ray{true,T2},d1::Segment{T1}) where {T1<:Real,T2<:Real} = d2.center ≤ d1
 
 
 # ^
@@ -91,15 +91,15 @@ Base.isless(d2::Ray{true,T2},d1::Segment{T1}) where {T1<:Real,T2<:Real} = d2.cen
 *(a::Domain,b::ClosedInterval) = a*Domain(b)
 
 #union
-Base.union(a::ClosedInterval,b::Domain) = union(Domain(a),b)
-Base.union(a::Domain,b::ClosedInterval) = union(a,Domain(b))
+union(a::ClosedInterval,b::Domain) = union(Domain(a),b)
+union(a::Domain,b::ClosedInterval) = union(a,Domain(b))
 
 
 ## set minus
 \(d::Domain,x::Number) = d \ Point(x)
 
 
-function Base.setdiff(d::AffineDomain,ptsin::Vector)
+function setdiff(d::AffineDomain,ptsin::Vector)
     pts=copy(ptsin)
     isempty(pts) && return d
     tol=sqrt(eps(arclength(d)))

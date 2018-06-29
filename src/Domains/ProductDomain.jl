@@ -1,7 +1,7 @@
 
 export ProductDomain
 
-doc"""
+"""
     ProductDomain((d1,d2))
 
 represents the product of two domains, the set `{(x,y) : x ∈ d1 & y ∈ d2}`.
@@ -19,7 +19,7 @@ end
 ProductDomain(d::Tuple) =
     ProductDomain{typeof(d),Vec{length(d),mapreduce(eltype,promote_type,d)}}(d)
 
-Base.issubset(a::ProductDomain,b::ProductDomain) =
+issubset(a::ProductDomain,b::ProductDomain) =
   length(a) == length(b) && all(issubset(a.domains[i],b.domains[i]) for i in eachindex(a.domains))
 
 
@@ -32,19 +32,21 @@ end
 
 
 ProductDomain(A,B) = ProductDomain((A,B))
-*(A::ProductDomain,B::ProductDomain) = ProductDomain(tuple(A.domains...,B.domains...))
-*(A::ProductDomain,B::Domain) = ProductDomain(tuple(A.domains...,B))
-*(A::Domain,B::ProductDomain) = ProductDomain(tuple(A,B.domains...))
-*(A::Domain,B::Domain) = ProductDomain(A,B)
+*(A::ProductDomain, B::ProductDomain) = ProductDomain(tuple(A.domains...,B.domains...))
+*(A::ProductDomain, B::Domain) = ProductDomain(tuple(A.domains...,B))
+*(A::Domain, B::ProductDomain) = ProductDomain(tuple(A,B.domains...))
+*(A::Domain, B::Domain) = ProductDomain(A,B)
+^(A::Domain, p::Integer) = Base.power_by_squaring(A, p)
 
-Base.transpose(d::ProductDomain) = ProductDomain(d[2],d[1])
+
+transpose(d::ProductDomain) = ProductDomain(d[2],d[1])
 nfactors(d::ProductDomain) = length(d.domains)
 factor(d::ProductDomain,k::Integer) = d.domains[k]
 ==(d1::ProductDomain,d2::ProductDomain) = d1.domains==d2.domains
 
-Base.first(d::ProductDomain) = (first(d[1]),first(d[2]))
+first(d::ProductDomain) = (first(d[1]),first(d[2]))
 
-Base.in(x::Vec,d::ProductDomain) = reduce(&,map(in,x,d.domains))
+in(x::Vec,d::ProductDomain) = reduce(&,map(in,x,d.domains))
 
 
 function pushappendpts!(ret,xx,pts)
@@ -74,7 +76,7 @@ function points(d::ProductDomain,n::Tuple)
     ret
 end
 
-Base.reverse(d::ProductDomain) = ProductDomain(map(reverse,d.domains))
+reverse(d::ProductDomain) = ProductDomain(map(reverse,d.domains))
 
 domainscompatible(a::ProductDomain,b::ProductDomain) =
                         length(a.domains)==length(b.domains) &&

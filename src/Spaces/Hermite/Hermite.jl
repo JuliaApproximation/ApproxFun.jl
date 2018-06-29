@@ -33,7 +33,7 @@ getindex(D::ConcreteDerivative{H},k::Integer,j::Integer) where {H<:Hermite} =
 
 
 
-function hermitep(r::Range,x::Number)
+function hermitep(r::AbstractRange,x::Number)
     n=r[end]+1
     T = typeof(x)
     H = Hermite()

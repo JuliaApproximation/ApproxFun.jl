@@ -77,7 +77,7 @@ function decasteljau(f::AbstractVector,S::Bernstein,z::AbstractVector)
             end
         end
         ret[k] = β[1]
-        copy!(β,βinit)
+        copyto!(β,βinit)
     end
     ret
 end

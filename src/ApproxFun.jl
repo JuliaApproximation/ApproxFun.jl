@@ -3,23 +3,31 @@ __precompile__()
 module ApproxFun
     using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers,
             BlockArrays, BandedMatrices, BlockBandedMatrices, IntervalSets,
-            SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions
+            SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions,
+            LinearAlgebra, LowRankApprox
     import StaticArrays, ToeplitzMatrices, Calculus
 
 
-import AbstractFFTs: Plan
+import AbstractFFTs: Plan, plan_fft, plan_ifft, plan_ifft!, planfft!, fft, ifft
 import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
                 r2r!, r2r
 
-import Base.LinAlg: BlasInt, BlasFloat, norm, A_ldiv_B!
-
 import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, !=, eltype, start, next, done,
-                >=, /, ^, \, ∪, transpose, size, to_indexes, reindex, tail, broadcast, broadcast!, copy!, to_index
+                >=, /, ^, \, ∪, transpose, size, reindex, tail, broadcast, broadcast!, copyto!, copy, to_index, (:),
+                similar, map, vcat, hcat, hvcat, show, summary, stride, sum, cumsum, sign, real, imag, conj, inv,
+                complex, reverse, exp, sqrt, abs, abs2, sign, issubset, values, in, first, last, rand, intersect, setdiff,
+                isless, union, angle, join, isnan, isapprox, isempty, sort, merge, promote_rule,
+                minimum, maximum, extrema, indmax, indmin, findmax, findmin, isfinite,
+                zeros, zero, one, promote_rule
 
+import Base.Broadcast: BroadcastStyle, Broadcasted
+
+
+import LinearAlgebra: BlasInt, BlasFloat, norm, ldiv!, mul!, det, eigvals, eigs, dot, cross
 
 # we need to import all special functions to use Calculus.symbolic_derivatives_1arg
 # we can't do importall Base as we replace some Base definitions
-import SpecialFunctions: sinpi, cospi, airy, besselh, exp,
+import SpecialFunctions: sinpi, cospi, airy, besselh,
                     asinh, acosh,atanh, erfcx, dawson, erf, erfi,
                     sin, cos, sinh, cosh, airyai, airybi, airyaiprime, airybiprime,
                     hankelh1, hankelh2, besselj, bessely, besseli, besselk,
@@ -39,7 +47,7 @@ import BandedMatrices: bandinds, bandrange, PrintShow, bandshift,
                         inbands_getindex, inbands_setindex!, bandwidth, AbstractBandedMatrix,
                         dot, dotu, normalize!, flipsign,
                         colstart, colstop, colrange, rowstart, rowstop, rowrange,
-                        bandwidths, showarray, _BandedMatrix, BandedMatrix
+                        bandwidths, _BandedMatrix, BandedMatrix
 
 import BlockBandedMatrices: blockbandwidth, blockbandwidths, blockcolstop, blockcolrange,
                             blockcolstart, blockrowstop, blockrowstart, blockrowrange,

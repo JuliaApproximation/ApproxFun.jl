@@ -20,9 +20,9 @@ dotu(f::Fun{SequenceSpace},g::AbstractVector) =
 dotu(f::AbstractVector,g::Fun{SequenceSpace}) =
     mindotu(f,g.coefficients)
 
-Base.norm(f::Fun{SequenceSpace}) = norm(f.coefficients)
-Base.norm(f::Fun{SequenceSpace},k::Int) = norm(f.coefficients,k)
-Base.norm(f::Fun{SequenceSpace},k::Number) = norm(f.coefficients,k)
+norm(f::Fun{SequenceSpace}) = norm(f.coefficients)
+norm(f::Fun{SequenceSpace},k::Int) = norm(f.coefficients,k)
+norm(f::Fun{SequenceSpace},k::Number) = norm(f.coefficients,k)
 
 
 Fun(cfs::AbstractVector,S::SequenceSpace) = Fun(S,cfs)
@@ -86,11 +86,11 @@ Base.promote_op(::typeof(*),::Type{F},::Type{Fun{CS,T,VT}}) where {CS<:ConstantS
 
 
 
-Base.promote_op(::typeof(Base.LinAlg.matprod),::Type{Fun{S1,T1,VT1}},::Type{Fun{S2,T2,VT2}}) where {S1<:ConstantSpace,T1,VT1,S2<:ConstantSpace,T2,VT2} =
+Base.promote_op(::typeof(LinearAlgebra.matprod),::Type{Fun{S1,T1,VT1}},::Type{Fun{S2,T2,VT2}}) where {S1<:ConstantSpace,T1,VT1,S2<:ConstantSpace,T2,VT2} =
             VFun{promote_type(S1,S2),promote_type(T1,T2)}
-Base.promote_op(::typeof(Base.LinAlg.matprod),::Type{Fun{S1,T1,VT1}},::Type{Fun{S2,T2,VT2}}) where {S1<:ConstantSpace,T1,VT1,S2,T2,VT2} =
+Base.promote_op(::typeof(LinearAlgebra.matprod),::Type{Fun{S1,T1,VT1}},::Type{Fun{S2,T2,VT2}}) where {S1<:ConstantSpace,T1,VT1,S2,T2,VT2} =
             VFun{S2,promote_type(T1,T2)}
-Base.promote_op(::typeof(Base.LinAlg.matprod),::Type{Fun{S1,T1,VT1}},::Type{Fun{S2,T2,VT2}}) where {S1,T1,VT1,S2<:ConstantSpace,T2,VT2} =
+Base.promote_op(::typeof(LinearAlgebra.matprod),::Type{Fun{S1,T1,VT1}},::Type{Fun{S2,T2,VT2}}) where {S1,T1,VT1,S2<:ConstantSpace,T2,VT2} =
             VFun{S1,promote_type(T1,T2)}
 
 

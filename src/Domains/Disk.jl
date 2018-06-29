@@ -2,7 +2,7 @@ export Disk,𝔻
 
 # T is Real or Complex
 # TT is (Real,Real) or Complex
-doc"""
+"""
     Disk(c,r)
 
 represents the disk centred at `c` with radius `r`.

@@ -24,7 +24,7 @@ for poly in (:chebyshevt,:chebyshevu,:legendre)
         $poly(n::Int,a::T,b::T) where {T<:Number} = $poly(n,Segment(a,b))
         $poly(::Type{T},n::Int) where {T<:Number} = $poly(n,Segment{T}())
         $poly(n::Int) = $poly(Float64,n)
-        $poly(n::Range,d::Segment{T}) where {T<:Number} = map(i->$poly(i,d),n)
+        $poly(n::AbstractRange,d::Segment{T}) where {T<:Number} = map(i->$poly(i,d),n)
     end
 end
 
@@ -42,8 +42,8 @@ bvp(d) = bvp(d,2)
 
 
 
-# use conj(f.') for ArraySpace
-Base.ctranspose(f::Fun)=differentiate(f)
+# use conj(transpose(f)) for ArraySpace
+adjoint(f::Fun)=differentiate(f)
 
 
 ∫(f::Fun)=integrate(f)
@@ -54,8 +54,8 @@ for OP in (:Σ,:∮,:⨍,:⨎)
 end
 
 ∇(F::MultivariateFun) = grad(F)
-Base.dot(∇::Function,F::Vector{M}) where {M<:MultivariateFun} = div(F)
-Base.cross(∇::Function,F::Vector{M}) where {M<:MultivariateFun} = curl(F)
+dot(∇::Function,F::Vector{M}) where {M<:MultivariateFun} = div(F)
+cross(∇::Function,F::Vector{M}) where {M<:MultivariateFun} = curl(F)
 
 
 ## Domains

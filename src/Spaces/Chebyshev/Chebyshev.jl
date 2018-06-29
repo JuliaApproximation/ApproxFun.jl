@@ -1,7 +1,7 @@
 
 export Chebyshev
 
-doc"""
+"""
 `Chebyshev()` is the space spanned by the Chebyshev polynomials
 ```
     T_0(x),T_1(x),T_2(x),…

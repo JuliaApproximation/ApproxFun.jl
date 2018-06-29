@@ -4,7 +4,7 @@ export Ultraspherical
 #Ultraspherical Spaces
 
 
-doc"""
+"""
 `Ultraspherical(λ)` is the space spanned by the ultraspherical polynomials
 ```
     C_0^{(λ)}(x),C_1^{(λ)}(x),C_2^{(λ)}(x),…

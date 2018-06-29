@@ -1,4 +1,4 @@
-doc"""
+"""
     ArraySpace(s::Space,dims...)
 
 is used to represent array-valued expansions in a space `s`.  The

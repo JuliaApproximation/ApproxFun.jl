@@ -47,7 +47,7 @@ end
 
 CachedOperator(op::Operator;padding::Bool=false) = default_CachedOperator(op;padding=padding)
 
-doc"""
+"""
     cache(op::Operator)
 
 Caches the entries of an operator, to speed up multiplying a Fun by the operator.
@@ -80,7 +80,7 @@ blockbandinds(C::CachedOperator{T,BM,M}) where {T<:Number,BM<:BandedMatrix,M<:Op
     end
 end
 
-function Base.getindex(B::CachedOperator,k::Range,j::Range)
+function Base.getindex(B::CachedOperator,k::AbstractRange,j::AbstractRange)
     if !isempty(k) && !isempty(j)
         resizedata!(B,maximum(k),maximum(j))
         B.data[k,j]
@@ -123,7 +123,7 @@ resizedata!(B::CachedOperator,::Colon,m::Integer) = resizedata!(B,size(B,1),m)
 resizedata!(B::CachedOperator,n::Integer,::Colon) = resizedata!(B,n,size(B,2))
 
 
-function A_mul_B_coefficients(B::CachedOperator,v::AbstractVector{T}) where T<:Number
+function mul_coefficients(B::CachedOperator,v::AbstractVector{T}) where T<:Number
     resizedata!(B,:,length(v))
 
     B.data*pad(v,size(B.data,2))

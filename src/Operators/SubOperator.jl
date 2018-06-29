@@ -83,7 +83,7 @@ function view(A::Operator,kr::AbstractCount,jr::AbstractCount)
 end
 
 
-function view(A::Operator,kr::Range,jr::Range)
+function view(A::Operator,kr::AbstractRange,jr::AbstractRange)
     st=step(kr)
     if isbanded(A) && st == step(jr)
         kr1=first(kr)
@@ -270,9 +270,9 @@ size(V::SubOperator,k::Int) = V.dims[k]
 
 unsafe_getindex(V::SubOperator,k::Integer,j::Integer) = V.parent[reindex(V,parentindexes(V),(k,j))...]
 getindex(V::SubOperator,k::Integer,j::Integer) = V.parent[reindex(V,parentindexes(V),(k,j))...]
-getindex(V::SubOperator,k::Integer,j::Range) = V.parent[reindex(V,parentindexes(V),(k,j))...]
-getindex(V::SubOperator,k::Range,j::Integer) = V.parent[reindex(V,parentindexes(V),(k,j))...]
-getindex(V::SubOperator,k::Range,j::Range) = V.parent[reindex(V,parentindexes(V),(k,j))...]
+getindex(V::SubOperator,k::Integer,j::AbstractRange) = V.parent[reindex(V,parentindexes(V),(k,j))...]
+getindex(V::SubOperator,k::AbstractRange,j::Integer) = V.parent[reindex(V,parentindexes(V),(k,j))...]
+getindex(V::SubOperator,k::AbstractRange,j::AbstractRange) = V.parent[reindex(V,parentindexes(V),(k,j))...]
 Base.parent(S::SubOperator) = S.parent
 Base.parentindexes(S::SubOperator) = S.indexes
 
@@ -338,7 +338,7 @@ end
 
 
 
-function A_mul_B_coefficients(A::SubOperator{T,B,Tuple{UnitRange{Int},UnitRange{Int}}},b) where {T,B}
+function mul_coefficients(A::SubOperator{T,B,Tuple{UnitRange{Int},UnitRange{Int}}},b) where {T,B}
     if size(A,2) == length(b)
         AbstractMatrix(A)*b
     else

@@ -60,7 +60,7 @@ end
 
 
 
-function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(first)},k::Range) where {DD<:Segment,RR}
+function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(first)},k::AbstractRange) where {DD<:Segment,RR}
     T=eltype(op)
     x = op.x
     d = domain(op)
@@ -85,7 +85,7 @@ function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(first)},k::Rang
     scal!(cst,ret)
 end
 
-function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(last)},k::Range) where {DD<:Segment,RR}
+function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(last)},k::AbstractRange) where {DD<:Segment,RR}
     T=eltype(op)
     x = op.x
     d = domain(op)
@@ -116,7 +116,7 @@ function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},M,OT,T},
 end
 
 function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},M,OT,T},
-                                             k::Range) where {DD<:Segment,RR,M<:Real,OT,T}
+                                             k::AbstractRange) where {DD<:Segment,RR,M<:Real,OT,T}
     if op.order == 0
         Array{T}(evaluatechebyshev(k[end],tocanonical(domain(op),op.x))[k])
     else

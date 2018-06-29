@@ -55,7 +55,7 @@ QROperatorQ(QR) = QROperatorQ{typeof(QR),eltype(QR)}(QR)
 domainspace(Q::QROperatorQ) = ℓ⁰
 rangespace(Q::QROperatorQ) = rangespace(Q.QR)
 
-getindex(Q::QROperatorQ,k::Integer,j::Integer) = (Ac_mul_B_coefficients(Q,eltype(Q)[zeros(k-1);1]))[j]
+getindex(Q::QROperatorQ,k::Integer,j::Integer) = (mul_coefficients(Q',eltype(Q)[zeros(k-1);1]))[j]
 
 function getindex(QR::QROperator,d::Symbol)
     d==:Q && return QROperatorQ(QR)
@@ -78,7 +78,7 @@ function Base.qrfact!(A::CachedOperator;cached::Int=0)
     QR
 end
 
-doc"""
+"""
     qrfact(A::Operator)
 
 returns a cached QR factorization of the Operator `A`.  The result `QR`
@@ -136,25 +136,27 @@ Base.det(A::Operator) = det(qrfact(A))
 
 # Q
 
-At_mul_B_coefficients(A::QROperatorQ{T},B::AbstractVector{T}) where {T<:Real} = Ac_mul_B(A,B)
-At_mul_B_coefficients(A::QROperatorQ{T},B::AbstractMatrix{T}) where {T<:Real} = Ac_mul_B(A,B)
+mul_coefficients(At::Transpose{T,<:QROperatorQ{T}},B::AbstractVector{T}) where {T<:Real} = parent(At)'*B
+mul_coefficients(At::Transpose{T,<:QROperatorQ{T}},B::AbstractMatrix{T}) where {T<:Real} = parent(At)'*B
 
-Ac_mul_B_coefficients(A::QROperatorQ{QR,T},B::AbstractVector{T};tolerance=eps(eltype(A))/10,maxlength=1000000) where {QR,T} =
-        Ac_mul_Bpars(A,B,tolerance,maxlength)
+mul_coefficients(Ac::Adjoint{T,<:QROperatorQ{QR,T}},B::AbstractVector{T};tolerance=eps(eltype(A))/10,maxlength=1000000) where {QR,T} =
+        mulpars(Ac,B,tolerance,maxlength)
 
-Ac_mul_B_coefficients(A::QROperatorQ{QR,T},B::AbstractVector{V};opts...) where {QR,T,V} =
-    Ac_mul_B_coefficients(A,AbstractVector{T}(B);opts...)
+mul_coefficients(Ac::Adjoint{T,<:QROperatorQ{QR,T}},B::AbstractVector{V};opts...) where {QR,T,V} =
+    mul_coefficients(Ac,AbstractVector{T}(B); opts...)
 
-Base.Ac_mul_B(A::QROperatorQ,b;kwds...) =
-    Fun(domainspace(A),Ac_mul_B_coefficients(A,coefficients(b,rangespace(A));kwds...))
+function *(Ac::Adjoint{<:Any,<:QROperatorQ},b; kwds...)
+    A = parent(Ac)
+    Fun(domainspace(A),mul_coefficients(Ac,coefficients(b,rangespace(A));kwds...))
+end
 
 
-A_ldiv_B_coefficients(A::QROperatorQ, B; opts...) = Ac_mul_B_coefficients(A, B; opts...)
-\(A::QROperatorQ, B::Fun; opts...) = Ac_mul_B(A, B; opts...)
+ldiv_coefficients(A::QROperatorQ, B; opts...) = mul_coefficients(A', B; opts...)
+\(A::QROperatorQ, B::Fun; opts...) = *(A', B; opts...)
 
 
 # R
-function A_ldiv_B_coefficients(R::QROperatorR, b::AbstractVector)
+function ldiv_coefficients(R::QROperatorR, b::AbstractVector)
     if length(b) > R.QR.ncols
         # upper triangularize columns
         resizedata!(R.QR, :, length(b))
@@ -163,34 +165,34 @@ function A_ldiv_B_coefficients(R::QROperatorR, b::AbstractVector)
 end
 
 \(R::QROperatorR,b::Fun{SequenceSpace};kwds...) =
-    Fun(domainspace(R),A_ldiv_B_coefficients(R,b.coefficients;kwds...))
+    Fun(domainspace(R),ldiv_coefficients(R,b.coefficients;kwds...))
 \(A::QROperatorR,b::Fun;kwds...) = error("\\ not implement for $(typeof(b)) right-hand sides")
 
 
 # QR
 
 for TYP in (:Real,:Complex,:Number)
-    @eval A_ldiv_B_coefficients(QR::QROperator{CO,MT,T},b::AbstractVector{T};kwds...) where {CO,MT,T<:$TYP} =
-        A_ldiv_B_coefficients(QR[:R],Ac_mul_B_coefficients(QR[:Q],b;kwds...))
+    @eval ldiv_coefficients(QR::QROperator{CO,MT,T},b::AbstractVector{T};kwds...) where {CO,MT,T<:$TYP} =
+        ldiv_coefficients(QR[:R],mul_coefficients(QR[:Q]',b;kwds...))
 end
 
 
-function A_ldiv_B_coefficients(QR::QROperator{CO,MT,T},b::AbstractVector{V};kwds...) where {CO,MT,T,V<:Number}
+function ldiv_coefficients(QR::QROperator{CO,MT,T},b::AbstractVector{V};kwds...) where {CO,MT,T,V<:Number}
     TV = promote_type(T,V)
-    A_ldiv_B_coefficients(Operator{TV}(QR),Vector{TV}(b);kwds...)
+    ldiv_coefficients(Operator{TV}(QR),Vector{TV}(b);kwds...)
 end
 
-function A_ldiv_B_coefficients(QR::QROperator{CO,MT,T},b::AbstractVector{V};kwds...) where {CO,MT,T<:Real,V<:Complex}
-    a=A_ldiv_B_coefficients(QR,real(b);kwds...)
-    b=im*A_ldiv_B_coefficients(QR,imag(b);kwds...)
+function ldiv_coefficients(QR::QROperator{CO,MT,T},b::AbstractVector{V};kwds...) where {CO,MT,T<:Real,V<:Complex}
+    a=ldiv_coefficients(QR,real(b);kwds...)
+    b=im*ldiv_coefficients(QR,imag(b);kwds...)
     n=max(length(a),length(b))
     pad!(a,n)+pad!(b,n)
 end
-A_ldiv_B_coefficients(QR::QROperator{CO,MT,T},b::AbstractVector{V};kwds...) where {CO,MT,T<:Complex,V<:Real} =
-    A_ldiv_B_coefficients(QR,Vector{T}(b);kwds...)
+ldiv_coefficients(QR::QROperator{CO,MT,T},b::AbstractVector{V};kwds...) where {CO,MT,T<:Complex,V<:Real} =
+    ldiv_coefficients(QR,Vector{T}(b);kwds...)
 
 
 \(A::QROperator,b::Fun;kwds...) =
-    Fun(domainspace(A),A_ldiv_B_coefficients(A,coefficients(b,rangespace(A));kwds...))
+    Fun(domainspace(A),ldiv_coefficients(A,coefficients(b,rangespace(A));kwds...))
 
 \(A::QROperator,B::MatrixFun;kwds...) = \(A,Array(B);kwds...)

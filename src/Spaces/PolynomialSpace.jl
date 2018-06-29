@@ -216,23 +216,23 @@ function convert(::Type{BandedMatrix},
     Bk2[band(0)] = a[n]/recβ(T,sp,n-1)
     α,β = recα(T,sp,n-1),recβ(T,sp,n-2)
     Bk1 = (-α/β)*Bk2
-    Base.axpy!(a[n-1]/β,I,Bk1)
+    LinearAlgebra.axpy!(a[n-1]/β,I,Bk1)
     jac_gbmm!(one(T)/β,J,Bk2,one(T),Bk1,0)
     b=1  # we keep track of bandwidths manually to reuse memory
     for k=n-2:-1:2
         α,β,γ=recα(T,sp,k),recβ(T,sp,k-1),recγ(T,sp,k+1)
         scale!(-γ/β,Bk2)
-        Base.axpy!(a[k]/β,I,Bk2)
+        LinearAlgebra.axpy!(a[k]/β,I,Bk2)
         jac_gbmm!(1/β,J,Bk1,one(T),Bk2,b)
-        Base.axpy!(-α/β,Bk1,Bk2)
+        LinearAlgebra.axpy!(-α/β,Bk1,Bk2)
         Bk2,Bk1=Bk1,Bk2
         b+=1
     end
     α,γ=recα(T,sp,1),recγ(T,sp,2)
     scale!(-γ,Bk2)
-    Base.axpy!(a[1],I,Bk2)
+    LinearAlgebra.axpy!(a[1],I,Bk2)
     jac_gbmm!(one(T),J,Bk1,one(T),Bk2,b)
-    Base.axpy!(-α,Bk1,Bk2)
+    LinearAlgebra.axpy!(-α,Bk1,Bk2)
 
     # relationship between jkr and kr, jr
     kr2,jr2=kr-jkr[1]+1,jr-jkr[1]+1
@@ -279,7 +279,7 @@ end
 
 # evaluate polynomial
 # indexing starts from 0
-function forwardrecurrence(::Type{T},S::Space,r::Range,x::Number) where T
+function forwardrecurrence(::Type{T},S::Space,r::AbstractRange,x::Number) where T
     if isempty(r)
         return T[]
     end
@@ -311,14 +311,14 @@ function Evaluation(S::PolynomialSpace,x,order)
 end
 
 
-function getindex(op::ConcreteEvaluation{J,typeof(first)},kr::Range) where J<:PolynomialSpace
+function getindex(op::ConcreteEvaluation{J,typeof(first)},kr::AbstractRange) where J<:PolynomialSpace
     sp=op.space
     T=eltype(op)
 
     forwardrecurrence(T,sp,kr-1,-one(T))
 end
 
-function getindex(op::ConcreteEvaluation{J,typeof(last)},kr::Range) where J<:PolynomialSpace
+function getindex(op::ConcreteEvaluation{J,typeof(last)},kr::AbstractRange) where J<:PolynomialSpace
     sp=op.space
     T=eltype(op)
 
@@ -326,7 +326,7 @@ function getindex(op::ConcreteEvaluation{J,typeof(last)},kr::Range) where J<:Pol
 end
 
 
-function getindex(op::ConcreteEvaluation{J,TT},kr::Range) where {J<:PolynomialSpace,TT<:Number}
+function getindex(op::ConcreteEvaluation{J,TT},kr::AbstractRange) where {J<:PolynomialSpace,TT<:Number}
     sp=op.space
     T=eltype(op)
     x=op.x

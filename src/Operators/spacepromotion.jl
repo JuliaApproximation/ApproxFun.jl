@@ -70,9 +70,9 @@ end
 
 # The coolest definitions ever!!
 # supports Derivative():Chebyshev()→Ultraspherical(1)
-Base.colon(A::Operator,b::Space) = promotedomainspace(A,b)
+(:)(A::Operator,b::Space) = promotedomainspace(A,b)
 →(A::Operator,b::Space) = promoterangespace(A,b)
-Base.colon(A::UniformScaling,b::Space) = Operator(A) : b
+(:)(A::UniformScaling,b::Space) = Operator(A) : b
 →(A::UniformScaling,b::Space) = Operator(A) → b
 
 
@@ -178,5 +178,5 @@ end
 ## algebra
 
 
-A_ldiv_B_coefficients(A::SpaceOperator,b;kwds...) =
-    A_ldiv_B_coefficients(A.op,b;kwds...)
+ldiv_coefficients(A::SpaceOperator,b;kwds...) =
+    ldiv_coefficients(A.op,b;kwds...)

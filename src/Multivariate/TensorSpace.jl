@@ -252,7 +252,7 @@ tensorblocklengths(a,b,c,d...) = tensorblocklengths(tensorblocklengths(a,b),c,d.
 
 # TensorSpace
 # represents the tensor product of several subspaces
-doc"""
+"""
     TensorSpace(a::Space,b::Space)
 
 represents a tensor product of two 1D spaces `a` and `b`.

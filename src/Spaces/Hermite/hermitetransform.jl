@@ -7,7 +7,7 @@ plan_itransform(H::Hermite,cfs::AbstractVector) = ITransformPlan(H,points(H,leng
 
 function *(P::TransformPlan{T,H,false},vals::AbstractVector) where {T,H<:Hermite}
     x,w = P.plan
-    V=hermitep.(0:length(vals)-1,x.')
+    V=hermitep.(0:length(vals)-1,transpose(x))
     nrm=(V.^2)*w
     V*(w.*vals)./nrm
 end

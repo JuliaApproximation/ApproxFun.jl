@@ -317,7 +317,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,AlmostBandedMatrix{T},
             dind=R.u+1+k-j
             v=view(R.data,dind:dind+M-1,j)
             dt=dot(wp,v)
-            Base.axpy!(-2*dt,wp,v)
+            LinearAlgebra.axpy!(-2*dt,wp,v)
         end
 
         # scale banded/filled entries
@@ -330,7 +330,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,AlmostBandedMatrix{T},
                 @inbounds dt=muladd(conj(W[ℓ-k+1,k]),
                                     unsafe_getindex(MO.data.fill,ℓ,j),dt)
             end
-            Base.axpy!(-2*dt,wp2,v)
+            LinearAlgebra.axpy!(-2*dt,wp2,v)
         end
 
         # scale filled entries
@@ -338,7 +338,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,AlmostBandedMatrix{T},
         for j=1:size(F,2)
             v=view(F,k:k+M-1,j) # the k,jth entry of F
             dt=dot(wp,v)
-            Base.axpy!(-2*dt,wp,v)
+            LinearAlgebra.axpy!(-2*dt,wp,v)
         end
     end
     QR.ncols=col
@@ -420,7 +420,7 @@ end
 ## back substitution
 # loop to avoid ambiguity with AbstractTRiangular
 for ArrTyp in (:AbstractVector, :AbstractMatrix)
-    @eval function A_ldiv_B!(U::UpperTriangular{T, SubArray{T, 2, AlmostBandedMatrix{T}, Tuple{UnitRange{Int}, UnitRange{Int}}, false}},
+    @eval function ldiv!(U::UpperTriangular{T, SubArray{T, 2, AlmostBandedMatrix{T}, Tuple{UnitRange{Int}, UnitRange{Int}}, false}},
                        u::$ArrTyp{T}) where T
         n = size(u,1)
         n == size(U,1) || throw(DimensionMismatch())

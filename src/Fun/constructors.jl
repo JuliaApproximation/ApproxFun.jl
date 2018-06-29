@@ -148,14 +148,14 @@ Fun(f::Type, d::Space) = error("Not implemented")
 
 # special case constructors
 ## TODO: remove zeros
-Base.zero(S::Space) = zeros(S)
-Base.zero(::Type{T},S::Space) where {T<:Number} = zeros(T,S)
-Base.zeros(::Type{T},S::Space) where {T<:Number} = Fun(S,zeros(T,1))
-Base.zeros(S::Space) = Fun(S,zeros(1))
+zero(S::Space) = zeros(S)
+zero(::Type{T},S::Space) where {T<:Number} = zeros(T,S)
+zeros(::Type{T},S::Space) where {T<:Number} = Fun(S,zeros(T,1))
+zeros(S::Space) = Fun(S,zeros(1))
 
 # catch all
-Base.ones(S::Space) = Fun(x->1.0,S)
-Base.ones(::Type{T},S::Space) where {T<:Number} = Fun(x->one(T),S)
+ones(S::Space) = Fun(x->1.0,S)
+ones(::Type{T},S::Space) where {T<:Number} = Fun(x->one(T),S)
 
 function Fun(::typeof(identity), d::Domain)
     cd=canonicaldomain(d)

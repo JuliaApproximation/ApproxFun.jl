@@ -296,7 +296,7 @@ function values(f::LowRankFun)
     ym=mapreduce(ncoefficients,max,f.B)
     ret=zeros(xm,ym)
     for k=1:length(f.A)
-        ret+=values(pad(f.A[k],xm))*values(pad(f.B[k],ym)).'
+        ret+=values(pad(f.A[k],xm))*transpose(values(pad(f.B[k],ym)))
     end
     ret
 end
@@ -307,7 +307,7 @@ function coefficients(f::LowRankFun)
     ym=mapreduce(ncoefficients,max,f.B)
     ret=zeros(xm,ym)
     for k=1:length(f.A)
-        ret+=pad(f.A[k].coefficients,xm)*pad(f.B[k].coefficients,ym).'
+        ret+=pad(f.A[k].coefficients,xm)*transpose(pad(f.B[k].coefficients,ym))
     end
     ret
 end
@@ -317,7 +317,7 @@ function coefficients(f::LowRankFun,n::Space,m::Space)
     ym=mapreduce(ncoefficients,max,f.B)
     ret=zeros(xm,ym)
     for k=1:length(f.A)
-        ret+=pad(coefficients(f.A[k],n),xm)*pad(coefficients(f.B[k],m),ym).'
+        ret+=pad(coefficients(f.A[k],n),xm)*transpose(pad(coefficients(f.B[k],m),ym))
     end
     ret
 end
@@ -334,7 +334,7 @@ end
 
 
 evaluate(A::Vector{T},B::Vector{M},x,y) where {T<:Fun,M<:Fun}=dotu(evaluate(A,x),evaluate(B,y))
-evaluate(A::Vector{T},B::Vector{M},x::AbstractVector,y::AbstractVector) where {T<:Fun,M<:Fun}=evaluate.(A.',x)*evaluate.(B,y.')
+evaluate(A::Vector{T},B::Vector{M},x::AbstractVector,y::AbstractVector) where {T<:Fun,M<:Fun}=evaluate.(transpose(A),x)*evaluate.(B,transpose(y))
 
 evaluate(f::LowRankFun,x,y)=evaluate(f.A,f.B,x,y)
 evaluate(f::LowRankFun,::Colon,::Colon)=f
@@ -407,7 +407,7 @@ end
 function Base.qr(f::LowRankFun)
     sp,r = space(f),rank(f)
     Q,R = qr(coefficients(f.A))
-    BR = coefficients(f.B)*R.'
+    BR = coefficients(f.B)*transpose(R)
     LowRankFun(map(i->Fun(sp[1],Q[:,i]),1:r),map(i->Fun(sp[2],BR[:,i]),1:r),sp)
 end
 

@@ -1,6 +1,6 @@
 
 
-export PlusOperator, TimesOperator, A_mul_B_coefficients
+export PlusOperator, TimesOperator, mul_coefficients
 
 
 
@@ -509,7 +509,7 @@ end
 ## Algebra: assume we promote
 
 
-for OP in (:(Base.ctranspose),:(Base.transpose))
+for OP in (:(adjoint),:(Base.transpose))
     @eval $OP(A::TimesOperator)=TimesOperator(reverse!(map($OP,A.ops)))
 end
 
@@ -597,15 +597,15 @@ end
 
 
 ## Operations
-function A_mul_B_coefficients(A::Operator,b)
+function mul_coefficients(A::Operator,b)
     n=size(b,1)
-    ret = n>0 ? A_mul_B_coefficients(view(A,FiniteRange,1:n),b) : b
+    ret = n>0 ? mul_coefficients(view(A,FiniteRange,1:n),b) : b
 end
 
-function A_mul_B_coefficients(A::TimesOperator,b)
+function mul_coefficients(A::TimesOperator,b)
     ret = b
     for k=length(A.ops):-1:1
-        ret = A_mul_B_coefficients(A.ops[k],ret)
+        ret = mul_coefficients(A.ops[k],ret)
     end
 
     ret
@@ -621,12 +621,12 @@ function *(A::Operator, b)
         error("Assign spaces to $A before multiplying.")
     else
         Fun(rs,
-            A_mul_B_coefficients(A,coefficients(b,ds)))
+            mul_coefficients(A,coefficients(b,ds)))
     end
 end
 
-A_mul_B_coefficients(A::PlusOperator,b::Fun) =
-    mapreduce(x->A_mul_B_coefficients(x,b),+,A.ops)
+mul_coefficients(A::PlusOperator,b::Fun) =
+    mapreduce(x->mul_coefficients(x,b),+,A.ops)
 
 *(A::Operator, b::AbstractMatrix{<:Fun}) = A*Fun(b)
 *(A::Vector{<:Operator}, b::Fun) = map(a->a*b,convert(Array{Any,1},A))

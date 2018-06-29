@@ -484,10 +484,10 @@ points(d::PiecewiseSpace,n) = vcat(points.(pieces(d), pieces_npoints(d,n))...)
 
 
 plan_transform(sp::PiecewiseSpace,vals::AbstractVector) =
-    TransformPlan{eltype(vals),typeof(sp),false,Void}(sp,nothing)
+    TransformPlan{eltype(vals),typeof(sp),false,Nothing}(sp,nothing)
 
 plan_itransform(sp::PiecewiseSpace,vals::AbstractVector) =
-    ITransformPlan{eltype(vals),typeof(sp),false,Void}(sp,nothing)
+    ITransformPlan{eltype(vals),typeof(sp),false,Nothing}(sp,nothing)
 
 
 

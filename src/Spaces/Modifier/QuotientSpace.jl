@@ -1,6 +1,6 @@
 import Base.BLAS.@blasfunc
-import Base.LinAlg: chkstride1, BlasInt
-import Base.LinAlg.LAPACK.chklapackerror
+import LinearAlgebra: chkstride1, BlasInt
+import LinearAlgebra.LAPACK.chklapackerror
 
 export QuotientSpace
 
@@ -72,9 +72,9 @@ function getindex(C::ConcreteConversion{QuotientSpace{SP,O,DD,T,RT},SP}, i::Inte
             b[ii] = -B[ii,j]
         end
         in_place_gesdd!(A, U, Σ.diag, VT, work, iwork, rwork, info)
-        At_mul_B!(x, U, b)
-        A_mul_B!(b, pinv!(Σ), x)
-        At_mul_B!(x, VT, b)
+        mul!(x, transpose(U), b)
+        mul!(b, pinv!(Σ), x)
+        mul!(x, transpose(VT), b)
         x[i+n-j+1]
     else
         zero(T)
@@ -91,8 +91,8 @@ end
 
 for (gesdd, elty, relty) in ((:dgesdd_,:Float64,:Float64),
                       (:sgesdd_,:Float32,:Float32),
-                      (:zgesdd_,:Complex128,:Float64),
-                      (:cgesdd_,:Complex64,:Float32))
+                      (:zgesdd_,:ComplexF64,:Float64),
+                      (:cgesdd_,:ComplexF32,:Float32))
     @eval begin
         #    SUBROUTINE DGESDD( JOBZ, M, N, A, LDA, S, U, LDU, VT, LDVT, WORK,
         #                   LWORK, IWORK, INFO )
@@ -113,7 +113,7 @@ for (gesdd, elty, relty) in ((:dgesdd_,:Float64,:Float64),
             cmplx  = $elty != $relty
             for i = 1:2
                 if cmplx
-                    ccall((@blasfunc($gesdd), liblapack), Void,
+                    ccall((@blasfunc($gesdd), liblapack), Nothing,
                           (Ptr{UInt8}, Ptr{BlasInt}, Ptr{BlasInt}, Ptr{$elty},
                            Ptr{BlasInt}, Ptr{$relty}, Ptr{$elty}, Ptr{BlasInt},
                            Ptr{$elty}, Ptr{BlasInt}, Ptr{$elty}, Ptr{BlasInt},
@@ -121,7 +121,7 @@ for (gesdd, elty, relty) in ((:dgesdd_,:Float64,:Float64),
                           &job, &m, &n, A, &max(1,stride(A,2)), S, U, &max(1,stride(U,2)), VT, &max(1,stride(VT,2)),
                           work, &lwork, rwork, iwork, info)
                 else
-                    ccall((@blasfunc($gesdd), liblapack), Void,
+                    ccall((@blasfunc($gesdd), liblapack), Nothing,
                           (Ptr{UInt8}, Ptr{BlasInt}, Ptr{BlasInt}, Ptr{$elty},
                            Ptr{BlasInt}, Ptr{$elty}, Ptr{$elty}, Ptr{BlasInt},
                            Ptr{$elty}, Ptr{BlasInt}, Ptr{$elty}, Ptr{BlasInt},

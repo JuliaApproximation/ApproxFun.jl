@@ -17,7 +17,7 @@ conversion_rule(a::ContinuousSpace,
                 b::PiecewiseSpace{CD,DD,RR}) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1,DDD,RRR}}},DD,RR<:Real} where {DDD,RRR} = a
 
 plan_transform(sp::ContinuousSpace,vals::AbstractVector) =
-    TransformPlan{eltype(vals),typeof(sp),false,Void}(sp,nothing)
+    TransformPlan{eltype(vals),typeof(sp),false,Nothing}(sp,nothing)
 
 function *(P::TransformPlan{T,SS,false},vals::AbstractVector{T}) where {T,SS<:ContinuousSpace}
     S = P.space

@@ -3,23 +3,21 @@
 
 import Base: convert, similar, length, size, indices, IndexStyle,
             IndexLinear, @propagate_inbounds, getindex, setindex!,
-            broadcast, hcat, typed_hcat, A_mul_Bt, At_mul_Bt, At_mul_B,
-            A_mul_Bc, Ac_mul_Bc, Ac_mul_B, At_ldiv_B, map, parent
+            broadcast, hcat, typed_hcat, map, parent
 
-import Base.LinAlg: check_types, check_tail_indices, to_vec
+import LinearAlgebra: check_types, to_vec
 
 """
     RowVector(vector)
 
 A lazy-view wrapper of an `AbstractVector`, which turns a length-`n` vector into a `1×n`
 shaped row vector and represents the transpose of a vector (the elements are also transposed
-recursively). This type is usually constructed (and unwrapped) via the [`transpose`](@ref)
-function or `.'` operator (or related [`ctranspose`](@ref) or `'` operator).
+recursively).
 
 By convention, a vector can be multiplied by a matrix on its left (`A * v`) whereas a row
-vector can be multiplied by a matrix on its right (such that `v.' * A = (A.' * v).'`). It
+vector can be multiplied by a matrix on its right (such that `transpose(v) * A = transpose(transpose(A) * v)`). It
 differs from a `1×n`-sized matrix by the facts that its transpose returns a vector and the
-inner product `v1.' * v2` returns a scalar, but will otherwise behave similarly.
+inner product `transpose(v1) * v2` returns a scalar, but will otherwise behave similarly.
 """
 struct RowVector{T,V<:AbstractVector} <: AbstractMatrix{T}
     vec::V
@@ -122,7 +120,7 @@ end
     end
     sum(@inbounds(rowvec[i]*vec[i]) for i = 1:length(vec))
 end
-@inline *(rowvec::RowVector, mat::AbstractMatrix) = RowVector(mat.' * rowvec.vec)
+@inline *(rowvec::RowVector, mat::AbstractMatrix) = RowVector(transpose(transpose()mat) * rowvec.vec)
 *(::RowVector, ::RowVector) = throw(DimensionMismatch("Cannot multiply two transposed vectors"))
 @inline *(vec::AbstractVector, rowvec::RowVector) = vec .* rowvec
 

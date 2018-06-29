@@ -154,7 +154,7 @@ bandinds(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(last)}) where 
 bandinds(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(first)}) where {D,R} = 0,1
 bandinds(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(last)}) where {D,R} = 0,1
 
-function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(first)},kr::Range) where {D,R}
+function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(first)},kr::AbstractRange) where {D,R}
     d = domain(B)
 
     if B.order == 0
@@ -164,7 +164,7 @@ function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(first
     end
 end
 
-function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(last)},kr::Range) where {D,R}
+function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(last)},kr::AbstractRange) where {D,R}
     d = domain(B)
 
     if B.order == 0
@@ -174,7 +174,7 @@ function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(last)
     end
 end
 
-function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(first)},kr::Range) where {D,R}
+function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(first)},kr::AbstractRange) where {D,R}
     S = Space(domain(B))
 
     if B.order == 0
@@ -184,7 +184,7 @@ function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(first
     end
 end
 
-function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(last)},kr::Range) where {D,R}
+function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(last)},kr::AbstractRange) where {D,R}
     S = Space(domain(B))
 
 
@@ -196,7 +196,7 @@ function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(last)
 end
 
 
-function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(first)},kr::Range) where {D,R}
+function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(first)},kr::AbstractRange) where {D,R}
     S = Space(domain(B))
 
     if B.order == 0
@@ -206,7 +206,7 @@ function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(first
     end
 end
 
-function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(last)},kr::Range) where {D,R}
+function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(last)},kr::AbstractRange) where {D,R}
     S = Space(domain(B))
 
     if B.order == 0

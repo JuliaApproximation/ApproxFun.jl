@@ -336,7 +336,7 @@ defaultConversion(A::JacobiWeight{JS,D},B::Space{D,R}) where {JS,D<:IntervalDoma
 
 ## Evaluation
 
-function  Base.getindex(op::ConcreteEvaluation{<:JacobiWeight,typeof(first)},kr::Range)
+function  Base.getindex(op::ConcreteEvaluation{<:JacobiWeight,typeof(first)},kr::AbstractRange)
     S=op.space
     @assert op.order ≤ 1
     d=domain(op)
@@ -355,7 +355,7 @@ function  Base.getindex(op::ConcreteEvaluation{<:JacobiWeight,typeof(first)},kr:
     end
 end
 
-function  Base.getindex(op::ConcreteEvaluation{<:JacobiWeight,typeof(last)},kr::Range)
+function  Base.getindex(op::ConcreteEvaluation{<:JacobiWeight,typeof(last)},kr::AbstractRange)
     S=op.space
     @assert op.order<=1
     d=domain(op)
@@ -399,7 +399,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             end
         end
 
-        function getindex(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D,R},D,R,TT},T},kr::Range) where {LT,D<:Segment,R,T,TT}
+        function getindex(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D,R},D,R,TT},T},kr::AbstractRange) where {LT,D<:Segment,R,T,TT}
             λ = order(domainspace(Σ).space)
             dsp = domainspace(Σ)
             d = domain(Σ)
@@ -435,7 +435,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             end
         end
 
-        function getindex(Σ::$ConcFunc{JacobiWeight{Chebyshev{D,R},D,R,TT},T},kr::Range) where {D<:Segment,R,T,TT}
+        function getindex(Σ::$ConcFunc{JacobiWeight{Chebyshev{D,R},D,R,TT},T},kr::AbstractRange) where {D<:Segment,R,T,TT}
             dsp = domainspace(Σ)
             d = domain(Σ)
             C = $Len(d)/2

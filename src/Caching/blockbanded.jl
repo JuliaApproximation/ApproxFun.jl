@@ -113,7 +113,7 @@ function resizedata!(B::CachedOperator{T,BlockBandedMatrix{T}},::Colon,col::Inte
 
         JR = datablocksize+1:J
         KR=blockcolstart(B.data,first(JR)):blockcolstop(B.data,last(JR))
-        copy!(view(B.data,KR,JR), view(B.op,KR,JR))
+        copyto!(view(B.data,KR,JR), view(B.op,KR,JR))
 
         B.datasize = (blockstop(rangespace(B),last(KR)),col)
     end
@@ -177,7 +177,7 @@ QROperator(R::CachedOperator{T,BlockBandedMatrix{T}}) where {T} =
 #         for j=k:rowstop(R,k)
 #             v=view(R,k:cs,j)
 #             dt=dot(wp,v)
-#             Base.axpy!(-2*dt,wp,v)
+#             LinearAlgebra.axpy!(-2*dt,wp,v)
 #         end
 #
 #         # scale banded/filled entries
@@ -186,7 +186,7 @@ QROperator(R::CachedOperator{T,BlockBandedMatrix{T}}) where {T} =
 #             v=view(R,csrt:cs,j)  # shift down each time
 #             wp2=view(wp,csrt-k+1:cs-k+1)
 #             dt=dot(wp2,v)
-#             Base.axpy!(-2*dt,wp2,v)
+#             LinearAlgebra.axpy!(-2*dt,wp2,v)
 #         end
 #     end
 #     QR.ncols=col

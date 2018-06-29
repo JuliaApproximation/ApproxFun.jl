@@ -9,13 +9,13 @@ for TYP in (:Fun,:StridedVector,:AbstractVector,:Any)
             \(A,b;kwds...)
         else
             Fun(domainspace(A),
-                A_ldiv_B_coefficients(A,coefficients(b,rangespace(A));kwds...))
+                ldiv_coefficients(A,coefficients(b,rangespace(A));kwds...))
         end
     end
 end
 
-doc"""
-    \(A::Operator,b;tolerance=tol,maxlength=n)
+"""
+    \\(A::Operator,b;tolerance=tol,maxlength=n)
 
 solves a linear equation, usually differential equation, where `A` is an operator
 or array of operators and `b` is a `Fun` or array of funs.  The result `u`
@@ -42,7 +42,7 @@ end
 
 \(A::Operator,B::MatrixFun;kwds...) = \(A,Array(B);kwds...)
 
-A_ldiv_B_coefficients(A::Operator,b;kwds...) = A_ldiv_B_coefficients(qrfact(A),b;kwds...)
+ldiv_coefficients(A::Operator,b;kwds...) = ldiv_coefficients(qrfact(A),b;kwds...)
 
 \(A::Operator,B::Operator) = TimesOperator(inv(A),B)
 
@@ -57,5 +57,5 @@ for TYP in (:Vector,:Matrix)
             \(interlace(A),b;kwds...)
     end
 end
-A_ldiv_B_coefficients(A::AbstractArray{OO},b;kwds...) where {OO<:Operator} =
-    A_ldiv_B_coefficients(interlace(A),b;kwds...)
+ldiv_coefficients(A::AbstractArray{OO},b;kwds...) where {OO<:Operator} =
+    ldiv_coefficients(interlace(A),b;kwds...)

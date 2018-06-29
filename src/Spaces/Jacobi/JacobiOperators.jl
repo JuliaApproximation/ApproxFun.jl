@@ -30,7 +30,7 @@ end
 getindex(op::ConcreteEvaluation{<:Jacobi},k::Integer) = op[k:k][1]
 
 
-function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(first)},kr::Range)
+function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(first)},kr::AbstractRange)
     @assert op.order <= 2
     sp=op.space
     T=eltype(op)
@@ -62,7 +62,7 @@ function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(first)},kr::Range)
     end
 end
 
-function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(last)},kr::Range)
+function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(last)},kr::AbstractRange)
     @assert op.order <= 2
     sp=op.space
     T=eltype(op)
@@ -88,7 +88,7 @@ function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(last)},kr::Range)
 end
 
 
-function getindex(op::ConcreteEvaluation{<:Jacobi,<:Number},kr::Range)
+function getindex(op::ConcreteEvaluation{<:Jacobi,<:Number},kr::AbstractRange)
     @assert op.order == 0
     jacobip(eltype(op),kr-1,op.space.a,op.space.b,tocanonical(domain(op),op.x))
 end

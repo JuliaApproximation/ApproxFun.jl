@@ -1,12 +1,10 @@
 
 
 
-import Base.BLAS: BlasInt
-
-import Base.BLAS.@blasfunc
+import LinearAlgebra.BLAS: BlasInt, @blasfunc
 
 
-for (hseqr,elty) in ((:zhseqr_,:Complex128),)
+for (hseqr,elty) in ((:zhseqr_,:ComplexF64),)
     @eval function hesseneigvals(M::Matrix{$elty})
         if isempty(M)
             return $elty[]
@@ -25,12 +23,15 @@ for (hseqr,elty) in ((:zhseqr_,:Complex128),)
         Ec='E'
         Nc='N'
         ccall((@blasfunc($hseqr),LAPACK.liblapack),
-            Void,
-            (Ptr{UInt8},Ptr{UInt8},
-        Ptr{BlasInt},Ptr{BlasInt},Ptr{BlasInt},Ptr{$elty}, #A
-        Ptr{BlasInt},Ptr{$elty},Ptr{$elty}, #z
-        Ptr{BlasInt},Ptr{$elty},Ptr{BlasInt},Ptr{BlasInt}),
-        &Ec,&Nc,&N , &ilo, &ihi, A, &ldh, w, &z, &ldz, work, &lwork, &info)
+            Nothing,
+            (Ref{UInt8}, Ref{UInt8},
+        Ref{BlasInt}, Ref{BlasInt}, Ref{BlasInt}, Ptr{$elty}, #A
+        Ref{BlasInt}, Ptr{$elty}, Ref{$elty}, #z
+        Ref{BlasInt}, Ptr{$elty}, Ref{BlasInt}, Ref{BlasInt}),
+        Ec, Nc,
+        N , ilo, ihi, A,
+        ldh, w, z,
+        ldz, work, lwork, info)
         w
     end
 end
@@ -59,12 +60,15 @@ for (hseqr,elty) in ((:dhseqr_,:Float64),)
         Nc='N'
         for i=1:2
             ccall((@blasfunc($hseqr),LAPACK.liblapack),
-                Void,
-                (Ptr{UInt8},Ptr{UInt8},
-            Ptr{BlasInt},Ptr{BlasInt},Ptr{BlasInt},Ptr{$elty}, #A
-            Ptr{BlasInt},Ptr{$elty},Ptr{$elty},Ptr{$elty}, #z
-            Ptr{BlasInt},Ptr{$elty},Ptr{BlasInt},Ptr{BlasInt}),
-            &Ec,&Nc,&N , &ilo, &ihi, A, &ldh, wr,wi, &z, &ldz, work, &lwork, &info)
+                Nothing,
+                (Ref{UInt8},Ref{UInt8},
+            Ref{BlasInt},Ref{BlasInt},Ref{BlasInt},Ptr{$elty}, #A
+            Ref{BlasInt},Ptr{$elty},Ptr{$elty},Ref{$elty}, #z
+            Ref{BlasInt},Ptr{$elty},Ref{BlasInt},Ref{BlasInt}),
+            Ec, Nc,
+            N , ilo, ihi, A,
+            ldh, wr,wi, z,
+            ldz, work, lwork, info)
 
             if lwork < 0
                 lwork=Int(real(work[1]))

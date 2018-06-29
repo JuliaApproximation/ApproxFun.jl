@@ -15,10 +15,10 @@ const BivariateDomain{T} = Domain{Vec{2,T}} where {T<:Number}
 
 eltype(::Domain{T}) where {T} = T
 eltype(::Type{Domain{T}}) where {T} = T
-Base.isreal(::Domain{T}) where {T<:Real} = true
-Base.isreal(::Domain{T}) where {T} = false
+isreal(::Domain{T}) where {T<:Real} = true
+isreal(::Domain{T}) where {T} = false
 
-Base.copy(d::Domain) = d  # all domains are immutable
+copy(d::Domain) = d  # all domains are immutable
 
 dimension(::Type{Domain{TT}}) where TT<:Number = 1
 dimension(::Type{Domain{Vec{d,T}}}) where {T,d} = d
@@ -30,17 +30,17 @@ dimension(d::Domain) = dimension(typeof(d))
 # mimicking scalar vs vector
 
 # TODO: 0.5 iteratorgo
-Base.start(s::Domain) = false
-Base.next(s::Domain,st) = (s,true)
-Base.done(s::Domain,st) = st
-Base.length(s::Domain) = 1
+start(s::Domain) = false
+next(s::Domain,st) = (s,true)
+done(s::Domain,st) = st
+length(s::Domain) = 1
 getindex(s::Domain,::CartesianIndex{0}) = s
 getindex(s::Domain,k) = k == 1 ? s : throw(BoundsError())
-Base.endof(s::Domain) = 1
+endof(s::Domain) = 1
 
 
 #supports broadcasting, overloaded for ArraySpace
-Base.size(::Domain) = ()
+size(::Domain) = ()
 
 
 # prectype gives the precision, including for Vec
@@ -49,7 +49,7 @@ prectype(::Type{D}) where {D<:Domain} = eltype(eltype(D))
 
 #TODO: bivariate AnyDomain
 struct AnyDomain <: Domain{UnsetNumber} end
-struct EmptyDomain <: Domain{Void} end
+struct EmptyDomain <: Domain{Nothing} end
 
 isambiguous(::AnyDomain) = true
 dimension(::AnyDomain) = 1
@@ -57,22 +57,22 @@ dimension(::AnyDomain) = 1
 complexlength(::AnyDomain) = NaN
 arclength(::AnyDomain) = NaN
 
-Base.reverse(a::Union{AnyDomain,EmptyDomain}) = a
+reverse(a::Union{AnyDomain,EmptyDomain}) = a
 
 canonicaldomain(a::Union{AnyDomain,EmptyDomain}) = a
 
-Base.in(x::Domain,::EmptyDomain) = false
+in(x::Domain,::EmptyDomain) = false
 
 ##General routines
 
 
-Base.isempty(::EmptyDomain) = true
-Base.isempty(::Domain) = false
-Base.intersect(a::Domain,b::Domain) = a==b ? a : EmptyDomain()
+isempty(::EmptyDomain) = true
+isempty(::Domain) = false
+intersect(a::Domain,b::Domain) = a==b ? a : EmptyDomain()
 
 
 # TODO: throw error for override
-Base.setdiff(a::Domain,b) = a == b ? EmptyDomain() : a
+setdiff(a::Domain,b) = a == b ? EmptyDomain() : a
 \(a::Domain,b) = setdiff(a,b)
 
 ## Interval Domains
@@ -81,7 +81,7 @@ abstract type IntervalDomain{T} <: UnivariateDomain{T} end
 
 canonicaldomain(d::IntervalDomain) = Segment{real(prectype(d))}()
 
-Base.isapprox(a::Domain,b::Domain) = a==b
+isapprox(a::Domain,b::Domain) = a==b
 domainscompatible(a,b) = domainscompatible(domain(a),domain(b))
 domainscompatible(a::Domain,b::Domain) = isambiguous(a) || isambiguous(b) ||
                     isapprox(a,b)
@@ -106,18 +106,18 @@ points(d::IntervalDomain{T},n::Integer;kind::Int=1) where {T} =
 bary(v::AbstractVector{Float64},d::IntervalDomain,x::Float64) = bary(v,tocanonical(d,x))
 
 #TODO consider moving these
-Base.first(d::IntervalDomain{T}) where {T} = fromcanonical(d,-one(T))
-Base.last(d::IntervalDomain{T}) where {T} = fromcanonical(d,one(T))
+first(d::IntervalDomain{T}) where {T} = fromcanonical(d,-one(T))
+last(d::IntervalDomain{T}) where {T} = fromcanonical(d,one(T))
 
-Base.in(x,::AnyDomain) = true
-function Base.in(x,d::IntervalDomain)
+in(x,::AnyDomain) = true
+function in(x,d::IntervalDomain)
     T=real(prectype(d))
     y=tocanonical(d,x)
     ry=real(y)
     iy=imag(y)
     sc=norm(fromcanonicalD(d,ry<-1 ? -one(ry) : (ry>1 ? one(ry) : ry)))  # scale based on stretch of map on projection to interal
     dy=fromcanonical(d,y)
-    # TODO: use Base.isapprox once keywords are fast
+    # TODO: use isapprox once keywords are fast
     ((isinf(norm(dy)) && isinf(norm(x))) ||  norm(dy-x) ≤ 1000eps(T)*max(norm(x),1)) &&
         -one(T)-100eps(T)/sc ≤ ry ≤ one(T)+100eps(T)/sc &&
         -100eps(T)/sc ≤ iy ≤ 100eps(T)/sc
@@ -147,7 +147,7 @@ fourierpoints(n::Integer) = fourierpoints(Float64,n)
 fourierpoints(::Type{T},n::Integer) where {T<:Number} = convert(T,π)*collect(0:2:2n-2)/n
 
 
-function Base.in(x,d::PeriodicDomain{T}) where T
+function in(x,d::PeriodicDomain{T}) where T
     y=tocanonical(d,x)
     if !isapprox(fromcanonical(d,y),x)
         return false
@@ -161,11 +161,11 @@ function Base.in(x,d::PeriodicDomain{T}) where T
     end
 end
 
-Base.issubset(a::Domain,b::Domain) = a==b
+issubset(a::Domain,b::Domain) = a==b
 
 
-Base.first(d::PeriodicDomain) = fromcanonical(d,0)
-Base.last(d::PeriodicDomain) = fromcanonical(d,2π)
+first(d::PeriodicDomain) = fromcanonical(d,0)
+last(d::PeriodicDomain) = fromcanonical(d,2π)
 
 
 struct AnyPeriodicDomain <: PeriodicDomain{UnsetNumber} end
@@ -175,8 +175,8 @@ convert(::Type{D},::AnyDomain) where {D<:PeriodicDomain} = AnyPeriodicDomain()
 
 ## conveninece routines
 
-Base.ones(d::Domain)=ones(prectype(d),Space(d))
-Base.zeros(d::Domain)=zeros(prectype(d),Space(d))
+ones(d::Domain)=ones(prectype(d),Space(d))
+zeros(d::Domain)=zeros(prectype(d),Space(d))
 
 
 
@@ -209,15 +209,15 @@ domain(::Number) = AnyDomain()
 ## rand
 
 
-Base.rand(d::IntervalDomain,k...) = fromcanonical.(d,2rand(k...)-1)
-Base.rand(d::PeriodicDomain,k...) = fromcanonical.(d,2π*rand(k...)-π)
+rand(d::IntervalDomain,k...) = fromcanonical.(d,2rand(k...)-1)
+rand(d::PeriodicDomain,k...) = fromcanonical.(d,2π*rand(k...)-π)
 
 checkpoints(d::IntervalDomain) = fromcanonical.(d,[-0.823972,0.01,0.3273484])
 checkpoints(d::PeriodicDomain) = fromcanonical.(d,[1.223972,3.14,5.83273484])
 
 ## boundary
 
-doc"""
+"""
     ∂(d::Domain)
 
 returns the boundary of `d`.  For example, the boundary of a `Disk()`
@@ -238,7 +238,7 @@ fromcanonical(d::Domain,x,y,z...) = fromcanonical(d,Vec(x,y,z...))
 
 
 mappoint(d1::Domain,d2::Domain,x...) = fromcanonical(d2,tocanonical(d1,x...))
-invfromcanonicalD(d::Domain,x...) = 1./fromcanonicalD(d,x...)
+invfromcanonicalD(d::Domain,x...) = 1/fromcanonicalD(d,x...)
 
 
 
@@ -248,7 +248,7 @@ invfromcanonicalD(d::Domain,x...) = 1./fromcanonicalD(d,x...)
 ## sorting
 # we sort spaces lexigraphically by default
 
-for OP in (:<,:(<=),:>,:(>=),:(Base.isless))
+for OP in (:<,:(<=),:>,:(>=),:(isless))
     @eval $OP(a::Domain,b::Domain)=$OP(string(a),string(b))
 end
 

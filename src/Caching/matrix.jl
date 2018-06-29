@@ -41,8 +41,9 @@ end
 # Apply Householder
 
 
-function Ac_mul_Bpars(A::QROperatorQ{QROperator{RR,Matrix{T},T},T},
+function mulpars(Ac::Adjoint{T,<:QROperatorQ{QROperator{RR,Matrix{T},T},T}},
                       B::AbstractVector{T},tolerance,maxlength) where {RR,T}
+    A = parent(Ac)
     if length(B) > A.QR.ncols
         # upper triangularize extra columns to prepare for \
         resizedata!(A.QR,:,length(B)+size(A.QR.H,1)+10)
@@ -74,7 +75,7 @@ function Ac_mul_Bpars(A::QROperatorQ{QROperator{RR,Matrix{T},T},T},
         yp=view(Y,k:k+M-1)
 
         dt=dot(wp,yp)
-        Base.axpy!(-2*dt,wp,yp)
+        LinearAlgebra.axpy!(-2*dt,wp,yp)
         k+=1
     end
     resize!(Y,k)  # chop off zeros
@@ -83,9 +84,10 @@ end
 
 # BLAS apply Q
 
-function Ac_mul_Bpars(A::QROperatorQ{QROperator{RR,Matrix{T},T},T},
+function mulpars(Ac::Adjoint{T,<:QROperatorQ{QROperator{RR,Matrix{T},T},T}},
                        B::AbstractVector{T},
                        tolerance,maxlength) where {RR,T<:BlasFloat}
+    A = parent(Ac)
     if length(B) > A.QR.ncols
         # upper triangularize extra columns to prepare for \
         resizedata!(A.QR,:,length(B)+size(A.QR.H,1)+10)

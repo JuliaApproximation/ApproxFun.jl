@@ -12,7 +12,7 @@ struct PeriodicCurve{S<:Space,T,VT} <: PeriodicDomain{T}
     curve::Fun{S,T,VT}
 end
 
-doc"""
+"""
 `Curve` Represents a domain defined by the image of a Fun.  Example
 usage would be
 
@@ -32,7 +32,7 @@ end
 
 checkpoints(d::Curve) = fromcanonical.(d,checkpoints(domain(d.curve)))
 
-for op in (:(Base.first),:(Base.last),:(Base.rand))
+for op in (:(first),:(last),:(rand))
     @eval $op(c::Curve)=c.curve($op(domain(c.curve)))
 end
 
@@ -50,7 +50,7 @@ end
 fromcanonicalD(c::Curve,x)=differentiate(c.curve)(x)
 
 
-function Base.in(x,c::Curve)
+function in(x,c::Curve)
     rts=roots(c.curve-x)
     if length(rts) ≠ 1
         false
@@ -59,7 +59,7 @@ function Base.in(x,c::Curve)
     end
 end
 
-Base.reverse(d::Curve) = Curve(reverseorientation(d.curve))
+reverse(d::Curve) = Curve(reverseorientation(d.curve))
 
 isambiguous(d::Curve) = ncoefficients(d.curve)==0 && isambiguous(domain(d.curve))
 convert(::Type{IntervalCurve{S,T}},::AnyDomain) where {S,T}=Fun(S(AnyDomain()),[NaN])

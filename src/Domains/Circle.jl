@@ -7,7 +7,7 @@ export Circle
 
 
 # T Must be in an Algebra
-doc"""
+"""
     Circle(c,r,o)
 
 represents the circle centred at `c` with radius `r` which is positively (`o=true`)
@@ -66,7 +66,7 @@ fromcanonicalD(d::Circle{T},θ::Number) where {T<:Vec} =
 	d.radius*(d.orientation ? 1 : -1)*Vec(-sin((d.orientation ? 1 : -1)*θ),cos((d.orientation ? 1 : -1)*θ))
 
 
-Base.in(z,d::Circle) = norm(z-d.center) ≈ d.radius
+in(z,d::Circle) = norm(z-d.center) ≈ d.radius
 
 arclength(d::Circle) = 2π*d.radius
 complexlength(d::Circle) = (d.orientation ? 1 : -1)*im*arclength(d)  #TODO: why?
@@ -84,14 +84,14 @@ mappoint(d1::Circle{T},d2::Circle{V},z) where {T<:Number,V<:Vec} =
 
 function mappoint(d1::Circle,d2::Circle,z)
    v=(z-d1.center)/d1.radius
-   d1.orientation != d2.orientation && (v=1./v)
+   d1.orientation != d2.orientation && (v=1/v)
    v*d2.radius+d2.center
 end
 
 
 
-Base.reverse(d::Circle) = Circle(d.center,d.radius,!d.orientation)
-Base.conj(d::Circle) = Circle(conj(d.center),d.radius,!d.orientation)
+reverse(d::Circle) = Circle(d.center,d.radius,!d.orientation)
+conj(d::Circle) = Circle(conj(d.center),d.radius,!d.orientation)
 
 
 for op in (:+,:-)

@@ -1,6 +1,6 @@
 using ApproxFun, Test
     import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, testbandedblockbandedoperator,
-                        testblockbandedoperator, A_ldiv_B_coefficients, A_mul_B_coefficients,
+                        testblockbandedoperator, ldiv_coefficients, mul_coefficients,
                         factor
 @testset "Full PDE" begin
 
@@ -261,16 +261,16 @@ using ApproxFun, Test
     @time ApproxFun.resizedata!(QR,:,200)
     j=56
     v=QR.R.op[1:100,j]
-    @test norm(A_ldiv_B_coefficients(QR[:Q],v;maxlength=300)[j+1:end]) < 100eps()
+    @test norm(ldiv_coefficients(QR[:Q],v;maxlength=300)[j+1:end]) < 100eps()
 
     j=195
     v=QR.R.op[1:ApproxFun.colstop(QR.R.op,j),j]
-    @test norm(A_ldiv_B_coefficients(QR[:Q],v;maxlength=1000)[j+1:end]) < 100eps()
+    @test norm(ldiv_coefficients(QR[:Q],v;maxlength=1000)[j+1:end]) < 100eps()
 
 
     j=300
     v=QR.R.op[1:ApproxFun.colstop(QR.R.op,j),j]
-    @test norm(A_ldiv_B_coefficients(QR[:Q],v;maxlength=1000)[j+1:end]) < j*20eps()
+    @test norm(ldiv_coefficients(QR[:Q],v;maxlength=1000)[j+1:end]) < j*20eps()
 
     @test ApproxFun.colstop(QR.R.op,195)-194 == ApproxFun.colstop(QR.H,195)
 
@@ -524,7 +524,7 @@ using ApproxFun, Test
     @test ApproxFun.colstop(CO.op,2) == 2
     ApproxFun.resizedata!(CO,:,2)
     ApproxFun.resizedata!(CO,:,4)
-    @test A_mul_B_coefficients(CO,collect(1:4)) ≈ [3.,-1.]
+    @test mul_coefficients(CO,collect(1:4)) ≈ [3.,-1.]
 
 
 

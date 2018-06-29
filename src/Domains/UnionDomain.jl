@@ -42,8 +42,8 @@ convert(::Type{IT},::AnyDomain) where {IT<:UnionDomain} = UnionDomain(tuple())
 
 
 
-Base.union(d::Domain) = d
-function Base.union(d::AbstractVector{D}) where D<:Domain
+union(d::Domain) = d
+function union(d::AbstractVector{D}) where D<:Domain
     isempty(d) && return EmptyDomain()
     length(d)==1 && return d[1]
     UnionDomain(d)
@@ -51,15 +51,15 @@ end
 #TODO Check for intersection
 
 
-Base.union(d1::EmptyDomain,d2::EmptyDomain) = d1
-Base.union(d1::EmptyDomain,d2::Domain) = d2
-Base.union(d1::Domain,d2::EmptyDomain) = d1
+union(d1::EmptyDomain,d2::EmptyDomain) = d1
+union(d1::EmptyDomain,d2::Domain) = d2
+union(d1::Domain,d2::EmptyDomain) = d1
 
-Base.union(d1::AnyDomain,d2::AnyDomain) = d1
-Base.union(d1::AnyDomain,d2::Domain) = d2
-Base.union(d1::Domain,d2::AnyDomain) = d1
+union(d1::AnyDomain,d2::AnyDomain) = d1
+union(d1::AnyDomain,d2::Domain) = d2
+union(d1::Domain,d2::AnyDomain) = d1
 
-function Base.union(d1::Domain,d2::Domain)
+function union(d1::Domain,d2::Domain)
     if d1==d2
         return d1
     end
@@ -73,21 +73,21 @@ function Base.union(d1::Domain,d2::Domain)
 end
 
 
-Base.intersect(d1::UnionDomain,d2::UnionDomain) = mapreduce(d->d1∩d,∪,d2.domains)
-Base.intersect(d1::Domain,d2::UnionDomain) = mapreduce(d->d1∩d,∪,d2.domains)
-Base.intersect(d1::UnionDomain,d2::Domain) = mapreduce(d->d2∩d,∪,d1.domains)
+intersect(d1::UnionDomain,d2::UnionDomain) = mapreduce(d->d1∩d,∪,d2.domains)
+intersect(d1::Domain,d2::UnionDomain) = mapreduce(d->d1∩d,∪,d2.domains)
+intersect(d1::UnionDomain,d2::Domain) = mapreduce(d->d2∩d,∪,d1.domains)
 
 
-Base.setdiff(a::UnionDomain,b::UnionDomain) = mapreduce(d->setdiff(d,b),∪,a.domains)
-Base.setdiff(a::UnionDomain,b::Domain) = mapreduce(d->setdiff(d,b),∪,a.domains)
-Base.setdiff(a::Domain,b::UnionDomain) = mapreduce(d->setdiff(a,d),∩,b.domains)
-Base.setdiff(a::UnionDomain,b) = mapreduce(d->setdiff(d,b),∪,a.domains)
-Base.setdiff(a,b::UnionDomain) = mapreduce(d->setdiff(a,d),∩,b.domains)
+setdiff(a::UnionDomain,b::UnionDomain) = mapreduce(d->setdiff(d,b),∪,a.domains)
+setdiff(a::UnionDomain,b::Domain) = mapreduce(d->setdiff(d,b),∪,a.domains)
+setdiff(a::Domain,b::UnionDomain) = mapreduce(d->setdiff(a,d),∩,b.domains)
+setdiff(a::UnionDomain,b) = mapreduce(d->setdiff(d,b),∪,a.domains)
+setdiff(a,b::UnionDomain) = mapreduce(d->setdiff(a,d),∩,b.domains)
 
-Base.sort(d::UnionDomain;opts...) = UnionDomain(sort(collect(d.domains);opts...))
+sort(d::UnionDomain;opts...) = UnionDomain(sort(collect(d.domains);opts...))
 
 
-for op in (:(Base.first),:(Base.last))
+for op in (:(first),:(last))
     @eval $op(d::UnionDomain) = $op($op(d.domains))
 end
 
@@ -108,9 +108,9 @@ arclength(d::UnionDomain) = mapreduce(arclength,+,d.domains)
         all(Bool[component(d1,k) == component(d2,k) for k=1:ncomponents(d1)])
 
 
-Base.in(x,d::UnionDomain) = any(a->x∈a,d.domains)
-Base.issubset(a::Domain,d::UnionDomain) = (a∪d) == d
-Base.reverse(d::UnionDomain) = UnionDomain(reverse(map(reverse,d.domains)))
+in(x,d::UnionDomain) = any(a->x∈a,d.domains)
+issubset(a::Domain,d::UnionDomain) = (a∪d) == d
+reverse(d::UnionDomain) = UnionDomain(reverse(map(reverse,d.domains)))
 
 ∂(d::UnionDomain) = mapreduce(∂,union,d.domains)
 
@@ -127,10 +127,10 @@ pieces_npoints(d, n::Int) = components_npoints(d, n)
 
 points(d::UnionDomain,n) = vcat(points.(pieces(d), pieces_npoints(d,n))...)
 
-Base.rand(d::UnionDomain) = rand(component(d,rand(1:length(d))))
+rand(d::UnionDomain) = rand(component(d,rand(1:length(d))))
 checkpoints(d::UnionDomain) = mapreduce(checkpoints,union,d.domains)
 
-function Base.merge(d1::UnionDomain, m::Segment)
+function merge(d1::UnionDomain, m::Segment)
     ret=d1.domains
 
     for k=length(ret):-1:1
@@ -155,7 +155,7 @@ function Base.merge(d1::UnionDomain, m::Segment)
     UnionDomain(sort!(ret,by=first))
 end
 
-function Base.merge(d1::UnionDomain,d2::UnionDomain)
+function merge(d1::UnionDomain,d2::UnionDomain)
     ret=d1
     for m in d2.domains
         ret=merge(ret,m)

@@ -97,7 +97,7 @@ using ApproxFun, BlockBandedMatrices,  Test
 
 
 
-    @test norm((A_mul_B_coefficients(A,f.coefficients))-coefficients(x.*f,rangespace(A))) < 100eps()
+    @test norm((mul_coefficients(A,f.coefficients))-coefficients(x.*f,rangespace(A))) < 100eps()
 
 
     ## Special functions

@@ -202,10 +202,10 @@ function canonicalevaluate(f::ProductFun{S,V,SS,T},x::Number,::Colon) where {S,V
 end
 canonicalevaluate(f::ProductFun,x::Number,y::Number) = canonicalevaluate(f,x,:)(y)
 canonicalevaluate(f::ProductFun{S,V,SS},x::Colon,y::Number) where {S,V,SS<:TensorSpace} =
-    evaluate(f.',y,:)  # doesn't make sense For general product fon without specifying space
+    evaluate(transpose(f),y,:)  # doesn't make sense For general product fon without specifying space
 
 canonicalevaluate(f::ProductFun,xx::AbstractVector,yy::AbstractVector) =
-    hcat([evaluate(f,x,:)(yy) for x in xx]...).'
+    transpose(hcat([evaluate(f,x,:)(yy) for x in xx]...))
 
 
 evaluate(f::ProductFun,x,y) = canonicalevaluate(f,tocanonical(f,x,y)...)
@@ -270,7 +270,7 @@ end
 -(f::ProductFun,g::ProductFun) = f+(-g)
 
 *(B::Fun,f::ProductFun) = ProductFun(map(c->B*c,f.coefficients),space(f))
-*(f::ProductFun,B::Fun) = (B*f.').'
+*(f::ProductFun,B::Fun) = transpose(B*transpose(f))
 
 
 LowRankFun(f::ProductFun{S,V,SS}) where {S,V,SS<:TensorSpace} = LowRankFun(f.coefficients,factor(space(f),2))
@@ -281,7 +281,7 @@ function differentiate(f::ProductFun{S,V,SS},j::Integer) where {S,V,SS<:TensorSp
         df=map(differentiate,f.coefficients)
         ProductFun(df,space(first(df)),factor(space(f),2))
     else
-        differentiate(f.',1).'
+        transpose(differentiate(transpose(f),1))
     end
 end
 
@@ -308,9 +308,9 @@ end
 
 #For complex bases
 Base.real(f::ProductFun{S,V,SS}) where {S,V,SS<:TensorSpace} =
-    real(ProductFun(real(u.coefficients),space(u)).').'-imag(ProductFun(imag(u.coefficients),space(u)).').'
+    transpose(real(transpose(ProductFun(real(u.coefficients),space(u)))))-transpose(imag(transpose(ProductFun(imag(u.coefficients),space(u)))))
 Base.imag(f::ProductFun{S,V,SS}) where {S,V,SS<:TensorSpace} =
-    real(ProductFun(imag(u.coefficients),space(u)).').'+imag(ProductFun(real(u.coefficients),space(u)).').'
+    transpose(real(transpose(ProductFun(imag(u.coefficients),space(u)))))+transpose(imag(transpose(ProductFun(real(u.coefficients),space(u)))))
 
 
 

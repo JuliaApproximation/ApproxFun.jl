@@ -28,7 +28,7 @@ end
 RaggedMatrix(dat::Vector,cols::Vector{Int},m::Int) =
     RaggedMatrix{eltype(dat)}(dat,cols,m)
 
-RaggedMatrix{T}(::Uninitialized, m::Int, colns::AbstractVector{Int}) where {T} =
+RaggedMatrix{T}(::UndefInitializer, m::Int, colns::AbstractVector{Int}) where {T} =
     RaggedMatrix(Vector{T}(sum(colns)),Int[1;1+cumsum(colns)],m)
 
 
@@ -133,7 +133,7 @@ RaggedMatrix(A::AbstractMatrix, colns::AbstractVector{Int}) = RaggedMatrix{eltyp
 
 ## BLAS
 
-function Base.A_mul_B!(y::Vector,A::RaggedMatrix,b::Vector)
+function mul!(y::Vector, A::RaggedMatrix, b::Vector)
     m=size(A,2)
 
     if m ≠ length(b) || size(A,1) ≠ length(y)
@@ -218,10 +218,10 @@ function *(A::RaggedMatrix,B::RaggedMatrix)
         cols[j] = max(cols[j],colstop(A,k))
     end
 
-    unsafe_A_mul_B!(RaggedMatrix{T}(uninitialized, size(A,1), cols), A, B)
+    unsafe_mul!(RaggedMatrix{T}(uninitialized, size(A,1), cols), A, B)
 end
 
-function unsafe_A_mul_B!(Y::RaggedMatrix,A::RaggedMatrix,B::RaggedMatrix)
+function unsafe_mul!(Y::RaggedMatrix,A::RaggedMatrix,B::RaggedMatrix)
     fill!(Y.data,0)
 
     for j=1:size(B,2),k=1:colstop(B,j)
@@ -231,7 +231,7 @@ function unsafe_A_mul_B!(Y::RaggedMatrix,A::RaggedMatrix,B::RaggedMatrix)
     Y
 end
 
-function Base.A_mul_B!(Y::RaggedMatrix,A::RaggedMatrix,B::RaggedMatrix)
+function mul!(Y::RaggedMatrix,A::RaggedMatrix,B::RaggedMatrix)
     for j=1:size(B,2)
         col = 0
         for k=1:colstop(B,j)
@@ -243,5 +243,5 @@ function Base.A_mul_B!(Y::RaggedMatrix,A::RaggedMatrix,B::RaggedMatrix)
         end
     end
 
-    unsafe_A_mul_B!(Y,A,B)
+    unsafe_mul!(Y,A,B)
 end

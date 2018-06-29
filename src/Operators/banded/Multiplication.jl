@@ -157,13 +157,13 @@ transformtimes(f::Fun,g::Fun) = transformtimes(f,g,ncoefficients(f) + ncoefficie
 
 ## docs
 
-doc"""
+"""
 `Multiplication(f::Fun,sp::Space)` is the operator representing multiplication by
 `f` on functions in the space `sp`.
 """
 Multiplication(::Fun,::Space)
 
-doc"""
+"""
 `Multiplication(f::Fun)` is the operator representing multiplication by
 `f` on an unset space of functions.  Spaces will be inferred when applying or
 manipulating the operator.

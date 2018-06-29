@@ -269,8 +269,8 @@ end
 
 
 Base.transpose(S::SpaceOperator) =
-    SpaceOperator(transpose(S.op),domainspace(S).',rangespace(S).')
-Base.transpose(S::ConstantTimesOperator) = sp.c*S.op.'
+    SpaceOperator(transpose(S.op), transpose(domainspace(S)), transpose(rangespace(S)))
+Base.transpose(S::ConstantTimesOperator) = sp.c*transpose(S.op)
 
 
 
@@ -436,7 +436,7 @@ Evaluation(sp::TensorSpace,x::Tuple) = Evaluation(sp,Vec(x...))
 
 
 # it's faster to build the operators to the last b
-function A_mul_B_coefficients(A::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}}, b) where {T,KKO<:KroneckerOperator}
+function mul_coefficients(A::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}}, b) where {T,KKO<:KroneckerOperator}
     P = parent(A)
     kr,jr = parentindexes(A)
     dt,rt = domaintensorizer(P),rangetensorizer(P)

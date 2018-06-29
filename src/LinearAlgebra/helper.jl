@@ -1,16 +1,13 @@
 export dotu
-import Base.chop
+import Base: chop
 
 # Used for spaces not defined yet
 struct UnsetNumber <: Number  end
-Base.promote_rule(::Type{UnsetNumber},::Type{N}) where {N<:Number} = N
+promote_rule(::Type{UnsetNumber},::Type{N}) where {N<:Number} = N
 
 # Test the number of arguments a function takes
 hasnumargs(f,k) = applicable(f,zeros(k)...)
 
-
-isapprox(a,b;kwds...) = Base.isapprox(a,b;kwds...)
-isapprox(a::Vec,b::Vec;kwds...) = isapprox(collect(a),collect(b);kwds...)
 
 # fast implementation of isapprox with atol a non-keyword argument in most cases
 isapprox_atol(a,b,atol;kwds...) = isapprox(a,b;atol=atol,kwds...)
@@ -70,7 +67,7 @@ muladd(a,b,c) = a*b+c
 muladd(a::Number,b::Number,c::Number) = Base.muladd(a,b,c)
 
 
-for TYP in (:Float64,:Float32,:Complex128,:Complex64)
+for TYP in (:Float64,:Float32,:ComplexF64,:ComplexF32)
     @eval scal!(n::Integer,cst::$TYP,ret::DenseArray{T},k::Integer) where {T<:$TYP} =
             BLAS.scal!(n,cst,ret,k)
 end
@@ -433,7 +430,7 @@ end
 
 ## slnorm gives the norm of a slice of a matrix
 
-function slnorm(u::AbstractMatrix,r::Range,::Colon)
+function slnorm(u::AbstractMatrix,r::AbstractRange,::Colon)
     ret = zero(real(eltype(u)))
     for k=r
         @simd for j=1:size(u,2)
@@ -445,7 +442,7 @@ function slnorm(u::AbstractMatrix,r::Range,::Colon)
 end
 
 
-function slnorm(m::AbstractMatrix,kr::Range,jr::Range)
+function slnorm(m::AbstractMatrix,kr::AbstractRange,jr::AbstractRange)
     ret=zero(real(eltype(m)))
     for j=jr
         nrm=zero(real(eltype(m)))
@@ -457,11 +454,11 @@ function slnorm(m::AbstractMatrix,kr::Range,jr::Range)
     ret
 end
 
-slnorm(m::AbstractMatrix,kr::Range,jr::Integer) = slnorm(m,kr,jr:jr)
-slnorm(m::AbstractMatrix,kr::Integer,jr::Range) = slnorm(m,kr:kr,jr)
+slnorm(m::AbstractMatrix,kr::AbstractRange,jr::Integer) = slnorm(m,kr,jr:jr)
+slnorm(m::AbstractMatrix,kr::Integer,jr::AbstractRange) = slnorm(m,kr:kr,jr)
 
 
-function slnorm(B::BandedMatrix{T},r::Range,::Colon) where T
+function slnorm(B::BandedMatrix{T},r::AbstractRange,::Colon) where T
     ret = zero(real(T))
     m=size(B,2)
     for k=r
@@ -681,7 +678,7 @@ Base.done(::AbstractRepeated,state) = false
 Base.length(::AbstractRepeated) = ∞
 
 getindex(it::AbstractRepeated,k::Integer) = value(it)
-getindex(it::AbstractRepeated,k::Range) = take(it,length(k))
+getindex(it::AbstractRepeated,k::AbstractRange) = take(it,length(k))
 
 
 Base.maximum(r::AbstractRepeated) = value(r)
@@ -782,19 +779,19 @@ Base.last(it::Count{S}) where {S<:Real} =
     it.step > 0 ? ∞ : (it.step < 0 ? -∞ : error("zero step not supported"))
 
 
-function Base.colon(a::Real,b::Infinity{Bool})
+function (:)(a::Real,b::Infinity{Bool})
     if b.angle
         throw(ArgumentError("Cannot create $a:-∞"))
     end
     countfrom(a)
 end
-function Base.colon(a::Infinity{Bool},st::AbstractFloat,b::Infinity{Bool})
+function (:)(a::Infinity{Bool},st::AbstractFloat,b::Infinity{Bool})
     if a ≠ b
         throw(ArgumentError("Cannot create $a:$st:$b"))
     end
     [a]
 end
-function Base.colon(a::Real,st::Real,b::Infinity{Bool})
+function (:)(a::Real,st::Real,b::Infinity{Bool})
     if st == 0
         throw(ArgumentError("step cannot be zero"))
     elseif b.angle == st > 0
@@ -809,11 +806,11 @@ end
 Base.intersect(a::UnitCount, b::UnitCount) = UnitCount(max(first(a), first(b)))
 Base.intersect(a::AbstractCount, b::AbstractCount) = error("Not implemented")
 
-Base.intersect(a::UnitCount, b::Range) = intersect(first(a):last(b), b)
-Base.intersect(a::Range, b::UnitCount) = intersect(a, first(b):last(a))
+Base.intersect(a::UnitCount, b::AbstractRange) = intersect(first(a):last(b), b)
+Base.intersect(a::AbstractRange, b::UnitCount) = intersect(a, first(b):last(a))
 
-Base.intersect(a::Count, b::Range) = intersect(first(a):step(a):last(b), b)
-Base.intersect(a::Range, b::Count) = intersect(a, first(b):step(b):last(a))
+Base.intersect(a::Count, b::AbstractRange) = intersect(first(a):step(a):last(b), b)
+Base.intersect(a::AbstractRange, b::Count) = intersect(a, first(b):step(b):last(a))
 
 
 
@@ -924,7 +921,7 @@ Base.length(A::CachedIterator) = length(A.iterator)
 
 # The following don't need caching
 cache(A::AbstractVector{T}) where {T<:Number} = A
-cache(A::Range) = A
+cache(A::AbstractRange) = A
 cache(A::AbstractCount) = A
 
 
@@ -1193,9 +1190,9 @@ Base.cumsum(r::Iterator) = CumSumIterator(r)
 
 function Base.cumsum(f::Flatten)
     cs=zero(eltype(f))
-    its = Vector{eltype(f.it)}(0)
+    its = Vector{eltype(f.it)}(undef, 0)
     for it in f.it[1:end-1]
-        c=cumsum(cs+it)
+        c = cumsum(cs .+ it)
         push!(its,c)
         cs=last(c)
     end

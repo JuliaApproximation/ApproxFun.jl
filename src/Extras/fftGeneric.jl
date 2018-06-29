@@ -1,6 +1,6 @@
 const BigFloats = Union{BigFloat,Complex{BigFloat}}
 
-function Base.fft(x::AbstractVector{F}) where F<:Fun
+function fft(x::AbstractVector{F}) where F<:Fun
     n,T = length(x),mapreduce(eltype,promote_type,x)
     if ispow2(n) return fft_pow2(x) end
     ks = linspace(zero(real(T)),n-one(real(T)),n)
@@ -9,14 +9,14 @@ function Base.fft(x::AbstractVector{F}) where F<:Fun
     return Wks.*conv(xq,wq)[n+1:2n]
 end
 
-Base.ifft(x::AbstractVector{F}) where {F<:Fun} = conj(fft(conj(x)))/length(x)
-function Base.ifft!(x::AbstractVector{F}) where F<:Fun
+ifft(x::AbstractVector{F}) where {F<:Fun} = conj(fft(conj(x)))/length(x)
+function ifft!(x::AbstractVector{F}) where F<:Fun
     y = conj(fft(conj(x)))/length(x)
     x[:] = y
     return x
 end
 
-function Base.conv(u::StridedVector{F}, v::StridedVector) where F<:Fun
+function conv(u::StridedVector{F}, v::StridedVector) where F<:Fun
     nu,nv = length(u),length(v)
     n = nu + nv - 1
     np2 = nextpow2(n)
@@ -33,9 +33,9 @@ end
 
 # plan_fft for BigFloats (covers Laurent svfft)
 
-Base.plan_fft(x::Vector{F}) where {F<:Fun} = fft
-Base.plan_ifft(x::Vector{F}) where {F<:Fun} = ifft
-Base.plan_ifft!(x::Vector{F}) where {F<:Fun} = ifft
+plan_fft(x::Vector{F}) where {F<:Fun} = fft
+plan_ifft(x::Vector{F}) where {F<:Fun} = ifft
+plan_ifft!(x::Vector{F}) where {F<:Fun} = ifft
 
 # Chebyshev transforms and plans for BigFloats
 # no plan exists at the moment, so we make a dummy plan
@@ -47,9 +47,9 @@ plan_ichebyshevtransform!(x::Vector{T};kind::Integer=1) where {T<:BigFloats} =
 
 
 plan_chebyshevtransform(x::AbstractVector{T};kind::Integer=1) where {T<:BigFloats} =
-    ChebyshevTransformPlan{T,kind,false,Void}(nothing)
+    ChebyshevTransformPlan{T,kind,false,Nothing}(nothing)
 plan_ichebyshevtransform(x::AbstractVector{T};kind::Integer=1) where {T<:BigFloats} =
-    IChebyshevTransformPlan{T,kind,false,Void}(nothing)
+    IChebyshevTransformPlan{T,kind,false,Nothing}(nothing)
 
 #following Chebfun's @Chebtech1/vals2coeffs.m and @Chebtech2/vals2coeffs.m
 function *(P::ChebyshevTransformPlan{T,1,false}, x::AbstractVector{T}) where T<:BigFloats
@@ -107,9 +107,9 @@ end
 # Fourier space plans for BigFloat
 
 plan_transform(sp::Fourier{D,R},x::AbstractVector{T}) where {T<:BigFloat,D,R} =
-    TransformPlan{T,typeof(sp),false,Void}(sp,nothing)
+    TransformPlan{T,typeof(sp),false,Nothing}(sp,nothing)
 plan_itransform(sp::Fourier{D,R},x::AbstractVector{T}) where {T<:BigFloat,D,R} =
-    ITransformPlan{T,typeof(sp),false,Void}(sp,nothing)
+    ITransformPlan{T,typeof(sp),false,Nothing}(sp,nothing)
 
 function *(::TransformPlan{T,Fourier{D,R},false},x::AbstractVector{T}) where {T<:BigFloat,D,R}
     l = length(x); n = div(l+1,2)
@@ -133,9 +133,9 @@ end
 # SinSpace plans for BigFloat
 
 plan_transform(sp::SinSpace{D,R},x::AbstractVector{T}) where {T<:BigFloat,D,R} =
-    TransformPlan{T,typeof(sp),false,Void}(sp,nothing)
+    TransformPlan{T,typeof(sp),false,Nothing}(sp,nothing)
 plan_itransform(sp::SinSpace{D,R},x::AbstractVector{T}) where {T<:BigFloat,D,R} =
-    ITransformPlan{T,typeof(sp),false,Void}(sp,nothing)
+    ITransformPlan{T,typeof(sp),false,Nothing}(sp,nothing)
 
 
 function *(::TransformPlan{T,SinSpace{D,R},false},x::AbstractVector{T}) where {T<:BigFloat,D,R}

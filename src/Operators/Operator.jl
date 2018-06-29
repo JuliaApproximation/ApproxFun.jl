@@ -57,7 +57,7 @@ macro functional(FF)
             @assert k==1
             f[j]::eltype(f)
         end
-        function ApproxFun.defaultgetindex(f::$FF,k::Integer,j::Range)
+        function ApproxFun.defaultgetindex(f::$FF,k::Integer,j::AbstractRange)
             @assert k==1
             f[j]
         end
@@ -65,15 +65,15 @@ macro functional(FF)
             @assert k==1
             f[j]
         end
-        function ApproxFun.defaultgetindex(f::$FF,k::Range,j::Integer)
+        function ApproxFun.defaultgetindex(f::$FF,k::AbstractRange,j::Integer)
             @assert k==1:1
             f[j]
         end
-        function ApproxFun.defaultgetindex(f::$FF,k::Range,j::Range)
+        function ApproxFun.defaultgetindex(f::$FF,k::AbstractRange,j::AbstractRange)
             @assert k==1:1
             reshape(f[j],1,length(j))
         end
-        function ApproxFun.defaultgetindex(f::$FF,k::Range,j)
+        function ApproxFun.defaultgetindex(f::$FF,k::AbstractRange,j)
             @assert k==1:1
             reshape(f[j],1,length(j))
         end
@@ -199,9 +199,9 @@ include("SubOperator.jl")
 
 #
 # Base.sparse(B::Operator,n::Integer)=sparse(BandedMatrix(B,n))
-# Base.sparse(B::Operator,n::Range,m::Range)=sparse(BandedMatrix(B,n,m))
-# Base.sparse(B::Operator,n::Colon,m::Range)=sparse(BandedMatrix(B,n,m))
-# Base.sparse(B::Operator,n::Range,m::Colon)=sparse(BandedMatrix(B,n,m))
+# Base.sparse(B::Operator,n::AbstractRange,m::AbstractRange)=sparse(BandedMatrix(B,n,m))
+# Base.sparse(B::Operator,n::Colon,m::AbstractRange)=sparse(BandedMatrix(B,n,m))
+# Base.sparse(B::Operator,n::AbstractRange,m::Colon)=sparse(BandedMatrix(B,n,m))
 
 ## geteindex
 
@@ -223,14 +223,14 @@ defaultgetindex(B::Operator,k::Integer,j::Integer) = error("Override [k,j] for $
 # Ranges
 
 
-defaultgetindex(op::Operator,kr::Range) = eltype(op)[op[k] for k in kr]
+defaultgetindex(op::Operator,kr::AbstractRange) = eltype(op)[op[k] for k in kr]
 defaultgetindex(B::Operator,k::Block,j::Block) = AbstractMatrix(view(B,k,j))
-defaultgetindex(B::Operator,k::Range,j::Block) = AbstractMatrix(view(B,k,j))
-defaultgetindex(B::Operator,k::Block,j::Range) = AbstractMatrix(view(B,k,j))
-defaultgetindex(B::Operator,k::Range,j::Range) = AbstractMatrix(view(B,k,j))
+defaultgetindex(B::Operator,k::AbstractRange,j::Block) = AbstractMatrix(view(B,k,j))
+defaultgetindex(B::Operator,k::Block,j::AbstractRange) = AbstractMatrix(view(B,k,j))
+defaultgetindex(B::Operator,k::AbstractRange,j::AbstractRange) = AbstractMatrix(view(B,k,j))
 
-defaultgetindex(op::Operator,k::Integer,jr::Range) = eltype(op)[op[k,j] for j in jr]
-defaultgetindex(op::Operator,kr::Range,j::Integer) = eltype(op)[op[k,j] for k in kr]
+defaultgetindex(op::Operator,k::Integer,jr::AbstractRange) = eltype(op)[op[k,j] for j in jr]
+defaultgetindex(op::Operator,kr::AbstractRange,j::Integer) = eltype(op)[op[k,j] for k in kr]
 
 defaultgetindex(B::Operator,k::Block,j::BlockRange) = AbstractMatrix(view(B,k,j))
 defaultgetindex(B::Operator,k::BlockRange,j::BlockRange) = AbstractMatrix(view(B,k,j))
@@ -484,11 +484,11 @@ macro wrappergetindex(Wrap)
         BLAS.axpy!(α,P::ApproxFun.SubOperator{T,OP},A::AbstractMatrix) where {T,OP<:$Wrap} =
             ApproxFun.unwrap_axpy!(α,P,A)
 
-        ApproxFun.A_mul_B_coefficients(A::$Wrap,b) = A_mul_B_coefficients(A.op,b)
-        ApproxFun.A_mul_B_coefficients(A::ApproxFun.SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},b) where {T,OP<:$Wrap} =
-            A_mul_B_coefficients(view(parent(A).op,S.indexes[1],S.indexes[2]),b)
-        ApproxFun.A_mul_B_coefficients(A::ApproxFun.SubOperator{T,OP},b) where {T,OP<:$Wrap} =
-            A_mul_B_coefficients(view(parent(A).op,S.indexes[1],S.indexes[2]),b)
+        ApproxFun.mul_coefficients(A::$Wrap,b) = mul_coefficients(A.op,b)
+        ApproxFun.mul_coefficients(A::ApproxFun.SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},b) where {T,OP<:$Wrap} =
+            mul_coefficients(view(parent(A).op,S.indexes[1],S.indexes[2]),b)
+        ApproxFun.mul_coefficients(A::ApproxFun.SubOperator{T,OP},b) where {T,OP<:$Wrap} =
+            mul_coefficients(view(parent(A).op,S.indexes[1],S.indexes[2]),b)
     end
 
     for TYP in (:(BandedMatrices.BandedMatrix),:(ApproxFun.RaggedMatrix),
@@ -596,7 +596,7 @@ end
 
 
 
-include("A_ldiv_B.jl")
+include("ldiv.jl")
 
 include("spacepromotion.jl")
 include("banded/banded.jl")
@@ -673,7 +673,7 @@ const WrapperOperator = Union{SpaceOperator,MultiplicationWrapper,DerivativeWrap
 # We assume that copy may be overriden
 
 BLAS.axpy!(a, X::Operator, Y::AbstractMatrix) = BLAS.axpy!(a,AbstractMatrix(X),Y)
-copy!(dest::AbstractMatrix, src::Operator) = copy!(dest, AbstractMatrix(src))
+copyto!(dest::AbstractMatrix, src::Operator) = copyto!(dest, AbstractMatrix(src))
 
 # this is for operators that implement copy via axpy!
 

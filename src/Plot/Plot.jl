@@ -287,7 +287,7 @@ end
     px = sortperm(x)
     py = sortperm(y)
 
-    x[px],y[py],real(vals).'[py,px]
+    x[px],y[py],transpose(real(vals))[py,px]
 end
 
 @recipe function f(g::LowRankFun{S,V,SV}) where {S<:UnivariateSpace,
@@ -309,13 +309,13 @@ end
     px = sortperm(x)
     py = sortperm(y)
 
-    x[px],y[py],real(vals).'[py,px]
+    x[px],y[py],transpose(real(vals))[py,px]
 end
 
 
 @recipe function f(x::AbstractVector,y::AbstractVector,g::MultivariateFun)
     seriestype --> :surface
-    x,y,real(g.(x,y.'))
+    x,y,real(g.(x,transpose(y)))
 end
 
 
