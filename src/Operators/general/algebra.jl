@@ -27,7 +27,7 @@ bandinds(P::PlusOperator) = P.bandinds
 israggedbelow(P::PlusOperator) = isbandedbelow(P) || all(israggedbelow,P.ops)
 
 for (OP,mn) in ((:colstart,:min),(:colstop,:max),(:rowstart,:min),(:rowstop,:max))
-    defOP = parse("default_"*string(OP))
+    defOP = Meta.parse("default_"*string(OP))
     @eval function $OP(P::PlusOperator,k::Integer)
         if isbanded(P)
             $defOP(P,k)
@@ -343,7 +343,7 @@ israggedbelow(P::TimesOperator) = isbandedbelow(P) || all(israggedbelow,P.ops)
 Base.stride(P::TimesOperator) = mapreduce(stride,gcd,P.ops)
 
 for OP in (:rowstart,:rowstop)
-    defOP=parse("default_"*string(OP))
+    defOP=Meta.parse("default_"*string(OP))
     @eval function $OP(P::TimesOperator,k::Integer)
         if isbanded(P)
             return $defOP(P,k)
@@ -356,7 +356,7 @@ for OP in (:rowstart,:rowstop)
 end
 
 for OP in (:colstart,:colstop)
-    defOP=parse("default_"*string(OP))
+    defOP=Meta.parse("default_"*string(OP))
     @eval function $OP(P::TimesOperator, k::Integer)
         if isbanded(P)
             return $defOP(P, k)

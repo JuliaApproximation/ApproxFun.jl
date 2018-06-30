@@ -86,7 +86,7 @@ choosedomainspace(M::ConcreteMultiplication{D,UnsetSpace},::UnsetSpace) where {D
 choosedomainspace(M::ConcreteMultiplication{D,UnsetSpace},sp::Space) where {D} = sp
 
 
-Base.diagm(a::Fun) = Multiplication(a)
+diagm(a::Fun) = Multiplication(a)
 
 struct MultiplicationWrapper{D<:Space,S<:Space,O<:Operator,T} <: Multiplication{D,S,T}
     f::VFun{D,T}

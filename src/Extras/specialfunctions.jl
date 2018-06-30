@@ -304,7 +304,7 @@ for (op,ODE,RHS,growth) in ((:(exp),"D-f'","0",:(real)),
                             (:(atanh),"(1-f^2)*D","f'",:(real)),
                             (:(erfcx),"D-2f*f'","-2f'/sqrt(π)",:(real)),
                             (:(dawson),"D+2f*f'","f'",:(real)))
-    L,R = parse(ODE),parse(RHS)
+    L,R = Meta.parse(ODE),Meta.parse(RHS)
     @eval begin
         # depice before doing op
         $op(f::Fun{PW}) where {PW<:Union{PiecewiseSpace,ContinuousSpace}} =
@@ -409,7 +409,7 @@ for (op,ODE,RHS,growth) in ((:(erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
                             (:(airybi),"f'*D^2-f''*D-f*f'^3","0",:(imag)),
                             (:(airyaiprime),"f'*D^2-f''*D-f*f'^3","airyai(f)*f'^3",:(imag)),
                             (:(airybiprime),"f'*D^2-f''*D-f*f'^3","airybi(f)*f'^3",:(imag)))
-    L,R = parse(ODE),parse(RHS)
+    L,R = Meta.parse(ODE),Meta.parse(RHS)
     @eval begin
         function $op(fin::Fun{S,T}) where {S,T}
             f=setcanonicaldomain(fin)
@@ -447,7 +447,7 @@ for (op,ODE,RHS,growth) in ((:(hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^
                             (:(besselkx),"f^2*f'*D^2+((-2f^2+f)*f'^2-f^2*f'')*D-(f+ν^2)*f'^3","0",:(real)),
                             (:(hankelh1x),"f^2*f'*D^2+((2im*f^2+f)*f'^2-f^2*f'')*D+(im*f-ν^2)*f'^3","0",:(imag)),
                             (:(hankelh2x),"f^2*f'*D^2+((-2im*f^2+f)*f'^2-f^2*f'')*D+(-im*f-ν^2)*f'^3","0",:(imag)))
-    L,R = parse(ODE),parse(RHS)
+    L,R = Meta.parse(ODE),Meta.parse(RHS)
     @eval begin
         function $op(ν,fin::Fun{S,T}) where {S<:Union{Ultraspherical,Chebyshev},T}
             f=setcanonicaldomain(fin)
@@ -529,7 +529,7 @@ besselh(ν,k::Integer,f::Fun) = k == 1 ? hankelh1(ν,f) : k == 2 ? hankelh2(ν,f
 
 for jy in ("j","y"), ν in (0,1)
     bjy = Symbol(string("bessel",jy))
-    bjynu = parse(string("SpecialFunctions.bessel",jy,ν))
+    bjynu = Meta.parse(string("SpecialFunctions.bessel",jy,ν))
     @eval begin
         $bjynu(f::Fun) = $bjy($ν,f)
     end

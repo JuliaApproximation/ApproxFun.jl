@@ -1,6 +1,6 @@
 
 
-function Base.nullspace(A::Operator{T};tolerance=10eps(real(T)),maxlength=1_000_000) where T
+function nullspace(A::Operator{T};tolerance=10eps(real(T)),maxlength=1_000_000) where T
    K=transpose_nullspace(qrfact(A'),tolerance,maxlength)
     # drop extra rows, and use QR to determine rank
     Q,R=qr(K,Val{true})
@@ -52,4 +52,4 @@ function transpose_nullspace(QR::QROperator,tolerance,maxlength)
 end
 
 
-Base.nullspace(A::AbstractArray{OO};kwds...) where {OO<:Operator} = nullspace(interlace(A);kwds...)
+nullspace(A::AbstractArray{OO};kwds...) where {OO<:Operator} = nullspace(interlace(A);kwds...)

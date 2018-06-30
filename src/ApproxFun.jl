@@ -4,29 +4,33 @@ module ApproxFun
     using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers,
             BlockArrays, BandedMatrices, BlockBandedMatrices, IntervalSets,
             SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions,
-            LinearAlgebra, LowRankApprox, Arpack
+            LinearAlgebra, LowRankApprox, SparseArrays #, Arpack
     import StaticArrays, ToeplitzMatrices, Calculus
 
 
-import AbstractFFTs: Plan, plan_fft, plan_ifft, plan_ifft!, planfft!, fft, ifft
+import AbstractFFTs: Plan, fft, ifft
 import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
-                r2r!, r2r
+                r2r!, r2r,  plan_fft, plan_ifft, plan_ifft!, plan_fft!
+
 
 import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, !=, eltype, start, next, done,
                 >=, /, ^, \, ∪, transpose, size, reindex, tail, broadcast, broadcast!, copyto!, copy, to_index, (:),
-                similar, map, vcat, hcat, hvcat, show, summary, stride, sum, cumsum, sign, real, imag, conj, inv,
+                similar, map, vcat, hcat, hvcat, show, summary, stride, sum, cumsum, sign, imag, conj, inv,
                 complex, reverse, exp, sqrt, abs, abs2, sign, issubset, values, in, first, last, rand, intersect, setdiff,
                 isless, union, angle, join, isnan, isapprox, isempty, sort, merge, promote_rule,
                 minimum, maximum, extrema, indmax, indmin, findmax, findmin, isfinite,
-                zeros, zero, one, promote_rule
+                zeros, zero, one, promote_rule, repeat, length, resize!, isinf
 
 import Base.Broadcast: BroadcastStyle, Broadcasted
 
 
 import LinearAlgebra: BlasInt, BlasFloat, norm, ldiv!, mul!, det, eigvals, dot, cross,
-                        qr, isdiag, rank, issymmetric, ishermitian, Tridiagonal
+                        qr, isdiag, rank, issymmetric, ishermitian, Tridiagonal,
+                        diagm, factorize, nullspace
 
-import Arpack: eigs
+import SparseArrays: blockdiag
+
+# import Arpack: eigs
 
 # we need to import all special functions to use Calculus.symbolic_derivatives_1arg
 # we can't do importall Base as we replace some Base definitions
@@ -48,7 +52,7 @@ import BlockArrays: nblocks, blocksize, global2blockindex, globalrange, BlockSiz
 
 import BandedMatrices: bandinds, bandrange, PrintShow, bandshift,
                         inbands_getindex, inbands_setindex!, bandwidth, AbstractBandedMatrix,
-                        dot, dotu, normalize!, flipsign,
+                        dotu, normalize!, flipsign,
                         colstart, colstop, colrange, rowstart, rowstop, rowrange,
                         bandwidths, _BandedMatrix, BandedMatrix
 
@@ -66,11 +70,6 @@ import Base: view
 
 import StaticArrays: SVector
 
-import AbstractFFTs: Plan
-
-
-import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
-                r2r!, r2r
 
 
 

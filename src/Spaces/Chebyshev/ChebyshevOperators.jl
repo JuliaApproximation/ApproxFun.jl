@@ -264,7 +264,7 @@ linesum(f::Fun{Chebyshev{DD,RR}}) where {DD<:Segment,RR} =
 ## Clenshaw-Curtis functional
 
 for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:arclength))
-    ConcFunc = parse("Concrete"*string(Func))
+    ConcFunc = Meta.parse("Concrete"*string(Func))
     @eval begin
         $Func(S::Chebyshev{D}) where {D<:Segment} = $ConcFunc(S)
         function getindex(Σ::$ConcFunc{Chebyshev{D,R},T},k::Integer) where {D<:Segment,R,T}

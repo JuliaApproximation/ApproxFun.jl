@@ -122,10 +122,6 @@ view(A::Operator,k,j) = SubOperator(A,(k,j))
 
 
 
-## Needed for Broadcast
-Base.Broadcast.containertype(::SubOperator) = Array
-
-
 reindex(A::Operator, B::Tuple{Block,Any}, kj::Tuple{Any,Any}) =
     (reindex(rangespace(A),(B[1],), (kj[1],))[1], reindex(domainspace(A),tail(B), tail(kj))[1])
 # always reindex left-to-right, so if we have only a single tuple, then
@@ -291,7 +287,7 @@ end
 _colstops(V) = Int[max(0,colstop(V,j)) for j=1:size(V,2)]
 
 for TYP in (:RaggedMatrix, :Matrix)
-    def_TYP = parse("default_" * string(TYP))
+    def_TYP = Meta.parse("default_" * string(TYP))
     @eval begin
         function convert(::Type{$TYP}, V::SubOperator)
             if isinf(size(V,1)) || isinf(size(V,2))

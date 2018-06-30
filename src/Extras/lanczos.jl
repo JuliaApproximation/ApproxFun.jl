@@ -5,7 +5,7 @@ export lanczos
 function lanczos(w,N)
     x = Fun(identity,space(w))
 
-    f1=Fun(1./sqrt(sum(w)),space(x))
+    f1=Fun(1/sqrt(sum(w)),space(x))
 
     P = Array{Fun}(N + 1)
     β = Array{eltype(w)}(N)

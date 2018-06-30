@@ -7,9 +7,9 @@ abstract type CalculusOperator{S,OT,T}<:Operator{T} end
 ## Note that all functions called in calculus_operator must be exported
 
 macro calculus_operator(Op)
-    ConcOp=parse("Concrete"*string(Op))
-    WrappOp=parse(string(Op)*"Wrapper")
-    DefaultOp=parse("Default"*string(Op))
+    ConcOp=Meta.parse("Concrete"*string(Op))
+    WrappOp=Meta.parse(string(Op)*"Wrapper")
+    DefaultOp=Meta.parse("Default"*string(Op))
     return esc(quote
         # The SSS, TTT are to work around #9312
         abstract type $Op{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT} end

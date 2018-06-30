@@ -70,7 +70,7 @@ diagblockshift(op::Operator) =
 function CachedOperator(::Type{BlockBandedMatrix},op::Operator;padding::Bool=false)
     l,u=blockbandwidths(op)
     padding && (u+=l+diagblockshift(op))
-    data=BlockBandedMatrix{eltype(op)}(uninitialized,
+    data=BlockBandedMatrix{eltype(op)}(undef,
                                         (Vector{Int}(), Vector{Int}()),
                                         (l,u))
     CachedOperator(op,data,(0,0),domainspace(op),rangespace(op),(-l,u),padding)
@@ -132,7 +132,7 @@ end
 # we use a RaggedMatrix to represent the growing lengths of the
 # householder reflections
 QROperator(R::CachedOperator{T,BlockBandedMatrix{T}}) where {T} =
-    QROperator(R,RaggedMatrix{T}(uninitialized, 0, Int[]),0)
+    QROperator(R,RaggedMatrix{T}(undef, 0, Int[]),0)
 
 
 # function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},

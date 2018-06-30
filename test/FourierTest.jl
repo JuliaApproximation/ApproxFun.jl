@@ -36,8 +36,8 @@ using ApproxFun, Test, BlockArrays, BlockBandedMatrices
     f=Fun(exp,Taylor(Circle()))
     @test f(exp(0.1im)) ≈ exp(exp(0.1im))
     @test f(1.0) ≈ exp(1.0)
-    g=Fun(z->1./(z-.1),Hardy{false}(Circle()))
-    @test (f(1.)+g(1.)) ≈ (exp(1.) + 1./(1-.1))
+    g=Fun(z->1/(z-0.1),Hardy{false}(Circle()))
+    @test (f(1.)+g(1.)) ≈ (exp(1.) + 1/(1-.1))
 
 
     ## Periodic

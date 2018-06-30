@@ -33,8 +33,6 @@ isapproxinteger(x) = isapprox(x,round(Int,x))  || isapprox(x+1,round(Int,x+1))
 # which we override for default julia types
 real(x...) = Base.real(x...)
 real(::Type{UnsetNumber}) = UnsetNumber
-real(::Type{T}) where {T<:Real} = T
-real(::Type{Complex{T}}) where {T<:Real} = T
 real(::Type{Array{T,n}}) where {T<:Real,n} = Array{T,n}
 real(::Type{Array{T,n}}) where {T<:Complex,n} = Array{real(T),n}
 real(::Type{Vec{N,T}}) where {N,T<:Real} = Vec{N,T}
@@ -487,12 +485,12 @@ Infinity() = Infinity(false)
 const ∞ = Infinity()
 
 
-Base.isinf(::Infinity) = true
-Base.isfinite(::Infinity) = false
-Base.sign(y::Infinity{B}) where {B<:Integer} = mod(y.angle,2)==0 ? 1 : -1
-Base.angle(x::Infinity) = π*x.angle
+isinf(::Infinity) = true
+isfinite(::Infinity) = false
+sign(y::Infinity{B}) where {B<:Integer} = mod(y.angle,2)==0 ? 1 : -1
+angle(x::Infinity) = π*x.angle
 
-function Base.show(io::IO, y::Infinity{B}) where B<:Integer
+function show(io::IO, y::Infinity{B}) where B<:Integer
     if sign(y) == 1
         print(io, "∞")
     else
@@ -500,7 +498,7 @@ function Base.show(io::IO, y::Infinity{B}) where B<:Integer
     end
 end
 
-Base.show(io::IO,x::Infinity) = print(io,"$(exp(im*π*x.angle))∞")
+show(io::IO,x::Infinity) = print(io,"$(exp(im*π*x.angle))∞")
 
 ==(x::Infinity,y::Infinity) = x.angle == y.angle
 for TYP in (:Dual,:Number)
@@ -509,11 +507,11 @@ for TYP in (:Dual,:Number)
         ==(y::$TYP,x::Infinity) = x == y
     end
 end
-Base.isless(x::Infinity{Bool}, y::Infinity{Bool}) = x.angle && !y.angle
-Base.isless(x::Number, y::Infinity{Bool}) = !y.angle && x ≠ ∞
-Base.isless(x::Infinity{Bool}, y::Number) = x.angle && y ≠ -∞
-Base.isless(x::Block{1}, y::Infinity{Bool}) = isless(Int(x), y)
-Base.isless(x::Infinity{Bool}, y::Block{1}) = isless(x, Int(y))
+isless(x::Infinity{Bool}, y::Infinity{Bool}) = x.angle && !y.angle
+isless(x::Number, y::Infinity{Bool}) = !y.angle && x ≠ ∞
+isless(x::Infinity{Bool}, y::Number) = x.angle && y ≠ -∞
+isless(x::Block{1}, y::Infinity{Bool}) = isless(Int(x), y)
+isless(x::Infinity{Bool}, y::Block{1}) = isless(x, Int(y))
 
 -(y::Infinity{B}) where {B<:Integer} = sign(y)==1 ? Infinity(one(B)) : Infinity(zero(B))
 
@@ -549,15 +547,15 @@ end
 *(y::Infinity,a::Number) = a*y
 
 for OP in (:fld,:cld,:div)
-  @eval Base.$OP(y::Infinity,a::Number) = y*(1/sign(a))
+  @eval $OP(y::Infinity,a::Number) = y*(1/sign(a))
 end
 
-Base.min(x::Infinity{B},y::Infinity{B}) where {B<:Integer} = sign(x)==-1 ? x : y
-Base.max(x::Infinity{B},::Infinity{B}) where {B<:Integer} = sign(x)==1 ? x : y
-Base.min(x::Real,y::Infinity{B}) where {B<:Integer} = sign(y)==1 ? x : y
-Base.min(x::Infinity{B},y::Real) where {B<:Integer} = min(y,x)
-Base.max(x::Real,y::Infinity{B}) where {B<:Integer} = sign(y)==1 ? y : x
-Base.max(x::Infinity{B},y::Real) where {B<:Integer} = max(y,x)
+min(x::Infinity{B},y::Infinity{B}) where {B<:Integer} = sign(x)==-1 ? x : y
+max(x::Infinity{B},::Infinity{B}) where {B<:Integer} = sign(x)==1 ? x : y
+min(x::Real,y::Infinity{B}) where {B<:Integer} = sign(y)==1 ? x : y
+min(x::Infinity{B},y::Real) where {B<:Integer} = min(y,x)
+max(x::Real,y::Infinity{B}) where {B<:Integer} = sign(y)==1 ? y : x
+max(x::Infinity{B},y::Real) where {B<:Integer} = max(y,x)
 
 for OP in (:<,:<=)
     @eval begin
@@ -577,7 +575,7 @@ end
 abstract type Iterator end
 
 
-function Base.findfirst(testf::Function, A::Iterator)
+function findfirst(testf::Function, A::Iterator)
     for (k,v) in enumerate(A)
         testf(v) && return k
     end
@@ -625,8 +623,8 @@ julia> collect(take(a,3))
 take(xs, n::Int) = Take(xs, n)
 
 eltype(::Type{Take{I}}) where {I} = eltype(I)
-Base.length(t::Take) = t.n
-Base.size(t::Take) = (length(t),)
+length(t::Take) = t.n
+size(t::Take) = (length(t),)
 start(it::Take) = (it.n, start(it.xs))
 function next(it::Take, state)
     n, xs_state = state
@@ -648,7 +646,7 @@ end
 
 getindex(it::Take,k::CartesianIndex{1}) = it[k[1]]
 
-function Base.sum(it::Take)
+function sum(it::Take)
     ret = zero(eltype(it))
     for a in it
         ret += a
@@ -665,33 +663,33 @@ pad(it::Take,n::Integer) = pad!(collect(it),n)
 
 abstract type AbstractRepeated{T} <: Iterator end
 
-Base.eltype(::Type{AbstractRepeated{T}}) where {T} = T
-Base.eltype(::Type{R}) where {R<:AbstractRepeated} = eltype(super(R))
-Base.eltype(::AbstractRepeated{T}) where {T} = T
+eltype(::Type{AbstractRepeated{T}}) where {T} = T
+eltype(::Type{R}) where {R<:AbstractRepeated} = eltype(super(R))
+eltype(::AbstractRepeated{T}) where {T} = T
 
-Base.step(::AbstractRepeated) = 0
+step(::AbstractRepeated) = 0
 
-Base.start(::AbstractRepeated) = nothing
-Base.next(it::AbstractRepeated,state) = value(it),nothing
-Base.done(::AbstractRepeated,state) = false
+start(::AbstractRepeated) = nothing
+next(it::AbstractRepeated,state) = value(it),nothing
+done(::AbstractRepeated,state) = false
 
-Base.length(::AbstractRepeated) = ∞
+length(::AbstractRepeated) = ∞
 
 getindex(it::AbstractRepeated,k::Integer) = value(it)
 getindex(it::AbstractRepeated,k::AbstractRange) = take(it,length(k))
 
 
-Base.maximum(r::AbstractRepeated) = value(r)
-Base.minimum(r::AbstractRepeated) = value(r)
+maximum(r::AbstractRepeated) = value(r)
+minimum(r::AbstractRepeated) = value(r)
 
-Base.sum(it::Take{AR}) where {AR<:AbstractRepeated} = it.n*value(it.xs)
+sum(it::Take{AR}) where {AR<:AbstractRepeated} = it.n*value(it.xs)
 
 struct ZeroRepeated{T} <: AbstractRepeated{T} end
 
 ZeroRepeated(::Type{T}) where {T} = ZeroRepeated{T}()
 
 value(::ZeroRepeated{T}) where {T} = zero(T)
-Base.sum(r::ZeroRepeated) = value(r)
+sum(r::ZeroRepeated) = value(r)
 
 struct Repeated{T} <: AbstractRepeated{T}
     x::T
@@ -710,7 +708,7 @@ Repeated(x) = Repeated{typeof(x)}(x)
 
 value(r::Repeated) = r.x
 
-Base.sum(r::Repeated) = r.x > 0 ? ∞ : -∞
+sum(r::Repeated) = r.x > 0 ? ∞ : -∞
 
 
 
@@ -741,18 +739,18 @@ countfrom(start::Number)               = UnitCount(start)
 countfrom()                            = UnitCount(1)
 
 
-Base.eltype(::Type{AbstractCount{S}}) where {S} = S
-Base.eltype(::Type{AS}) where {AS<:AbstractCount} = eltype(supertype(AS))
-Base.eltype(::AbstractCount{S}) where {S} = S
+eltype(::Type{AbstractCount{S}}) where {S} = S
+eltype(::Type{AS}) where {AS<:AbstractCount} = eltype(supertype(AS))
+eltype(::AbstractCount{S}) where {S} = S
 
-Base.step(it::Count) = it.step
-Base.step(it::UnitCount) = 1
+step(it::Count) = it.step
+step(it::UnitCount) = 1
 
-Base.start(it::AbstractCount) = it.start
-Base.next(it::AbstractCount, state) = (state, state + step(it))
-Base.done(it::AbstractCount, state) = false
+start(it::AbstractCount) = it.start
+next(it::AbstractCount, state) = (state, state + step(it))
+done(it::AbstractCount, state) = false
 
-Base.length(it::AbstractCount) = ∞
+length(it::AbstractCount) = ∞
 
 getindex(it::Count,k) = it.start + it.step*(k-1)
 getindex(it::UnitCount,k) = (it.start-1) + k
@@ -763,19 +761,19 @@ reindex(V, idxs::Tuple{AbstractCount, Vararg{Any}}, subidxs::Tuple{Any, Vararg{A
     (Base.@_propagate_inbounds_meta; (idxs[1][subidxs[1]], reindex(V, tail(idxs), tail(subidxs))...))
 
 # special functions
-Base.maximum(it::UnitCount{S}) where {S<:Real} = ∞
-Base.minimum(it::UnitCount{S}) where {S<:Real} = it.start
+maximum(it::UnitCount{S}) where {S<:Real} = ∞
+minimum(it::UnitCount{S}) where {S<:Real} = it.start
 
-Base.maximum(it::Count{S}) where {S<:Real} = it.step > 0 ? ∞ : it.start
-Base.minimum(it::Count{S}) where {S<:Real} = it.step < 0 ? -∞ : it.start
+maximum(it::Count{S}) where {S<:Real} = it.step > 0 ? ∞ : it.start
+minimum(it::Count{S}) where {S<:Real} = it.step < 0 ? -∞ : it.start
 
-Base.sum(it::UnitCount) = ∞
-Base.sum(it::Count) = it.step > 0 ? ∞ : -∞
+sum(it::UnitCount) = ∞
+sum(it::Count) = it.step > 0 ? ∞ : -∞
 
-@inline Base.first(it::AbstractCount) = it.start
+@inline first(it::AbstractCount) = it.start
 
-Base.last(it::UnitCount{S}) where {S<:Real} = ∞
-Base.last(it::Count{S}) where {S<:Real} =
+last(it::UnitCount{S}) where {S<:Real} = ∞
+last(it::Count{S}) where {S<:Real} =
     it.step > 0 ? ∞ : (it.step < 0 ? -∞ : error("zero step not supported"))
 
 
@@ -803,14 +801,14 @@ end
 
 
 
-Base.intersect(a::UnitCount, b::UnitCount) = UnitCount(max(first(a), first(b)))
-Base.intersect(a::AbstractCount, b::AbstractCount) = error("Not implemented")
+intersect(a::UnitCount, b::UnitCount) = UnitCount(max(first(a), first(b)))
+intersect(a::AbstractCount, b::AbstractCount) = error("Not implemented")
 
-Base.intersect(a::UnitCount, b::AbstractRange) = intersect(first(a):last(b), b)
-Base.intersect(a::AbstractRange, b::UnitCount) = intersect(a, first(b):last(a))
+intersect(a::UnitCount, b::AbstractRange) = intersect(first(a):last(b), b)
+intersect(a::AbstractRange, b::UnitCount) = intersect(a, first(b):last(a))
 
-Base.intersect(a::Count, b::AbstractRange) = intersect(first(a):step(a):last(b), b)
-Base.intersect(a::AbstractRange, b::Count) = intersect(a, first(b):step(b):last(a))
+intersect(a::Count, b::AbstractRange) = intersect(first(a):step(a):last(b), b)
+intersect(a::AbstractRange, b::Count) = intersect(a, first(b):step(b):last(a))
 
 
 
@@ -818,18 +816,18 @@ struct CumSumIterator{CC} <: Iterator
     iterator::CC
 end
 
-Base.eltype(::Type{CumSumIterator{S}}) where {S} = eltype(S)
-Base.eltype(CC::CumSumIterator) = eltype(CC.iterator)
+eltype(::Type{CumSumIterator{S}}) where {S} = eltype(S)
+eltype(CC::CumSumIterator) = eltype(CC.iterator)
 
-Base.start(it::CumSumIterator) = (0,start(it.iterator))
-function Base.next(it::CumSumIterator, state)
+start(it::CumSumIterator) = (0,start(it.iterator))
+function next(it::CumSumIterator, state)
     a,nx_st=next(it.iterator,state[2])
     cs=state[1]+a
     (cs,(cs,nx_st))
 end
-Base.done(it::CumSumIterator, state) = done(it.iterator,state[2])
+done(it::CumSumIterator, state) = done(it.iterator,state[2])
 
-Base.length(it::CumSumIterator) = length(it.iterator)
+length(it::CumSumIterator) = length(it.iterator)
 
 getindex(it::CumSumIterator{AC},k) where {AC<:UnitCount} = it.iterator.start*k + ((k*(k-1))÷2)
 getindex(it::CumSumIterator{AC},k) where {AC<:Count} = it.iterator.start*k + step(it.iterator)*((k*(k-1))÷2)
@@ -859,7 +857,7 @@ end
 
 CachedIterator(it) = CachedIterator{eltype(it),typeof(it),typeof(start(it))}(it)
 
-function Base.resize!(it::CachedIterator,n::Integer)
+function resize!(it::CachedIterator,n::Integer)
     m = it.length
     if n > m
         if n > length(it.storage)
@@ -881,10 +879,10 @@ function Base.resize!(it::CachedIterator,n::Integer)
 end
 
 
-Base.eltype(it::CachedIterator{T}) where {T} = T
-Base.start(it::CachedIterator) = 1
-Base.next(it::CachedIterator,st::Int) = (it[st],st+1)
-Base.done(it::CachedIterator,st::Int) = st == it.length + 1 &&
+eltype(it::CachedIterator{T}) where {T} = T
+start(it::CachedIterator) = 1
+next(it::CachedIterator,st::Int) = (it[st],st+1)
+done(it::CachedIterator,st::Int) = st == it.length + 1 &&
                                         done(it.iterator,it.state)
 
 function getindex(it::CachedIterator,k)
@@ -894,7 +892,7 @@ function getindex(it::CachedIterator,k)
     end
     resize!(it,isempty(k) ? 0 : mx).storage[k]
 end
-function Base.findfirst(f::Function,A::CachedIterator)
+function findfirst(f::Function,A::CachedIterator)
     k=1
     for c in A
         if f(c)
@@ -905,7 +903,7 @@ function Base.findfirst(f::Function,A::CachedIterator)
     return 0
 end
 
-function Base.findfirst(A::CachedIterator,x)
+function findfirst(A::CachedIterator,x)
     k=1
     for c in A
         if c == x
@@ -916,7 +914,7 @@ function Base.findfirst(A::CachedIterator,x)
     return 0
 end
 
-Base.length(A::CachedIterator) = length(A.iterator)
+length(A::CachedIterator) = length(A.iterator)
 
 
 # The following don't need caching
@@ -952,12 +950,12 @@ Put differently, the elements of the argument iterator are concatenated. Example
 """
 flatten(itr) = Flatten(itr)
 
-Base.eltype(f::Flatten) = mapreduce(eltype,promote_type,f.it)
+eltype(f::Flatten) = mapreduce(eltype,promote_type,f.it)
 
 
-Base.start(f::Flatten) = 1, map(start,f.it)
+start(f::Flatten) = 1, map(start,f.it)
 
-function Base.next(f::Flatten, state)
+function next(f::Flatten, state)
     k, sts = state
     if !done(f.it[k],sts[k])
         a,nst = next(f.it[k],sts[k])
@@ -968,12 +966,12 @@ function Base.next(f::Flatten, state)
 end
 
 
-@inline Base.done(f::Flatten, state) =
+@inline done(f::Flatten, state) =
     state[1] == length(f) && done(f.it[end],state[2][end])
 
-Base.length(f::Flatten) = mapreduce(length,+,f.it)
+length(f::Flatten) = mapreduce(length,+,f.it)
 
-Base.eachindex(f::Flatten) = 1:length(f)
+eachindex(f::Flatten) = 1:length(f)
 
 function getindex(f::Flatten,k::Int)
     sh = 0
@@ -991,11 +989,11 @@ end
 
 getindex(f::Flatten,kr::UnitRange{Int}) = eltype(f)[f[k] for k in kr]
 
-Base.sum(f::Flatten) = mapreduce(sum,+,f.it)
+sum(f::Flatten) = mapreduce(sum,+,f.it)
 
 
-Base.maximum(f::Flatten) = mapreduce(maximum,max,f.it)
-Base.minimum(f::Flatten) = mapreduce(minimum,min,f.it)
+maximum(f::Flatten) = mapreduce(maximum,max,f.it)
+minimum(f::Flatten) = mapreduce(minimum,min,f.it)
 
 
 ## Iterator Algebra
@@ -1179,16 +1177,16 @@ function +(a::Flatten,b::Flatten)
 end
 
 
-Base.cumsum(r::Repeated) = r.x:r.x:(r.x>0 ? ∞ : -∞)
-Base.cumsum(r::Repeated{Bool}) = 1:∞
-Base.cumsum(r::ZeroRepeated) = r
-Base.cumsum(r::Iterator) = CumSumIterator(r)
+cumsum(r::Repeated) = r.x:r.x:(r.x>0 ? ∞ : -∞)
+cumsum(r::Repeated{Bool}) = 1:∞
+cumsum(r::ZeroRepeated) = r
+cumsum(r::Iterator) = CumSumIterator(r)
 
 
 
 
 
-function Base.cumsum(f::Flatten)
+function cumsum(f::Flatten)
     cs=zero(eltype(f))
     its = Vector{eltype(f.it)}(undef, 0)
     for it in f.it[1:end-1]

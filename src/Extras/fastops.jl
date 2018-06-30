@@ -8,7 +8,7 @@
 # default copy is to loop through
 # override this for most operators.
 function default_BandedMatrix(S::Operator)
-    Y=BandedMatrix{eltype(S)}(uninitialized, size(S), bandwidths(S))
+    Y=BandedMatrix{eltype(S)}(undef, size(S), bandwidths(S))
 
     for j=1:size(S,2),k=colrange(Y,j)
         @inbounds inbands_setindex!(Y,S[k,j],k,j)
@@ -73,7 +73,7 @@ function convert(::Type{BandedMatrix},
                S::SubOperator{T,ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR},T},
                               Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,DD,RR}
     # we can assume order is 1
-    ret = BandedMatrix{eltype(S)}(uninitialized, size(S), bandwidths(S))
+    ret = BandedMatrix{eltype(S)}(undef, size(S), bandwidths(S))
     kr,jr = parentindexes(S)
     dg = diagindshift(S)
 
@@ -96,7 +96,7 @@ function convert(::Type{BandedMatrix},V::SubOperator{T,ConcreteConversion{Ultras
 
     n,m = size(V)
     V_l, V_u = bandwidths(V)
-    ret = BandedMatrix{eltype(V)}(uninitialized, (n,m), (V_l,V_u))
+    ret = BandedMatrix{eltype(V)}(undef, (n,m), (V_l,V_u))
     kr,jr = parentindexes(V)
     dg = diagindshift(V)
 
@@ -126,7 +126,7 @@ function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Chebys
                                                      Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,K,DD,RR}
 
     n,m = size(S)
-    ret = BandedMatrix{eltype(S)}(uninitialized, (n,m), bandwidths(S))
+    ret = BandedMatrix{eltype(S)}(undef, (n,m), bandwidths(S))
     kr,jr = parentindexes(S)
     dg = diagindshift(S)
 
@@ -149,7 +149,7 @@ end
 function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Ultraspherical{LT,DD,RR},K,T},
                                                   Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,K,DD,RR,LT}
     n,m = size(S)
-    ret = BandedMatrix{eltype(S)}(uninitialized, (n,m), bandwidths(S))
+    ret = BandedMatrix{eltype(S)}(undef, (n,m), bandwidths(S))
     kr,jr = parentindexes(S)
     dg = diagindshift(S)
 

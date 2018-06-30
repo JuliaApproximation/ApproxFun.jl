@@ -15,7 +15,7 @@ dimension(sp::SubSpace) = length(sp.indexes)
 
 
 |(sp::Space,kr::UnitCount) = first(kr)==1 ? sp : SubSpace(sp,kr)
-|(sp::Space,kr::Union{AbstractCount,Range}) = SubSpace(sp,kr)
+|(sp::Space,kr::Union{AbstractCount,AbstractRange}) = SubSpace(sp,kr)
 
 
 function |(f::Fun,kr::UnitCount)

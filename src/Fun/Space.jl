@@ -82,7 +82,7 @@ end
 #     # the domain is not compatible, but maybe we c
 #     # can drop the space depence.  For example,
 #     # CosSpace{Circle{Float64}} -> CosSpace
-#     eval(parse(string(S.name.module)*"."*string(S.name)))(d)
+#     eval(Meta.parse(string(S.name.module)*"."*string(S.name)))(d)
 # end
 
 setcanonicaldomain(s) = setdomain(s,canonicaldomain(s))
@@ -489,7 +489,9 @@ ConstantSpace(d::Domain) = ConstantSpace{typeof(d),real(prectype(d))}(d)
 ConstantSpace() = ConstantSpace(AnyDomain())
 ConstantSpace(::Type{N}) where {N<:Number} = ConstantSpace{AnyDomain,real(N)}(AnyDomain())
 
-convert(::Type{Space},z::Number) = ConstantSpace(Domain(z))  # Spaces
+convert(::Type{Space}, z::Number) = ConstantSpace(Domain(z))  # Spaces
+convert(::Type{ConstantSpace}, d::Domain) = ConstantSpace(d)
+Space(z::Number) = convert(Space, z)
 
 isconstspace(::ConstantSpace) = true
 

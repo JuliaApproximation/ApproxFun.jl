@@ -31,7 +31,7 @@ for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:arclength))
                 return 0.5*$Len(d)*(n == 1 ? f.coefficients[1] : f.coefficients[1] - f.coefficients[2]/2)*π
             else
                 c = zeros(eltype(f),n)
-                c[1] = 2.^(β+α+1)*gamma(β+1)*gamma(α+1)/gamma(β+α+2)
+                c[1] = 2^(β+α+1)*gamma(β+1)*gamma(α+1)/gamma(β+α+2)
                 if n > 1
                     c[2] = c[1]*(β-α)/(β+α+2)
                     for i=1:n-2
@@ -379,7 +379,7 @@ end
 ## Definite Integral
 
 for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineIntegral,:arclength,:linesum))
-    ConcFunc = parse("Concrete"*string(Func))
+    ConcFunc = Meta.parse("Concrete"*string(Func))
 
     @eval begin
         $Func(S::JacobiWeight{SS,D}) where {SS,D<:Segment} = $ConcFunc(S)

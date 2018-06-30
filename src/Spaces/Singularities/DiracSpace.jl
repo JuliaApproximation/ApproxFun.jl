@@ -132,35 +132,35 @@ end
 # end
 
 
-function Multiplication(f::Fun{PS},PS2::PointSpace) where PS<:PointSpace
+function Multiplication(f::Fun{PS}, PS2::PointSpace) where PS<:PointSpace
     @assert space(f).points==PS2.points
     FiniteOperator(diagm(values(f)),PS2,PS2)
 end
 
-function Multiplication(f::Fun{PS},DS::DiracSpace) where PS<:PointSpace
+function Multiplication(f::Fun{PS}, DS::DiracSpace) where PS<:PointSpace
     @assert space(f).points==DS.points
     FiniteOperator(diagm(values(f)),DS,DS)
 end
 
-function Multiplication(f::Fun{DS},PS::PointSpace) where DS<:DiracSpace
+function Multiplication(f::Fun{DS}, PS::PointSpace) where DS<:DiracSpace
     @assert space(f).points==PS.points
     FiniteOperator(diagm(coefficient(f,:)),PS,space(f))
 end
 
-function coefficienttimes(f::Fun{PS},g::Fun{DS}) where {PS<:PointSpace,DS<:DiracSpace}
+function coefficienttimes(f::Fun{PS}, g::Fun{DS}) where {PS<:PointSpace,DS<:DiracSpace}
     @assert space(f).points==space(g).points
     Fun(space(g),f.coefficients.*g.coefficients)
 end
 
-function coefficienttimes(f::Fun{DS},g::Fun{PS}) where {PS<:PointSpace,DS<:DiracSpace}
+function coefficienttimes(f::Fun{DS}, g::Fun{PS}) where {PS<:PointSpace,DS<:DiracSpace}
     @assert space(f).points==space(g).points
     Fun(space(f),f.coefficients.*g.coefficients)
 end
 
-function coefficienttimes(f::Fun{PS},g::Fun{PS2}) where {PS<:PointSpace,PS2<:PointSpace}
+function coefficienttimes(f::Fun{PS}, g::Fun{PS2}) where {PS<:PointSpace,PS2<:PointSpace}
     @assert space(f).points==space(g).points
     Fun(space(g),f.coefficients.*g.coefficients)
 end
 
 /(f::Fun,g::Fun{PS}) where PS<:PointSpace = f*inv(g)
-Base.inv(f::Fun{PS}) where PS<:PointSpace = Fun(space(f),1./f.coefficients)
+inv(f::Fun{PS}) where PS<:PointSpace = Fun(space(f),1 ./ f.coefficients)

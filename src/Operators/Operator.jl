@@ -370,7 +370,7 @@ end
 
 
 for OP in (:colstart,:colstop,:rowstart,:rowstop)
-    defOP = parse("default_"*string(OP))
+    defOP = Meta.parse("default_"*string(OP))
     @eval begin
         $OP(A::Operator,i::Integer) = $defOP(A,i)
         $OP(A::Operator,i::Infinity{Bool}) = ∞
@@ -729,7 +729,7 @@ end
 
 # TODO: Unify with SubOperator
 for TYP in (:RaggedMatrix, :Matrix)
-    def_TYP = parse("default_" * string(TYP))
+    def_TYP = Meta.parse("default_" * string(TYP))
     @eval function convert(::Type{$TYP}, S::Operator)
         if isinf(size(S,1)) || isinf(size(S,2))
             error("Cannot convert $S to a $TYP")

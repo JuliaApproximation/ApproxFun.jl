@@ -15,8 +15,8 @@ QROperator(R::CachedOperator,H::AbstractArray,ncs::Int) =
 convert(::Type{Operator{T}},QR::QROperator) where {T} =
     QROperator(Operator{T}(QR.R),AbstractArray{T}(QR.H),QR.ncols)
 
-Base.qrfact(QR::QROperator) = QR
-Base.factorize(QR::QROperator) = QR
+qr(QR::QROperator) = QR
+factorize(QR::QROperator) = QR
 
 for OP in (:domainspace,:rangespace)
     @eval $OP(QR::QROperator) = $OP(QR.R)
@@ -70,7 +70,7 @@ QROperator(R::CachedOperator{T,AM}) where {T,AM<:AbstractMatrix} =
     error("Cannot create a QR factorization for $(typeof(R))")
 
 
-function Base.qrfact!(A::CachedOperator;cached::Int=0)
+function qr!(A::CachedOperator;cached::Int=0)
     QR = QROperator(A)
     if cached ≠ 0
         resizedata!(QR,:,cached)
@@ -85,21 +85,17 @@ returns a cached QR factorization of the Operator `A`.  The result `QR`
 enables solving of linear equations: if `u=QR\b`, then `u`
 approximately satisfies `A*u = b`.
 """
-function Base.qrfact(A::Operator;cached::Int=0)
+function qr(A::Operator;cached::Int=0)
     if isambiguous(domainspace(A)) || isambiguous(rangespace(A))
         throw(ArgumentError("Only non-ambiguous operators can be factorized."))
     end
-    qrfact!(cache(A;padding=true);cached=cached)
+    qr!(cache(A;padding=true);cached=cached)
 end
 
-function Base.qr(A::Operator)
-    QR = qrfact(A)
-    QR[:Q],QR[:R]
-end
 
-Base.factorize(A::Operator) = qrfact(A)
+factorize(A::Operator) = qrfact(A)
 
-for OP in (:(Base.qrfact),:(Base.qr),:(Base.factorize))
+for OP in (:qr, :factorize)
     @eval begin
         $OP(A::AbstractVector{<:Operator}) = $OP(interlace(A))
         $OP(A::AbstractMatrix{<:Operator}) = $OP(interlace(A))
@@ -108,7 +104,7 @@ for OP in (:(Base.qrfact),:(Base.qr),:(Base.factorize))
 end
 
 
-function Base.det(R::QROperatorR;maxiterations::Int=10_000)
+function det(R::QROperatorR;maxiterations::Int=10_000)
     QR = R.QR
     RD = R.QR.R
     resizedata!(QR,:,1)
@@ -123,10 +119,10 @@ function Base.det(R::QROperatorR;maxiterations::Int=10_000)
 
     ret
 end
-Base.det(QR::QROperatorQ) = 1
+det(QR::QROperatorQ) = 1
 
-Base.det(QR::QROperator) = det(QR[:R])
-Base.det(A::Operator) = det(qrfact(A))
+det(QR::QROperator) = det(QR[:R])
+det(A::Operator) = det(qrfact(A))
 
 
 

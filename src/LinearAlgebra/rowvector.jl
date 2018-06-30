@@ -1,7 +1,7 @@
 # This file is based on rowvector.jl in Julia. License is MIT: https://julialang.org/license
 # The motivation for this file is to allow RowVector which doesn't transpose the entries
 
-import Base: convert, similar, length, size, indices, IndexStyle,
+import Base: convert, similar, length, size, axes, IndexStyle,
             IndexLinear, @propagate_inbounds, getindex, setindex!,
             broadcast, hcat, typed_hcat, map, parent
 
@@ -57,8 +57,8 @@ parent(rowvec::RowVector) = rowvec.vec
 @inline length(rowvec::RowVector) =  length(rowvec.vec)
 @inline size(rowvec::RowVector) = (1, length(rowvec.vec))
 @inline size(rowvec::RowVector, d) = ifelse(d==2, length(rowvec.vec), 1)
-@inline indices(rowvec::RowVector) = (Base.OneTo(1), indices(rowvec.vec)[1])
-@inline indices(rowvec::RowVector, d) = ifelse(d == 2, indices(rowvec.vec)[1], Base.OneTo(1))
+@inline axes(rowvec::RowVector) = (Base.OneTo(1), axes(rowvec.vec)[1])
+@inline axes(rowvec::RowVector, d) = ifelse(d == 2, axes(rowvec.vec)[1], Base.OneTo(1))
 IndexStyle(::RowVector) = IndexLinear()
 IndexStyle(::Type{<:RowVector}) = IndexLinear()
 
@@ -69,13 +69,13 @@ IndexStyle(::Type{<:RowVector}) = IndexLinear()
 # Cartesian indexing is distorted by getindex
 # Furthermore, Cartesian indexes don't have to match shape, apparently!
 @inline function getindex(rowvec::RowVector, i::CartesianIndex)
-    @boundscheck if !(i.I[1] == 1 && i.I[2] ∈ indices(rowvec.vec)[1] && check_tail_indices(i.I...))
+    @boundscheck if !(i.I[1] == 1 && i.I[2] ∈ axes(rowvec.vec)[1] && check_tail_indices(i.I...))
         throw(BoundsError(rowvec, i.I))
     end
     @inbounds return rowvec.vec[i.I[2]]
 end
 @inline function setindex!(rowvec::RowVector, v, i::CartesianIndex)
-    @boundscheck if !(i.I[1] == 1 && i.I[2] ∈ indices(rowvec.vec)[1] && check_tail_indices(i.I...))
+    @boundscheck if !(i.I[1] == 1 && i.I[2] ∈ axes(rowvec.vec)[1] && check_tail_indices(i.I...))
         throw(BoundsError(rowvec, i.I))
     end
     @inbounds rowvec.vec[i.I[2]] = v

@@ -10,7 +10,6 @@ f = Fun(x->[exp(x),sin(x)],-1..1)
 space(f) == ArraySpace(Chebyshev(),2)
 ```
 """
-# TODO: support general vector types
 struct ArraySpace{S,n,DD,RR} <: DirectSumSpace{NTuple{n,S},DD,Array{RR,n}}
      spaces::Array{S,n}
 end
@@ -108,7 +107,7 @@ Base.vec(AS::ArraySpace) = ArraySpace(vec(AS.spaces))
 Base.vec(f::Fun{ArraySpace{S,n,DD,RR}}) where {S,n,DD,RR} =
     [f[j] for j=1:length(f.space)]
 
-Base.repmat(A::ArraySpace,n,m) = ArraySpace(repmat(A.spaces,n,m))
+repeat(A::ArraySpace,n,m) = ArraySpace(repeat(A.spaces,n,m))
 
 component(A::MatrixSpace,k::Integer,j::Integer) = A.spaces[k,j]
 

@@ -7,8 +7,8 @@ abstract type CalculusFunctional{S,T} <: Operator{T} end
 ##TODO: Add ConcreteOp
 
 macro calculus_functional(Op)
-    ConcOp=parse("Concrete"*string(Op))
-    WrappOp=parse(string(Op)*"Wrapper")
+    ConcOp=Meta.parse("Concrete"*string(Op))
+    WrappOp=Meta.parse(string(Op)*"Wrapper")
     return esc(quote
         abstract type $Op{SSS,TTT} <: CalculusFunctional{SSS,TTT} end
         struct $ConcOp{S,T} <: $Op{S,T}

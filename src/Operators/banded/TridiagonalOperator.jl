@@ -44,4 +44,4 @@ getindex(D::DiagIteratorOperator,k::Integer,j::Integer) =
 domainspace(D::DiagIteratorOperator) = ℓ⁰
 rangespace(D::DiagIteratorOperator) = ℓ⁰
 
-Base.diagm(c::AbstractCount) = DiagIteratorOperator(c)
+diagm(c::AbstractCount) = DiagIteratorOperator(c)

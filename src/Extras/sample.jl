@@ -118,12 +118,12 @@ function subtract_zeroatleft!(f::AbstractMatrix{Float64})
 end
 
 function multiply_oneatright!(f::AbstractVector{Float64})
-    val=0.
+    val=0.0
     for k=1:length(f)
-        val+=f[k]
+        val += f[k]
     end
 
-    val=1./val
+    val = 1/val
 
     for k=1:length(f)
         @inbounds f[k] *= val
@@ -135,12 +135,12 @@ end
 function multiply_oneatright!(f::AbstractMatrix{Float64})
 
     for j=1:size(f)[2]
-        val=0.
+        val=0.0
         for k=1:size(f)[1]
-            val+=f[k,j]
+            val += f[k,j]
         end
 
-        val=1./val
+        val = 1/val
 
         for k=1:size(f)[1]
             @inbounds f[k,j] *= val

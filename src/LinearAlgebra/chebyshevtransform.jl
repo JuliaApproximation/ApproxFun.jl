@@ -39,7 +39,7 @@ function *(P::ChebyshevTransformPlan{T,1,true},x::AbstractVector{T}) where T
     else
         x = P.plan*x
         x[1]/=2
-        scale!(inv(T(n)),x)
+        lmul!(inv(T(n)), x)
     end
 end
 
@@ -54,7 +54,7 @@ function *(P::ChebyshevTransformPlan{T,2,true},x::AbstractVector{T}) where T
         else
             x = P.plan*x
             x[1] /= 2;x[end] /= 2
-            scale!(inv(T(n-1)),x)
+            lmul!(inv(T(n-1)),x)
         end
     end
 end
@@ -90,13 +90,13 @@ function plan_ichebyshevtransform!(x::AbstractVector{T};kind::Integer=1) where T
 end
 
 function plan_ichebyshevtransform(x::AbstractVector{T};kind::Integer=1) where T<:fftwNumber
-    plan = plan_ichebyshevtransform!(similar(Vector{T},indices(x));kind=kind)
+    plan = plan_ichebyshevtransform!(similar(Vector{T},axes(x));kind=kind)
     IChebyshevTransformPlan{T,kind,false,typeof(plan)}(plan)
 end
 
 function *(P::IChebyshevTransformPlan{T,1,true},x::AbstractVector{T}) where T<:fftwNumber
     x[1] *=2
-    x = scale!(T(0.5),P.plan*x)
+    x = lmul!(T(0.5),P.plan*x)
     x
 end
 
@@ -109,7 +109,7 @@ function *(P::IChebyshevTransformPlan{T,2,true},x::AbstractVector{T}) where T<:f
         x[1] *= 2;x[end] *= 2
         x = P.plan*x
         x[1] *= 2;x[end] *= 2
-        scale!(T(.5(n-1)),x)
+        lmul!(T(.5(n-1)),x)
     end
 end
 
@@ -137,14 +137,14 @@ function chebyshevtransform!(X::AbstractMatrix{T};kind::Integer=1) where T<:fftw
         else
             X=r2r!(X,REDFT10)
             X[:,1]/=2;X[1,:]/=2;
-            scale!(1/(size(X,1)*size(X,2)),X)
+            lmul!(1/(size(X,1)*size(X,2)),X)
         end
     elseif kind == 2
         if size(X) == (1,1)
             X
         else
             X=r2r!(X,REDFT00)
-            scale!(1/((size(X,1)-1)*(size(X,2)-1)),X)
+            lmul!(1/((size(X,1)-1)*(size(X,2)-1)),X)
             X[:,1]/=2;X[:,end]/=2
             X[1,:]/=2;X[end,:]/=2
             X
@@ -159,7 +159,7 @@ function ichebyshevtransform!(X::AbstractMatrix{T};kind::Integer=1) where T<:fft
         else
             X[1,:]*=2;X[:,1]*=2
             X = r2r(X,REDFT01)
-            scale!(1/4,X)
+            lmul!(0.25, X)
         end
     elseif kind == 2
         if size(X) == (1,1)
@@ -168,7 +168,7 @@ function ichebyshevtransform!(X::AbstractMatrix{T};kind::Integer=1) where T<:fft
             X[1,:]*=2;X[end,:]*=2;X[:,1]*=2;X[:,end]*=2
             X=chebyshevtransform!(X;kind=kind)
             X[1,:]*=2;X[end,:]*=2;X[:,1]*=2;X[:,end]*=2
-            scale!((size(X,1)-1)*(size(X,2)-1)/4,X)
+            lmul!((size(X,1)-1)*(size(X,2)-1)/4,X)
         end
     end
 end

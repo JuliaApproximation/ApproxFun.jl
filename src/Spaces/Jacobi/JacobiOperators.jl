@@ -185,7 +185,7 @@ end
 
 
 for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineIntegral,:arclength,:linesum))
-    ConcFunc = parse("Concrete"*string(Func))
+    ConcFunc = Meta.parse("Concrete"*string(Func))
 
     @eval begin
         $Func(S::Jacobi{<:Segment}) = $ConcFunc(S)

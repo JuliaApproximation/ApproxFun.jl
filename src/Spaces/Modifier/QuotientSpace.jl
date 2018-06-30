@@ -1,4 +1,4 @@
-import Base.BLAS.@blasfunc
+import LinearAlgebra.BLAS.@blasfunc
 import LinearAlgebra: chkstride1, BlasInt
 import LinearAlgebra.LAPACK.chklapackerror
 
@@ -114,20 +114,24 @@ for (gesdd, elty, relty) in ((:dgesdd_,:Float64,:Float64),
             for i = 1:2
                 if cmplx
                     ccall((@blasfunc($gesdd), liblapack), Nothing,
-                          (Ptr{UInt8}, Ptr{BlasInt}, Ptr{BlasInt}, Ptr{$elty},
-                           Ptr{BlasInt}, Ptr{$relty}, Ptr{$elty}, Ptr{BlasInt},
-                           Ptr{$elty}, Ptr{BlasInt}, Ptr{$elty}, Ptr{BlasInt},
+                          (Ref{UInt8}, Ref{BlasInt}, Ref{BlasInt}, Ptr{$elty},
+                           Ref{BlasInt}, Ptr{$relty}, Ptr{$elty}, Ref{BlasInt},
+                           Ptr{$elty}, Ref{BlasInt}, Ptr{$elty}, Ref{BlasInt},
                            Ptr{$relty}, Ptr{BlasInt}, Ptr{BlasInt}),
-                          &job, &m, &n, A, &max(1,stride(A,2)), S, U, &max(1,stride(U,2)), VT, &max(1,stride(VT,2)),
-                          work, &lwork, rwork, iwork, info)
+                          job, m, n, A,
+                          max(1,stride(A,2)), S, U, max(1,stride(U,2)),
+                          VT, max(1,stride(VT,2)), work, lwork,
+                          rwork, iwork, info)
                 else
                     ccall((@blasfunc($gesdd), liblapack), Nothing,
-                          (Ptr{UInt8}, Ptr{BlasInt}, Ptr{BlasInt}, Ptr{$elty},
-                           Ptr{BlasInt}, Ptr{$elty}, Ptr{$elty}, Ptr{BlasInt},
-                           Ptr{$elty}, Ptr{BlasInt}, Ptr{$elty}, Ptr{BlasInt},
+                          (Ref{UInt8}, Ref{BlasInt}, Ref{BlasInt}, Ptr{$elty},
+                           Ref{BlasInt}, Ptr{$elty}, Ptr{$elty}, Ref{BlasInt},
+                           Ptr{$elty}, Ref{BlasInt}, Ptr{$elty}, Ref{BlasInt},
                            Ptr{BlasInt}, Ptr{BlasInt}),
-                          &job, &m, &n, A, &max(1,stride(A,2)), S, U, &max(1,stride(U,2)), VT, &max(1,stride(VT,2)),
-                          work, &lwork, iwork, info)
+                          job, m, n, A,
+                          max(1,stride(A,2)), S, U, max(1,stride(U,2)),
+                          VT, max(1,stride(VT,2)), work, lwork,
+                          iwork, info)
                 end
                 chklapackerror(info[])
                 if i == 1

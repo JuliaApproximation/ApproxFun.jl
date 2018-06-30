@@ -262,10 +262,14 @@ function *(P::ITransformPlan{T,Laurent{DD,RR},true},cfs::AbstractVector{T}) wher
     P.plan*cfs
 end
 
-*(P::TransformPlan{T,Laurent{DD,RR},false},vals::AbstractVector{T}) where {T<:Complex,DD,RR} = P.plan*copy(vals)
-*(P::TransformPlan{T,Laurent{DD,RR},false},vals::AbstractVector{T}) where {T,DD,RR} = P.plan*Vector{Complex{T}}(vals)
-*(P::ITransformPlan{T,Laurent{DD,RR},false},vals::AbstractVector{T}) where {T<:Complex,DD,RR} = P.plan*copy(vals)
-*(P::ITransformPlan{T,Laurent{DD,RR},false},vals::AbstractVector{T}) where {T,DD,RR} = P.plan*Vector{Complex{T}}(vals)
+*(P::TransformPlan{T,Laurent{DD,RR},false},vals::AbstractVector{T}) where {T<:Complex,DD,RR} =
+    P.plan*copy(vals)
+*(P::TransformPlan{T,Laurent{DD,RR},false},vals::AbstractVector{T}) where {T,DD,RR} =
+    P.plan*Vector{Complex{T}}(vals)
+*(P::ITransformPlan{T,Laurent{DD,RR},false},vals::AbstractVector{T}) where {T<:Complex,DD,RR} =
+    P.plan*copy(vals)
+*(P::ITransformPlan{T,Laurent{DD,RR},false},vals::AbstractVector{T}) where {T,DD,RR} =
+    P.plan*Vector{Complex{T}}(vals)
 
 
 
@@ -282,7 +286,7 @@ itransform(sp::Laurent{DD,RR},cfs::AbstractVector) where {DD,RR} = plan_itransfo
 
 function evaluate(f::AbstractVector,S::Laurent{DD,RR},z) where {DD,RR}
     z = mappoint(domain(S),Circle(),z)
-    invz = 1./z
+    invz = 1/z
     horner(f,1:2:length(f),z) + horner(f,2:2:length(f),invz).*invz
 end
 

@@ -35,7 +35,7 @@ using ApproxFun, Test
     @test ef(.5) ≈ exp(.5)
     @test ecf(.123456) ≈ cos(.123456).*exp(.123456)
 
-    r=2.*rand(100) .- 1
+    r=2 .* rand(100) .- 1
 
     @test maximum(abs,ef.(r)-exp.(r))<200eps()
     @test maximum(abs,ecf.(r).-cos.(r).*exp.(r))<200eps()
@@ -170,8 +170,8 @@ using ApproxFun, Test
     # Bug from Trogdon
 
     let δ = .03 # should be less than 0.03
-      @test 0. ∈ Domain(1-8.*sqrt(δ)..1+8.*sqrt(δ))
-    @test 0.00001 ∈ Domain(1-8.*sqrt(δ)..1+8.*sqrt(δ))
+      @test 0.0 ∈ Domain(1-8*sqrt(δ)..1+8*sqrt(δ))
+    @test 0.00001 ∈ Domain(1-8*sqrt(δ)..1+8*sqrt(δ))
 
     ϕfun = Fun(x -> 1/sqrt(2*pi*δ)*exp(-abs2.(x-1)/(2*δ)), 1-8.*sqrt(δ)..1+8.*sqrt(δ))
       ϕfun(0.00001) ≈ 1/sqrt(2*pi*δ)*exp(-abs2.(0.00001-1)/(2*δ))

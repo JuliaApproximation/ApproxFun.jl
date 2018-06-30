@@ -63,7 +63,7 @@ show(io::IO,f::Fun{ConstantSpace{DD,RR}}) where {DD,RR} =
     print(io,"$(Number(f)) on $(domain(f))")
 
 for typ in ("Chebyshev","Fourier","Laurent","Taylor","SinSpace","CosSpace")
-    TYP=parse(typ)
+    TYP = Meta.parse(typ)
     @eval function show(io::IO,S::$TYP{D,R}) where {D,R}
         print(io,$typ*"(")
         show(io,domain(S))
@@ -141,7 +141,7 @@ function show(io::IO,ss::PiecewiseSpace)
     end
 end
 
-summary(ss::ArraySpace) = string(Base.dims2string(length.(indices(ss))), " ArraySpace")
+summary(ss::ArraySpace) = string(Base.dims2string(length.(axes(ss))), " ArraySpace")
 function show(io::IO,ss::ArraySpace;header::Bool=true)
     header && print(io,summary(ss)*":\n")
     showarray(io,ss.spaces;header=false)

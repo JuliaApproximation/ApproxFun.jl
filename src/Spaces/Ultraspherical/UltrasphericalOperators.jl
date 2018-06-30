@@ -74,7 +74,7 @@ function getindex(D::ConcreteDerivative{Ultraspherical{TT,DD,RR},K,T},
     λ=order(domainspace(D))
 
     if j==k+m
-        T((pochhammer(one(T)*λ,m)*(4./(d.b-d.a)).^m))
+        T((pochhammer(one(T)*λ,m)*(4/(d.b-d.a)).^m))
     else
         zero(T)
     end

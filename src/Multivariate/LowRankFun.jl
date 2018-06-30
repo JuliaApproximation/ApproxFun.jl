@@ -7,7 +7,6 @@ export LowRankFun
 """
 `LowRankFun` gives an approximation to a bivariate function in low rank form.
 """
-
 mutable struct LowRankFun{S<:Space,M<:Space,SS<:AbstractProductSpace,T<:Number} <: BivariateFun{T}
     A::Vector{VFun{S,T}}
     B::Vector{VFun{M,T}}

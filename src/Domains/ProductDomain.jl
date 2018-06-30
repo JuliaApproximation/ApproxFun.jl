@@ -36,20 +36,20 @@ ProductDomain(A,B) = ProductDomain((A,B))
 *(A::ProductDomain, B::Domain) = ProductDomain(tuple(A.domains...,B))
 *(A::Domain, B::ProductDomain) = ProductDomain(tuple(A,B.domains...))
 *(A::Domain, B::Domain) = ProductDomain(A,B)
-^(A::Domain, p::Integer) = Base.power_by_squaring(A, p)
+^(A::Domain, p::Integer) = p == 1 ? A : A*A^(p-1)
 
 
 transpose(d::ProductDomain) = ProductDomain(d[2],d[1])
 nfactors(d::ProductDomain) = length(d.domains)
-factor(d::ProductDomain,k::Integer) = d.domains[k]
-==(d1::ProductDomain,d2::ProductDomain) = d1.domains==d2.domains
+factor(d::ProductDomain, k::Integer) = d.domains[k]
+==(d1::ProductDomain, d2::ProductDomain) = d1.domains==d2.domains
 
-first(d::ProductDomain) = (first(d[1]),first(d[2]))
+first(d::ProductDomain) = (first(d[1]),cfirst(d[2]))
 
-in(x::Vec,d::ProductDomain) = reduce(&,map(in,x,d.domains))
+in(x::Vec, d::ProductDomain) = reduce(&,vmap(in,x,d.domains))
 
 
-function pushappendpts!(ret,xx,pts)
+function pushappendpts!(ret, xx, pts)
     if isempty(pts)
         push!(ret,Vec(xx...))
     else

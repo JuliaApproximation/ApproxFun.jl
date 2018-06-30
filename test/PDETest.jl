@@ -114,7 +114,7 @@ using ApproxFun, Test
         Dt=Derivative(d,[0,1]);Dx=Derivative(d,[1,0])
 
         ϵ=1.
-        u0=Fun(x->exp(-100*(x-.5)^2)*exp(-1./(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
+        u0=Fun(x->exp(-100*(x-.5)^2)*exp(-1/(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
         L=ϵ*Dt+(.5im*ϵ^2*Dx^2)
         testbandedblockbandedoperator(L)
 

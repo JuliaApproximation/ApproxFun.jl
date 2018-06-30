@@ -66,7 +66,7 @@ end
 
 
 
-Base.rank(L::LowRankOperator) = length(L.U)
+rank(L::LowRankOperator) = length(L.U)
 
 
 -(L::LowRankOperator) = LowRankOperator(-L.U,L.V)
