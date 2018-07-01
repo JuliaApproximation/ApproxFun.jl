@@ -68,7 +68,7 @@ function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(first)},k::Abst
     cst = T((2/(d.b-d.a))^p)
     n=length(k)
 
-    ret = Array{T}(n)
+    ret = Array{T}(undef, n)
     k1=1-first(k)
     @simd for j=k
         @inbounds ret[j+k1]=(-1)^(p+1)*(-one(T))^j
@@ -144,7 +144,7 @@ end
 function convert(::Type{Matrix},
                  S::SubOperator{T,ConcreteDirichlet{C,V,T},
                                 Tuple{UnitRange{Int},UnitRange{Int}}}) where {C<:Chebyshev,V,T}
-    ret = Array{T}(size(S)...)
+    ret = Array{T}(undef, size(S)...)
     kr,jr = parentindices(S)
     isempty(kr) && return ret
     isempty(jr) && return ret

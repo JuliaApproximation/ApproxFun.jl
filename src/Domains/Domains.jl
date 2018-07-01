@@ -119,7 +119,7 @@ function setdiff(d::AffineDomain,ptsin::Vector)
     isempty(pts) && return d
     length(pts) == 1 && return d \ pts[1]
 
-    ret = Array{Domain}(length(pts)+1)
+    ret = Array{Domain}(undef, length(pts)+1)
     ret[1] = Domain(d.a..pts[1])
     for k = 2:length(pts)
         ret[k] = Domain(pts[k-1]..pts[k])

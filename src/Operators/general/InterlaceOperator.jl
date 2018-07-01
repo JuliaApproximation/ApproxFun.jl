@@ -193,7 +193,7 @@ function convert(::Type{Operator{T}},S::InterlaceOperator) where T
     if T == eltype(S)
         S
     else
-        ops=Array{Operator{T}}(size(S.ops)...)
+        ops=Array{Operator{T}}(undef, size(S.ops)...)
         for j=1:size(S.ops,2),k=1:size(S.ops,1)
             ops[k,j]=S.ops[k,j]
         end
@@ -271,7 +271,7 @@ function getindex(op::InterlaceOperator{T},k::Integer) where T
 end
 
 
-findsub(cr,ν) = find(x->x[1]==ν,cr)
+findsub(cr,ν) = findall(x->x[1]==ν,cr)
 
 function getindex(L::InterlaceOperator{T},kr::UnitRange) where T
     ret=zeros(T,length(kr))
@@ -474,7 +474,7 @@ _hcat(A::OperatorTypes...) = InterlaceOperator(hnocat(A...))
 function _hvcat(rows::Tuple{Vararg{Int}},as::OperatorTypes...)
     # Based on Base
     nbr = length(rows)  # number of block rows
-    rs = Array{Any,1}(nbr)
+    rs = Array{Any,1}(undef, nbr)
     a = 1
     for i = 1:nbr
         rs[i] = hcat(map(Operator,as[a:a-1+rows[i]])...)

@@ -7,9 +7,9 @@ function lanczos(w,N)
 
     f1=Fun(1/sqrt(sum(w)),space(x))
 
-    P = Array{Fun}(N + 1)
-    β = Array{eltype(w)}(N)
-    γ = Array{eltype(w)}(N)
+    P = Array{Fun}(undef, N + 1)
+    β = Array{eltype(w)}(undef, N)
+    γ = Array{eltype(w)}(undef, N)
 
     P[1] = f1
 

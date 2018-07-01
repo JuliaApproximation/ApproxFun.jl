@@ -4,7 +4,7 @@ function cosspacediff(v::AbstractVector{T}) where T<:Number
     if length(v)==1
         w = zeros(T,1)
     else
-        w = Array{T}(length(v)-1)
+        w = Array{T}(undef, length(v)-1)
         for k=1:length(v)-1
             @inbounds w[k] = -k*v[k+1]
         end
@@ -16,7 +16,7 @@ end
 # diff from SinSpace -> CosSpace
 
 function sinspacediff(v::AbstractVector{T}) where T<:Number
-    w = Array{T}(length(v)+1)
+    w = Array{T}(undef, length(v)+1)
     w[1] = zero(T)
     for k=1:length(v)
         @inbounds w[k+1] = k*v[k]
@@ -29,7 +29,7 @@ end
 
 function fourierdiff(v::AbstractVector{T}) where T<:Number
     n = 2(length(v)÷2)+1
-    w = Array{T}(n)
+    w = Array{T}(undef, n)
     w[1] = zero(T)
     n > 1 && (w[n-1] = zero(T))
     for k=1:n÷2-1
@@ -44,7 +44,7 @@ end
 # diff from Taylor -> Taylor
 
 function taylor_diff(v::AbstractVector{T}) where T<:Number
-    w = Array{T}(length(v))
+    w = Array{T}(undef, length(v))
     for k=1:length(v)
         @inbounds w[k] = (k-1)*v[k]
     end
@@ -55,7 +55,7 @@ end
 # diff from Hardy{false} -> Hardy{false}
 
 function hardyfalse_diff(v::AbstractVector{T}) where T<:Number
-    w = Array{T}(length(v))
+    w = Array{T}(undef, length(v))
     for k=1:length(v)
         @inbounds w[k] = -k*v[k]
     end
@@ -67,7 +67,7 @@ end
 
 function laurentdiff(v::AbstractVector{T}) where T<:Number
     n = length(v)
-    w = Array{T}(n)
+    w = Array{T}(undef, n)
     w[1] = zero(T)
     n=length(v)
 

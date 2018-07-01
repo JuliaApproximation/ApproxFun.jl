@@ -30,7 +30,7 @@ function *(P::TransformPlan{T,SS,false},vals::AbstractVector{T}) where {T,SS<:Co
     if k==0
         vals
     elseif isperiodic(d)
-        ret=Array{PT}(max(K,n-K))
+        ret=Array{PT}(undef, max(K,n-K))
         r=n-K*k
 
         for j=1:r
@@ -61,7 +61,7 @@ function *(P::TransformPlan{T,SS,false},vals::AbstractVector{T}) where {T,SS<:Co
 
         ret
     else
-        ret=Array{PT}(n-K+1)
+        ret=Array{PT}(undef, n-K+1)
         r=n-K*k
 
         for j=1:r

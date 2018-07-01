@@ -6,7 +6,7 @@ for T in (:CosSpace,:SinSpace)
     @eval begin
         struct $T{D<:Domain,R} <: Space{D,R}
             domain::D
-            $T{D,R}(d::Domain) where {D,R} = new(D(d))
+            $T{D,R}(d::Domain) where {D,R} = new(convert(D,d))
             $T{D,R}(d::D) where{D,R} = new(d)
         end
         $T(d::Domain) = $T{typeof(d),real(prectype(d))}(d)
@@ -78,7 +78,7 @@ for (Typ,Plfft!,Plfft,Pltr!,Pltr) in ((:TransformPlan,:plan_fft!,:plan_fft,:plan
 
         $Pltr(sp::Hardy,x::AbstractVector{T}) where {T<:Complex} = $Typ(sp,$Pltr!(sp,x),Val{false})
         function $Pltr(sp::Hardy,x::AbstractVector{T}) where T
-            plan = $Pltr(sp,Array{Complex{T}}(length(x))) # we can reuse vector in itransform
+            plan = $Pltr(sp,Array{Complex{T}}(undef,length(x))) # we can reuse vector in itransform
             $Typ{T,typeof(sp),false,typeof(plan)}(sp,plan)
         end
 
@@ -89,13 +89,13 @@ end
 
 
 *(P::TransformPlan{T,Hardy{true,DD,RR},true},vals::AbstractVector{T}) where {T,DD,RR} =
-    scale!(one(T)/length(vals),P.plan*vals)
+    lmul!(one(T)/length(vals),P.plan*vals)
 *(P::ITransformPlan{T,Hardy{true,DD,RR},true},cfs::AbstractVector{T}) where {T,DD,RR} =
-    scale!(length(cfs),P.plan*cfs)
+    lmul!(length(cfs),P.plan*cfs)
 *(P::TransformPlan{T,Hardy{false,DD,RR},true},vals::AbstractVector{T}) where {T,DD,RR} =
-    scale!(one(T)/length(vals),reverse!(P.plan*vals))
+    lmul!(one(T)/length(vals),reverse!(P.plan*vals))
 *(P::ITransformPlan{T,Hardy{false,DD,RR},true},cfs::AbstractVector{T}) where {T,DD,RR} =
-    scale!(length(cfs),P.plan*reverse!(cfs))
+    lmul!(length(cfs),P.plan*reverse!(cfs))
 
 
 transform(sp::Hardy,vals::AbstractVector,plan) = plan*vals
@@ -198,9 +198,9 @@ end
 
 
 *(P::TransformPlan{T,SinSpace{DD,RR},true},vals::AbstractVector{T}) where {T,DD,RR} =
-    scale!(one(T)/(length(vals)+1),P.plan*vals)
+    lmul!(one(T)/(length(vals)+1),P.plan*vals)
 *(P::ITransformPlan{T,SinSpace{DD,RR},true},cfs::AbstractVector{T}) where {T,DD,RR} =
-    scale!(one(T)/2,P.plan*cfs)
+    lmul!(one(T)/2,P.plan*cfs)
 
 
 transform(sp::SinSpace,vals::AbstractVector,plan) = plan*vals
@@ -240,17 +240,17 @@ plan_itransform(sp::Laurent{DD,RR},x::AbstractVector{T}) where {T<:Complex,DD,RR
     ITransformPlan(sp,plan_itransform!(sp,x),Val{false})
 
 function plan_transform(sp::Laurent{DD,RR},x::AbstractVector{T}) where {T,DD,RR}
-    plan = plan_transform(sp,Array{Complex{T}}(length(x))) # we can reuse vector in itransform
+    plan = plan_transform(sp,Array{Complex{T}}(undef, length(x))) # we can reuse vector in itransform
     TransformPlan{T,typeof(sp),false,typeof(plan)}(sp,plan)
 end
 function plan_itransform(sp::Laurent{DD,RR},x::AbstractVector{T}) where {T,DD,RR}
-    plan = plan_itransform(sp,Array{Complex{T}}(length(x))) # we can reuse vector in itransform
+    plan = plan_itransform(sp,Array{Complex{T}}(undef, length(x))) # we can reuse vector in itransform
     ITransformPlan{T,typeof(sp),false,typeof(plan)}(sp,plan)
 end
 
 function *(P::TransformPlan{T,Laurent{DD,RR},true},vals::AbstractVector{T}) where {T,DD,RR}
     n = length(vals)
-    vals = scale!(inv(T(n)),P.plan*vals)
+    vals = lmul!(inv(T(n)),P.plan*vals)
     reverseeven!(interlace!(vals,1))
 end
 
@@ -258,7 +258,7 @@ function *(P::ITransformPlan{T,Laurent{DD,RR},true},cfs::AbstractVector{T}) wher
     n = length(cfs)
     reverseeven!(cfs)
     cfs[:]=[cfs[1:2:end];cfs[2:2:end]]  # TODO: deinterlace!
-    scale!(n,cfs)
+    lmul!(n,cfs)
     P.plan*cfs
 end
 
@@ -294,7 +294,7 @@ end
 function Base.conj(f::Fun{Laurent{DD,RR}}) where {DD,RR}
     ncoefficients(f) == 0 && return f
 
-    cfs = Array{eltype(f)}(iseven(ncoefficients(f)) ? ncoefficients(f)+1 : ncoefficients(f))
+    cfs = Array{eltype(f)}(undef, iseven(ncoefficients(f)) ? ncoefficients(f)+1 : ncoefficients(f))
     cfs[1] = conj(f.coefficients[1])
     cfs[ncoefficients(f)] = 0
     for k=2:2:ncoefficients(f)-1
@@ -378,7 +378,7 @@ mul!(cfs::AbstractVector{T}, P::TransformPlan{T,Fourier{DD,RR},false}, vals::Abs
 
 function *(P::TransformPlan{T,Fourier{DD,RR},true},vals::AbstractVector{T}) where {T,DD,RR}
     n = length(vals)
-    cfs = scale!(T(2)/n,P.plan*vals)
+    cfs = lmul!(T(2)/n,P.plan*vals)
     cfs[1] /= 2
     if iseven(n)
         cfs[n÷2+1] /= 2
@@ -414,7 +414,7 @@ function *(P::IFourierTransformPlan{T,Fourier{DD,RR}},cfs::AbstractVector{T}) wh
         cfs[n÷2+1] *= 2
     end
     cfs[1] *= 2
-    P.plan*scale!(inv(T(2)),cfs)
+    P.plan*lmul!(inv(T(2)),cfs)
 end
 
 
@@ -462,7 +462,7 @@ reverseorientation(f::Fun{Fourier{DD,RR}}) where {DD,RR} =
 function reverseorientation(f::Fun{Laurent{DD,RR}}) where {DD,RR}
     # exp(im*k*x) -> exp(-im*k*x), or equivalentaly z -> 1/z
     n=ncoefficients(f)
-    ret=Array{eltype(f)}(iseven(n) ? n+1 : n)  # since z -> 1/z we get one more coefficient
+    ret=Array{eltype(f)}(undef, iseven(n) ? n+1 : n)  # since z -> 1/z we get one more coefficient
     ret[1]=f.coefficients[1]
     for k=2:2:length(ret)-1
         ret[k+1]=f.coefficients[k]

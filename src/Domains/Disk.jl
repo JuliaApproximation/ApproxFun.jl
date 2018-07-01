@@ -31,7 +31,7 @@ fromcanonical(D::Disk{T},x,t) where {T<:Real} =
     Vec(D.radius*x*cos(t)+D.center[1],D.radius*x*sin(t)+D.center[2])
 tocanonical(D::Disk{T},x,y) where {T<:Real} =
     Vec(sqrt((x-D.center[1])^2+(y-D.center[2])^2)/D.radius,
-        atan2(y-D.center[2],x-D.center[1]))
+        atan(y-D.center[2],x-D.center[1]))
 checkpoints(d::Disk) = [fromcanonical(d,(.1,.2243));fromcanonical(d,(-.212423,-.3))]
 
 # function points(d::Disk,n,m,k)

@@ -45,12 +45,12 @@ convert(::Type{IT},::AnyDomain) where {IT<:Circle} = Circle(NaN,NaN)
 
 function tocanonical(d::Circle{T},ζ) where T<:Number
     v=mappoint(d,Circle(),ζ)
-    atan2(imag(v)-0.0,real(v))  # -0.0 to get branch cut right
+    atan(imag(v)-0.0,real(v))  # -0.0 to get branch cut right
 end
 
 function tocanonical(d::Circle{T},ζ) where T<:Vec
     v=mappoint(d,Circle((0.0,0.0),1.0),ζ)
-    atan2(v[2]-0.0,v[1])  # -0.0 to get branch cut right
+    atan(v[2]-0.0,v[1])  # -0.0 to get branch cut right
 end
 
 

@@ -1,7 +1,7 @@
-using ApproxFun, Test, BlockArrays, BlockBandedMatrices
+using ApproxFun, Test, BlockArrays, BlockBandedMatrices, SpecialFunctions
     import ApproxFun: testspace, testtransforms, testmultiplication,
                       testbandedoperator, testcalculus, Block
-
+    import SpecialFunctions: factorial
 
 
 

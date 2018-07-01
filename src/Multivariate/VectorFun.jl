@@ -8,8 +8,8 @@ convert(::Type{Array},f::ArrayFun) = reshape(vec(f),size(space(f))...)
 
 map(f,A::ArrayFun) = Base.collect_similar(A, Base.Generator(f,A))
 
-similar(a::VectorFun, S::Type) = Array{S,1}(size(a,1))
-similar(a::MatrixFun, S::Type) = Array{S,2}(size(a,1), size(a,2))
+similar(a::VectorFun, S::Type) = Array{S,1}(undef, size(a,1))
+similar(a::MatrixFun, S::Type) = Array{S,2}(undef, size(a,1), size(a,2))
 
 
 getindex(f::MatrixFun,
@@ -49,7 +49,7 @@ function hcat(v::VectorFun...)
     N = length(v[1])
     M = length(v)
 
-    V = Array{Fun}(N,M)
+    V = Array{Fun}(undef, N,M)
     for J=1:M
         V[:,J] = vec(v[J])
     end

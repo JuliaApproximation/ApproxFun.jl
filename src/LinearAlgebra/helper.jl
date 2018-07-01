@@ -312,7 +312,7 @@ function interlace(v::Union{Vector{Any},Tuple})
             T=Complex{Float64}
         end
     end
-    b=Vector{Vector{T}}(length(v))
+    b=Vector{Vector{T}}(undef, length(v))
     for k=1:length(v)
         b[k]=v[k]
     end
@@ -341,12 +341,12 @@ function interlace(a::AbstractVector,b::AbstractVector)
     na=length(a);nb=length(b)
     T=promote_type(eltype(a),eltype(b))
     if nb≥na
-        ret=Vector{T}(2nb)
+        ret=Vector{T}(undef, 2nb)
         ret[1:2:1+2*(na-1)]=a
         ret[2:2:end]=b
         ret
     else
-        ret=Vector{T}(2na-1)
+        ret=Vector{T}(undef, 2na-1)
         ret[1:2:end]=a
         if !isempty(b)
             ret[2:2:2+2*(nb-1)]=b

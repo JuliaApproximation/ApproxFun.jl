@@ -44,7 +44,7 @@ function toeplitz_getindex(negative::AbstractVector{T},nonnegative::AbstractVect
 end
 
 function toeplitz_getindex(cfs::AbstractVector{T},k::Integer,j::Integer) where T
-    if k==j
+    if k==j && !isempty(cfs)
         2cfs[1]
     elseif 0<k-j≤length(cfs)-1
         cfs[k-j+1]

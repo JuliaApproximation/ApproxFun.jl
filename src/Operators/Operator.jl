@@ -24,6 +24,9 @@ prectype(sp::Space) = promote_type(prectype(domaintype(sp)),eltype(rangetype(sp)
 copy(A::Operator) = A
 
 
+BroadcastStyle(::Type{<:Operator}) = DefaultArrayStyle{2}()
+broadcastable(A::Operator) = A
+
 ## We assume operators are T->T
 rangespace(A::Operator) = error("Override rangespace for $(typeof(A))")
 domainspace(A::Operator) = error("Override domainspace for $(typeof(A))")
@@ -626,7 +629,7 @@ Operator{T}(f::Fun) where {T} =
 Operator(f::Fun) = norm(f.coefficients)==0 ? ZeroOperator() : Multiplication(f)
 
 convert(A::Type{O}, f::Fun) where O<:Operator = O(f)
-
+Operator{T}(A::Operator) where T = convert(Operator{T}, A)
 
 
 ## Promotion

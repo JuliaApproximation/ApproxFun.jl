@@ -273,7 +273,7 @@ function component_coefficients(it,cfs,k)
     d=dimension(it,k)
 
     # preallocate: we know we have at most N coefficients
-    ret=Array{eltype(cfs)}(N)
+    ret=Array{eltype(cfs)}(undef, N)
     j=1  # current coefficient
     p=0  # current length
     for (n,m) in it
@@ -453,12 +453,12 @@ interlace(v::AbstractVector{F},sp::DirectSumSpace) where {F<:Fun} =
 
 function interlace(v::Union{Tuple,Vector{Any}},sp::DirectSumSpace)
     if all(vk->isa(vk,Fun),v)
-        V=Array{Vector{mapreduce(eltype,promote_type,v)}}(length(v))
+        V=Array{Vector{mapreduce(eltype,promote_type,v)}}(undef, length(v))
         for k=1:length(v)
             V[k]=coefficients(v[k])
         end
     else
-        V=Array{Vector{mapreduce(eltype,promote_type,v)}}(length(v))
+        V=Array{Vector{mapreduce(eltype,promote_type,v)}}(undef, length(v))
         for k=1:length(v)
             V[k]=v[k]
         end
@@ -498,13 +498,13 @@ function *(P::TransformPlan{T,PS,false},vals::AbstractVector{T}) where {PS<:Piec
     k=div(n,K)
     PT=promote_type(prectype(P.space),eltype(vals))
     if k==0
-        M=Array{Vector{PT}}(n)
+        M=Array{Vector{PT}}(undef, n)
         for j=1:n
             M[j]=transform(S[j],[vals[j]])
         end
     else
         r=n-K*k
-        M=Array{Vector{PT}}(K)
+        M=Array{Vector{PT}}(undef, K)
 
         for j=1:r
             M[j]=transform(S[j],vals[(j-1)*(k+1)+1:j*(k+1)])

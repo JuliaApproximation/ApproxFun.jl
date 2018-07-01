@@ -268,14 +268,14 @@ function show(io::IO, ::MIME"text/plain", A::Vector{T}; header::Bool=true) where
     if all(Ak -> isafunctional(Ak), A[1:nf]) && isbanded(A[end]) &&
             isinf(size(A[end],1)) && isinf(size(A[end],2)) && eltype(A[end]) <: Number &&
             all(Ak -> !isambiguous(domainspace(Ak)), A)
-        M=Array{Any}(11,11)
+        M=Array{Any}(undef, 11,11)
         fill!(M,PrintShow(""))
         for k=1:nf
             M[k,1:10] = A[k][1:10]
             M[k,end]=PrintShow("⋯")
         end
 
-        MM=Array{Any}(11-nf,11)
+        MM=Array{Any}(undef, 11-nf,11)
         fill!(MM,PrintShow(""))
 
         B = A[end]

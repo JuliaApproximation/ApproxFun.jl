@@ -391,11 +391,12 @@ function complexroots(cfs::Vector{T}) where T<:Union{BigFloat,Complex{BigFloat}}
 end
 
 complexroots(neg::Vector,pos::Vector) =
-    complexroots([flipdim(chop(neg,10eps()),1);pos])
+    complexroots([reverse(chop(neg,10eps()), dims=1);pos])
 complexroots(f::Fun{Laurent{DD,RR}}) where {DD,RR} =
-    mappoint(Circle(),domain(f),complexroots(f.coefficients[2:2:end],f.coefficients[1:2:end]))
+    mappoint.(Circle(), domain(f),
+        complexroots(f.coefficients[2:2:end],f.coefficients[1:2:end]))
 complexroots(f::Fun{Taylor{DD,RR}}) where {DD,RR} =
-    mappoint(Circle(),domain(f),complexroots(f.coefficients))
+    mappoint.(Circle(), domain(f), complexroots(f.coefficients))
 
 
 

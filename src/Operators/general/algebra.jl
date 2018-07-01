@@ -555,6 +555,8 @@ end
 *(A::Conversion,B::Operator) =
     isconstop(B) ? promotedomainspace(convert(Number,B)*A,domainspace(B)) : TimesOperator(A,B)
 
+^(A::Operator, p::Integer) = Base.power_by_squaring(A, p)
+
 
 +(A::Operator) = A
 -(A::Operator) = ConstantTimesOperator(-1,A)

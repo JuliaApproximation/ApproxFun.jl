@@ -7,8 +7,8 @@ using ApproxFun, Test
 
     @test exp.(f) ≈ exp(f)
     @test besselj.(1,f) ≈ besselj(1,f)
-    @test atan2.(f,1)(0.1) ≈ atan2(f(0.1),1)
-    @test atan2.(f,f)(0.1) ≈ atan2(f(0.1),f(0.1))
+    @test atan.(f,1)(0.1) ≈ atan(f(0.1),1)
+    @test atan.(f,f)(0.1) ≈ atan(f(0.1),f(0.1))
 
     # test triplet with mixed scalar-fun
     @test ((a,b,c) -> exp(a +b+c)).(f,2.0,f) ≈ exp(2f + 2.0)
