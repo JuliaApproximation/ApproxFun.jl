@@ -56,12 +56,12 @@ end
 
 
 diagindshift(S,kr,jr) = first(kr)-first(jr)
-diagindshift(S::SubOperator) = diagindshift(S,parentindexes(S)[1],parentindexes(S)[2])
+diagindshift(S::SubOperator) = diagindshift(S,parentindices(S)[1],parentindices(S)[2])
 
 
 #TODO: Remove
 diagindrow(S,kr,jr) = bandwidth(S,2)+first(jr)-first(kr)+1
-diagindrow(S::SubOperator) = diagindrow(S,parentindexes(S)[1],parentindexes(S)[2])
+diagindrow(S::SubOperator) = diagindrow(S,parentindices(S)[1],parentindices(S)[2])
 
 
 
@@ -74,7 +74,7 @@ function convert(::Type{BandedMatrix},
                               Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,DD,RR}
     # we can assume order is 1
     ret = BandedMatrix{eltype(S)}(undef, size(S), bandwidths(S))
-    kr,jr = parentindexes(S)
+    kr,jr = parentindices(S)
     dg = diagindshift(S)
 
     @assert -bandwidth(ret,1) ≤ dg ≤ bandwidth(ret,2)-2
@@ -97,7 +97,7 @@ function convert(::Type{BandedMatrix},V::SubOperator{T,ConcreteConversion{Ultras
     n,m = size(V)
     V_l, V_u = bandwidths(V)
     ret = BandedMatrix{eltype(V)}(undef, (n,m), (V_l,V_u))
-    kr,jr = parentindexes(V)
+    kr,jr = parentindices(V)
     dg = diagindshift(V)
 
 
@@ -127,7 +127,7 @@ function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Chebys
 
     n,m = size(S)
     ret = BandedMatrix{eltype(S)}(undef, (n,m), bandwidths(S))
-    kr,jr = parentindexes(S)
+    kr,jr = parentindices(S)
     dg = diagindshift(S)
 
     D = parent(S)
@@ -150,7 +150,7 @@ function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Ultras
                                                   Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,K,DD,RR,LT}
     n,m = size(S)
     ret = BandedMatrix{eltype(S)}(undef, (n,m), bandwidths(S))
-    kr,jr = parentindexes(S)
+    kr,jr = parentindices(S)
     dg = diagindshift(S)
 
     D = parent(S)

@@ -80,7 +80,7 @@ end
 
 function jacobip(::Type{T},r::AbstractRange,α,β,x::Number) where T
     if x==1 && α==0
-        ones(T,length(r))
+        fill(one(T), length(r))
     elseif x==-1 && β==0
         (-one(T)).^r
     elseif isempty(r)
@@ -119,9 +119,9 @@ include("JacobiOperators.jl")
 
 
 
-for op in (:(Base.ones),:(Base.zeros))
-    @eval ($op)(::Type{T},S::Jacobi) where {T<:Number}=Fun(S,($op)(T,1))
-    @eval ($op)(S::Jacobi)=Fun(S,($op)(1))
+for op in (:(one),:(Base.zeros))
+    @eval ($op)(::Type{T},S::Jacobi) where {T<:Number} = Fun(S,fill($op(T),1))
+    @eval ($op)(S::Jacobi) = Fun(S,fill($op(Float64),1))
 end
 
 function Fun(::typeof(identity), J::Jacobi)

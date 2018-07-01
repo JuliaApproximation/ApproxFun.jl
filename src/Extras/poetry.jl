@@ -15,8 +15,8 @@ Fun(d::Space) = Fun(identity,d)
 
 chebyshevt(n::Int,d::Segment{T}) where {T<:Number} = Fun(Chebyshev(d),[zeros(T,n);one(T)])
 chebyshevu(n::Int,d::Segment{T}) where {T<:Number} =
-    mod(n,2) == 1 ? Fun(Chebyshev(d),interlace(zeros(T,div(n+2,2)),2ones(T,div(n+2,2)))) :
-                    Fun(Chebyshev(d),interlace(2ones(T,div(n+2,2)),zeros(T,div(n+2,2)))[1:n+1]-[one(T);zeros(T,n)])
+    mod(n,2) == 1 ? Fun(Chebyshev(d),interlace(zeros(T,div(n+2,2)),2fill(one(T),div(n+2,2)))) :
+                    Fun(Chebyshev(d),interlace(2fill(one(T),div(n+2,2)),zeros(T,div(n+2,2)))[1:n+1]-[one(T);zeros(T,n)])
 legendre(n::Int,d::Segment{T}) where {T<:Number} = Fun(Legendre(d),[zeros(T,n);one(T)])
 
 for poly in (:chebyshevt,:chebyshevu,:legendre)

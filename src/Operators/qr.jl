@@ -3,7 +3,7 @@
 
 
 mutable struct QROperator{CO,MT,T} <: Operator{T}
-    R::CO
+    R_cache::CO
     H::MT # Contains the Householder reflections
     ncols::Int   # number of cols already upper triangularized
 end
@@ -13,16 +13,16 @@ QROperator(R::CachedOperator,H::AbstractArray,ncs::Int) =
 
 
 convert(::Type{Operator{T}},QR::QROperator) where {T} =
-    QROperator(Operator{T}(QR.R),AbstractArray{T}(QR.H),QR.ncols)
+    QROperator(Operator{T}(QR.R_cache),AbstractArray{T}(QR.H),QR.ncols)
 
 qr(QR::QROperator) = QR
 factorize(QR::QROperator) = QR
 
 for OP in (:domainspace,:rangespace)
-    @eval $OP(QR::QROperator) = $OP(QR.R)
+    @eval $OP(QR::QROperator) = $OP(QR.R_cache)
 end
 
-getindex(QR::QROperator,k::Integer,j::Integer) = QR.R.op[k,j]
+getindex(QR::QROperator, k::Integer, j::Integer) = QR.R_cache.op[k,j]
 
 
 
@@ -39,15 +39,16 @@ function getindex(R::QROperatorR,k::Integer,j::Integer)
         zero(eltype(R))
     else
         resizedata!(R.QR,:,j)
-        R.QR.R[k,j]
+        R.QR.R_cache[k,j]
     end
 end
 
-bandinds(R::QROperatorR) = 0,bandinds(R.QR.R,2)
+bandinds(R::QROperatorR) = 0,bandinds(R.QR.R_cache,2)
 
 struct QROperatorQ{QRT,T} <: Operator{T}
     QR::QRT
 end
+
 
 QROperatorQ(QR) = QROperatorQ{typeof(QR),eltype(QR)}(QR)
 
@@ -55,14 +56,23 @@ QROperatorQ(QR) = QROperatorQ{typeof(QR),eltype(QR)}(QR)
 domainspace(Q::QROperatorQ) = ℓ⁰
 rangespace(Q::QROperatorQ) = rangespace(Q.QR)
 
-getindex(Q::QROperatorQ,k::Integer,j::Integer) = (mul_coefficients(Q',eltype(Q)[zeros(k-1);1]))[j]
+getindex(Q::QROperatorQ, k::Integer, j::Integer) = (mul_coefficients(Q',eltype(Q)[zeros(k-1);1]))[j]
 
-function getindex(QR::QROperator,d::Symbol)
-    d==:Q && return QROperatorQ(QR)
-    d==:R && return QROperatorR(QR)
 
-    error("Symbol not recognized")
+function getproperty(F::QROperator, d::Symbol)
+    if d == :R
+        return QROperatorR(F)
+    elseif d == :Q
+        return QROperatorQ(F)
+    else
+        getfield(F, d)
+    end
 end
+
+# iteration for destructuring into components
+Base.iterate(S::QROperator) = (S.Q, Val(:R))
+Base.iterate(S::QROperator, ::Val{:R}) = (S.R, Val(:done))
+Base.iterate(S::QROperator, ::Val{:done}) = nothing
 
 
 # override for custom data types
@@ -70,7 +80,9 @@ QROperator(R::CachedOperator{T,AM}) where {T,AM<:AbstractMatrix} =
     error("Cannot create a QR factorization for $(typeof(R))")
 
 
-function qr!(A::CachedOperator;cached::Int=0)
+adjoint(Q::QROperatorQ) = Adjoint(Q)
+
+function qr!(A::CachedOperator; cached::Int=0)
     QR = QROperator(A)
     if cached ≠ 0
         resizedata!(QR,:,cached)
@@ -79,13 +91,13 @@ function qr!(A::CachedOperator;cached::Int=0)
 end
 
 """
-    qrfact(A::Operator)
+    qr(A::Operator)
 
 returns a cached QR factorization of the Operator `A`.  The result `QR`
 enables solving of linear equations: if `u=QR\b`, then `u`
 approximately satisfies `A*u = b`.
 """
-function qr(A::Operator;cached::Int=0)
+function qr(A::Operator; cached::Int=0)
     if isambiguous(domainspace(A)) || isambiguous(rangespace(A))
         throw(ArgumentError("Only non-ambiguous operators can be factorized."))
     end
@@ -93,7 +105,7 @@ function qr(A::Operator;cached::Int=0)
 end
 
 
-factorize(A::Operator) = qrfact(A)
+factorize(A::Operator) = qr(A)
 
 for OP in (:qr, :factorize)
     @eval begin
@@ -106,7 +118,7 @@ end
 
 function det(R::QROperatorR;maxiterations::Int=10_000)
     QR = R.QR
-    RD = R.QR.R
+    RD = R.QR.R_cache
     resizedata!(QR,:,1)
     ret = -RD[1,1]
     k = 2
@@ -121,8 +133,8 @@ function det(R::QROperatorR;maxiterations::Int=10_000)
 end
 det(QR::QROperatorQ) = 1
 
-det(QR::QROperator) = det(QR[:R])
-det(A::Operator) = det(qrfact(A))
+det(QR::QROperator) = det(QR.R)
+det(A::Operator) = det(qr(A))
 
 
 
@@ -135,7 +147,7 @@ det(A::Operator) = det(qrfact(A))
 mul_coefficients(At::Transpose{T,<:QROperatorQ{T}},B::AbstractVector{T}) where {T<:Real} = parent(At)'*B
 mul_coefficients(At::Transpose{T,<:QROperatorQ{T}},B::AbstractMatrix{T}) where {T<:Real} = parent(At)'*B
 
-mul_coefficients(Ac::Adjoint{T,<:QROperatorQ{QR,T}},B::AbstractVector{T};tolerance=eps(eltype(A))/10,maxlength=1000000) where {QR,T} =
+mul_coefficients(Ac::Adjoint{T,<:QROperatorQ{QR,T}},B::AbstractVector{T};tolerance=eps(eltype(Ac))/10,maxlength=1000000) where {QR,T} =
         mulpars(Ac,B,tolerance,maxlength)
 
 mul_coefficients(Ac::Adjoint{T,<:QROperatorQ{QR,T}},B::AbstractVector{V};opts...) where {QR,T,V} =
@@ -157,7 +169,7 @@ function ldiv_coefficients(R::QROperatorR, b::AbstractVector)
         # upper triangularize columns
         resizedata!(R.QR, :, length(b))
     end
-    UpperTriangular(view(R.QR.R.data, 1:length(b), 1:length(b))) \ b
+    UpperTriangular(view(R.QR.R_cache.data, 1:length(b), 1:length(b))) \ b
 end
 
 \(R::QROperatorR,b::Fun{SequenceSpace};kwds...) =
@@ -168,8 +180,8 @@ end
 # QR
 
 for TYP in (:Real,:Complex,:Number)
-    @eval ldiv_coefficients(QR::QROperator{CO,MT,T},b::AbstractVector{T};kwds...) where {CO,MT,T<:$TYP} =
-        ldiv_coefficients(QR[:R],mul_coefficients(QR[:Q]',b;kwds...))
+    @eval ldiv_coefficients(QR::QROperator{CO,MT,T},b::AbstractVector{T}; kwds...) where {CO,MT,T<:$TYP} =
+        ldiv_coefficients(QR.R, mul_coefficients(QR.Q',b;kwds...))
 end
 
 

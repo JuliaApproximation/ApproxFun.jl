@@ -245,7 +245,7 @@ using ApproxFun, BlockBandedMatrices,  Test
 
 
 
-    A = InterlaceOperator(Diagonal([eye(2),Derivative(Chebyshev())]))
+    A = InterlaceOperator(Diagonal([Matrix(I,2,2),Derivative(Chebyshev())]))
     @test A[Block(1):Block(2), Block(1):Block(2)] isa BlockBandedMatrix
 
     @test Matrix(view(A, Block(1), Block(1))) == A[1:3,1:3]

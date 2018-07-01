@@ -194,7 +194,7 @@ end
 
 function pad(f::AbstractVector{T},n::Integer) where T
 	if n > length(f)
-	   ret=Vector{T}(n)
+	   ret=Vector{T}(undef, n)
 	   ret[1:length(f)]=f
 	   for j=length(f)+1:n
 	       ret[j]=zero(T)
@@ -223,9 +223,9 @@ function pad(A::AbstractMatrix,n::Integer,m::Integer)
 	if n <= size(A,1) && m <= size(A,2)
         A[1:n,1:m]
 	elseif n==0 || m==0
-	   Matrix{T}(n,m)  #fixes weird julia bug when T==None
+	   Matrix{T}(undef,n,m)  #fixes weird julia bug when T==None
     else
-        ret = Matrix{T}(n,m)
+        ret = Matrix{T}(undef,n,m)
         minn=min(n,size(A,1))
         minm=min(m,size(A,2))
         for k=1:minn,j=1:minm

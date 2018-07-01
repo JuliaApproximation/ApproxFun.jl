@@ -93,7 +93,7 @@ function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(last)},k::Abstr
     cst = T((2/(d.b-d.a))^p)
     n=length(k)
 
-    ret = ones(T,n)
+    ret = fill(one(T),n)
 
     for m=0:p-1
         k1=1-first(k)
@@ -145,7 +145,7 @@ function convert(::Type{Matrix},
                  S::SubOperator{T,ConcreteDirichlet{C,V,T},
                                 Tuple{UnitRange{Int},UnitRange{Int}}}) where {C<:Chebyshev,V,T}
     ret = Array{T}(size(S)...)
-    kr,jr = parentindexes(S)
+    kr,jr = parentindices(S)
     isempty(kr) && return ret
     isempty(jr) && return ret
     if first(kr) == 1
@@ -205,7 +205,7 @@ getindex(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) where {PS<:Pol
 function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,C,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {C<:Chebyshev,T}
     ret = BandedMatrix(Zeros, S)
 
-    kr,jr=parentindexes(S)
+    kr,jr=parentindices(S)
     cfs=parent(S).f.coefficients
 
     isempty(cfs) && return ret

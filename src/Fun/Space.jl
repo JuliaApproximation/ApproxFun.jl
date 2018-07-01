@@ -482,7 +482,7 @@ end
 struct ConstantSpace{DD,R} <: Space{DD,R}
     domain::DD
     ConstantSpace{DD,R}(d::DD) where {DD,R} = new(d)
-    ConstantSpace{DD,R}(d::AnyDomain) where {DD,R} = new(DD(d))
+    ConstantSpace{DD,R}(d::AnyDomain) where {DD,R} = new(convert(DD,d))
 end
 
 ConstantSpace(d::Domain) = ConstantSpace{typeof(d),real(prectype(d))}(d)

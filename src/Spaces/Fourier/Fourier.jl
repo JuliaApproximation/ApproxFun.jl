@@ -437,8 +437,8 @@ canonicalspace(S::Laurent{DD,RR}) where {DD<:PeriodicLine,RR} = S
 
 for sp in (:Fourier,:CosSpace,:Laurent,:Taylor)
     @eval begin
-        Base.ones(::Type{T},S::$sp{DD,RR}) where {T<:Number,DD,RR} = Fun(S,ones(T,1))
-        Base.ones(S::$sp{DD,RR}) where {DD,RR} = Fun(S,ones(1))
+        one(::Type{T},S::$sp{DD,RR}) where {T<:Number,DD,RR} = Fun(S,fill(one(T),1))
+        one(S::$sp{DD,RR}) where {DD,RR} = Fun(S,fill(1.0,1))
     end
 end
 

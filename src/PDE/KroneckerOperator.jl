@@ -319,7 +319,7 @@ function blocklengthrange(rt, kr)
 end
 
 function bandedblockbanded_convert!(ret, S::SubOperator, KO, rt, dt)
-    pinds = parentindexes(S)
+    pinds = parentindices(S)
     kr,jr = pinds
 
     kr1,jr1 = reindex(S,pinds,(1,1))
@@ -333,7 +333,7 @@ function bandedblockbanded_convert!(ret, S::SubOperator, KO, rt, dt)
         jshft = (J==Block(1) ? jr1 : blockstart(dt,J+Jshft)) - 1
         for K=blockcolrange(ret,J)
             Bs = view(ret,K,J)
-            Bspinds = parentindexes(Bs)
+            Bspinds = parentindices(Bs)
             kshft = (K==Block(1) ? kr1 : blockstart(rt,K+Kshft)) - 1
             for ξ=1:size(Bs,2),κ=colrange(Bs,ξ)
                 Bs[κ,ξ] = S[reindex(Bs,Bspinds,(κ,ξ))...]
@@ -370,7 +370,7 @@ function convert(::Type{BandedBlockBandedMatrix},
                       S::SubOperator{T,KroneckerOperator{SS,V,DS,RS,
                                      Trivial2DTensorizer,Trivial2DTensorizer,T},
                                      Tuple{BlockRange1,BlockRange1}}) where {SS,V,DS,RS,T}
-    KR,JR = parentindexes(S)
+    KR,JR = parentindices(S)
     KR_i, JR_i = Int.(KR), Int.(JR)
 
     KO=parent(S)
@@ -438,7 +438,7 @@ Evaluation(sp::TensorSpace,x::Tuple) = Evaluation(sp,Vec(x...))
 # it's faster to build the operators to the last b
 function mul_coefficients(A::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}}, b) where {T,KKO<:KroneckerOperator}
     P = parent(A)
-    kr,jr = parentindexes(A)
+    kr,jr = parentindices(A)
     dt,rt = domaintensorizer(P),rangetensorizer(P)
     KR,JR = Block(1):block(rt,kr[end]),Block(1):block(dt,jr[end])
     M = P[KR,JR]

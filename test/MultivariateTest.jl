@@ -67,8 +67,8 @@ using ApproxFun, Test
 
         # test "fast" grid evaluation of LowRankFun
         f = LowRankFun((x,y) -> exp(x) * cos(y)); n = 1000
-        x = linspace(-1, 1, n); y = linspace(-1, 1, n)
-        X = ones(n) * linspace(-1, 1, n)'; Y = linspace(-1, 1, n) * ones(1, n)
+        x = range(-1, stop=1, length=n); y = range(-1, stop=1, length=n)
+        X = fill(1.0,n) * range(-1, stop=1, length=n)'; Y = range(-1, stop=1, length=n) * fill(1.0, 1, n)
         @time v1 = f.(X, Y);
         @time v2 = f.(collect(x), collect(y)');
         @test v1 ≈ v2

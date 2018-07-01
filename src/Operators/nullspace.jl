@@ -1,7 +1,7 @@
 
 
 function nullspace(A::Operator{T};tolerance=10eps(real(T)),maxlength=1_000_000) where T
-   K=transpose_nullspace(qrfact(A'),tolerance,maxlength)
+   K=transpose_nullspace(qr(A'),tolerance,maxlength)
     # drop extra rows, and use QR to determine rank
     Q,R=qr(K,Val{true})
     ind=findfirst(r->abs(r)≤100tolerance,diag(R))
@@ -16,11 +16,11 @@ function transpose_nullspace(QR::QROperator,tolerance,maxlength)
 
     m=size(QR.H,1)
     K=zeros(100,m-1)
-    K[1:m-1,1:m-1]=eye(m-1)
+    K[1:m-1,1:m-1]=Matrix(I,m-1,m-1)
 
     for k=1:10
         v=QR.H[:,k]
-        QQ=eye(T,m)-2v*v'
+        QQ=Matrix{T}(I,m,m)-2v*v'
         K[:,:]=K*QQ[1:end-1,2:end]
         K[k+m-1,:]=QQ[end,2:end]
     end
@@ -38,7 +38,7 @@ function transpose_nullspace(QR::QROperator,tolerance,maxlength)
         end
 
         v=QR.H[:,k]
-        QQ=(eye(m)-2v*v')
+        QQ=(Matrix(I,m,m)-2v*v')
         K[:,:]=K*QQ[1:end-1,2:end]
 
         if k+m-1 > size(K,1)

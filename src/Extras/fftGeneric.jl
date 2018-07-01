@@ -3,7 +3,7 @@ const BigFloats = Union{BigFloat,Complex{BigFloat}}
 function fft(x::AbstractVector{F}) where F<:Fun
     n,T = length(x),mapreduce(eltype,promote_type,x)
     if ispow2(n) return fft_pow2(x) end
-    ks = linspace(zero(real(T)),n-one(real(T)),n)
+    ks = range(zero(real(T)),stop=n-one(real(T)),length=n)
     Wks = exp(-im*convert(T,π)*ks.^2/n)
     xq,wq = x.*Wks,conj([exp(-im*convert(T,π)*n);reverse(Wks);Wks[2:end]])
     return Wks.*conv(xq,wq)[n+1:2n]

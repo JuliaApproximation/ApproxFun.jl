@@ -287,7 +287,7 @@ function convert(::Type{BlockBandedMatrix},
                                 Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR,CSP,TT}
     P=parent(S)
     ret=BlockBandedMatrix(Zeros, S)
-    kr,jr=parentindexes(S)
+    kr,jr=parentindices(S)
 
     K1=block(rangespace(P),kr[1])
     Kr1=blockstart(rangespace(P),K1)

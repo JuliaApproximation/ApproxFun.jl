@@ -107,15 +107,15 @@ using ApproxFun, Test
         d = Interval()^2                            # Defines a rectangle
 
         # @time u = \([Dirichlet(d);Laplacian(d)+100I],
-        #                     [ones(∂(d));0.];tolerance=1E-10)      # First four entries of rhs are
+        #                     [one(∂(d));0.];tolerance=1E-10)      # First four entries of rhs are
         #
 
 
 
-        QR = qrfact([Dirichlet(d);Laplacian()+100I])
+        QR = qr([Dirichlet(d);Laplacian()+100I])
                 @time ApproxFun.resizedata!(QR,:,4000)
                 @time u = \(QR,
-                                [ones(∂(d));0.];tolerance=1E-7)
+                                [one(∂(d));0.];tolerance=1E-7)
 
 
         @test u(0.1,1.) ≈ 1.0

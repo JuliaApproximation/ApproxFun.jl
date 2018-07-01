@@ -26,8 +26,8 @@ Space(d::Segment) = Chebyshev(d)
 
 setdomain(S::Chebyshev,d::Domain) = Chebyshev(d)
 
-Base.ones(::Type{T},S::Chebyshev) where {T<:Number} = Fun(S,ones(T,1))
-Base.ones(S::Chebyshev) = Fun(S,ones(1))
+one(::Type{T},S::Chebyshev) where {T<:Number} = Fun(S,fill(one(T),1))
+one(S::Chebyshev) = Fun(S,fill(1.0,1))
 
 function Base.first(f::Fun{<:Chebyshev})
     n = ncoefficients(f)

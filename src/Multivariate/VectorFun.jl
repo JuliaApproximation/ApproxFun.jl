@@ -108,7 +108,7 @@ function inv(V::MatrixFun)
     # TODO: This assumes other columns have same spaces
     M=Multiplication(V,Space(space(V).spaces[:,1]))
     # convert I to the rangespace of M
-    M\Fun(eye(m), repeat(rangespace(M),1,m))
+    M\Fun(Matrix(I,m,m), repeat(rangespace(M),1,m))
 end
 
 ## Algebra

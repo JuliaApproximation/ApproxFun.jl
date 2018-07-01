@@ -179,7 +179,7 @@ function convert(::Type{BandedMatrix},
                       S::SubOperator{T,ConcreteMultiplication{C,PS,T},
                                      Tuple{UnitRange{Int},UnitRange{Int}}}) where {PS<:PolynomialSpace,T,C<:PolynomialSpace}
     M=parent(S)
-    kr,jr=parentindexes(S)
+    kr,jr=parentindices(S)
     f=M.f
     a=f.coefficients
     sp=space(f)

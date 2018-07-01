@@ -108,12 +108,14 @@ end
 
 for TYP in (:RaggedMatrix,:Matrix,:BandedMatrix,
             :BlockBandedMatrix,:BandedBlockBandedMatrix)
-    @eval convert(::Type{$TYP},P::SubOperator{T,PP,NTuple{2,BlockRange1}}) where {T,PP<:PlusOperator} =
-        convert_axpy!($TYP,P)   # use axpy! to copy
-    @eval convert(::Type{$TYP},P::SubOperator{T,PP}) where {T,PP<:PlusOperator} =
-        convert_axpy!($TYP,P)   # use axpy! to copy
-    @eval convert(::Type{$TYP},P::SubOperator{T,PP,NTuple{2,UnitRange{Int}}}) where {T,PP<:PlusOperator} =
-        convert_axpy!($TYP,P)   # use axpy! to copy
+    @eval begin
+        $TYP(P::SubOperator{T,PP,NTuple{2,BlockRange1}}) where {T,PP<:PlusOperator} =
+            convert_axpy!($TYP,P)   # use axpy! to copy
+        $TYP(P::SubOperator{T,PP}) where {T,PP<:PlusOperator} =
+            convert_axpy!($TYP,P)   # use axpy! to copy
+        $TYP(P::SubOperator{T,PP,NTuple{2,UnitRange{Int}}}) where {T,PP<:PlusOperator} =
+            convert_axpy!($TYP,P)   # use axpy! to copy
+    end
 end
 
 function BLAS.axpy!(α,P::SubOperator{T,PP},A::AbstractMatrix) where {T,PP<:PlusOperator}
@@ -201,14 +203,11 @@ getindex(P::ConstantTimesOperator,k::Integer...) =
 for TYP in (:RaggedMatrix,:Matrix,:BandedMatrix,
             :BlockBandedMatrix,:BandedBlockBandedMatrix)
     @eval begin
-        convert(::Type{$TYP},
-                S::SubOperator{T,OP,NTuple{2,BlockRange1}}) where {T,OP<:ConstantTimesOperator} =
+        $TYP(S::SubOperator{T,OP,NTuple{2,BlockRange1}}) where {T,OP<:ConstantTimesOperator} =
             convert_axpy!($TYP, S)
-        convert(::Type{$TYP},
-                S::SubOperator{T,OP,NTuple{2,UnitRange{Int}}}) where {T,OP<:ConstantTimesOperator} =
+        $TYP(S::SubOperator{T,OP,NTuple{2,UnitRange{Int}}}) where {T,OP<:ConstantTimesOperator} =
             convert_axpy!($TYP, S)
-        convert(::Type{$TYP},
-                S::SubOperator{T,OP}) where {T,OP<:ConstantTimesOperator} =
+        $TYP(S::SubOperator{T,OP}) where {T,OP<:ConstantTimesOperator} =
             convert_axpy!($TYP, S)
     end
 end
@@ -380,22 +379,21 @@ function getindex(P::TimesOperator,k::AbstractVector)
 end
 
 for TYP in (:Matrix, :BandedMatrix, :RaggedMatrix)
-    @eval function convert(::Type{$TYP},
-                         V::SubOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,TO<:TimesOperator}
+    @eval function $TYP(V::SubOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,TO<:TimesOperator}
         P = parent(V)
 
         if isbanded(P)
             if $TYP ≠ BandedMatrix
-                return $TYP(convert(BandedMatrix, V))
+                return $TYP(BandedMatrix(V))
             end
         elseif isbandedblockbanded(P)
-            N = block(rangespace(P), last(parentindexes(V)[1]))
-            M = block(domainspace(P), last(parentindexes(V)[2]))
+            N = block(rangespace(P), last(parentindices(V)[1]))
+            M = block(domainspace(P), last(parentindices(V)[2]))
             B = P[Block(1):N, Block(1):M]
-            return $TYP(view(B, parentindexes(V)...), _colstops(V))
+            return $TYP(view(B, parentindices(V)...), _colstops(V))
         end
 
-        kr,jr = parentindexes(V)
+        kr,jr = parentindices(V)
 
         (isempty(kr) || isempty(jr)) && return $TYP(Zeros, V)
 
@@ -412,7 +410,7 @@ for TYP in (:Matrix, :BandedMatrix, :RaggedMatrix)
 
         # find optimal truncations for each operator
         # by finding the non-zero entries
-        krlin = Matrix{Union{Int,Infinity{Bool}}}(length(P.ops),2)
+        krlin = Matrix{Union{Int,Infinity{Bool}}}(undef,length(P.ops),2)
 
         krlin[1,1],krlin[1,2]=kr[1],kr[end]
         for m=1:length(P.ops)-1
@@ -450,10 +448,9 @@ for TYP in (:Matrix, :BandedMatrix, :RaggedMatrix)
 end
 
 for TYP in (:BlockBandedMatrix, :BandedBlockBandedMatrix)
-    @eval function convert(::Type{$TYP},
-                         V::SubOperator{T,TO,Tuple{BlockRange1,BlockRange1}}) where {T,TO<:TimesOperator}
+    @eval function $TYP(V::SubOperator{T,TO,Tuple{BlockRange1,BlockRange1}}) where {T,TO<:TimesOperator}
         P = parent(V)
-        KR,JR = parentindexes(V)
+        KR,JR = parentindices(V)
 
         @assert length(P.ops) ≥ 2
         if size(V,1)==0 || isempty(KR) || isempty(JR)
@@ -509,7 +506,7 @@ end
 ## Algebra: assume we promote
 
 
-for OP in (:(adjoint),:(Base.transpose))
+for OP in (:(adjoint),:(transpose))
     @eval $OP(A::TimesOperator)=TimesOperator(reverse!(map($OP,A.ops)))
 end
 
@@ -586,7 +583,7 @@ function *(c::Number,A::Operator)
         ConstantTimesOperator(c,A)
     end
 end
-*(A::Operator,c::Number) = A*(c*ones(domainspace(A)))
+*(A::Operator,c::Number) = A*(c*one(domainspace(A)))
 
 
 /(B::Operator,c::Number) = (1.0/c)*B

@@ -86,8 +86,8 @@ plan_itransform(sp::Ultraspherical,cfs::AbstractVector) = UltrasphericalIPlan(or
 
 #domain(S) may be any domain
 
-Base.ones(::Type{T},S::Ultraspherical) where {T<:Number} = Fun(S,ones(T,1))
-Base.ones(S::Ultraspherical) = Fun(S,ones(1))
+one(::Type{T},S::Ultraspherical) where {T<:Number} = Fun(S,fill(one(T),1))
+one(S::Ultraspherical) = Fun(S,fill(1.0,1))
 
 
 

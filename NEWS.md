@@ -21,7 +21,7 @@
 - Support `f^k` for polynomial `f` and real `k`
 - Fix several bugs and performance enhancements
 
-#### 0.7 
+#### 0.7
 - Examples moved to [ApproxFunExamples](https://github.com/JuliaApproximation/ApproxFunExamples) repository
 - `vcat`, `hcat` and `hvcat` of operators now returns an `Operator`
 - `Dirichlet` and `Neumann` operators supported in 1D, replacing

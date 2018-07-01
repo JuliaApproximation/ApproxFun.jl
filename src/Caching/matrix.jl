@@ -135,7 +135,7 @@ function mulpars(Ac::Adjoint{T,<:QROperatorQ{QROperator{RR,Matrix{T},T},T}},
         wp=h+sz*st*(k-1)
         yp=y+sz*(k-1)
 
-        dt=dot(M,wp,1,yp,1)
+        dt = BandedMatrices.dot(M,wp,1,yp,1)
         BLAS.axpy!(M,-2*dt,wp,1,yp,1)
         k+=1
     end

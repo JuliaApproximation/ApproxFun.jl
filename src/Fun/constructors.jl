@@ -94,9 +94,9 @@ Fun(f::Function,d::Domain,n) = Fun(dynamic(f),Space(d),n)
 
 
 # We do zero special since zero exists even when one doesn't
-Fun(c::Number,::Type{T}) where {T<:Space} = c==0 ? zeros(T(AnyDomain())) : c*ones(T(AnyDomain()))
-Fun(c::Number,d::Domain) = c==0 ? c*zeros(d) : c*ones(d)
-Fun(c::Number,d::Space) = c==0 ? c*zeros(prectype(d),d) : c*ones(prectype(d),d)
+Fun(c::Number,::Type{T}) where {T<:Space} = c==0 ? zeros(T(AnyDomain())) : c*one(T(AnyDomain()))
+Fun(c::Number,d::Domain) = c==0 ? c*zeros(d) : c*one(d)
+Fun(c::Number,d::Space) = c==0 ? c*zeros(prectype(d),d) : c*one(prectype(d),d)
 
 ## Adaptive constructors
 function default_Fun(f, d::Space)
@@ -154,8 +154,8 @@ zeros(::Type{T},S::Space) where {T<:Number} = Fun(S,zeros(T,1))
 zeros(S::Space) = Fun(S,zeros(1))
 
 # catch all
-ones(S::Space) = Fun(x->1.0,S)
-ones(::Type{T},S::Space) where {T<:Number} = Fun(x->one(T),S)
+one(S::Space) = Fun(x->1.0,S)
+one(::Type{T}, S::Space) where {T<:Number} = Fun(x->one(T),S)
 
 function Fun(::typeof(identity), d::Domain)
     cd=canonicaldomain(d)
@@ -173,7 +173,7 @@ Fun(::typeof(identity), S::Space) = Fun(identity,domain(S))
 
 
 Fun(f::typeof(zero), d::Space) = zeros(eltype(domain(d)),d)
-Fun(f::typeof(one), d::Space) = ones(eltype(domain(d)),d)
+Fun(f::typeof(one), d::Space) = one(eltype(domain(d)),d)
 
 Fun(f::Type, d::Domain) = Fun(f,Space(d))
 Fun(f::Function, d::Domain) = Fun(f,Space(d))

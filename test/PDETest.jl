@@ -13,19 +13,19 @@ using ApproxFun, Test
         f = -2π^2*u
 
 
-        QR=qrfact(Δ)
+        QR=qr(Δ)
         ApproxFun.resizedata!(QR,:,1000)
         @time v=QR\f
         @test norm((u-v).coefficients)<100eps()
 
 
-        QR=qrfact(Δ)
-        ApproxFun.resizedata!(QR.R,:,100)
-        ApproxFun.resizedata!(QR.R,:,1000)
+        QR=qr(Δ)
+        ApproxFun.resizedata!(QR.R_cache,:,100)
+        ApproxFun.resizedata!(QR.R_cache,:,1000)
         @time v=QR\f
         @test norm((u-v).coefficients)<100eps()
 
-        QR=qrfact(Δ)
+        QR=qr(Δ)
         @time v=QR\f
         @test norm((u-v).coefficients)<100eps()
     end

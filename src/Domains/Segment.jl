@@ -49,8 +49,8 @@ represents the set `{x : a ≤ x ≤ b}`.
 """
 Interval
 
-convert(::Type{Segment{T}}, d::Segment) where {T<:Number} = Segment{T}(d.a,d.b)
-convert(::Type{Segment},d::ClosedInterval) = Segment(d.left,d.right)
+Segment{T}(d::Segment) where {T<:Number} = Segment{T}(d.a,d.b)
+Segment(d::ClosedInterval) = Segment(d.left,d.right)
 
 AnySegment(::Type{T}) where {T} = Segment{T}(NaN,NaN)
 AnySegment() = AnySegment(Float64)

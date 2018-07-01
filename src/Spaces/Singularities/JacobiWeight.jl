@@ -100,7 +100,7 @@ coefficients(f::AbstractVector,sp::JacobiWeight{SJ,Segment{Vec{2,TT}}},S2::Tenso
 coefficients(f::AbstractVector,sp::JacobiWeight{SJ,DD},S2::Space{DD,RR}) where {SJ,DD<:IntervalDomain,RR<:Real} =
     coefficients(f,sp,JacobiWeight(0,0,S2))
 coefficients(f::AbstractVector,sp::ConstantSpace{DD},ts::JacobiWeight{SJ,DD}) where {SJ,DD<:IntervalDomain} =
-    f.coefficients[1]*ones(ts).coefficients
+    f.coefficients[1]*one(ts).coefficients
 coefficients(f::AbstractVector,S2::Space{DD,RR},sp::JacobiWeight{SJ,DD}) where {SJ,DD<:IntervalDomain,RR<:Real} =
     coefficients(f,JacobiWeight(0,0,S2),sp)
 

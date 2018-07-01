@@ -98,13 +98,13 @@ julia> u(0.1)
 
 ## Eigenvalue Problems
 
-In analogy to linear algebra, many differential equations may be posed as eigenvalue problems. That is, for some differential operator $L$, there are a family of functions $u_i(x)$ such that 
+In analogy to linear algebra, many differential equations may be posed as eigenvalue problems. That is, for some differential operator $L$, there are a family of functions $u_i(x)$ such that
 $$
 L~u_i(x) = \lambda_i u_i(x)
 $$
-where $\lambda_i$ is the $i^{th}$ eigenvalue of the $L$ and has a corresponding *eigenfunction* $u_i(x)$. A classic eigenvalue problem is known as the quantum harmonic oscillator where 
+where $\lambda_i$ is the $i^{th}$ eigenvalue of the $L$ and has a corresponding *eigenfunction* $u_i(x)$. A classic eigenvalue problem is known as the quantum harmonic oscillator where
 $$L = -\frac{1}{2}\frac{d^2}{dx^2} + \frac{1}{2} x^2$$
-and one demands that $u(\infty) = u(-\infty) = 0$. Because we expect the solutions to be exponentially suppressed for large $x$, we can approximate this with Dirichlet boundary conditions at a 'reasonably large' $x$ without much difference. 
+and one demands that $u(\infty) = u(-\infty) = 0$. Because we expect the solutions to be exponentially suppressed for large $x$, we can approximate this with Dirichlet boundary conditions at a 'reasonably large' $x$ without much difference.
 
 We can express this in ApproxFun as the following:
 ```jldoctest
@@ -112,13 +112,13 @@ x = Fun(-8 .. 8)
 L = -𝒟^2/2 + x^2/2
 S = space(x)
 B = Dirichlet(S)
-λ, v = eigs(B, L, 500,tolerance=1E-10) 
+λ, v = eigs(B, L, 500,tolerance=1E-10)
 ```
 note that boundary conditions must be specified in the call to `eigs`. Plotting the first $20$ eigenfunctions offset vertically by their eigenvalue, we see
 
 ![harmonic_eigs](../assets/Harmonic_eigs.pdf)
 
-If the solutions are not relatively constant near the boundary then one should push the boundaries further out. 
+If the solutions are not relatively constant near the boundary then one should push the boundaries further out.
 
 For problems with different contraints or boundary conditions, `B` can be any zero functional constraint, eg. `DefiniteIntegral()`.
 
@@ -162,10 +162,10 @@ to specify explicitly that the domain space for `B` is `Chebyshev()`.
 
 Behind the scenes, `A\b` where `A` is an `Operator` is implemented via
 an adaptive QR factorization.  That is, it is equivalent to
-`qrfact(A)\b`.  (There is a subtly here in space inferring: `A\b` can use
-    both `A` and `b` to determine the domain space, while `qrfact(A)` only
+`qr(A)\b`.  (There is a subtly here in space inferring: `A\b` can use
+    both `A` and `b` to determine the domain space, while `qr(A)` only
     sees the operator `A`.)
-      Note that `qrfact` adaptively caches a partial QR Factorization
+      Note that `qr` adaptively caches a partial QR Factorization
 as it is applied to different right-hand sides, so the same operator can be
 inverted much more efficiently in subsequent problems.
 
@@ -184,7 +184,7 @@ A = [Dirichlet(d);Δ]              # Δ is an alias for Laplacian()
 Using a QR Factorization
 reduces the cost of subsequent calls substantially:
 ```julia
-QR = qrfact(A)
+QR = qr(A)
 @time QR \ [zeros(∂(d));f]   # 4s
 g = exp.(-10(x+0.2)^2-20(y-0.1)^2)
 @time QR \ [zeros(∂(d));g]  # 0.09s

@@ -18,7 +18,7 @@ const AffineDomain = Union{Segment,PeriodicInterval,Ray,Line}
 points(d::ClosedInterval,n) = points(Domain(d),n)
 
 # These are needed for spaces to auto-convert [a,b] to Segment
-function convert(::Type{Domain},d::ClosedInterval)
+function Domain(d::ClosedInterval)
     a,b=d.left,d.right
     if isinf(norm(a)) && isinf(norm(b))
         Line(d)
@@ -28,9 +28,10 @@ function convert(::Type{Domain},d::ClosedInterval)
         Segment(d)
     end
 end
+convert(::Type{D}, d::ClosedInterval) where D<:Domain = D(d)
 
 # These are needed for spaces to auto-convert [a,b] to Interval
-function convert(::Type{PeriodicDomain},d::ClosedInterval)
+function PeriodicDomain(d::ClosedInterval)
     a,b=d.left,d.right
     if isinf(norm(a)) && isinf(norm(b))
         PeriodicLine(d)
@@ -41,7 +42,9 @@ function convert(::Type{PeriodicDomain},d::ClosedInterval)
     end
 end
 
-convert(::Type{Space},d::ClosedInterval) = Space(Domain(d))
+Space(d::ClosedInterval) = Space(Domain(d))
+convert(::Type{S},d::ClosedInterval) where S<:Space =
+    S(d)
 
 
 #issubset between domains
@@ -87,8 +90,8 @@ isless(d2::Ray{true,T2},d1::Segment{T1}) where {T1<:Real,T2<:Real} = d2.center â
 
 
 # ^
-*(a::ClosedInterval,b::Domain) = Domain(a)*b
-*(a::Domain,b::ClosedInterval) = a*Domain(b)
+*(a::ClosedInterval, b::Domain) = Domain(a)*b
+*(a::Domain, b::ClosedInterval) = a*Domain(b)
 
 #union
 union(a::ClosedInterval,b::Domain) = union(Domain(a),b)

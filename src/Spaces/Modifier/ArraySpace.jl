@@ -25,7 +25,7 @@ ArraySpace(S::Space,n::Integer) = ArraySpace(S,(n,))
 ArraySpace(S::Space,n,m) = ArraySpace(fill(S,(n,m)))
 ArraySpace(d::Domain,n...) = ArraySpace(Space(d),n...)
 
-convert(::Type{Space},sp::AbstractArray{<:Space}) = ArraySpace(sp)
+Space(sp::AbstractArray{<:Space}) = ArraySpace(sp)
 convert(::Type{Array},sp::ArraySpace) = sp.spaces
 convert(::Type{Vector},sp::VectorSpace) = sp.spaces
 convert(::Type{Matrix},sp::MatrixSpace) = sp.spaces
@@ -227,12 +227,12 @@ function Fun(M::AbstractMatrix{<:Number},sp::MatrixSpace)
     Fun(map((f,s)->Fun(f,s),M,sp.spaces))
 end
 
-Fun(M::UniformScaling,sp::MatrixSpace) = Fun(M.λ*eye(size(sp)...),sp)
+Fun(M::UniformScaling,sp::MatrixSpace) = Fun(M.λ*Matrix(I,size(sp)...),sp)
 
 
 
-Base.ones(::Type{T},A::ArraySpace) where {T<:Number} = Fun(ones.(T,spaces(A)))
-Base.ones(A::ArraySpace) = Fun(ones.(spaces(A)))
+one(::Type{T},A::ArraySpace) where {T<:Number} = Fun(one.(T,spaces(A)))
+one(A::ArraySpace) = Fun(one.(spaces(A)))
 
 
 ## EuclideanSpace

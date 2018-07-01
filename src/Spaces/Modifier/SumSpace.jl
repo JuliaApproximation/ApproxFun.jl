@@ -400,21 +400,21 @@ linebilinearform(f::Fun{S},g::Fun{V}) where {S<:PiecewiseSpace,V<:PiecewiseSpace
 
 
 
-function Base.ones(::Type{T},S::SumSpace) where T<:Number
+function one(::Type{T},S::SumSpace) where T<:Number
     for sp in components(S)
         if isconvertible(ConstantSpace(),sp)
-            return Fun(ones(T,sp), S)
+            return Fun(fill(one(T),sp), S)
         end
     end
 
     error("$S does not contain constants")
 end
 
-Base.ones(S::SumSpace) = ones(Float64,S)
+one(S::SumSpace) = one(Float64,S)
 
-Base.ones(::Type{T},S::PiecewiseSpace{SS,V}) where {T<:Number,SS,V} =
-    Fun(map(ones,components(S)),PiecewiseSpace)
-Base.ones(S::PiecewiseSpace) = ones(Float64,S)
+one(::Type{T},S::PiecewiseSpace{SS,V}) where {T<:Number,SS,V} =
+    Fun(map(one,components(S)),PiecewiseSpace)
+one(S::PiecewiseSpace) = one(Float64,S)
 
 
 Fun(::typeof(identity), S::PiecewiseSpace) = Fun(Fun.(identity,S.spaces),PiecewiseSpace)
@@ -422,7 +422,7 @@ Fun(::typeof(identity), S::PiecewiseSpace) = Fun(Fun.(identity,S.spaces),Piecewi
 
 # interlace coefficients according to iterator
 function interlace(::Type{T},v::AbstractVector{V},it::BlockInterlacer) where {T,V<:AbstractVector}
-    ret=Array{T}(0)
+    ret=Array{T}(undef,0)
     N=mapreduce(length,max,v)
     cnts = Vector(map(length,v))  # convert to Vector to ensure mutable
 

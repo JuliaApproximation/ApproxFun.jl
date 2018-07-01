@@ -18,15 +18,16 @@ import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, 
                 similar, map, vcat, hcat, hvcat, show, summary, stride, sum, cumsum, sign, imag, conj, inv,
                 complex, reverse, exp, sqrt, abs, abs2, sign, issubset, values, in, first, last, rand, intersect, setdiff,
                 isless, union, angle, join, isnan, isapprox, isempty, sort, merge, promote_rule,
-                minimum, maximum, extrema, indmax, indmin, findmax, findmin, isfinite,
-                zeros, zero, one, promote_rule, repeat, length, resize!, isinf
+                minimum, maximum, extrema, argmax, argmin, findmax, findmin, isfinite,
+                zeros, zero, one, promote_rule, repeat, length, resize!, isinf, eltype,
+                getproperty, findfirst, unsafe_getindex
 
-import Base.Broadcast: BroadcastStyle, Broadcasted
+import Base.Broadcast: BroadcastStyle, Broadcasted, AbstractArrayStyle
 
 
 import LinearAlgebra: BlasInt, BlasFloat, norm, ldiv!, mul!, det, eigvals, dot, cross,
                         qr, isdiag, rank, issymmetric, ishermitian, Tridiagonal,
-                        diagm, factorize, nullspace
+                        diagm, factorize, nullspace, adjoint, transpose
 
 import SparseArrays: blockdiag
 

@@ -42,7 +42,7 @@ Ray() = Ray{false}()
 
 ##deal with vector
 
-function convert(::Type{Ray},d::ClosedInterval)
+function Ray(d::ClosedInterval)
     a,b=d.left,d.right
     @assert abs(a)==Inf || abs(b)==Inf
 

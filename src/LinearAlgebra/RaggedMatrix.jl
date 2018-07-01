@@ -177,8 +177,8 @@ function BLAS.axpy!(a, X::RaggedMatrix, Y::RaggedMatrix)
 end
 
 colstop(X::SubArray{T,2,RaggedMatrix{T},Tuple{UnitRange{Int},UnitRange{Int}}},
-     j::Integer) where {T} = min(colstop(parent(X),j + first(parentindexes(X)[2])-1) -
-                                            first(parentindexes(X)[1]) + 1,
+     j::Integer) where {T} = min(colstop(parent(X),j + first(parentindices(X)[2])-1) -
+                                            first(parentindices(X)[1]) + 1,
                             size(X,1))
 
 function BLAS.axpy!(a,X::RaggedMatrix,
@@ -188,8 +188,8 @@ function BLAS.axpy!(a,X::RaggedMatrix,
     end
 
     P = parent(Y)
-    ksh = first(parentindexes(Y)[1]) - 1  # how much to shift
-    jsh = first(parentindexes(Y)[2]) - 1  # how much to shift
+    ksh = first(parentindices(Y)[1]) - 1  # how much to shift
+    jsh = first(parentindices(Y)[2]) - 1  # how much to shift
 
     for j=1:size(X,2)
         cx=colstop(X,j)

@@ -53,11 +53,11 @@ returns `Fun(identity,Chebyshev())`.
 Fun()
 
 """
-    ones(d::Space)
+    one(d::Space)
 
 Return the `Fun` that represents the function one on the specified space.
 """
-ones(::Space)
+one(::Space)
 
 """
     zeros(d::Space)

@@ -147,23 +147,23 @@ end
 
 
 
-view(V::SubOperator,kr::UnitRange,jr::UnitRange) = view(V.parent,reindex(V,parentindexes(V),(kr,jr))...)
-view(V::SubOperator,K::Block,J::Block) = view(V.parent,reindex(V,parentindexes(V),(K,J))...)
-view(V::SubOperator,KR::BlockRange,JR::BlockRange) = SubOperator(V.parent, reindex(V,parentindexes(V),(KR,JR)))
+view(V::SubOperator,kr::UnitRange,jr::UnitRange) = view(V.parent,reindex(V,parentindices(V),(kr,jr))...)
+view(V::SubOperator,K::Block,J::Block) = view(V.parent,reindex(V,parentindices(V),(K,J))...)
+view(V::SubOperator,KR::BlockRange,JR::BlockRange) = SubOperator(V.parent, reindex(V,parentindices(V),(KR,JR)))
 function view(V::SubOperator,::Type{FiniteRange},jr::AbstractVector{Int})
     cs = (isbanded(V) || isblockbandedbelow(V)) ? colstop(V,maximum(jr)) : mapreduce(j->colstop(V,j),max,jr)
     view(V,1:cs,jr)
 end
 
-view(V::SubOperator,kr,jr) = view(V.parent,reindex(V,parentindexes(V),(kr,jr))...)
-view(V::SubOperator,kr::AbstractCount,jr::AbstractCount) = view(V.parent,reindex(V,parentindexes(V),(kr,jr))...)
+view(V::SubOperator,kr,jr) = view(V.parent,reindex(V,parentindices(V),(kr,jr))...)
+view(V::SubOperator,kr::AbstractCount,jr::AbstractCount) = view(V.parent,reindex(V,parentindices(V),(kr,jr))...)
 
 
 bandwidth(S::SubOperator,k::Int) = S.bandwidths[k]
 bandinds(S::SubOperator) = (-bandwidth(S,1),bandwidth(S,2))
 function colstop(S::SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},j::Integer) where {T,OP}
-    cs = colstop(parent(S),parentindexes(S)[2][j])
-    kr = parentindexes(S)[1]
+    cs = colstop(parent(S),parentindices(S)[2][j])
+    kr = parentindices(S)[1]
     n = size(S,1)
     if cs < first(kr)
         0
@@ -174,11 +174,11 @@ function colstop(S::SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},j::In
     end
 end
 colstart(S::SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},j::Integer) where {T,OP} =
-    max(findfirst(parentindexes(S)[1],colstart(parent(S),parentindexes(S)[2][j])),1)
+    max(findfirst(parentindices(S)[1],colstart(parent(S),parentindices(S)[2][j])),1)
 rowstart(S::SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},j::Integer) where {T,OP} =
-    max(1,findfirst(parentindexes(S)[2],rowstart(parent(S),parentindexes(S)[1][j])))
+    max(1,findfirst(parentindices(S)[2],rowstart(parent(S),parentindices(S)[1][j])))
 rowstop(S::SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},j::Integer) where {T,OP} =
-        findfirst(parentindexes(S)[2],rowstop(parent(S),parentindexes(S)[1][j]))
+        findfirst(parentindices(S)[2],rowstop(parent(S),parentindices(S)[1][j]))
 
 
 # blocks don't change
@@ -191,7 +191,7 @@ israggedbelow(S::SubOperator) = israggedbelow(parent(S))
 blockbandinds(S::SubOperator{T,OP,Tuple{II,JJ}}) where {T,OP,II<:AbstractRange{Int},JJ<:AbstractRange{Int}} =
     blockbandinds(parent(S))
 function blockbandinds(S::SubOperator{T,B,Tuple{BlockRange1,BlockRange1}}) where {T,B}
-    KR,JR = parentindexes(S)
+    KR,JR = parentindices(S)
     l,u = blockbandinds(parent(S))
     sh = first(KR).n[1]-first(JR).n[1]
     l+sh,u+sh
@@ -203,7 +203,7 @@ bandinds(S::SubOperator{T,B,Tuple{Block,Block}}) where {T,B} = subblockbandinds(
 blockbandinds(S::SubOperator{T,B,Tuple{Block,Block}}) where {T,B} = 0,0
 
 function BandedBlockBandedMatrix(::Type{Zeros}, S::SubOperator)
-    kr,jr=parentindexes(S)
+    kr,jr=parentindices(S)
     KO=parent(S)
     l,u=blockbandinds(KO)
     λ,μ=subblockbandinds(KO)
@@ -211,7 +211,7 @@ function BandedBlockBandedMatrix(::Type{Zeros}, S::SubOperator)
     rt=rangespace(KO)
     dt=domainspace(KO)
     k1,j1=isempty(kr) || isempty(jr) ? (first(kr),first(jr)) :
-                                        reindex(S,parentindexes(S),(1,1))
+                                        reindex(S,parentindices(S),(1,1))
 
     # each row/column that we differ from the the block start shifts
     # the sub block inds
@@ -227,7 +227,7 @@ function BandedBlockBandedMatrix(::Type{Zeros}, S::SubOperator)
 end
 
 function BandedBlockBandedMatrix(::Type{Zeros}, S::SubOperator{T,B,Tuple{BlockRange1,BlockRange1}}) where {T,B}
-    KR,JR = parentindexes(S)
+    KR,JR = parentindices(S)
     KO = parent(S)
     l,u = blockbandwidths(KO)::Tuple{Int,Int}
     λ,μ = subblockbandwidths(KO)::Tuple{Int,Int}
@@ -249,14 +249,14 @@ end
 function domainspace(S::SubOperator)
     P =parent(S)
     sp=domainspace(P)
-    kr=parentindexes(S)[2]
+    kr=parentindices(S)[2]
 
     SubSpace{typeof(sp),typeof(kr),domaintype(sp),rangetype(sp)}(sp,kr)
 end
 function rangespace(S::SubOperator)
     P =parent(S)
     sp=rangespace(P)
-    kr=parentindexes(S)[1]
+    kr=parentindices(S)[1]
 
     SubSpace{typeof(sp),typeof(kr),domaintype(sp),rangetype(sp)}(sp,kr)
 end
@@ -264,13 +264,13 @@ end
 size(V::SubOperator) = V.dims
 size(V::SubOperator,k::Int) = V.dims[k]
 
-unsafe_getindex(V::SubOperator,k::Integer,j::Integer) = V.parent[reindex(V,parentindexes(V),(k,j))...]
-getindex(V::SubOperator,k::Integer,j::Integer) = V.parent[reindex(V,parentindexes(V),(k,j))...]
-getindex(V::SubOperator,k::Integer,j::AbstractRange) = V.parent[reindex(V,parentindexes(V),(k,j))...]
-getindex(V::SubOperator,k::AbstractRange,j::Integer) = V.parent[reindex(V,parentindexes(V),(k,j))...]
-getindex(V::SubOperator,k::AbstractRange,j::AbstractRange) = V.parent[reindex(V,parentindexes(V),(k,j))...]
+unsafe_getindex(V::SubOperator,k::Integer,j::Integer) = V.parent[reindex(V,parentindices(V),(k,j))...]
+getindex(V::SubOperator,k::Integer,j::Integer) = V.parent[reindex(V,parentindices(V),(k,j))...]
+getindex(V::SubOperator,k::Integer,j::AbstractRange) = V.parent[reindex(V,parentindices(V),(k,j))...]
+getindex(V::SubOperator,k::AbstractRange,j::Integer) = V.parent[reindex(V,parentindices(V),(k,j))...]
+getindex(V::SubOperator,k::AbstractRange,j::AbstractRange) = V.parent[reindex(V,parentindices(V),(k,j))...]
 Base.parent(S::SubOperator) = S.parent
-Base.parentindexes(S::SubOperator) = S.indexes
+Base.parentindices(S::SubOperator) = S.indexes
 
 
 
@@ -309,10 +309,10 @@ for TYP in (:RaggedMatrix, :Matrix)
             if isbanded(A)
                 $TYP(BandedMatrix(V))
             elseif isbandedblockbanded(A)
-                N = block(rangespace(A), last(parentindexes(V)[1]))
-                M = block(domainspace(A), last(parentindexes(V)[2]))
+                N = block(rangespace(A), last(parentindices(V)[1]))
+                M = block(domainspace(A), last(parentindices(V)[2]))
                 B = A[Block(1):N, Block(1):M]
-                RaggedMatrix(view(B, parentindexes(V)...), _colstops(V))
+                RaggedMatrix(view(B, parentindices(V)...), _colstops(V))
             else
                 $def_TYP(V)
             end
@@ -325,7 +325,7 @@ function convert(::Type{BandedMatrix}, S::SubOperator{T,B,Tuple{BlockRange1,Bloc
     A = parent(S)
     ds = domainspace(A)
     rs = rangespace(A)
-    KR,JR = parentindexes(S)
+    KR,JR = parentindices(S)
     BandedMatrix(view(A,
                       blockstart(rs,first(KR)):blockstop(rs,last(KR)),
                       blockstart(ds,first(JR)):blockstop(ds,last(JR))))

@@ -66,7 +66,7 @@ using ApproxFun, Test
     @test norm(min(x,x)-x)<100eps()
 
     f3=Fun(x->x<-0.05 ? -1.0 : (x<0.45 ? 4*(x-.2) : 1),Domain(-1..1) \ [-0.05,0.45])
-    @test norm(f2.(linspace(-1,1,10))-f3.(linspace(-1,1,10))) < 2eps()
+    @test norm(f2.(range(-1,stop=1,length=10))-f3.(range(-1,stop=1,length=10))) < 2eps()
 
     x=Fun(identity, Segment(im,0) ∪ Segment(0,1))
     @test x(0.5) ≈ 0.5
@@ -163,7 +163,7 @@ using ApproxFun, Test
 
     ## Piecewise + Cosntant
     Γ=Circle() ∪ Circle(0.0,0.4)
-    o=ones(Γ)
+    o=one(Γ)
     @test o(1.) ≈ 1.0
     @test o(0.4) ≈ 1.0
 
@@ -227,7 +227,7 @@ using ApproxFun, Test
     @test isempty(component(Γ,1)\component(Γ,1))
     @test Γ\component(Γ,1) == component(Γ,2) ∪ component(Γ,3)
 
-    @test norm(Fun(ones(component(Γ,1)),Γ) - Fun(x->x ∈ component(Γ,1) ? 1.0 : 0.0,Γ)) == 0
+    @test norm(Fun(one(component(Γ,1)),Γ) - Fun(x->x ∈ component(Γ,1) ? 1.0 : 0.0,Γ)) == 0
 
 
     ## Line
@@ -342,9 +342,9 @@ using ApproxFun, Test
     @test length(jumplocations(x)) == 0
     @test all(jumplocations(sign(x) + sign(x+0.2)) .≈ [-0.2, 0])
 
-    @testset "ones for SumSpace" begin
+    @testset "one for SumSpace" begin
         S = Jacobi(0,1) ⊕ JacobiWeight(1/3,0,Jacobi(1/3,2/3)) ⊕ JacobiWeight(2/3,0,Jacobi(2/3,1/3))
-        o = ones(S)
+        o = one(S)
         @test o(0.5) == 1
     end
 

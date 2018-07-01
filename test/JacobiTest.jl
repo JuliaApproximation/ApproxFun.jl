@@ -213,12 +213,12 @@ using ApproxFun, Test, StaticArrays
     @test f(0.1) ≈ 5.215
 
 
-    f = Fun(Laguerre(0.1),ones(100))
+    f = Fun(Laguerre(0.1),fill(1.0,100))
     @test f(0.2) ≈ 8.840040924281498
 
 
     @test (Derivative(Laguerre(0.1))*f)(0.2) ≈ -71.44556705957386
-    f = Fun(Laguerre(0.2),ones(100))
+    f = Fun(Laguerre(0.2),fill(1.0,100))
     @test (Derivative(Laguerre(0.2))*f)(0.3) ≈ -137.05785783078218
 
 
@@ -227,7 +227,7 @@ using ApproxFun, Test, StaticArrays
 
 
 
-    f=Fun(LaguerreWeight(0.,Laguerre(0.1)),ones(100))
+    f=Fun(LaguerreWeight(0.,Laguerre(0.1)),fill(1.0,100))
     @test f'(0.2) ≈ -65.7322962859456
 
 

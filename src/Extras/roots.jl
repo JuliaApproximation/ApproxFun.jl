@@ -305,7 +305,7 @@ extrema(f::Fun{PiecewiseSpace{SV,DD,RR},T}) where {SV,DD<:UnionDomain,RR<:Real,T
 
 
 
-for op in (:(indmax),:(indmin))
+for op in (:(argmax),:(argmin))
     @eval begin
         function $op(f::Fun{S,T}) where {S<:RealSpace,T<:Real}
             # need to check for zero as extremal_args is not defined otherwise

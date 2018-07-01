@@ -55,20 +55,23 @@ Fun(c::Number,d::ConstantSpace) = Fun(d,[c])
 dimension(::ConstantSpace) = 1
 
 #TODO: Change
-setdomain(f::Fun{CS},d::Domain) where {CS<:AnyDomain} = Number(f)*ones(d)
+setdomain(f::Fun{CS},d::Domain) where {CS<:AnyDomain} = Number(f)*one(d)
 
 canonicalspace(C::ConstantSpace) = C
 spacescompatible(a::ConstantSpace,b::ConstantSpace)=domainscompatible(a,b)
 
-Base.ones(S::ConstantSpace)=Fun(S,ones(1))
-Base.ones(S::Union{AnyDomain,UnsetSpace})=ones(ConstantSpace())
+one(S::ConstantSpace)=Fun(S,fill(1.0,1))
+one(S::Union{AnyDomain,UnsetSpace})=one(ConstantSpace())
 Base.zeros(S::Union{AnyDomain,UnsetSpace})=zeros(ConstantSpace())
 evaluate(f::AbstractVector,::ConstantSpace,x...)=f[1]
 evaluate(f::AbstractVector,::ZeroSpace,x...)=zero(eltype(f))
 
 
-convert(::Type{T},f::Fun{CS}) where {CS<:ConstantSpace,T<:Number} =
-    convert(T,f.coefficients[1])
+convert(::Type{T}, f::Fun{CS}) where {CS<:ConstantSpace,T<:Number} =
+    convert(T, f.coefficients[1])
+
+Number(f::Fun) = convert(Number, f)
+
 
 # promoting numbers to Fun
 # override promote_rule if the space type can represent constants
@@ -116,19 +119,19 @@ Conversion(a::ConstantSpace,b::Space{D}) where {D<:BivariateDomain} = ConcreteCo
 
 Conversion(a::ConstantSpace,b::Space) = ConcreteConversion(a,b)
 bandinds(C::ConcreteConversion{CS,S}) where {CS<:ConstantSpace,S<:Space} =
-    1-ncoefficients(ones(rangespace(C))),0
+    1-ncoefficients(one(rangespace(C))),0
 function getindex(C::ConcreteConversion{CS,S,T},k::Integer,j::Integer) where {CS<:ConstantSpace,S<:Space,T}
     if j != 1
         throw(BoundsError())
     end
-    on=ones(rangespace(C))
+    on=one(rangespace(C))
     k ≤ ncoefficients(on) ? T(on.coefficients[k]) : zero(T)
 end
 
 coefficients(f::AbstractVector,sp::ConstantSpace{Segment{Vec{2,TT}}},
              ts::TensorSpace{SV,DD}) where {TT,SV,DD<:BivariateDomain} =
-    f[1]*ones(ts).coefficients
-coefficients(f::AbstractVector,sp::ConstantSpace,ts::Space) = f[1]*ones(ts).coefficients
+    f[1]*one(ts).coefficients
+coefficients(f::AbstractVector,sp::ConstantSpace,ts::Space) = f[1]*one(ts).coefficients
 
 
 ########

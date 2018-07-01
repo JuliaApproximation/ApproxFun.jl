@@ -179,20 +179,20 @@ end
 
     @series begin
         primary --> true
-        ones(2)*pts[1],[0,1]*ws[1]
+        fill(1.0,2)*pts[1],[0,1]*ws[1]
     end
 
     if length(ws) > 1
         @series begin
             primary := false
-            ones(2)*pts[2:end]',[0,1]*ws[2:end]'
+            fill(1.0,2)*pts[2:end]',[0,1]*ws[2:end]'
         end
     end
 
     @series begin
         primary := false
         linestyle := :dot
-        ones(2)*pts',[1,2]*ws'
+        fill(1.0,2)*pts',[1,2]*ws'
     end
 end
 
@@ -205,12 +205,12 @@ end
 
     @series begin
         primary --> true
-        ones(2)*pts[1],[0,1]*ws[1]
+        fill(1.0,2)*pts[1],[0,1]*ws[1]
     end
     if length(ws) > 1
         @series begin
             primary := false
-            ones(2)*pts[2:end]',[0,1]*ws[2:end]'
+            fill(1.0,2)*pts[2:end]',[0,1]*ws[2:end]'
         end
     end
 end

@@ -57,10 +57,10 @@ end
 show(io::IO,::ConstantSpace{AnyDomain}) = print(io,"ConstantSpace")
 show(io::IO,S::ConstantSpace) = print(io,"ConstantSpace($(domain(S)))")
 show(io::IO,f::Fun{ConstantSpace{AnyDomain}}) =
-    print(io,"$(Number(f)) anywhere")
+    print(io,"$(convert(Number,f)) anywhere")
 
 show(io::IO,f::Fun{ConstantSpace{DD,RR}}) where {DD,RR} =
-    print(io,"$(Number(f)) on $(domain(f))")
+    print(io,"$(convert(Number,f)) on $(domain(f))")
 
 for typ in ("Chebyshev","Fourier","Laurent","Taylor","SinSpace","CosSpace")
     TYP = Meta.parse(typ)
@@ -144,7 +144,7 @@ end
 summary(ss::ArraySpace) = string(Base.dims2string(length.(axes(ss))), " ArraySpace")
 function show(io::IO,ss::ArraySpace;header::Bool=true)
     header && print(io,summary(ss)*":\n")
-    showarray(io,ss.spaces;header=false)
+    show(io, ss.spaces)
 end
 
 function show(io::IO,s::TensorSpace)
@@ -189,7 +189,8 @@ end
 
 ## Operator
 
-summary(B::Operator) = string(typeof(B).name.name)*":"*string(domainspace(B))*"→"*string(rangespace(B))
+summary(B::Operator) =
+    string(typeof(B).name.name)*":"*string(domainspace(B))*"→"*string(rangespace(B))
 
 
 function show(io::IO,B::Operator;header::Bool=true)
@@ -200,7 +201,7 @@ function show(io::IO,B::Operator;header::Bool=true)
         if isbanded(B) && isinf(size(B,1)) && isinf(size(B,2))
             BM=B[1:10,1:10]
 
-            M=Matrix{Any}(11,11)
+            M=Matrix{Any}(undef,11,11)
             fill!(M,PrintShow("⋅"))
             for j = 1:size(BM,2),k = colrange(BM,j)
                 M[k,j]=BM[k,j]
@@ -213,11 +214,11 @@ function show(io::IO,B::Operator;header::Bool=true)
                 M[end,j]=PrintShow("⋱")
             end
 
-            showarray(io,M;header=false)
+            show(io, M)
         elseif isinf(size(B,1)) && isinf(size(B,2))
             BM=B[1:10,1:10]
 
-            M=Matrix{Any}(11,11)
+            M=Matrix{Any}(undef,11,11)
             for k=1:10,j=1:10
                 M[k,j]=BM[k,j]
             end
@@ -229,11 +230,11 @@ function show(io::IO,B::Operator;header::Bool=true)
                 M[k,end]=M[end,k]=PrintShow("⋱")
             end
 
-            showarray(io,M;header=false)
+            show(io, M)
         elseif isinf(size(B,1))
             BM=B[1:10,1:size(B,2)]
 
-            M=Matrix{Any}(11,size(B,2))
+            M=Matrix{Any}(undef,11,size(B,2))
             for k=1:10,j=1:size(B,2)
                 M[k,j]=BM[k,j]
             end
@@ -241,11 +242,11 @@ function show(io::IO,B::Operator;header::Bool=true)
                 M[end,k]=PrintShow("⋮")
             end
 
-            showarray(io,M;header=false)
+            show(io, M)
         elseif isinf(size(B,2))
             BM=B[1:size(B,1),1:10]
 
-            M=Matrix{Any}(size(B,1),11)
+            M=Matrix{Any}(undef,size(B,1),11)
             for k=1:size(B,1),j=1:10
                 M[k,j]=BM[k,j]
             end
@@ -253,9 +254,9 @@ function show(io::IO,B::Operator;header::Bool=true)
                 M[k,end]=PrintShow("⋯")
             end
 
-            showarray(io,M;header=false)
+            show(io, M)
         else
-            showarray(io,AbstractMatrix(B)[1:size(B,1),1:size(B,2)];header=false)
+            show(io,AbstractMatrix(B)[1:size(B,1),1:size(B,2)])
         end
     end
 end

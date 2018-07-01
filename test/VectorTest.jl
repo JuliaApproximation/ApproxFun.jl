@@ -391,7 +391,7 @@ using ApproxFun, Test
     Dg = Operator(diagm(fill(ldirichlet(d),n)))
     @test Dg isa ApproxFun.MatrixInterlaceOperator
     @test size([Dg; B_row].ops) == (5,4)
-    @test ([Dg; B_row]*[f;f;f;f])(0.1) ≈ [ones(4);0]
+    @test ([Dg; B_row]*[f;f;f;f])(0.1) ≈ [fill(1.0,4);0]
 
     @test hcat(Dg).ops == Dg.ops
 

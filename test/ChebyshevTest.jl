@@ -43,8 +43,6 @@ using ApproxFun, Test
 
     @test norm((ecf-cf.*ef).coefficients)<200eps()
 
-
-
     @test maximum(abs,(eocf-cf./ef).coefficients)<1000eps()
 
 
@@ -122,7 +120,7 @@ using ApproxFun, Test
     ## ALiasing
 
     f=Fun(x->cos(50acos(x)))
-    @test norm(f.coefficients-eye(ncoefficients(f))[:,51])<100eps()
+    @test norm(f.coefficients-Matrix(I,ncoefficients(f),ncoefficients(f))[:,51])<100eps()
 
 
     ## Int values
@@ -173,7 +171,7 @@ using ApproxFun, Test
       @test 0.0 ∈ Domain(1-8*sqrt(δ)..1+8*sqrt(δ))
     @test 0.00001 ∈ Domain(1-8*sqrt(δ)..1+8*sqrt(δ))
 
-    ϕfun = Fun(x -> 1/sqrt(2*pi*δ)*exp(-abs2.(x-1)/(2*δ)), 1-8.*sqrt(δ)..1+8.*sqrt(δ))
+    ϕfun = Fun(x -> 1/sqrt(2*pi*δ)*exp(-abs2.(x-1)/(2*δ)), 1-8sqrt(δ)..1+8sqrt(δ))
       ϕfun(0.00001) ≈ 1/sqrt(2*pi*δ)*exp(-abs2.(0.00001-1)/(2*δ))
 
       iϕfun = 1-cumsum(ϕfun)

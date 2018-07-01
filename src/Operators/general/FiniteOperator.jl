@@ -49,7 +49,7 @@ function getindex(F::FiniteOperator,k::Integer)
 end
 
 function convert(::Type{BandedMatrix},S::SubOperator{T,FiniteOperator{AT,T}}) where {AT<:BandedMatrix,T}
-    kr,jr=parentindexes(S)
+    kr,jr=parentindices(S)
     if last(kr[1]) ≤ size(S.matrix,1) &&
         last(jr[2]) ≤ size(S.matrix,2)
         matrix[kr,jr]

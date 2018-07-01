@@ -127,7 +127,7 @@ using ApproxFun, Test
 
     S=Chebyshev()
     A=[Dirichlet(S);Derivative(S)^2 - I]
-    QR=qrfact(A)
+    QR=qr(A)
     @test (QR\[[1.,0],0])(0.0) ≈ 0.3240271368319427
     Q,R=qr(A)
     u=(R\(Q'*[[1.,0.0],0.0]))
@@ -139,7 +139,7 @@ using ApproxFun, Test
 
     x=Fun(S)
     A=[Dirichlet(S);Derivative(S)^2 - exp(im*x)]
-    QR=qrfact(A)
+    QR=qr(A)
 
     u=(QR\[[1.,0.0],0.0])
     @test u(0.0) ≈ (0.3329522068795961 + 0.024616008954634165im)
@@ -160,7 +160,7 @@ using ApproxFun, Test
     A=[B;D^2-x]
 
     ApproxFun.testraggedbelowoperator(A)
-    QR=qrfact(A)
+    QR=qr(A)
 
     @time u=QR\[[airyai(-2.),0.0],zeros(4),0.0]
 
@@ -183,7 +183,7 @@ using ApproxFun, Test
 
     # makes sure ops are in right order
     @test A.ops[4,1] isa ApproxFun.PlusOperator
-    QR=qrfact(A)
+    QR=qr(A)
     v=Any[0.,0.,0.,f...]
     @test (QR\v)(0.0) ≈ [0.0826967758420519,0.5553968826533497]
 

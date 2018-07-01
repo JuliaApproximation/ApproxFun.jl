@@ -70,7 +70,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
         return QR
     end
 
-    MO=QR.R
+    MO=QR.R_cache
     W=QR.H
 
     if col > MO.datasize[2]
@@ -133,7 +133,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
         return QR
     end
 
-    MO=QR.R
+    MO=QR.R_cache
     W=QR.H
 
     sz=sizeof(T)
@@ -212,8 +212,8 @@ for ArrTyp in (:AbstractVector, :AbstractMatrix)
         n == size(U,1) || throw(DimensionMismatch())
 
         V = parent(U)
-        @assert parentindexes(V)[1][1] == 1
-        @assert parentindexes(V)[2][1] == 1
+        @assert parentindices(V)[1][1] == 1
+        @assert parentindices(V)[2][1] == 1
 
         A = parent(V)
 

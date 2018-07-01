@@ -45,8 +45,8 @@ chebbisectioninv(c::AbstractVector{Float64},xl::AbstractVector{Float64}) =
     (n=length(xl);chebbisectioninv(c,xl,ClenshawPlan(Float64,Chebyshev(),length(c),n)))
 function chebbisectioninv(c::AbstractVector{Float64},xl::AbstractVector{Float64},plan::ClenshawPlan{Chebyshev{D,R},Float64}) where {D<:Domain,R}
     n = length(xl)
-    a = -ones(n)
-    b = ones(n)
+    a = -fill(1.0,n)
+    b = fill(1.0,n)
 
 
     for k=1:47  #TODO: decide 47
@@ -68,8 +68,8 @@ function chebbisectioninv(c::AbstractMatrix{Float64},xl::AbstractVector{Float64}
     @assert size(c)[2] == length(xl)
 
     n = length(xl)
-    a = -ones(n)
-    b = ones(n)
+    a = -fill(1.0,n)
+    b = fill(1.0,n)
 
 
     for k=1:47  #TODO: decide 47

@@ -8,7 +8,7 @@ Fun
 ```
 
 ```@docs
-ones(::Space)
+one(::Space)
 ```
 
 ```@docs
@@ -242,7 +242,7 @@ getindex(::Operator,::Fun)
 ```
 
 ```@docs
-qrfact(::Operator)
+qr(::Operator)
 ```
 
 ```@docs

@@ -58,7 +58,7 @@ end
 function convert(::Type{BandedMatrix},S::SubOperator{T,ToeplitzOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}}) where T
     ret = BandedMatrix(Zeros, S)
 
-    kr,jr=parentindexes(S)
+    kr,jr=parentindices(S)
 
     neg=parent(S).negative
     pos=parent(S).nonnegative
@@ -122,7 +122,7 @@ getindex(T::HankelOperator,k::Integer,j::Integer) =
 function convert(::Type{BandedMatrix},S::SubOperator{T,HankelOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}}) where T
     ret=BandedMatrix(Zeros, S)
 
-    kr,jr=parentindexes(S)
+    kr,jr=parentindices(S)
     cfs=parent(S).coefficients
 
     hankel_axpy!(1.0,cfs,kr,jr,ret)

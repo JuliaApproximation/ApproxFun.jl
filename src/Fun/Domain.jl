@@ -12,11 +12,19 @@ abstract type Domain{T} end
 const UnivariateDomain{T} = Domain{T} where {T<:Number}
 const BivariateDomain{T} = Domain{Vec{2,T}} where {T<:Number}
 
+struct DomainStyle <: BroadcastStyle end
 
-eltype(::Domain{T}) where {T} = T
-eltype(::Type{Domain{T}}) where {T} = T
-isreal(::Domain{T}) where {T<:Real} = true
-isreal(::Domain{T}) where {T} = false
+BroadcastStyle(::Type{<:Domain}) = DomainStyle()
+BroadcastStyle(A::AbstractArrayStyle, ::DomainStyle)  = A
+BroadcastStyle(::DomainStyle, A::AbstractArrayStyle)  = A
+
+Base.broadcast_axes(::Type{<:Domain}, A) = axes(A)
+Base.broadcastable(x::Domain) = x
+
+eltype(::Domain{T}) where T = T
+eltype(::Type{D}) where D<:Domain{T} where T = T
+isreal(::Domain{T}) where T<:Real = true
+isreal(::Domain{T}) where T = false
 
 copy(d::Domain) = d  # all domains are immutable
 
@@ -29,7 +37,7 @@ dimension(d::Domain) = dimension(typeof(d))
 # add indexing for all spaces, not just DirectSumSpace
 # mimicking scalar vs vector
 
-# TODO: 0.5 iteratorgo
+# TODO: 0.7 iteratorgo
 start(s::Domain) = false
 next(s::Domain,st) = (s,true)
 done(s::Domain,st) = st
@@ -175,7 +183,7 @@ convert(::Type{D},::AnyDomain) where {D<:PeriodicDomain} = AnyPeriodicDomain()
 
 ## conveninece routines
 
-ones(d::Domain)=ones(prectype(d),Space(d))
+one(d::Domain)=one(prectype(d),Space(d))
 zeros(d::Domain)=zeros(prectype(d),Space(d))
 
 

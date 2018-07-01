@@ -36,7 +36,7 @@ resizedata!(B::CachedOperator{T,<:BandedMatrix{T}},n::Integer,m::Integer) where 
 
 function QROperator(R::CachedOperator{T,<:BandedMatrix{T}}) where T
     M = R.data.l+1   # number of diag+subdiagonal bands
-    H = Array{T}(M,100)
+    H = Array{T}(undef,M,100)
     QROperator(R,H,0)
 end
 
@@ -48,7 +48,7 @@ function resizedata!(QR::QROperator{<:CachedOperator{T,<:BandedMatrix{T},
         return QR
     end
 
-    MO=QR.R
+    MO=QR.R_cache
     W=QR.H
 
     R=MO.data
@@ -101,7 +101,7 @@ function resizedata!(QR::QROperator{<:CachedOperator{T,<:BandedMatrix{T},
         return QR
     end
 
-    MO=QR.R
+    MO=QR.R_cache
     W=QR.H
 
     R=MO.data
@@ -131,14 +131,14 @@ function resizedata!(QR::QROperator{<:CachedOperator{T,<:BandedMatrix{T},
 
         for j=k:k+R.u
             v=r+sz*(R.u + (k-1)*st + (j-k)*(st-1))
-            dt=dot(M,wp,1,v,1)
+            dt = BandedMatrices.dot(M,wp,1,v,1)
             BLAS.axpy!(M,-2*dt,wp,1,v,1)
         end
 
         for j=k+R.u+1:k+R.u+M-1
             p=j-k-R.u
             v=r+sz*((j-1)*st)  # shift down each time
-            dt=dot(M-p,wp+p*sz,1,v,1)
+            dt = BandedMatrices.dot(M-p,wp+p*sz,1,v,1)
             BLAS.axpy!(M-p,-2*dt,wp+p*sz,1,v,1)
         end
     end
@@ -156,8 +156,8 @@ for ArrTyp in (:AbstractVector, :AbstractMatrix)
         n == size(U,1) || throw(DimensionMismatch())
 
         V = parent(U)
-        @assert first(parentindexes(V)[1]) == 1
-        @assert first(parentindexes(V)[2]) == 1
+        @assert first(parentindices(V)[1]) == 1
+        @assert first(parentindices(V)[2]) == 1
 
         A = parent(V)
 

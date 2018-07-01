@@ -11,8 +11,9 @@ Point(::AnyDomain) = Point(NaN)
 convert(::Type{Point},::AnyDomain) = Point(NaN)
 convert(::Type{Point{T}},::AnyDomain) where T = Point{T}(NaN)
 
-convert(::Type{Number},d::Point) = d.x
-convert(::Type{N},d::Point) where N<:Number = N(d.x)
+convert(::Type{Number}, d::Point) = d.x
+convert(::Type{N}, d::Point) where N<:Number = N(d.x)
+Number(d::Point) = convert(Number, x)
 
 """
     Point(x)

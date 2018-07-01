@@ -414,7 +414,7 @@ end
 function convert(::Type{BandedMatrix},
              S::SubOperator{T,ConcreteConversion{CC,J,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {J<:Jacobi,CC<:Chebyshev,T}
     ret=BandedMatrix(Zeros, S)
-    kr,jr = parentindexes(S)
+    kr,jr = parentindices(S)
     k=(kr ∩ jr)
 
     vals = one(T)./jacobip(T,k-1,-one(T)/2,-one(T)/2,one(T))
@@ -435,7 +435,7 @@ end
 function convert(::Type{BandedMatrix},
              S::SubOperator{T,ConcreteConversion{J,CC,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {J<:Jacobi,CC<:Chebyshev,T}
     ret=BandedMatrix(Zeros, S)
-    kr,jr = parentindexes(S)
+    kr,jr = parentindices(S)
     k=(kr ∩ jr)
 
     vals = jacobip(T,k-1,-one(T)/2,-one(T)/2,one(T))
@@ -459,7 +459,7 @@ end
 function convert(::Type{BandedMatrix},
         S::SubOperator{T,ConcreteConversion{US,J,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {US<:Ultraspherical,J<:Jacobi,T}
     ret=BandedMatrix(Zeros, S)
-    kr,jr = parentindexes(S)
+    kr,jr = parentindices(S)
     k=(kr ∩ jr)
 
     sp=rangespace(parent(S))
@@ -487,7 +487,7 @@ end
 function convert(::Type{BandedMatrix},
         S::SubOperator{T,ConcreteConversion{J,US,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {US<:Ultraspherical,J<:Jacobi,T}
     ret=BandedMatrix(Zeros, S)
-    kr,jr = parentindexes(S)
+    kr,jr = parentindices(S)
     k=(kr ∩ jr)
 
     sp=domainspace(parent(S))
