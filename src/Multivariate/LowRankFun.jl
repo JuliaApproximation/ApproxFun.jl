@@ -134,7 +134,7 @@ function standardLowRankFun(f::Function,dx::Space,dy::Space;tolerance::Union{Sym
         a,b = Fun(dx,p₁*Avals) - dotu(Br,A),Fun(dy,p₂*Bvals) - dotu(Ar,B)
         chop!(a,tol10),chop!(b,tol10)
     end
-    warn("Maximum rank of " * string(maxrank) * " reached")
+    @warn "Maximum rank of " * string(maxrank) * " reached"
     return LowRankFun(A,B),maxabsf
 end
 
@@ -183,7 +183,7 @@ function CholeskyLowRankFun(f::Function,dx::Space;tolerance::Union{Symbol,Tuple{
         a = Fun(dx,p₁*Avals) - dotu(Br,A)
         chop!(a,tol10)
     end
-    warn("Maximum rank of " * string(maxrank) * " reached")
+    @warn "Maximum rank of " * string(maxrank) * " reached"
     return LowRankFun(A,B),maxabsf
 end
 

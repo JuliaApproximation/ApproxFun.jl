@@ -125,7 +125,7 @@ function getindex(C::ConcreteConversion{CS,S,T},k::Integer,j::Integer) where {CS
         throw(BoundsError())
     end
     on=one(rangespace(C))
-    k ≤ ncoefficients(on) ? T(on.coefficients[k]) : zero(T)
+    k ≤ ncoefficients(on) ? convert(T,on.coefficients[k]) : zero(T)
 end
 
 coefficients(f::AbstractVector,sp::ConstantSpace{Segment{Vec{2,TT}}},
@@ -155,7 +155,7 @@ defaultMultiplication(f::Fun,b::ConstantSpace) = ConcreteMultiplication(f,b)
 bandinds(D::ConcreteMultiplication{CS1,CS2,T}) where {CS1<:ConstantSpace,CS2<:ConstantSpace,T} =
     0,0
 getindex(D::ConcreteMultiplication{CS1,CS2,T},k::Integer,j::Integer) where {CS1<:ConstantSpace,CS2<:ConstantSpace,T} =
-    k==j==1 ? T(D.f.coefficients[1]) : one(T)
+    k==j==1 ? convert(T,D.f.coefficients[1]) : one(T)
 
 rangespace(D::ConcreteMultiplication{CS1,CS2,T}) where {CS1<:ConstantSpace,CS2<:ConstantSpace,T} =
     D.space
@@ -177,13 +177,13 @@ subblockbandinds(D::ConcreteMultiplication{CS,F,T}, k) where {CS<:ConstantSpace,
 isbandedblockbanded(D::ConcreteMultiplication{CS,F,T}) where {CS<:ConstantSpace,F<:Space,T} = true
 isblockbanded(D::ConcreteMultiplication{CS,F,T}) where {CS<:ConstantSpace,F<:Space,T} = true
 getindex(D::ConcreteMultiplication{CS,F,T},k::Integer,j::Integer) where {CS<:ConstantSpace,F<:Space,T} =
-    k==j ? T(D.f) : zero(T)
+    k==j ? convert(T, D.f) : zero(T)
 rangespace(D::ConcreteMultiplication{CS,F,T}) where {CS<:ConstantSpace,F<:Space,T} = D.space
 
 
 bandinds(D::ConcreteMultiplication{F,CS,T}) where {CS<:ConstantSpace,F<:Space,T} = 1-ncoefficients(D.f),0
 function getindex(D::ConcreteMultiplication{F,CS,T},k::Integer,j::Integer) where {CS<:ConstantSpace,F<:Space,T}
-    k≤ncoefficients(D.f) && j==1 ? T(D.f.coefficients[k]) : zero(T)
+    k≤ncoefficients(D.f) && j==1 ? convert(T,D.f.coefficients[k]) : zero(T)
 end
 rangespace(D::ConcreteMultiplication{F,CS,T}) where {CS<:ConstantSpace,F<:Space,T} = space(D.f)
 

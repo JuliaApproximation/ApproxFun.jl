@@ -16,7 +16,7 @@ struct Arc{T,V<:Real,TT} <: IntervalDomain{TT}
     center::T
     radius::V
     angles::Tuple{V,V}
-    Arc{T,V,TT}(c,r,a) where {T,V,TT} = new{T,V,TT}(T(c),V(r),Tuple{V,V}(a))
+    Arc{T,V,TT}(c,r,a) where {T,V,TT} = new{T,V,TT}(convert(T,c),convert(V,r),Tuple{V,V}(a))
 end
 
 

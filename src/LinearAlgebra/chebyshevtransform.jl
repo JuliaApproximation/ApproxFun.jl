@@ -39,7 +39,7 @@ function *(P::ChebyshevTransformPlan{T,1,true},x::AbstractVector{T}) where T
     else
         x = P.plan*x
         x[1]/=2
-        lmul!(inv(T(n)), x)
+        lmul!(inv(convert(T,n)), x)
     end
 end
 
@@ -54,7 +54,7 @@ function *(P::ChebyshevTransformPlan{T,2,true},x::AbstractVector{T}) where T
         else
             x = P.plan*x
             x[1] /= 2;x[end] /= 2
-            lmul!(inv(T(n-1)),x)
+            lmul!(inv(convert(T,n-1)),x)
         end
     end
 end
@@ -96,7 +96,7 @@ end
 
 function *(P::IChebyshevTransformPlan{T,1,true},x::AbstractVector{T}) where T<:fftwNumber
     x[1] *=2
-    x = lmul!(T(0.5),P.plan*x)
+    x = lmul!(convert(T,0.5),P.plan*x)
     x
 end
 
@@ -109,7 +109,7 @@ function *(P::IChebyshevTransformPlan{T,2,true},x::AbstractVector{T}) where T<:f
         x[1] *= 2;x[end] *= 2
         x = P.plan*x
         x[1] *= 2;x[end] *= 2
-        lmul!(T(.5(n-1)),x)
+        lmul!(convert(T,.5(n-1)),x)
     end
 end
 

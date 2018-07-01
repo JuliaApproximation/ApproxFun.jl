@@ -29,7 +29,7 @@ function transpose_nullspace(QR::QROperator,tolerance,maxlength)
 
     while slnorm(K,floor(Int,k^α),:) >tolerance*k
         if k > maxlength
-            warn("Max length of $maxlength reached.")
+            @warn "Max length of $maxlength reached."
             break
         end
 

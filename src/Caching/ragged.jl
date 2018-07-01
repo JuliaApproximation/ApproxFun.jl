@@ -250,7 +250,7 @@ function mulpars(Ac::Adjoint{T,<:QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T}
     yp=view(Y,1:length(B))
     while (k ≤ m || norm(yp) > tolerance )
         if k > maxlength
-            warn("Maximum length $maxlength reached.")
+            @warn "Maximum length $maxlength reached."
             break
         end
         if k > A.QR.ncols
@@ -303,7 +303,7 @@ function mulpars(Ac::Adjoint{T,<:QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T}
     yp=y
     while (k ≤ m || BLAS.nrm2(M,yp,1) > tolerance )
         if k > maxlength
-            warn("Maximum length $maxlength reached.")
+            @warn "Maximum length $maxlength reached."
             break
         end
         if k > A.QR.ncols

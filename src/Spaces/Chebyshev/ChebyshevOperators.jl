@@ -65,7 +65,7 @@ function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(first)},k::Abst
     x = op.x
     d = domain(op)
     p = op.order
-    cst = T((2/(d.b-d.a))^p)
+    cst = convert(T,(2/(d.b-d.a))^p)
     n=length(k)
 
     ret = Array{T}(undef, n)
@@ -79,7 +79,7 @@ function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(first)},k::Abst
         @simd for j=k
             @inbounds ret[j+k1] *= (j-1)^2-m^2
         end
-        scal!(T(1/(2m+1)), ret)
+        scal!(convert(T,1/(2m+1)), ret)
     end
 
     scal!(cst,ret)
@@ -90,7 +90,7 @@ function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(last)},k::Abstr
     x = op.x
     d = domain(op)
     p = op.order
-    cst = T((2/(d.b-d.a))^p)
+    cst = convert(T,(2/(d.b-d.a))^p)
     n=length(k)
 
     ret = fill(one(T),n)
@@ -100,7 +100,7 @@ function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(last)},k::Abstr
         @simd for j=k
             @inbounds ret[j+k1] *= (j-1)^2-m^2
         end
-        scal!(T(1/(2m+1)), ret)
+        scal!(convert(T,1/(2m+1)), ret)
     end
 
     scal!(cst,ret)
@@ -109,7 +109,7 @@ end
 function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},M,OT,T},
                 j::Integer) where {DD<:Segment,RR,M<:Real,OT,T}
     if op.order == 0
-        T(evaluatechebyshev(j,tocanonical(domain(op),op.x))[end])
+        convert(T,evaluatechebyshev(j,tocanonical(domain(op),op.x))[end])
     else
         error("Only zero–second order implemented")
     end
@@ -249,8 +249,8 @@ function getindex(D::ConcreteDerivative{Chebyshev{DD,RR},K,T},k::Integer,j::Inte
     d=domain(D)
 
     if j==k+m
-        C=T(pochhammer(one(T),m-1)/2*(4/(d.b-d.a))^m)
-        T(C*(m+k-one(T)))
+        C=convert(T,pochhammer(one(T),m-1)/2*(4/(d.b-d.a))^m)
+        convert(T,C*(m+k-one(T)))
     else
         zero(T)
     end
@@ -271,7 +271,7 @@ for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:ar
             d = domain(Σ)
             C = $Len(d)/2
 
-            isodd(k) ? T(2C/(k*(2-k))) : zero(T)
+            isodd(k) ? convert(T,2C/(k*(2-k))) : zero(T)
         end
     end
 end

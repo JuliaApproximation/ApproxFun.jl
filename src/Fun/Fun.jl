@@ -90,6 +90,10 @@ convert(::Type{Fun{S}},x::Number) where {S} =
     x==0 ? zeros(S(AnyDomain())) : x*one(S(AnyDomain()))
 convert(::Type{IF},x::Number) where {IF<:Fun} = convert(IF,Fun(x))
 
+Fun{S,T,VT}(f::Fun) where {S,T,VT} = convert(Fun{S,T,VT}, f)
+Fun{S,T}(f::Fun) where {S,T} = convert(Fun{S,T}, f)
+Fun{S}(f::Fun) where {S} = convert(Fun{S}, f)
+
 # if we are promoting, we need to change to a VFun
 Base.promote_rule(::Type{Fun{S,T,VT1}},::Type{Fun{S,V,VT2}}) where {T,V,S,VT1,VT2} =
     VFun{S,promote_type(T,V)}
@@ -547,15 +551,23 @@ BroadcastStyle(::FunStyle, A::AbstractArrayStyle) = A
 Base.broadcast_axes(::Type{Fun}, A) = axes(A)
 Base.broadcastable(x::Fun) = x
 
+broadcastdomain(b) = AnyDomain()
+broadcastdomain(b::Fun) = domain(b)
+broadcastdomain(b::Broadcasted) = mapreduce(broadcastdomain, ∪, b.args)
+
+broadcasteval(f::Function, x) = f(x)
+broadcasteval(c, x) = c
+broadcasteval(c::Ref, x) = c.x
+broadcasteval(b::Broadcasted, x) = b.f(broadcasteval.(b.args, x)...)
+
 # TODO: use generated function to improve the following
 function copy(bc::Broadcasted{FunStyle})
-    args = Fun.(bc.args)  # convert all to funs
-    d = mapreduce(domain, ∪, args)  # find joint domain, note that AnyDomain is olsot
-    Fun(x -> bc.f(map(fun -> fun(x),args)...), d)
+    d = broadcastdomain(bc)
+    Fun(x -> broadcasteval(bc, x), d)
 end
 
 function copyto!(dest::Fun, bc::Broadcasted{FunStyle})
-    ret = bc.f.(bc.args...)
+    ret = copy(bc)
     if domain(ret) ≠ domain(dest)
         throw(ArgumentError("Domain of right-hand side incompatible with destination"))
     end

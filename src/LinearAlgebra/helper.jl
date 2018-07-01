@@ -72,7 +72,7 @@ end
 
 
 scal!(n::Integer,cst::BlasFloat,ret::DenseArray{T},k::Integer) where {T<:BlasFloat} =
-    BLAS.scal!(n,T(cst),ret,k)
+    BLAS.scal!(n,convert(T,cst),ret,k)
 
 function scal!(n::Integer,cst::Number,ret::AbstractArray,k::Integer)
     @assert k*n ≤ length(ret)

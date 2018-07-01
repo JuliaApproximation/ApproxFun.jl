@@ -47,7 +47,7 @@ end
 # zero needs to be different since it can take a space to
 # a ConstantSpace, in creating functionals
 convert(::Type{Operator{T}},x::Number) where {T} =
-    x==0 ? ZeroOperator(T) : Multiplication(T(x))
+    x==0 ? ZeroOperator(T) : Multiplication(convert(T,x))
 convert(::Type{Operator{T}},L::UniformScaling) where {T} =
     ConstantOperator(T,L.λ)
 

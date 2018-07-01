@@ -81,7 +81,7 @@ struct JacobiZ{S<:Space,T} <: TridiagonalOperator{T}
 end
 
 JacobiZ(sp::PolynomialSpace,z) =
-    (T = promote_type(prectype(sp),typeof(z)); JacobiZ{typeof(sp),T}(sp,T(z)))
+    (T = promote_type(prectype(sp),typeof(z)); JacobiZ{typeof(sp),T}(sp,convert(T,z)))
 
 convert(::Type{Operator{T}},J::JacobiZ{S}) where {T,S} = JacobiZ{S,T}(J.space,J.z)
 

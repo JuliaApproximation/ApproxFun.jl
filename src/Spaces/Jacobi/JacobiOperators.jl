@@ -35,7 +35,7 @@ function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(first)},kr::AbstractRan
     sp=op.space
     T=eltype(op)
     RT=real(T)
-    a=RT(sp.a);b=RT(sp.b)
+    a=convert(RT,sp.a);b=convert(RT,sp.b)
 
     if op.order == 0
         jacobip(T,kr-1,a,b,-one(T))
@@ -67,7 +67,7 @@ function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(last)},kr::AbstractRang
     sp=op.space
     T=eltype(op)
     RT=real(T)
-    a=RT(sp.a);b=RT(sp.b)
+    a=convert(RT,sp.a);b=convert(RT,sp.b)
 
 
     if op.order == 0
@@ -195,9 +195,9 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
 
             if dsp.b == dsp.a == 0
                 # TODO: copy and paste
-                k == 1 ? T($Sum(Fun(dsp,[one(T)]))) : zero(T)
+                k == 1 ? convert(T,$Sum(Fun(dsp,[one(T)]))) : zero(T)
             else
-                T($Sum(Fun(dsp,[zeros(T,k-1);1])))
+                convert(T,$Sum(Fun(dsp,[zeros(T,k-1);1])))
             end
         end
 
@@ -207,9 +207,9 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
 
             if dsp.β == dsp.space.b && dsp.α == dsp.space.a
                 # TODO: copy and paste
-                k == 1 ? T($Sum(Fun(dsp,[one(T)]))) : zero(T)
+                k == 1 ? convert(T,$Sum(Fun(dsp,[one(T)]))) : zero(T)
             else
-                T($Sum(Fun(dsp,[zeros(T,k-1);1])))
+                convert(T,$Sum(Fun(dsp,[zeros(T,k-1);1])))
             end
         end
 
@@ -270,17 +270,17 @@ function Base.getindex(C::ConcreteConversion{J1,J2,T},k::Integer,j::Integer) whe
     L=C.domainspace
     if L.b+1==C.rangespace.b
         if j==k
-            k==1 ? T(1) : T((L.a+L.b+k)/(L.a+L.b+2k-1))
+            k==1 ? convert(T,1) : convert(T,(L.a+L.b+k)/(L.a+L.b+2k-1))
         elseif j==k+1
-            T((L.a+k)./(L.a+L.b+2k+1))
+            convert(T,(L.a+k)./(L.a+L.b+2k+1))
         else
             zero(T)
         end
     elseif L.a+1==C.rangespace.a
         if j==k
-            k==1 ? T(1) : T((L.a+L.b+k)/(L.a+L.b+2k-1))
+            k==1 ? convert(T,1) : convert(T,(L.a+L.b+k)/(L.a+L.b+2k-1))
         elseif j==k+1
-            T(-(L.b+k)./(L.a+L.b+2k+1))
+            convert(T,-(L.b+k)./(L.a+L.b+2k+1))
         else
             zero(T)
         end

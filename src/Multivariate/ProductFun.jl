@@ -51,7 +51,7 @@ function ProductFun(f::Function,sp::AbstractProductSpace{Tuple{S,V}};tol=100eps(
             return ProductFun(X,sp;tol=tol)
         end
     end
-    warn("Maximum grid size of ("*string(5000)*","*string(5000)*") reached")
+    @warn "Maximum grid size of ("*string(5000)*","*string(5000)*") reached"
     ProductFun(f,sp,5000,5000;tol=tol,chopping=true)
 end
 

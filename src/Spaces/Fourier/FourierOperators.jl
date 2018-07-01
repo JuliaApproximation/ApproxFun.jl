@@ -101,7 +101,7 @@ rangespace(D::ConcreteDerivative{S}) where {S<:SinSpace} = iseven(D.order) ? D.s
 function getindex(D::ConcreteDerivative{CS,OT,T},k::Integer,j::Integer) where {CS<:CosSpace,OT,T}
     d=domain(D)
     m=D.order
-    C=T(2/(d.b-d.a)*π)
+    C=convert(T,2/(d.b-d.a)*π)
 
     if k==j && mod(m,4)==0
         (C*(k-1))^m
@@ -119,7 +119,7 @@ end
 function getindex(D::ConcreteDerivative{CS,OT,T},k::Integer,j::Integer) where {CS<:SinSpace,OT,T}
     d=domain(D)
     m=D.order
-    C=T(2/(d.b-d.a)*π)
+    C=convert(T,2/(d.b-d.a)*π)
 
     if k==j && mod(m,4)==0
         (C*k)^m
@@ -152,7 +152,7 @@ function getindex(D::ConcreteIntegral{CS,OT,T},k::Integer,j::Integer) where {CS<
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     m=D.order
-    C=T(2/(d.b-d.a)*π)
+    C=convert(T,2/(d.b-d.a)*π)
 
 
     if k==j && mod(m,4)==0
@@ -183,7 +183,7 @@ function getindex(D::ConcreteIntegral{SubSpace{CS,UnitCount{Int64},DD,RR}},
     d=domain(D)
     m=D.order
     T=eltype(D)
-    C=T(2/(d.b-d.a)*π)
+    C=convert(T,2/(d.b-d.a)*π)
 
 
     if k==j
@@ -283,40 +283,40 @@ for SP in (:CosSpace,:SinSpace,:Fourier)
 end
 
 getindex(Σ::ConcreteDefiniteIntegral{CosSpace{D,R},T},k::Integer) where {T,D<:PeriodicInterval,R} =
-    k == 1 ? T(complexlength(domain(Σ))) : zero(T)
+    k == 1 ? convert(T,complexlength(domain(Σ))) : zero(T)
 
 getindex(Σ::ConcreteDefiniteIntegral{SinSpace{D,R},T},k::Integer) where {T,D<:PeriodicInterval,R} =
     zero(T)
 
 getindex(Σ::ConcreteDefiniteIntegral{Fourier{D,R},T},k::Integer) where {T,D<:PeriodicInterval,R} =
-    k == 1 ? T(complexlength(domain(Σ))) : zero(T)
+    k == 1 ? convert(T,complexlength(domain(Σ))) : zero(T)
 
 getindex(Σ::ConcreteDefiniteIntegral{CosSpace{D,R},T},k::Integer) where {T,D<:Circle,R} =
-    k==2 ? T(complexlength(domain(Σ))/2) : zero(T)
+    k==2 ? convert(T,complexlength(domain(Σ))/2) : zero(T)
 
 getindex(Σ::ConcreteDefiniteIntegral{SinSpace{D,R},T},k::Integer) where {T,D<:Circle,R} =
-    k == 1 ? T(0.5im*complexlength(domain(Σ))) : zero(T)
+    k == 1 ? convert(T,0.5im*complexlength(domain(Σ))) : zero(T)
 
 getindex(Σ::ConcreteDefiniteIntegral{Fourier{D,R},T},k::Integer) where {T,D<:Circle,R} =
-    k == 2 ? T(0.5im*complexlength(domain(Σ))) : (k==3 ? T(complexlength(domain(Σ))/2) : zero(T))
+    k == 2 ? convert(T,0.5im*complexlength(domain(Σ))) : (k==3 ? convert(T,complexlength(domain(Σ))/2) : zero(T))
 
 getindex(Σ::ConcreteDefiniteLineIntegral{CosSpace{D,R},T},k::Integer) where {T,D<:PeriodicInterval,R} =
-    k==1 ? T(arclength(domain(Σ))) : zero(T)
+    k==1 ? convert(T,arclength(domain(Σ))) : zero(T)
 
 getindex(Σ::ConcreteDefiniteLineIntegral{SinSpace{D,R},T},k::Integer) where {T,D<:PeriodicInterval,R} =
     zero(T)
 
 getindex(Σ::ConcreteDefiniteLineIntegral{Fourier{D,R},T},k::Integer) where {T,D<:PeriodicInterval,R} =
-    k==1 ? T(arclength(domain(Σ))) : zero(T)
+    k==1 ? convert(T,arclength(domain(Σ))) : zero(T)
 
 getindex(Σ::ConcreteDefiniteLineIntegral{CosSpace{D,R},T},k::Integer) where {T,D<:Circle,R} =
-    k==1 ? T(arclength(domain(Σ))) : zero(T)
+    k==1 ? convert(T,arclength(domain(Σ))) : zero(T)
 
 getindex(Σ::ConcreteDefiniteLineIntegral{SinSpace{D,R},T},k::Integer) where {T,D<:Circle,R} =
     zero(T)
 
 getindex(Σ::ConcreteDefiniteLineIntegral{Fourier{D,R},T},k::Integer) where {T,D<:Circle,R} =
-    k==1 ? T(arclength(domain(Σ))) : zero(T)
+    k==1 ? convert(T,arclength(domain(Σ))) : zero(T)
 
 bandinds(Σ::ConcreteDefiniteIntegral{CosSpace{D,R}}) where {D<:PeriodicInterval,R} = 0,0
 bandinds(Σ::ConcreteDefiniteIntegral{SinSpace{D,R}}) where {D<:PeriodicInterval,R} = 0,0

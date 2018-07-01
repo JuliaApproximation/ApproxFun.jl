@@ -112,7 +112,7 @@ function dualcfsFun(f,S)
             return Fun(S,realpart(simplifycfs!(cf.coefficients,tol*length(cf))))
         end
     end
-    warn("Maximum length "*string(2^20+1)*" reached")
+    @warn "Maximum length "*string(2^20+1)*" reached"
 
     Fun(f,S,2^21)
 end

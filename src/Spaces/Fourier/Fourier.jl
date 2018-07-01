@@ -250,7 +250,7 @@ end
 
 function *(P::TransformPlan{T,Laurent{DD,RR},true},vals::AbstractVector{T}) where {T,DD,RR}
     n = length(vals)
-    vals = lmul!(inv(T(n)),P.plan*vals)
+    vals = lmul!(inv(convert(T,n)),P.plan*vals)
     reverseeven!(interlace!(vals,1))
 end
 
@@ -378,7 +378,7 @@ mul!(cfs::AbstractVector{T}, P::TransformPlan{T,Fourier{DD,RR},false}, vals::Abs
 
 function *(P::TransformPlan{T,Fourier{DD,RR},true},vals::AbstractVector{T}) where {T,DD,RR}
     n = length(vals)
-    cfs = lmul!(T(2)/n,P.plan*vals)
+    cfs = lmul!(convert(T,2)/n,P.plan*vals)
     cfs[1] /= 2
     if iseven(n)
         cfs[n÷2+1] /= 2
@@ -414,7 +414,7 @@ function *(P::IFourierTransformPlan{T,Fourier{DD,RR}},cfs::AbstractVector{T}) wh
         cfs[n÷2+1] *= 2
     end
     cfs[1] *= 2
-    P.plan*lmul!(inv(T(2)),cfs)
+    P.plan*lmul!(inv(convert(T,2)),cfs)
 end
 
 

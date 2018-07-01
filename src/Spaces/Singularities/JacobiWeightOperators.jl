@@ -138,7 +138,7 @@ function Base.cumsum(f::Fun{JacobiWeight{SS,DD,RR,TT}}) where {SS,DD<:Segment,RR
     if (S.β==0 && S.α==0) || S.β>-1
         g-first(g)
     else
-        warn("Function is not integrable at left endpoint.  Returning a non-normalized indefinite integral.")
+        @warn "Function is not integrable at left endpoint.  Returning a non-normalized indefinite integral."
         g
     end
 end
@@ -393,9 +393,9 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             C = $Len(d)/2
 
             if dsp.β==dsp.α==λ-0.5
-                k == 1 ? T(C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T))) : zero(T)
+                k == 1 ? convert(T,C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T))) : zero(T)
             else
-                T($Sum(Fun(dsp,[zeros(T,k-1);1])))
+                convert(T,$Sum(Fun(dsp,[zeros(T,k-1);1])))
             end
         end
 
@@ -429,9 +429,9 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             C = $Len(d)/2
 
             if dsp.β==dsp.α==-0.5
-                k == 1 ? T(C*π) : zero(T)
+                k == 1 ? convert(T,C*π) : zero(T)
             else
-                T($Sum(Fun(dsp,[zeros(T,k-1);1])))
+                convert(T,$Sum(Fun(dsp,[zeros(T,k-1);1])))
             end
         end
 

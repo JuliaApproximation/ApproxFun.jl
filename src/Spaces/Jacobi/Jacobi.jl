@@ -90,7 +90,7 @@ function jacobip(::Type{T},r::AbstractRange,α,β,x::Number) where T
         if n<=2
             v=T[1,(α-β+(2+α+β)*x)/2]
         else
-            v=Vector{T}(n)  # x may be complex
+            v=Vector{T}(undef, n)  # x may be complex
             v[1]=1
             v[2]=(α-β+(2+α+β)*x)/2
 
@@ -98,7 +98,7 @@ function jacobip(::Type{T},r::AbstractRange,α,β,x::Number) where T
                 v[k+1]=(jacobirecA(T,α,β,k-1)*x+jacobirecB(T,α,β,k-1))*v[k] - jacobirecC(T,α,β,k-1)*v[k-1]
             end
         end
-        v[r+1]
+        v[r.+1]
     end
 end
 

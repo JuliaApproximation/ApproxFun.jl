@@ -17,7 +17,7 @@ valsdomain_type_promote(::Type{T},::Type{V}) where {T,V}=promote_type(T,V),promo
 function choosefuneltype(ftype,Td)
     if !( ftype<: Number || ( ((ftype <: AbstractArray) || (ftype <: Vec)) &&
                               (eltype(ftype) <: Number) ) )
-        warn("Function outputs type $(ftype), which is not a Number")
+        @warn "Function outputs type $(ftype), which is not a Number"
     end
 
     Tprom = ftype
@@ -26,10 +26,10 @@ function choosefuneltype(ftype,Td)
         Tprom,Tpromd=valsdomain_type_promote(ftype,Td)
 
         if ftype != Int && Tprom != ftype
-                warn("Promoting function output type from $(ftype) to $(Tprom)")
+                @warn "Promoting function output type from $(ftype) to $(Tprom)"
         end
         if Tpromd != Td
-                warn("Space domain number type $(Td) is not compatible with coefficient type $(Tprom)")
+                @warn "Space domain number type $(Td) is not compatible with coefficient type $(Tprom)"
                 #TODO should construct a new Space that contains a domain where the numbers have been promoted
                 #and call constructor with this Space.
         end
@@ -138,7 +138,7 @@ function default_Fun(f, d::Space)
         end
     end
 
-    warn("Maximum number of coefficients "*string(2^20+1)*" reached in constructing Fun.")
+    @warn "Maximum number of coefficients "*string(2^20+1)*" reached in constructing Fun."
 
     Fun(f,d,2^21)
 end
