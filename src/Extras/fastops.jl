@@ -69,8 +69,7 @@ diagindrow(S::SubOperator) = diagindrow(S,parentindices(S)[1],parentindices(S)[2
 # Conversions
 #####
 
-function convert(::Type{BandedMatrix},
-               S::SubOperator{T,ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR},T},
+function BandedMatrix(S::SubOperator{T,ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR},T},
                               Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,DD,RR}
     # we can assume order is 1
     ret = BandedMatrix{eltype(S)}(undef, size(S), bandwidths(S))
@@ -91,7 +90,7 @@ function convert(::Type{BandedMatrix},
     ret
 end
 
-function convert(::Type{BandedMatrix},V::SubOperator{T,ConcreteConversion{Ultraspherical{LT,DD,RR},Ultraspherical{LT,DD,RR},T},
+function BandedMatrix(V::SubOperator{T,ConcreteConversion{Ultraspherical{LT,DD,RR},Ultraspherical{LT,DD,RR},T},
                                                                   Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,LT,DD,RR}
 
     n,m = size(V)
@@ -122,7 +121,7 @@ end
 
 
 
-function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Chebyshev{DD,RR},K,T},
+function BandedMatrix(S::SubOperator{T,ConcreteDerivative{Chebyshev{DD,RR},K,T},
                                                      Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,K,DD,RR}
 
     n,m = size(S)
@@ -146,7 +145,7 @@ function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Chebys
 end
 
 
-function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Ultraspherical{LT,DD,RR},K,T},
+function BandedMatrix(S::SubOperator{T,ConcreteDerivative{Ultraspherical{LT,DD,RR},K,T},
                                                   Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,K,DD,RR,LT}
     n,m = size(S)
     ret = BandedMatrix{eltype(S)}(undef, (n,m), bandwidths(S))

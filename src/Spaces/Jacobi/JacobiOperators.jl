@@ -411,13 +411,12 @@ function getindex(C::ConcreteConversion{CC,J,T},k::Integer,j::Integer) where {J<
     end
 end
 
-function convert(::Type{BandedMatrix},
-             S::SubOperator{T,ConcreteConversion{CC,J,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {J<:Jacobi,CC<:Chebyshev,T}
+function BandedMatrix(S::SubOperator{T,ConcreteConversion{CC,J,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {J<:Jacobi,CC<:Chebyshev,T}
     ret=BandedMatrix(Zeros, S)
     kr,jr = parentindices(S)
     k=(kr ∩ jr)
 
-    vals = one(T)./jacobip(T,k-1,-one(T)/2,-one(T)/2,one(T))
+    vals = one(T)./jacobip(T,k .- 1,-one(T)/2,-one(T)/2,one(T))
 
     ret[band(bandshift(S))] = vals
     ret
@@ -432,8 +431,7 @@ function getindex(C::ConcreteConversion{J,CC,T},k::Integer,j::Integer) where {J<
     end
 end
 
-function convert(::Type{BandedMatrix},
-             S::SubOperator{T,ConcreteConversion{J,CC,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {J<:Jacobi,CC<:Chebyshev,T}
+function BandedMatrix(S::SubOperator{T,ConcreteConversion{J,CC,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {J<:Jacobi,CC<:Chebyshev,T}
     ret=BandedMatrix(Zeros, S)
     kr,jr = parentindices(S)
     k=(kr ∩ jr)
@@ -456,14 +454,13 @@ function getindex(C::ConcreteConversion{US,J,T},k::Integer,j::Integer) where {US
     end
 end
 
-function convert(::Type{BandedMatrix},
-        S::SubOperator{T,ConcreteConversion{US,J,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {US<:Ultraspherical,J<:Jacobi,T}
+function BandedMatrix(S::SubOperator{T,ConcreteConversion{US,J,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {US<:Ultraspherical,J<:Jacobi,T}
     ret=BandedMatrix(Zeros, S)
     kr,jr = parentindices(S)
     k=(kr ∩ jr)
 
     sp=rangespace(parent(S))
-    jp=jacobip(T,k-1,sp.a,sp.b,one(T))
+    jp=jacobip(T,k.-1,sp.a,sp.b,one(T))
     um=Evaluation(T,setcanonicaldomain(domainspace(parent(S))),last,0)[k]
     vals = um./jp
 
@@ -484,8 +481,7 @@ function getindex(C::ConcreteConversion{J,US,T},k::Integer,j::Integer) where {US
     end
 end
 
-function convert(::Type{BandedMatrix},
-        S::SubOperator{T,ConcreteConversion{J,US,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {US<:Ultraspherical,J<:Jacobi,T}
+function BandedMatrix(S::SubOperator{T,ConcreteConversion{J,US,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {US<:Ultraspherical,J<:Jacobi,T}
     ret=BandedMatrix(Zeros, S)
     kr,jr = parentindices(S)
     k=(kr ∩ jr)

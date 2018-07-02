@@ -281,8 +281,7 @@ k::Integer,j::Integer) where {CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR}
 end
 
 
-function convert(::Type{BlockBandedMatrix},
-                 S::SubOperator{T,ConcreteDirichlet{TensorSpace{Tuple{CD,CD},DD,RR},
+function BlockBandedMatrix(S::SubOperator{T,ConcreteDirichlet{TensorSpace{Tuple{CD,CD},DD,RR},
                                                     CSP,TT},
                                 Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR,CSP,TT}
     P=parent(S)

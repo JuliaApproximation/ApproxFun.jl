@@ -289,7 +289,7 @@ _colstops(V) = Int[max(0,colstop(V,j)) for j=1:size(V,2)]
 for TYP in (:RaggedMatrix, :Matrix)
     def_TYP = Meta.parse("default_" * string(TYP))
     @eval begin
-        function convert(::Type{$TYP}, V::SubOperator)
+        function $TYP(V::SubOperator)
             if isinf(size(V,1)) || isinf(size(V,2))
                 error("Cannot convert $V to a $TYP")
             end
@@ -301,7 +301,7 @@ for TYP in (:RaggedMatrix, :Matrix)
             end
         end
 
-        function convert(::Type{$TYP}, V::SubOperator{T,BB,NTuple{2,UnitRange{Int}}}) where {T,BB}
+        function $TYP(V::SubOperator{T,BB,NTuple{2,UnitRange{Int}}}) where {T,BB}
             if isinf(size(V,1)) || isinf(size(V,2))
                 error("Cannot convert $V to a $TYP")
             end
@@ -321,7 +321,7 @@ for TYP in (:RaggedMatrix, :Matrix)
 end
 
 # fast converts to banded matrices would be based on indices, not blocks
-function convert(::Type{BandedMatrix}, S::SubOperator{T,B,Tuple{BlockRange1,BlockRange1}}) where {T,B}
+function BandedMatrix(S::SubOperator{T,B,Tuple{BlockRange1,BlockRange1}}) where {T,B}
     A = parent(S)
     ds = domainspace(A)
     rs = rangespace(A)

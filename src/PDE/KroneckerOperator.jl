@@ -354,7 +354,7 @@ function default_BandedBlockBandedMatrix(S)
     bandedblockbanded_convert!(ret, S, parent(S), rt, dt)
 end
 
-convert(::Type{BandedBlockBandedMatrix}, S::SubOperator) = default_BandedBlockBandedMatrix(S)
+BandedBlockBandedMatrix(S::SubOperator) = default_BandedBlockBandedMatrix(S)
 
 
 const Trivial2DTensorizer = CachedIterator{Tuple{Int64,Int64},
@@ -366,8 +366,7 @@ const Trivial2DTensorizer = CachedIterator{Tuple{Int64,Int64},
 # This routine is an efficient version of KroneckerOperator for the case of
 # tensor product of trivial blocks
 
-function convert(::Type{BandedBlockBandedMatrix},
-                      S::SubOperator{T,KroneckerOperator{SS,V,DS,RS,
+function BandedBlockBandedMatrix(S::SubOperator{T,KroneckerOperator{SS,V,DS,RS,
                                      Trivial2DTensorizer,Trivial2DTensorizer,T},
                                      Tuple{BlockRange1,BlockRange1}}) where {SS,V,DS,RS,T}
     KR,JR = parentindices(S)

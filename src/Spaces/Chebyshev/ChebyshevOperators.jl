@@ -141,8 +141,7 @@ function getindex(op::ConcreteDirichlet{<:Chebyshev},
     end
 end
 
-function convert(::Type{Matrix},
-                 S::SubOperator{T,ConcreteDirichlet{C,V,T},
+function Matrix(S::SubOperator{T,ConcreteDirichlet{C,V,T},
                                 Tuple{UnitRange{Int},UnitRange{Int}}}) where {C<:Chebyshev,V,T}
     ret = Array{T}(undef, size(S)...)
     kr,jr = parentindices(S)
@@ -202,7 +201,7 @@ getindex(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) where {PS<:Pol
     M[k:k,j:j][1,1]
 
 
-function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,C,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {C<:Chebyshev,T}
+function BandedMatrix(S::SubOperator{T,ConcreteMultiplication{C,C,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {C<:Chebyshev,T}
     ret = BandedMatrix(Zeros, S)
 
     kr,jr=parentindices(S)

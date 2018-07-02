@@ -175,8 +175,7 @@ end
 
 
 
-function convert(::Type{BandedMatrix},
-                      S::SubOperator{T,ConcreteMultiplication{C,PS,T},
+function BandedMatrix(S::SubOperator{T,ConcreteMultiplication{C,PS,T},
                                      Tuple{UnitRange{Int},UnitRange{Int}}}) where {PS<:PolynomialSpace,T,C<:PolynomialSpace}
     M=parent(S)
     kr,jr=parentindices(S)
@@ -229,13 +228,13 @@ function convert(::Type{BandedMatrix},
         b+=1
     end
     α,γ=recα(T,sp,1),recγ(T,sp,2)
-    scale!(-γ,Bk2)
+    lmul!(-γ,Bk2)
     LinearAlgebra.axpy!(a[1],I,Bk2)
     jac_gbmm!(one(T),J,Bk1,one(T),Bk2,b)
     LinearAlgebra.axpy!(-α,Bk1,Bk2)
 
     # relationship between jkr and kr, jr
-    kr2,jr2=kr-jkr[1]+1,jr-jkr[1]+1
+    kr2,jr2=kr.-jkr[1].+1,jr.-jkr[1].+1
 
     # TODO: reuse memory of Bk2, though profile suggests it's not too important
     BandedMatrix(view(Bk2,kr2,jr2))::BandedMatrix{T}
@@ -284,7 +283,7 @@ function forwardrecurrence(::Type{T},S::Space,r::AbstractRange,x::Number) where 
         return T[]
     end
     n=maximum(r)+1
-    v=Vector{T}(n)  # x may be complex
+    v=Vector{T}(undef, n)  # x may be complex
     if n > 0
         v[1]=1
         if n > 1
@@ -296,7 +295,7 @@ function forwardrecurrence(::Type{T},S::Space,r::AbstractRange,x::Number) where 
         end
     end
 
-    return v[r+1]
+    return v[r.+1]
 end
 
 
@@ -322,7 +321,7 @@ function getindex(op::ConcreteEvaluation{J,typeof(last)},kr::AbstractRange) wher
     sp=op.space
     T=eltype(op)
 
-    forwardrecurrence(T,sp,kr-1,one(T))
+    forwardrecurrence(T,sp,kr.-1,one(T))
 end
 
 

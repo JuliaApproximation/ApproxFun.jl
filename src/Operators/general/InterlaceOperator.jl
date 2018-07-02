@@ -327,8 +327,7 @@ end
 for TYP in (:BandedMatrix, :BlockBandedMatrix, :BandedBlockBandedMatrix, :RaggedMatrix,
                 :Matrix)
     @eval begin
-        function convert(::Type{$TYP},
-              S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI},
+        function $TYP(S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI},
                             Tuple{UnitRange{Int},UnitRange{Int}}}) where {SS,PS,DI,RI,BI,T}
             kr,jr=parentindices(S)
             L=parent(S)
@@ -352,8 +351,7 @@ for TYP in (:BandedMatrix, :BlockBandedMatrix, :BandedBlockBandedMatrix, :Ragged
             ret
         end
 
-        function convert(::Type{$TYP},
-            S::SubOperator{T,InterlaceOperator{T,2,SS,PS,DI,RI,BI},
+        function $TYP(S::SubOperator{T,InterlaceOperator{T,2,SS,PS,DI,RI,BI},
                       Tuple{UnitRange{Int},UnitRange{Int}}}) where {SS,PS,DI,RI,BI,T}
             kr,jr=parentindices(S)
             L=parent(S)
@@ -421,8 +419,7 @@ function blockbanded_interlace_convert!(S,ret)
 end
 
 for d in (:1,:2)
-    @eval convert(::Type{BlockBandedMatrix},
-          S::SubOperator{T,InterlaceOperator{T,$d,SS,PS,DI,RI,BI},
+    @eval BlockBandedMatrix(S::SubOperator{T,InterlaceOperator{T,$d,SS,PS,DI,RI,BI},
                           Tuple{BlockRange1,BlockRange1}}) where {SS,PS,DI,RI,BI,T} =
     blockbanded_interlace_convert!(S, BlockBandedMatrix(Zeros, S))
 end
