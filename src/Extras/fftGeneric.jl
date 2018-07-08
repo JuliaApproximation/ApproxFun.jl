@@ -114,7 +114,7 @@ plan_itransform(sp::Fourier{D,R},x::AbstractVector{T}) where {T<:BigFloat,D,R} =
 function *(::TransformPlan{T,Fourier{D,R},false},x::AbstractVector{T}) where {T<:BigFloat,D,R}
     l = length(x); n = div(l+1,2)
     v = fft(x)
-    scale!(v,convert(T,2)/l)
+    rmul!(v,convert(T,2)/l)
     v[1] /= 2
     mod(l,2) == 1 ? interlace(real(v[1:n]),-imag(v[2:n])) :
       [interlace(real(v[1:n]),-imag(v[2:n]));-real(v[n+1])/2]
@@ -126,7 +126,7 @@ function *(::ITransformPlan{T,Fourier{D,R},false},x::AbstractVector{T}) where {T
     v = mod(l,2) == 1 ?
         complex([2x[1];x[3:2:end];x[end:-2:3]],[0;-x[2:2:end];x[end-1:-2:2]]) :
         complex([2x[1];x[3:2:end-1];-2x[end];x[end-1:-2:3]],[0;-x[2:2:end];x[end-2:-2:2]])
-    scale!(v,convert(T,l)/2)
+    rmul!(v,convert(T,l)/2)
      real(ifft(v))
 end
 
@@ -140,7 +140,7 @@ plan_itransform(sp::SinSpace{D,R},x::AbstractVector{T}) where {T<:BigFloat,D,R} 
 
 function *(::TransformPlan{T,SinSpace{D,R},false},x::AbstractVector{T}) where {T<:BigFloat,D,R}
     v=imag(fft([0;-x;0;reverse(x)]))[2:length(x)+1]
-    scale!(v,convert(T,1)/(length(x)+1))
+    rmul!(v,convert(T,1)/(length(x)+1))
     v
 end
 

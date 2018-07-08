@@ -128,7 +128,7 @@ getindex(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) where {PS<:Pol
 # specified by b, not by the parameters in B
 function jac_gbmm!(α, J, B, β, C, b)
     if β ≠ 1
-        scale!(β,C)
+        lmul!(β,C)
     end
 
     Jp = view(J, band(1))
@@ -197,7 +197,7 @@ function BandedMatrix(S::SubOperator{T,ConcreteMultiplication{C,PS,T},
         # implying
         α,β=recα(T,sp,1),recβ(T,sp,1)
         ret=Operator{T}(ApproxFun.Recurrence(M.space))[kr,jr]::BandedMatrix{T}
-        scale!(a[2]/β,ret)
+        lmul!(a[2]/β,ret)
         shft=kr[1]-jr[1]
         ret[band(shft)] += a[1]-α*a[2]/β
         return ret::BandedMatrix{T}
@@ -220,7 +220,7 @@ function BandedMatrix(S::SubOperator{T,ConcreteMultiplication{C,PS,T},
     b=1  # we keep track of bandwidths manually to reuse memory
     for k=n-2:-1:2
         α,β,γ=recα(T,sp,k),recβ(T,sp,k-1),recγ(T,sp,k+1)
-        scale!(-γ/β,Bk2)
+        lmul!(-γ/β,Bk2)
         LinearAlgebra.axpy!(a[k]/β,I,Bk2)
         jac_gbmm!(1/β,J,Bk1,one(T),Bk2,b)
         LinearAlgebra.axpy!(-α/β,Bk1,Bk2)

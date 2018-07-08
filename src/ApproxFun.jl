@@ -19,7 +19,7 @@ import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, 
                 complex, reverse, exp, sqrt, abs, abs2, sign, issubset, values, in, first, last, rand, intersect, setdiff,
                 isless, union, angle, join, isnan, isapprox, isempty, sort, merge, promote_rule,
                 minimum, maximum, extrema, argmax, argmin, findmax, findmin, isfinite,
-                zeros, zero, one, promote_rule, repeat, length, resize!, isinf, eltype,
+                zeros, zero, one, promote_rule, repeat, length, resize!, isinf,
                 getproperty, findfirst, unsafe_getindex, fld, cld, div, real, imag
 
 import Base.Broadcast: BroadcastStyle, Broadcasted, AbstractArrayStyle, broadcastable,
