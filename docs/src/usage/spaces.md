@@ -25,7 +25,7 @@ $$f(x) = \sum_{k=0}^\infty f_k T_k(x)$$
 where $T_k(x) = \cos k \,{\rm acos} x$, which are orthogonal polynomials
 with respect to the weight
 $$
-{1 \over \sqrt{1-x^2} \qquad\hbox{for}\qquad -1 \leq x \leq 1.
+\frac{1}{\sqrt{1-x^2}} \qquad\hbox{for}\qquad -1 \leq x \leq 1
 $$
 Note that there is an intrinsic link between `Chebyshev` and `CosSpace`:  
 
