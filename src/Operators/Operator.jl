@@ -94,7 +94,7 @@ Base.length(A::Operator) = size(A,1) * size(A,2)
 
 
 # used to compute "end" for last index
-function Base.trailingsize(A::Operator, n::Integer)
+function lastindex(A::Operator, n::Integer)
     if n > 2
         1
     elseif n==2

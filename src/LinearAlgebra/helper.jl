@@ -753,7 +753,7 @@ done(it::AbstractCount, state) = false
 length(it::AbstractCount) = ∞
 
 getindex(it::Count,k) = it.start + it.step*(k-1)
-getindex(it::UnitCount,k) = (it.start-1) + k
+getindex(it::UnitCount,k) = (it.start-1) .+ k
 getindex(it::AbstractRepeated,k::AbstractCount) = it
 
 # use reindex, copied from Base

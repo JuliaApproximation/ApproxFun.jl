@@ -170,7 +170,7 @@ function colstop(S::SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},j::In
     elseif cs ≥ last(kr)
         n
     else
-        min(n,findfirst(kr,cs))
+        min(n,findfirst(isequal(cs),kr))
     end
 end
 colstart(S::SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},j::Integer) where {T,OP} =

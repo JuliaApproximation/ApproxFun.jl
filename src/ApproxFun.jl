@@ -20,7 +20,8 @@ import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, 
                 isless, union, angle, join, isnan, isapprox, isempty, sort, merge, promote_rule,
                 minimum, maximum, extrema, argmax, argmin, findmax, findmin, isfinite,
                 zeros, zero, one, promote_rule, repeat, length, resize!, isinf,
-                getproperty, findfirst, unsafe_getindex, fld, cld, div, real, imag
+                getproperty, findfirst, unsafe_getindex, fld, cld, div, real, imag,
+                @_inline_meta, eachindex, lastindex
 
 import Base.Broadcast: BroadcastStyle, Broadcasted, AbstractArrayStyle, broadcastable,
                         DefaultArrayStyle

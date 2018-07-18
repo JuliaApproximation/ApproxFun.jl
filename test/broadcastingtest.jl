@@ -1,4 +1,4 @@
-using ApproxFun, Test
+using ApproxFun, SpecialFunctions, Test
 
 
 
@@ -21,8 +21,8 @@ using ApproxFun, Test
     @test exp.( x .+ [1,2,3]) isa Vector
     @test exp.(x .+ [1,2]) ≈ [exp(x+1),exp(x+2)]
 
-    @test maximum.( x .+ [x;x]) isa Fun
-    @test maximum.( x .+ [x;x]) ≈ 2x
+    @test maximum.( [x;x] .+ [x;x]) isa Fun
+    @test maximum.( [x;x] .+ [x;x]) ≈ 2x
 
     @test exp.([x,x] .+ 2 .+ [x;x]) isa Vector
     @test exp.( [x,x] .+ 2 .+ [x;x]) ≈ [exp(2x+2),exp(2x+2)]
@@ -38,17 +38,12 @@ using ApproxFun, Test
     f .= exp.(x)
     @test ≈(exp(x),f;atol=10eps())
 
-
-
     f = Fun(Ultraspherical(1))
     f .= exp.(x)
     @test f(0.1) ≈ exp(0.1)
 
-
     f = Fun()
     @test_throws ArgumentError (f .= Fun(Line()))
-
-
 
     ## norm examples
 

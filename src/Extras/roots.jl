@@ -393,10 +393,10 @@ end
 complexroots(neg::Vector, pos::Vector) =
     complexroots([reverse(chop(neg,10eps()), dims=1);pos])
 complexroots(f::Fun{Laurent{DD,RR}}) where {DD,RR} =
-    mappoint.(Ref(Circle()), domain(f),
+    mappoint.(Ref(Circle()), Ref(domain(f)),
         complexroots(f.coefficients[2:2:end],f.coefficients[1:2:end]))
 complexroots(f::Fun{Taylor{DD,RR}}) where {DD,RR} =
-    mappoint.(Ref(Circle()), domain(f), complexroots(f.coefficients))
+    mappoint.(Ref(Circle()), Ref(domain(f)), complexroots(f.coefficients))
 
 
 
@@ -405,7 +405,7 @@ function roots(f::Fun{Laurent{DD,RR}}) where {DD,RR}
     if length(irts)==0
         Complex{Float64}[]
     else
-        rts=fromcanonical.(f,tocanonical.(Circle(),irts))
+        rts=fromcanonical.(f, tocanonical.(Ref(Circle()), irts))
         if isa(domain(f),PeriodicInterval)
             sort!(real(rts))  # Make type safe?
         else

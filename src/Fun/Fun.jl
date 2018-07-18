@@ -146,6 +146,8 @@ iterate(x::ScalarFun) = (x, nothing)
 iterate(x::ScalarFun, ::Any) = nothing
 isempty(x::ScalarFun) = false
 
+iterate(A::ArrayFun, i=1) = (@_inline_meta; (i % UInt) - 1 < length(A) ? (@inbounds A[i], i + 1) : nothing)
+
 in(x::ScalarFun, y::ScalarFun) = x == y
 
 
@@ -575,10 +577,10 @@ function copy(bc::Broadcasted{FunStyle})
 end
 
 function copyto!(dest::Fun, bc::Broadcasted{FunStyle})
-    ret = copy(bc)
-    if domain(ret) ≠ domain(dest)
+    if broadcastdomain(bc) ≠ domain(dest)
         throw(ArgumentError("Domain of right-hand side incompatible with destination"))
     end
+    ret = copy(bc)
     cfs = coefficients(ret,space(dest))
     resize!(dest.coefficients, length(cfs))
     dest.coefficients[:] = cfs

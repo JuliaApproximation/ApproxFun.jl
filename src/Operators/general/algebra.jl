@@ -298,7 +298,7 @@ end
 
 
 function promotetimes(opsin::Vector{B},dsp) where B<:Operator
-    ops=Vector{Operator{mapreduce(eltype,promote_type,opsin)}}(0)
+    ops=Vector{Operator{mapreduce(eltype,promote_type,opsin)}}(undef,0)
 
     for k=length(opsin):-1:1
         if !isa(opsin[k],Conversion)
@@ -465,7 +465,7 @@ for TYP in (:BlockBandedMatrix, :BandedBlockBandedMatrix)
 
         # find optimal truncations for each operator
         # by finding the non-zero entries
-        KRlin = Matrix{Union{Block,Infinity{Bool}}}(length(P.ops),2)
+        KRlin = Matrix{Union{Block,Infinity{Bool}}}(undef,length(P.ops),2)
 
         KRlin[1,1],KRlin[1,2] = first(KR),last(KR)
         for m=1:length(P.ops)-1

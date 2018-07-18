@@ -34,23 +34,23 @@ convert(::Type{Matrix},sp::MatrixSpace) = sp.spaces
 BlockInterlacer(sp::ArraySpace) = BlockInterlacer(blocklengths.(tuple(sp.spaces...)))
 interlacer(sp::ArraySpace) = BlockInterlacer(sp)
 
-for OP in (:(Base.length),:(Base.start),:(Base.endof),:(Base.size))
+for OP in (:length,:endof,:size)
     @eval begin
         $OP(S::ArraySpace) = $OP(components(S))
-        $OP(f::Fun{SS}) where {SS<:ArraySpace} = $OP(space(f))
+        $OP(f::Fun{<:ArraySpace}) = $OP(space(f))
     end
 end
 
-for OP in (:(getindex),:(Base.next),:(Base.done),:(Base.stride),:(Base.size))
+for OP in (:getindex,:iterate,:stride,:size)
     @eval $OP(S::ArraySpace,k) = $OP(components(S),k)
 end
 
-getindex(S::ArraySpace,kr::AbstractVector) = ArraySpace(components(S)[kr])
+iterate(S::ArraySpace) = iterate(components(S))
+getindex(S::ArraySpace, kr::AbstractVector) = ArraySpace(components(S)[kr])
 
 #support tuple set
-for OP in (:(Base.done),:(Base.stride))
-    @eval $OP(f::Fun{<:ArraySpace},k) = $OP(space(f),k)
-end
+
+stride(f::Fun{<:ArraySpace},k) = stride(space(f),k)
 
 getindex(f::ArraySpace,k...) = Space(component(f,k...))
 Base.next(f::Fun{<:ArraySpace},k)=f[k],k+1
