@@ -53,7 +53,7 @@ function coefficient(f::Fun,k::Integer)
     if k > dimension(space(f)) || k < 1
         throw(BoundsError())
     elseif k > ncoefficients(f)
-        zero(eltype(f))
+        zero(cfstype(f))
     else
         f.coefficients[k]
     end
@@ -126,8 +126,8 @@ for op in (:(zeros),:(one))
     @eval ($op)(f::Fun{S,T}) where {S,T} = $op(T,f.space)
 end
 
-eltype(::Fun{S,T}) where {S,T} = T
-eltype(::Type{Fun{S,T,VT}}) where {S,T,VT} = T
+cfstype(::Fun{S,T}) where {S,T} = T
+cfstype(::Type{Fun{S,T,VT}}) where {S,T,VT} = T
 
 #supports broadcasting and scalar iterator
 size(f::Fun,k...) = size(space(f),k...)
@@ -442,14 +442,14 @@ end
 coefficientnorm(f::Fun,p::Real=2) = norm(f.coefficients,p)
 
 
-Base.rtoldefault(::Type{F}) where {F<:Fun} = Base.rtoldefault(eltype(F))
+Base.rtoldefault(::Type{F}) where {F<:Fun} = Base.rtoldefault(cfstype(F))
 Base.rtoldefault(x::Union{T,Type{T}}, y::Union{S,Type{S}}, atol) where {T<:Fun,S<:Fun} =
-    Base.rtoldefault(eltype(x),eltype(y), atol)
+    Base.rtoldefault(cfstype(x),cfstype(y), atol)
 
 Base.rtoldefault(x::Union{T,Type{T}}, y::Union{S,Type{S}}, atol) where {T<:Number,S<:Fun} =
-    Base.rtoldefault(eltype(x),eltype(y), atol)
+    Base.rtoldefault(cfstype(x),cfstype(y), atol)
 Base.rtoldefault(x::Union{T,Type{T}}, y::Union{S,Type{S}}, atol) where {T<:Fun,S<:Number} =
-    Base.rtoldefault(eltype(x),eltype(y), atol)
+    Base.rtoldefault(cfstype(x),cfstype(y), atol)
 
 
 function isapprox(f::Fun{S1,T},g::Fun{S2,S};rtol::Real=Base.rtoldefault(T,S,0), atol::Real=0, norm::Function=coefficientnorm) where {S1,S2,T,S}

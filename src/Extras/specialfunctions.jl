@@ -17,7 +17,7 @@ end
 function abs(f::Fun)
     d=domain(f)
 
-    pts = iszero(f) ? eltype(f)[] : roots(f)
+    pts = iszero(f) ? cfstype(f)[] : roots(f)
 
     if isempty(pts)
         # This makes sure Laurent returns real type
@@ -53,7 +53,7 @@ for op in (:(max),:(min))
         function $op(f::Fun{S,T1},g::Fun{V,T2}) where {S<:RealUnivariateSpace,V<:RealUnivariateSpace,T1<:Real,T2<:Real}
             h=f-g
             d=domain(h)
-            pts=iszero(h) ? eltype(h)[] : roots(h)
+            pts=iszero(h) ? cfstype(h)[] : roots(h)
             splitmap(x->$op(f(x),g(x)),d,pts)
         end
         $op(f::Fun{S,T},g::Real) where {S<:RealUnivariateSpace,T<:Real} = $op(f,Fun(g,domain(f)))
@@ -75,7 +75,7 @@ function /(c::Fun,f::Fun)
     end
 
     r=roots(f)
-    tol=10eps(promote_type(eltype(c),eltype(f)))
+    tol=10eps(promote_type(cfstype(c),cfstype(f)))
     if length(r)==0 || norm(c.(r))<tol
         \(Multiplication(f,space(c)),c;tolerance=tol)
     else
@@ -85,7 +85,7 @@ end
 
 function /(c::Number,f::Fun)
     r=roots(f)
-    tol=10eps(promote_type(typeof(c),eltype(f)))
+    tol=10eps(promote_type(typeof(c),cfstype(f)))
     @assert length(r)==0
     \(Multiplication(f,space(f)),c*one(space(f));tolerance=tol)
 end
@@ -104,7 +104,7 @@ function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:Segment,RR}
     fc = setcanonicaldomain(f)
     d=domain(f)
     # if domain f is small then the pts get projected in
-    tol = 200eps(promote_type(typeof(c),eltype(f)))*norm(f.coefficients,1)
+    tol = 200eps(promote_type(typeof(c),cfstype(f)))*norm(f.coefficients,1)
 
     # we prune out roots at the boundary first
     if ncoefficients(f)==1
@@ -160,7 +160,7 @@ end
 
 ^(f::Fun{<:PolynomialSpace},k::Integer) = intpow(f,k)
 function ^(f::Fun{<:PolynomialSpace}, k::Real)
-    T = eltype(f)
+    T = cfstype(f)
     RT = real(T)
     # Need to think what to do if this is ever not the case..
     sp = space(f)
@@ -284,7 +284,7 @@ atan(f::Fun)=cumsum(f'/(1+f^2))+atan(first(f))
 # this is used to find a point in which to impose a boundary
 # condition in calculating secial functions
 function specialfunctionnormalizationpoint(op,growth,f)
-    g=chop(growth(f),eps(eltype(f)))
+    g=chop(growth(f),eps(cfstype(f)))
     xmin = isempty(g.coefficients) ? first(domain(g)) : argmin(g)
     xmax = isempty(g.coefficients) ? last(domain(g)) : argmax(g)
     opfxmin,opfxmax = op(f(xmin)),op(f(xmax))
@@ -374,7 +374,7 @@ function exp(f::Fun{JW}) where JW<:JacobiWeight
         D=Derivative(s)
         B=Evaluation(s,xmax)
 
-        \([B,D-f'],Any[opfxmax/opmax,0.];tolerance=eps(eltype(f)))*opmax
+        \([B,D-f'],Any[opfxmax/opmax,0.];tolerance=eps(cfstype(f)))*opmax
     end
 end
 
@@ -657,7 +657,7 @@ function jumplocations(f::Fun{S}) where{S<:PiecewiseSpace}
     end
 
     dtol=10eps(eltype(d))
-    ftol=10eps(eltype(f))
+    ftol=10eps(cfstype(f))
 
     dc = components(d)
     fc = components(f)

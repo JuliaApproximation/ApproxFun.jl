@@ -88,7 +88,7 @@ ProductFun(f::ProductFun,sp::TensorSpace)=space(f)==sp ? f : ProductFun(coeffici
 ProductFun(f::ProductFun{S,V,SS},sp::ProductDomain) where {S,V,SS<:TensorSpace}=ProductFun(f,Space(sp))
 
 function ProductFun(f::ProductFun,sp::AbstractProductSpace)
-    u=Array{VFun{typeof(columnspace(sp,1)),eltype(f)}}(length(f.coefficients))
+    u=Array{VFun{typeof(columnspace(sp,1)),cfstype(f)}}(length(f.coefficients))
 
     for k=1:length(f.coefficients)
         u[k]=Fun(f.coefficients[k],columnspace(sp,k))
@@ -149,7 +149,7 @@ end
 coefficients(f::ProductFun)=funlist2coefficients(f.coefficients)
 
 function coefficients(f::ProductFun,ox::Space,oy::Space)
-    T=eltype(f)
+    T=cfstype(f)
     m=size(f,1)
     B=Matrix{T}(m,length(f.coefficients))
     # convert in x direction
@@ -230,7 +230,7 @@ function chop(f::ProductFun{S},es...) where S
     while kend > 1 && isempty(chop(f.coefficients[kend].coefficients,es...))
         kend-=1
     end
-    ret=VFun{S,eltype(f)}[Fun(space(f.coefficients[k]),chop(f.coefficients[k].coefficients,es...)) for k=1:max(kend,1)]
+    ret=VFun{S,cfstype(f)}[Fun(space(f.coefficients[k]),chop(f.coefficients[k].coefficients,es...)) for k=1:max(kend,1)]
 
     typeof(f)(ret,f.space)
 end

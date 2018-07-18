@@ -173,7 +173,7 @@ function evaluate(f::AbstractVector,S::CosSpace,t)
     if t ∈ domain(S)
         clenshaw(Chebyshev(),f,cos(tocanonical(S,t)))
     else
-        zero(eltype(f))
+        zero(cfstype(f))
     end
 end
 
@@ -294,7 +294,7 @@ end
 function Base.conj(f::Fun{Laurent{DD,RR}}) where {DD,RR}
     ncoefficients(f) == 0 && return f
 
-    cfs = Array{eltype(f)}(undef, iseven(ncoefficients(f)) ? ncoefficients(f)+1 : ncoefficients(f))
+    cfs = Array{cfstype(f)}(undef, iseven(ncoefficients(f)) ? ncoefficients(f)+1 : ncoefficients(f))
     cfs[1] = conj(f.coefficients[1])
     cfs[ncoefficients(f)] = 0
     for k=2:2:ncoefficients(f)-1
@@ -462,7 +462,7 @@ reverseorientation(f::Fun{Fourier{DD,RR}}) where {DD,RR} =
 function reverseorientation(f::Fun{Laurent{DD,RR}}) where {DD,RR}
     # exp(im*k*x) -> exp(-im*k*x), or equivalentaly z -> 1/z
     n=ncoefficients(f)
-    ret=Array{eltype(f)}(undef, iseven(n) ? n+1 : n)  # since z -> 1/z we get one more coefficient
+    ret=Array{cfstype(f)}(undef, iseven(n) ? n+1 : n)  # since z -> 1/z we get one more coefficient
     ret[1]=f.coefficients[1]
     for k=2:2:length(ret)-1
         ret[k+1]=f.coefficients[k]

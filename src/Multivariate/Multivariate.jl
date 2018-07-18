@@ -18,9 +18,9 @@ Base.div(u::AbstractVector{B}) where {B<:BivariateFun} =
 curl(u::AbstractVector{B}) where {B<:BivariateFun} = differentiate(u[2],1)-differentiate(u[1],2)
 
 Base.chop(f::MultivariateFun) = chop(f,10eps())
-Base.eltype(::MultivariateFun{T}) where {T} = T
-Base.eltype(::Type{MultivariateFun{T,N}}) where {T,N} = T
-Base.eltype(::Type{MF}) where {MF<:MultivariateFun} = eltype(supertype(MF))
+cfstype(::MultivariateFun{T}) where {T} = T
+cfstype(::Type{MultivariateFun{T,N}}) where {T,N} = T
+cfstype(::Type{MF}) where {MF<:MultivariateFun} = cfstype(supertype(MF))
 
 include("VectorFun.jl")
 include("TensorSpace.jl")
@@ -81,7 +81,7 @@ function Base.kron(f::Fun,g::Fun)
     sp=space(f)⊗space(g)
     it=tensorizer(sp)
     N=ncoefficients(f);M=ncoefficients(g)
-    cfs=Array{promote_type(eltype(f),eltype(g))}(0)
+    cfs=Array{promote_type(cfstype(f),cfstype(g))}(0)
     for (k,j) in it
         # Tensor product is N x M, so if we are outside
         # the (N+M)th diagonal we have no more entries

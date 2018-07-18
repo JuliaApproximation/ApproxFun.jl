@@ -31,7 +31,7 @@ one(S::Chebyshev) = Fun(S,fill(1.0,1))
 
 function Base.first(f::Fun{<:Chebyshev})
     n = ncoefficients(f)
-    n == 0 && return zero(eltype(f))
+    n == 0 && return zero(cfstype(f))
     n == 1 && return f.coefficients[1]
     foldr(-,coefficients(f))
 end

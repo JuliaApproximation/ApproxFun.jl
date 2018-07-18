@@ -233,7 +233,7 @@ getindex(M::ConcreteMultiplication{CS,CS},k::Integer,j::Integer) where {CS<:CosS
 
 function getindex(M::ConcreteMultiplication{SS,SS},k::Integer,j::Integer) where SS<:SinSpace
     a=M.f.coefficients
-    ret=toeplitz_getindex([zero(eltype(a));-a],a,k,j)/2
+    ret=toeplitz_getindex([zero(cfstype(a));-a],a,k,j)/2
     if k ≥ 2
         ret+=hankel_getindex(a,k,j)/2
     end
@@ -330,12 +330,12 @@ bandinds(Σ::ConcreteDefiniteLineIntegral{Fourier{D,R}}) where {D,R} = 0,0
 
 
 transformtimes(f::Fun{CS},g::Fun{Fourier{D,R}}) where {CS<:CosSpace,D,R} =
-    transformtimes(Fun(Fourier(domain(f)),interlace(f.coefficients,zeros(eltype(f),ncoefficients(f)-1))),g)
+    transformtimes(Fun(Fourier(domain(f)),interlace(f.coefficients,zeros(cfstype(f),ncoefficients(f)-1))),g)
 transformtimes(f::Fun{SS},g::Fun{Fourier{D,R}}) where {SS<:SinSpace,D,R} =
-    transformtimes(Fun(Fourier(domain(f)),interlace(zeros(eltype(f),ncoefficients(f)+1),f.coefficients)),g)
+    transformtimes(Fun(Fourier(domain(f)),interlace(zeros(cfstype(f),ncoefficients(f)+1),f.coefficients)),g)
 transformtimes(f::Fun{CS},g::Fun{SS}) where {CS<:CosSpace,SS<:SinSpace} =
-    transformtimes(Fun(Fourier(domain(f)),interlace(f.coefficients,zeros(eltype(f),ncoefficients(f)-1))),
-                    Fun(Fourier(domain(g)),interlace(zeros(eltype(g),ncoefficients(g)+1),g.coefficients)))
+    transformtimes(Fun(Fourier(domain(f)),interlace(f.coefficients,zeros(cfstype(f),ncoefficients(f)-1))),
+                    Fun(Fourier(domain(g)),interlace(zeros(cfstype(g),ncoefficients(g)+1),g.coefficients)))
 transformtimes(f::Fun{Fourier{D,R}},g::Fun{CS}) where {CS<:CosSpace,D,R} = transformtimes(g,f)
 transformtimes(f::Fun{Fourier{D,R}},g::Fun{SS}) where {SS<:SinSpace,D,R} = transformtimes(g,f)
 transformtimes(f::Fun{SS},g::Fun{CS}) where {SS<:SinSpace,CS<:CosSpace} = transformtimes(g,f)
