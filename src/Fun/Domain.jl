@@ -37,20 +37,6 @@ dimension(d::Domain) = dimension(typeof(d))
 # add indexing for all spaces, not just DirectSumSpace
 # mimicking scalar vs vector
 
-# TODO: 0.7 iteratorgo
-start(s::Domain) = false
-next(s::Domain,st) = (s,true)
-done(s::Domain,st) = st
-length(s::Domain) = 1
-getindex(s::Domain,::CartesianIndex{0}) = s
-getindex(s::Domain,k) = k == 1 ? s : throw(BoundsError())
-endof(s::Domain) = 1
-
-
-#supports broadcasting, overloaded for ArraySpace
-size(::Domain) = ()
-
-
 # prectype gives the precision, including for Vec
 prectype(d::Domain) = eltype(eltype(d))
 prectype(::Type{D}) where {D<:Domain} = eltype(eltype(D))
@@ -110,7 +96,7 @@ chebyshevpoints(n::Integer;kind::Int=1) = chebyshevpoints(Float64,n;kind=kind)
 ##TODO: Should fromcanonical be fromcanonical!?
 
 points(d::IntervalDomain{T},n::Integer;kind::Int=1) where {T} =
-    fromcanonical.(d,chebyshevpoints(real(eltype(T)),n;kind=kind))  # eltype to handle point
+    fromcanonical.(Ref(d), chebyshevpoints(real(eltype(T)),n;kind=kind))  # eltype to handle point
 bary(v::AbstractVector{Float64},d::IntervalDomain,x::Float64) = bary(v,tocanonical(d,x))
 
 #TODO consider moving these
@@ -149,7 +135,7 @@ canonicaldomain(::PeriodicDomain) = PeriodicInterval()
 
 
 points(d::PeriodicDomain{T},n::Integer) where {T} =
-    fromcanonical.(d, fourierpoints(real(eltype(T)),n))
+    fromcanonical.(Ref(d), fourierpoints(real(eltype(T)),n))
 
 fourierpoints(n::Integer) = fourierpoints(Float64,n)
 fourierpoints(::Type{T},n::Integer) where {T<:Number} = convert(T,π)*collect(0:2:2n-2)/n
@@ -217,11 +203,11 @@ domain(::Number) = AnyDomain()
 ## rand
 
 
-rand(d::IntervalDomain,k...) = fromcanonical.(d,2rand(k...)-1)
-rand(d::PeriodicDomain,k...) = fromcanonical.(d,2π*rand(k...)-π)
+rand(d::IntervalDomain,k...) = fromcanonical.(Ref(d),2rand(k...)-1)
+rand(d::PeriodicDomain,k...) = fromcanonical.(Ref(d),2π*rand(k...)-π)
 
-checkpoints(d::IntervalDomain) = fromcanonical.(d,[-0.823972,0.01,0.3273484])
-checkpoints(d::PeriodicDomain) = fromcanonical.(d,[1.223972,3.14,5.83273484])
+checkpoints(d::IntervalDomain) = fromcanonical.(Ref(d),[-0.823972,0.01,0.3273484])
+checkpoints(d::PeriodicDomain) = fromcanonical.(Ref(d),[1.223972,3.14,5.83273484])
 
 ## boundary
 

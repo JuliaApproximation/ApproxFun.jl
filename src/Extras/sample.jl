@@ -86,7 +86,7 @@ end
 for TYP in (:Vector,:Float64)
     @eval begin
         bisectioninv(cf::Fun{SP,Float64},x::$TYP;opts...) where {SP<:Chebyshev} =
-            fromcanonical.(space(cf),chebbisectioninv(coefficients(cf),x;opts...))
+            fromcanonical.(Ref(space(cf)),chebbisectioninv(coefficients(cf),x;opts...))
 #        bisectioninv{SP<:LineSpace}(cf::Fun{SP,Float64},x::$TYP;opts...)=fromcanonical(cf,chebbisectioninv(coefficients(cf),x;opts...))
     end
 end

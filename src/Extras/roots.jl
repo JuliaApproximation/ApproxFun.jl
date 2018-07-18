@@ -83,7 +83,7 @@ for (BF,FF) in ((BigFloat,Float64),(Complex{BigFloat},ComplexF64))
         # calculate Flaot64 roots
         r = Array{$BF}(rootsunit_coeffs(convert(Vector{$FF},c./vscale), Float64(htol)))
         # Map roots from [-1,1] to domain of f:
-        rts = fromcanonical.(d,r)
+        rts = fromcanonical.(Ref(d),r)
         fp = differentiate(f)
 
         # do Newton 3 time
@@ -124,7 +124,7 @@ function roots( f::Fun{C,TT} ) where {C<:Chebyshev,TT<:Union{Float64,ComplexF64}
 
 
     # Map roots from [-1,1] to domain of f:
-    return fromcanonical.(d,r)
+    return fromcanonical.(Ref(d),r)
 end
 
 
@@ -390,13 +390,13 @@ function complexroots(cfs::Vector{T}) where T<:Union{BigFloat,Complex{BigFloat}}
     rts
 end
 
-complexroots(neg::Vector,pos::Vector) =
+complexroots(neg::Vector, pos::Vector) =
     complexroots([reverse(chop(neg,10eps()), dims=1);pos])
 complexroots(f::Fun{Laurent{DD,RR}}) where {DD,RR} =
-    mappoint.(Circle(), domain(f),
+    mappoint.(Ref(Circle()), domain(f),
         complexroots(f.coefficients[2:2:end],f.coefficients[1:2:end]))
 complexroots(f::Fun{Taylor{DD,RR}}) where {DD,RR} =
-    mappoint.(Circle(), domain(f), complexroots(f.coefficients))
+    mappoint.(Ref(Circle()), domain(f), complexroots(f.coefficients))
 
 
 

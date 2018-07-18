@@ -1,7 +1,4 @@
-const ArrayFun = Fun{S} where {S<:Space{D,R}} where {D,R<:AbstractArray}
-const MatrixFun = Fun{S} where {S<:Space{D,R}} where {D,R<:AbstractMatrix}
-const VectorFun = Fun{S} where {S<:Space{D,R}} where {D,R<:AbstractVector}
-const ScalarFun = Fun{S} where {S<:Space{D,R}} where {D,R<:Number}
+
 
 
 convert(::Type{Array},f::ArrayFun) = reshape(vec(f),size(space(f))...)
@@ -22,7 +19,7 @@ const FunTypes = Union{Fun,Number}
 const ScalarFunTypes = Union{ScalarFun,Number}
 function vcat(vin::FunTypes...)
     #  remove tuple spaces
-    v=Vector{Fun}(0)
+    v=Vector{Fun}(undef,0)
     for f in vin
         if rangetype(space(f)) <: AbstractVector
             append!(v,vec(f))

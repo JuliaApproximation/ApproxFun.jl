@@ -233,7 +233,7 @@ getindex(M::ConcreteMultiplication{CS,CS},k::Integer,j::Integer) where {CS<:CosS
 
 function getindex(M::ConcreteMultiplication{SS,SS},k::Integer,j::Integer) where SS<:SinSpace
     a=M.f.coefficients
-    ret=toeplitz_getindex([zero(cfstype(a));-a],a,k,j)/2
+    ret=toeplitz_getindex([zero(eltype(a));-a],a,k,j)/2
     if k ≥ 2
         ret+=hankel_getindex(a,k,j)/2
     end

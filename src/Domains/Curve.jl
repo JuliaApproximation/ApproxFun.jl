@@ -30,7 +30,7 @@ for TYP in (:IntervalCurve,:PeriodicCurve)
     @eval points(c::$TYP,n::Integer) = c.curve.(points(domain(c.curve),n))
 end
 
-checkpoints(d::Curve) = fromcanonical.(d,checkpoints(domain(d.curve)))
+checkpoints(d::Curve) = fromcanonical.(Ref(d),checkpoints(domain(d.curve)))
 
 for op in (:(first),:(last),:(rand))
     @eval $op(c::Curve)=c.curve($op(domain(c.curve)))

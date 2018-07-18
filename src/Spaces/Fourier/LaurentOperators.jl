@@ -22,7 +22,7 @@ getindex(T::ConcreteEvaluation{Taylor{DD,RR},Complex{Float64},Int,Complex{Float6
 
 ## Multiplication
 
-Multiplication(f::Fun{Laurent{DD,RR}},sp::Laurent{DD,RR}) where {DD,RR} = ConcreteMultiplication(eltype(f),f,sp)
+Multiplication(f::Fun{Laurent{DD,RR}},sp::Laurent{DD,RR}) where {DD,RR} = ConcreteMultiplication(cfstype(f),f,sp)
 
 function laurent_getindex(negative::AbstractVector{T},nonnegative::AbstractVector{T},k::Integer,j::Integer) where T
     # switch to double-infinite indices

@@ -130,15 +130,23 @@ cfstype(::Fun{S,T}) where {S,T} = T
 cfstype(::Type{Fun{S,T,VT}}) where {S,T,VT} = T
 
 #supports broadcasting and scalar iterator
+const ScalarFun = Fun{S} where S<:Space{D,R} where {D,R<:Number}
+const ArrayFun = Fun{S} where {S<:Space{D,R}} where {D,R<:AbstractArray}
+const MatrixFun = Fun{S} where {S<:Space{D,R}} where {D,R<:AbstractMatrix}
+const VectorFun = Fun{S} where {S<:Space{D,R}} where {D,R<:AbstractVector}
+
 size(f::Fun,k...) = size(space(f),k...)
-getindex(f::Fun,::CartesianIndex{0}) = f
-getindex(f::Fun,k::Integer) = k == 1 ? f : throw(BoundsError())
 length(f::Fun) = length(space(f))
-start(f::Fun) = false
-next(x::Fun, state) = (x, true)
-done(x::Fun, state) = state
-isempty(x::Fun) = false
-in(x::Fun, y::Fun) = x == y
+
+
+getindex(f::ScalarFun, ::CartesianIndex{0}) = f
+getindex(f::ScalarFun, k::Integer) = k == 1 ? f : throw(BoundsError())
+
+iterate(x::ScalarFun) = (x, nothing)
+iterate(x::ScalarFun, ::Any) = nothing
+isempty(x::ScalarFun) = false
+
+in(x::ScalarFun, y::ScalarFun) = x == y
 
 
 

@@ -1,16 +1,15 @@
 ## Sequence space defintions
 
 # A Fun for SequenceSpace can be an iterator
-Base.start(::Fun{SequenceSpace}) = 1
-Base.next(f::Fun{SequenceSpace},st) = f[st],st+1
-Base.done(f::Fun{SequenceSpace},st) = false # infinite length
+iterate(::Fun{SequenceSpace}) = 1
+iterate(f::Fun{SequenceSpace}, st) = f[st], st+1
 
-getindex(f::Fun{SequenceSpace},k::Integer) =
+getindex(f::Fun{SequenceSpace}, k::Integer) =
     k ≤ ncoefficients(f) ? f.coefficients[k] : zero(eltype(f))
 getindex(f::Fun{SequenceSpace},K::CartesianIndex{0}) = f[1]
 getindex(f::Fun{SequenceSpace},K) = eltype(f)[f[k] for k in K]
 
-Base.length(f::Fun{SequenceSpace}) = ∞
+length(f::Fun{SequenceSpace}) = ∞
 
 
 dotu(f::Fun{SequenceSpace},g::Fun{SequenceSpace}) =
