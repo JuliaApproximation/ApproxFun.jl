@@ -1,7 +1,10 @@
 
 
 
-convert(::Type{Array},f::ArrayFun) = reshape(vec(f),size(space(f))...)
+convert(::Type{Array}, f::ArrayFun) = reshape(vec(f), size(space(f))...)
+Array(f::ArrayFun) = convert(Array, f)
+Vector(f::VectorFun) = Array(f)
+Matrix(f::MatrixFun) = Array(f)
 
 map(f,A::ArrayFun) = Base.collect_similar(A, Base.Generator(f,A))
 
@@ -135,7 +138,7 @@ end
 # use standard +, -
 *(A::ArrayFun,f::ArrayFun) = Fun(Array(A)*Array(f))
 
-norm(A::VectorFun,p::Number) = norm(norm.(Array(A)),p)
+norm(A::VectorFun, p::Real) = norm(norm.(Array(A)),p)
 
 
 

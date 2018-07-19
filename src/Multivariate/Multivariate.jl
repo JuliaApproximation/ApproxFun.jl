@@ -52,7 +52,7 @@ points(f::BivariateFun,k...)=points(space(f),size(f,1),size(f,2),k...)
 
 
 function *(vx::LowRankFun,u0::ProductFun)
-    ret=zeros(space(u0))
+    ret=zero(space(u0))
     for k=1:length(vx.A)
         a,b=vx.A[k],vx.B[k]
         ret+=transpose(b*(transpose(a*u0)))

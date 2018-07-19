@@ -85,9 +85,9 @@ convert(::Type{Fun{S,T}},f::Fun{S}) where {T,S} =
 
 
 convert(::Type{VFun{S,T}},x::Number) where {T,S} =
-    x==0 ? zeros(T,S(AnyDomain())) : x*one(T,S(AnyDomain()))
+    x==0 ? zeros(T,S(AnyDomain())) : x*ones(T,S(AnyDomain()))
 convert(::Type{Fun{S}},x::Number) where {S} =
-    x==0 ? zeros(S(AnyDomain())) : x*one(S(AnyDomain()))
+    x==0 ? zeros(S(AnyDomain())) : x*ones(S(AnyDomain()))
 convert(::Type{IF},x::Number) where {IF<:Fun} = convert(IF,Fun(x))
 
 Fun{S,T,VT}(f::Fun) where {S,T,VT} = convert(Fun{S,T,VT}, f)
@@ -121,10 +121,9 @@ Base.promote_op(::typeof(LinearAlgebra.matprod),::Type{NN},::Type{Fun{S,T,VT}}) 
 
 zero(::Type{Fun}) = Fun(0.)
 zero(::Type{Fun{S,T,VT}}) where {T,S<:Space,VT} = zeros(T,S(AnyDomain()))
-one(::Type{Fun{S,T,VT}}) where {T,S<:Space,VT} = one(T,S(AnyDomain()))
-for op in (:(zeros),:(one))
-    @eval ($op)(f::Fun{S,T}) where {S,T} = $op(T,f.space)
-end
+one(::Type{Fun{S,T,VT}}) where {T,S<:Space,VT} = ones(T,S(AnyDomain()))
+zero(f::Fun{S,T}) where {S,T} = zeros(T,f.space)
+one(f::Fun{S,T}) where {S,T} = ones(T,f.space)
 
 cfstype(::Fun{S,T}) where {S,T} = T
 cfstype(::Type{Fun{S,T,VT}}) where {S,T,VT} = T
@@ -343,7 +342,7 @@ end
 
 function intpow(f::Fun,k::Integer)
     if k == 0
-        one(space(f))
+        ones(space(f))
     elseif k==1
         f
     elseif k > 1
@@ -481,8 +480,8 @@ function isapprox(f::Fun{S1,T},g::Fun{S2,S};rtol::Real=Base.rtoldefault(T,S,0), 
     end
 end
 
-isapprox(f::Fun, g::Number) = f ≈ g*one(space(f))
-isapprox(g::Number, f::Fun) = g*one(space(f)) ≈ f
+isapprox(f::Fun, g::Number) = f ≈ g*ones(space(f))
+isapprox(g::Number, f::Fun) = g*ones(space(f)) ≈ f
 
 
 isreal(f::Fun{<:RealSpace,<:Real}) = true

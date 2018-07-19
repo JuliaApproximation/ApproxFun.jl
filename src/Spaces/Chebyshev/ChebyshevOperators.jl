@@ -149,15 +149,15 @@ function Matrix(S::SubOperator{T,ConcreteDirichlet{C,V,T},
     isempty(jr) && return ret
     if first(kr) == 1
         if isodd(jr[1])
-            ret[1,1:2:end] = one(T)
-            ret[1,2:2:end] = -one(T)
+            ret[1,1:2:end] .= one(T)
+            ret[1,2:2:end] .= -one(T)
         else
-            ret[1,1:2:end] = -one(T)
-            ret[1,2:2:end] = one(T)
+            ret[1,1:2:end] .= -one(T)
+            ret[1,2:2:end] .= one(T)
         end
     end
     if last(kr) == 2
-        ret[end,:] = one(T)
+        ret[end,:] .= one(T)
     end
     return ret
 end

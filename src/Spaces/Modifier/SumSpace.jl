@@ -95,7 +95,8 @@ function blocklengths(sp::DirectSumSpace)
     N=mapreduce(length,max,bl)
     mapreduce(b->pad(b,N),+,bl)
 end
-block(sp::DirectSumSpace,k::Int) = Block(findfirst(x->x≥k,cumsum(blocklengths(sp))))
+block(sp::DirectSumSpace,k::Int) =
+    Block(findfirst(x->x≥k,cumsum(blocklengths(sp))))
 
 
 
@@ -400,7 +401,7 @@ linebilinearform(f::Fun{S},g::Fun{V}) where {S<:PiecewiseSpace,V<:PiecewiseSpace
 
 
 
-function one(::Type{T},S::SumSpace) where T<:Number
+function ones(::Type{T},S::SumSpace) where T<:Number
     for sp in components(S)
         if isconvertible(ConstantSpace(),sp)
             return Fun(fill(one(T),sp), S)
@@ -410,11 +411,11 @@ function one(::Type{T},S::SumSpace) where T<:Number
     error("$S does not contain constants")
 end
 
-one(S::SumSpace) = one(Float64,S)
+ones(S::SumSpace) = ones(Float64,S)
 
-one(::Type{T},S::PiecewiseSpace{SS,V}) where {T<:Number,SS,V} =
-    Fun(map(one,components(S)),PiecewiseSpace)
-one(S::PiecewiseSpace) = one(Float64,S)
+ones(::Type{T},S::PiecewiseSpace{SS,V}) where {T<:Number,SS,V} =
+    Fun(map(ones,components(S)),PiecewiseSpace)
+ones(S::PiecewiseSpace) = ones(Float64,S)
 
 
 Fun(::typeof(identity), S::PiecewiseSpace) = Fun(Fun.(identity,S.spaces),PiecewiseSpace)

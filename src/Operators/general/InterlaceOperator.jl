@@ -498,7 +498,8 @@ Base.hvcat(rows::Tuple{Vararg{Int}}, D::Union{Fun,Number,UniformScaling}, C::Uni
 
 ## Convert Matrix operator to operators
 
-convert(::Type{Operator},M::AbstractArray{OO}) where {OO<:Operator} = InterlaceOperator(M)
+Operator(M::AbstractArray{OO}) where {OO<:Operator} = InterlaceOperator(M)
+
 
 
 

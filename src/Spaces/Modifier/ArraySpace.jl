@@ -26,9 +26,12 @@ ArraySpace(S::Space,n,m) = ArraySpace(fill(S,(n,m)))
 ArraySpace(d::Domain,n...) = ArraySpace(Space(d),n...)
 
 Space(sp::AbstractArray{<:Space}) = ArraySpace(sp)
-convert(::Type{Array},sp::ArraySpace) = sp.spaces
-convert(::Type{Vector},sp::VectorSpace) = sp.spaces
-convert(::Type{Matrix},sp::MatrixSpace) = sp.spaces
+convert(::Type{Array}, sp::ArraySpace) = sp.spaces
+convert(::Type{Vector}, sp::VectorSpace) = sp.spaces
+convert(::Type{Matrix}, sp::MatrixSpace) = sp.spaces
+Array(sp::ArraySpace) = sp.spaces
+Vector(sp::VectorSpace) = sp.spaces
+Matrix(sp::MatrixSpace) = sp.spaces
 
 
 BlockInterlacer(sp::ArraySpace) = BlockInterlacer(blocklengths.(tuple(sp.spaces...)))
@@ -231,8 +234,8 @@ Fun(M::UniformScaling,sp::MatrixSpace) = Fun(M.λ*Matrix(I,size(sp)...),sp)
 
 
 
-one(::Type{T},A::ArraySpace) where {T<:Number} = Fun(one.(T,spaces(A)))
-one(A::ArraySpace) = Fun(one.(spaces(A)))
+ones(::Type{T},A::ArraySpace) where {T<:Number} = Fun(ones.(T,spaces(A)))
+ones(A::ArraySpace) = Fun(ones.(spaces(A)))
 
 
 ## EuclideanSpace

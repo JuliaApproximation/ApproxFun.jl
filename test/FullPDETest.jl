@@ -294,16 +294,16 @@ using ApproxFun, Test
 
     QR1 = qr(A)
     @time ApproxFun.resizedata!(QR1,:,5000)
-    @time u=\(QR1,[one(∂(d));0.];tolerance=1E-7)
+    @time u=\(QR1,[ones(∂(d));0.];tolerance=1E-7)
 
-    @test norm((Dirichlet(d)*u-one(∂(d))).coefficients) < 1E-7
-    @test norm((A*u-Fun([one(∂(d));0.])).coefficients) < 1E-7
+    @test norm((Dirichlet(d)*u-ones(∂(d))).coefficients) < 1E-7
+    @test norm((A*u-Fun([ones(∂(d));0.])).coefficients) < 1E-7
     @test norm(((A*u)[2]-(Laplacian(space(u))+100I)*u).coefficients) < 1E-10
     @test eltype(ApproxFun.promotedomainspace(Laplacian(),space(u))) == Float64
     @test eltype(ApproxFun.promotedomainspace(Laplacian()+100I,space(u))) == Float64
     @test norm(((A*u)[2]-(Laplacian()+100I)*u).coefficients) < 1E-10
     @test norm((Laplacian()*u+100*u - (A*u)[2]).coefficients) < 10E-10
-    @time v=\(A,[one(∂(d));0.];tolerance=1E-7)
+    @time v=\(A,[ones(∂(d));0.];tolerance=1E-7)
     @test norm((u-v).coefficients) < 100eps()
 
     @test u(0.1,1.) ≈ 1.0

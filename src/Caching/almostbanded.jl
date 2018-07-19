@@ -251,7 +251,7 @@ function resizedata!(co::CachedOperator{T,AlmostBandedMatrix{T},
     jr=max(ncols+1,kr[1]-l):n+u
     io∞=InterlaceOperator(io.ops[r∞,d∞])
 
-    BLAS.axpy!(1.0,view(io∞,kr-r,jr-ncols),view(co.data.bands,kr,jr))
+    BLAS.axpy!(1.0,view(io∞,kr.-r,jr.-ncols),view(co.data.bands,kr,jr))
 
     co.datasize=(n,n+u)
     co

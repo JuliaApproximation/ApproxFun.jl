@@ -54,14 +54,15 @@ Fun(c::Number,d::ConstantSpace) = Fun(d,[c])
 dimension(::ConstantSpace) = 1
 
 #TODO: Change
-setdomain(f::Fun{CS},d::Domain) where {CS<:AnyDomain} = Number(f)*one(d)
+setdomain(f::Fun{CS},d::Domain) where {CS<:AnyDomain} = Number(f)*ones(d)
 
 canonicalspace(C::ConstantSpace) = C
 spacescompatible(a::ConstantSpace,b::ConstantSpace)=domainscompatible(a,b)
 
-one(S::ConstantSpace)=Fun(S,fill(1.0,1))
-one(S::Union{AnyDomain,UnsetSpace})=one(ConstantSpace())
-Base.zeros(S::Union{AnyDomain,UnsetSpace})=zeros(ConstantSpace())
+ones(S::ConstantSpace) = Fun(S,fill(1.0,1))
+ones(S::Union{AnyDomain,UnsetSpace}) = ones(ConstantSpace())
+zeros(S::AnyDomain) = zero(ConstantSpace())
+zero(S::UnsetSpace) = zero(ConstantSpace())
 evaluate(f::AbstractVector,::ConstantSpace,x...)=f[1]
 evaluate(f::AbstractVector,::ZeroSpace,x...)=zero(eltype(f))
 
@@ -118,19 +119,19 @@ Conversion(a::ConstantSpace,b::Space{D}) where {D<:BivariateDomain} = ConcreteCo
 
 Conversion(a::ConstantSpace,b::Space) = ConcreteConversion(a,b)
 bandinds(C::ConcreteConversion{CS,S}) where {CS<:ConstantSpace,S<:Space} =
-    1-ncoefficients(one(rangespace(C))),0
+    1-ncoefficients(ones(rangespace(C))),0
 function getindex(C::ConcreteConversion{CS,S,T},k::Integer,j::Integer) where {CS<:ConstantSpace,S<:Space,T}
     if j != 1
         throw(BoundsError())
     end
-    on=one(rangespace(C))
+    on=ones(rangespace(C))
     k ≤ ncoefficients(on) ? convert(T,on.coefficients[k]) : zero(T)
 end
 
 coefficients(f::AbstractVector,sp::ConstantSpace{Segment{Vec{2,TT}}},
              ts::TensorSpace{SV,DD}) where {TT,SV,DD<:BivariateDomain} =
-    f[1]*one(ts).coefficients
-coefficients(f::AbstractVector,sp::ConstantSpace,ts::Space) = f[1]*one(ts).coefficients
+    f[1]*ones(ts).coefficients
+coefficients(f::AbstractVector,sp::ConstantSpace,ts::Space) = f[1]*ones(ts).coefficients
 
 
 ########

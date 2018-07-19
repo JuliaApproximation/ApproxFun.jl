@@ -14,9 +14,6 @@ for op in (:Derivative,:Integral)
     end
 end
 
-
-
-
 function Evaluation(d::AbstractVector{T},x...) where T<:IntervalDomain
     n=length(d)
     R=zeros(Operator{mapreduce(eltype,promote_type,d)},n,n)
@@ -28,15 +25,12 @@ function Evaluation(d::AbstractVector{T},x...) where T<:IntervalDomain
 end
 
 
-
 ## Construction
-
-function diagm(d::AbstractVector{T}) where {T<:Operator}
-    D=zeros(Operator{mapreduce(eltype,promote_type,d)},length(d),length(d))
-    for k=1:length(d)
-        D[k,k]=d[k]
-    end
-    D
+function diagm_container(kv::Pair{<:Integer,<:AbstractVector{O}}...) where O<:Operator
+    T = mapreduce(x -> mapreduce(eltype,promote_type,x.second),
+                  promote_type, kv)
+    n = mapreduce(x -> length(x.second) + abs(x.first), max, kv)
+    zeros(Operator{T}, n, n)
 end
 
 ##TODO: unify with other blockdiag

@@ -81,6 +81,7 @@ QROperator(R::CachedOperator{T,AM}) where {T,AM<:AbstractMatrix} =
 
 
 adjoint(Q::QROperatorQ) = Adjoint(Q)
+size(Q::Adjoint{<:Any,<:QROperatorQ}) = (size(parent(Q),2), size(parent(Q),1))
 
 function qr!(A::CachedOperator; cached::Int=0)
     QR = QROperator(A)
@@ -153,7 +154,13 @@ mul_coefficients(Ac::Adjoint{T,<:QROperatorQ{QR,T}},B::AbstractVector{T};toleran
 mul_coefficients(Ac::Adjoint{T,<:QROperatorQ{QR,T}},B::AbstractVector{V};opts...) where {QR,T,V} =
     mul_coefficients(Ac,AbstractVector{T}(B); opts...)
 
-function *(Ac::Adjoint{<:Any,<:QROperatorQ},b; kwds...)
+
+function *(Ac::Adjoint{<:Any,<:QROperatorQ}, b::AbstractVector; kwds...)
+    A = parent(Ac)
+    Fun(domainspace(A),mul_coefficients(Ac,coefficients(b,rangespace(A));kwds...))
+end
+
+function *(Ac::Adjoint{<:Any,<:QROperatorQ}, b; kwds...)
     A = parent(Ac)
     Fun(domainspace(A),mul_coefficients(Ac,coefficients(b,rangespace(A));kwds...))
 end

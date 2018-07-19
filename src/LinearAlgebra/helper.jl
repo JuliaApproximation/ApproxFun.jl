@@ -970,6 +970,9 @@ end
     state[1] == length(f) && done(f.it[end],state[2][end])
 
 length(f::Flatten) = mapreduce(length,+,f.it)
+size(f::Flatten) = (length(f),)
+keys(f::Flatten) = 1:length(f)
+Base.OneTo(::Infinity{Bool}) = 1:∞
 
 eachindex(f::Flatten) = 1:length(f)
 
@@ -1066,11 +1069,11 @@ for OP in (:+,:-)
 
         function $OP(a::Flatten,b::AbstractRepeated)
             @assert isinf(length(a.it[end]))
-            flatten(map(it->$OP(it,value(b)),a.it))
+            flatten(map(it->$OP.(it,value(b)),a.it))
         end
         function $OP(a::AbstractRepeated,b::Flatten)
             @assert isinf(length(b.it[end]))
-            flatten(map(it->$OP(value(a),it),b.it))
+            flatten(map(it->$OP.(value(a),it),b.it))
         end
 
         function $OP(a::Flatten,b::AbstractCount)

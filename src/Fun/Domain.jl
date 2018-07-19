@@ -169,8 +169,8 @@ convert(::Type{D},::AnyDomain) where {D<:PeriodicDomain} = AnyPeriodicDomain()
 
 ## conveninece routines
 
-one(d::Domain)=one(prectype(d),Space(d))
-zeros(d::Domain)=zeros(prectype(d),Space(d))
+ones(d::Domain) = ones(prectype(d),Space(d))
+zeros(d::Domain) = zeros(prectype(d),Space(d))
 
 
 

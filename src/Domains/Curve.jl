@@ -66,4 +66,4 @@ convert(::Type{IntervalCurve{S,T}},::AnyDomain) where {S,T}=Fun(S(AnyDomain()),[
 convert(::Type{PeriodicCurve{S,T}},::AnyDomain) where {S,T}=Fun(S(AnyDomain()),[NaN])
 
 
-arclength(d::Curve) = linesum(one(d))
+arclength(d::Curve) = linesum(ones(d))

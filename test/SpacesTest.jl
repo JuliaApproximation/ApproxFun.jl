@@ -163,7 +163,7 @@ using ApproxFun, Test
 
     ## Piecewise + Cosntant
     Γ=Circle() ∪ Circle(0.0,0.4)
-    o=one(Γ)
+    o=ones(Γ)
     @test o(1.) ≈ 1.0
     @test o(0.4) ≈ 1.0
 
@@ -227,7 +227,7 @@ using ApproxFun, Test
     @test isempty(component(Γ,1)\component(Γ,1))
     @test Γ\component(Γ,1) == component(Γ,2) ∪ component(Γ,3)
 
-    @test norm(Fun(one(component(Γ,1)),Γ) - Fun(x->x ∈ component(Γ,1) ? 1.0 : 0.0,Γ)) == 0
+    @test norm(Fun(ones(component(Γ,1)),Γ) - Fun(x->x ∈ component(Γ,1) ? 1.0 : 0.0,Γ)) == 0
 
 
     ## Line
@@ -344,7 +344,7 @@ using ApproxFun, Test
 
     @testset "one for SumSpace" begin
         S = Jacobi(0,1) ⊕ JacobiWeight(1/3,0,Jacobi(1/3,2/3)) ⊕ JacobiWeight(2/3,0,Jacobi(2/3,1/3))
-        o = one(S)
+        o = ones(S)
         @test o(0.5) == 1
     end
 

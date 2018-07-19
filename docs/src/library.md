@@ -8,7 +8,7 @@ Fun
 ```
 
 ```@docs
-one(::Space)
+ones(::Space)
 ```
 
 ```@docs
