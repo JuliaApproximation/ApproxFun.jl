@@ -30,7 +30,7 @@ for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:arclength))
             elseif β == -0.5 && α == 0.5
                 return 0.5*$Len(d)*(n == 1 ? f.coefficients[1] : f.coefficients[1] - f.coefficients[2]/2)*π
             else
-                c = zeros(eltype(f),n)
+                c = zeros(cfstype(f),n)
                 c[1] = 2^(β+α+1)*gamma(β+1)*gamma(α+1)/gamma(β+α+2)
                 if n > 1
                     c[2] = c[1]*(β-α)/(β+α+2)
@@ -351,7 +351,7 @@ function  Base.getindex(op::ConcreteEvaluation{<:JacobiWeight,typeof(first)},kr:
         end
     else
         @assert op.order==0
-        zeros(kr)
+        zeros(eltype(op), length(kr))
     end
 end
 
@@ -371,7 +371,7 @@ function  Base.getindex(op::ConcreteEvaluation{<:JacobiWeight,typeof(last)},kr::
         end
     else
         @assert op.order==0
-        zeros(kr)
+        zeros(eltype(op), length(kr))
     end
 end
 

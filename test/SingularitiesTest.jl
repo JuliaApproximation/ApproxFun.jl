@@ -1,4 +1,4 @@
-using ApproxFun, Test
+using ApproxFun, SpecialFunctions, Test
 
 @testset "Singularities" begin
     @testset "sqrt" begin

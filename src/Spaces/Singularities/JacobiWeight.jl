@@ -66,8 +66,8 @@ weight(sp::JacobiWeight,x) = jacobiweight(sp.β,sp.α,tocanonical(sp,x))
 dimension(sp::JacobiWeight) = dimension(sp.space)
 
 
-Base.first(f::Fun{JW}) where {JW<:JacobiWeight} = space(f).β>0 ? zero(eltype(f)) : f(first(domain(f)))
-Base.last(f::Fun{JW}) where {JW<:JacobiWeight} = space(f).α>0 ? zero(eltype(f)) : f(last(domain(f)))
+Base.first(f::Fun{JW}) where {JW<:JacobiWeight} = space(f).β>0 ? zero(cfstype(f)) : f(first(domain(f)))
+Base.last(f::Fun{JW}) where {JW<:JacobiWeight} = space(f).α>0 ? zero(cfstype(f)) : f(last(domain(f)))
 
 setdomain(sp::JacobiWeight,d::Domain)=JacobiWeight(sp.β,sp.α,setdomain(sp.space,d))
 
