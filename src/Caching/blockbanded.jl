@@ -281,7 +281,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
          for ξ_2 = ξ:blocksize(bs, 2, J1)
              # we now apply I-2v*v' in place
              r_sh = r+sz*(shft + st*(ξ_2-ξ)) # the pointer the (j,ξ_2)-th entry
-             dt = dot(M, wp, 1, r_sh, 1)
+             dt = BandedMatrices.dot(M, wp, 1, r_sh, 1)
              BLAS.axpy!(M, -2*dt, wp, 1, r_sh ,1)
          end
 

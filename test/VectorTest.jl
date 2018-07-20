@@ -248,7 +248,6 @@ using ApproxFun, Test
         @test norm((([1 2;3 4]*f)-Fun(t->[t^2+2sin(t),3t^2+4sin(t)])).coefficients)<100eps()
     end
 
-
     @testset "Two circles" begin
         Γ = Circle() ∪ Circle(0.5)
 
@@ -270,7 +269,6 @@ using ApproxFun, Test
         M = Multiplication(G, space(G1))
         testblockbandedoperator(M)
 
-
         for z in (0.5exp(0.1im),exp(0.2im))
             @test G[1,1](z) ≈ G[1](z)
             @test (M.op.ops[1,1]*G1[1])(z) ≈ M.f[1,1](z)*G1[1](z)
@@ -279,11 +277,9 @@ using ApproxFun, Test
             @test (M.op.ops[2,2]*G1[2])(z) ≈ M.f[2,2](z)*G1[2](z)
         end
 
-
         u = M*G1
         @test norm(u(exp(.1im))-[exp(.2im),0])<100eps()
         @test norm(u(.5exp(.1im))-[1,0])<100eps()
-
     end
 
     @testset "Circle" begin
@@ -374,7 +370,7 @@ using ApproxFun, Test
         @test norm(([B_row;B_row]*[f;f;f;f])[1]) ≤ 1000eps()
 
         n=4
-        Dg = Operator(diagm(fill(ldirichlet(d),n)))
+        Dg = Operator(diagm(0 => fill(ldirichlet(d),n)))
         @test Dg isa ApproxFun.MatrixInterlaceOperator
         @test size([Dg; B_row].ops) == (5,4)
         @test ([Dg; B_row]*[f;f;f;f])(0.1) ≈ [fill(1.0,4);0]

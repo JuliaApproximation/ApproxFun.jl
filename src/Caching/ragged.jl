@@ -83,7 +83,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
             for j=m+1:MO.datasize[2]
                 kr=J:J+length(wp)-1
                 v=view(MO.data,kr,j)
-                dt=dot(wp,v)
+                dt=BandedMatrices.dot(wp,v)
                 LinearAlgebra.axpy!(-2*dt,wp,v)
             end
         end
@@ -114,7 +114,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
         kr=k:k+length(wp)-1
         for j=k:MO.datasize[2]
             v=view(MO.data,kr,j)
-            dt=dot(wp,v)
+            dt=BandedMatrices.dot(wp,v)
             LinearAlgebra.axpy!(-2*dt,wp,v)
         end
     end
@@ -156,7 +156,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
 
             for j=m+1:MO.datasize[2]
                 v=r+(R.cols[j]+k-2)*sz
-                dt=dot(M,wp,1,v,1)
+                dt=BandedMatrices.dot(M,wp,1,v,1)
                 BLAS.axpy!(M,-2*dt,wp,1,v,1)
             end
         end
@@ -192,7 +192,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
         # scale rows entries
         for j=k:MO.datasize[2]
             v=r+(R.cols[j]+k-2)*sz
-            dt=dot(M,wp,1,v,1)
+            dt=BandedMatrices.dot(M,wp,1,v,1)
             BLAS.axpy!(M,-2*dt,wp,1,v,1)
         end
     end
@@ -269,7 +269,7 @@ function mulpars(Ac::Adjoint{T,<:QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T}
         wp=view(H,cr,k)
         yp=view(Y,k-1+(cr))
 
-        dt=dot(wp,yp)
+        dt=BandedMatrices.dot(wp,yp)
         LinearAlgebra.axpy!(-2*dt,wp,yp)
         k+=1
     end
@@ -325,7 +325,7 @@ function mulpars(Ac::Adjoint{T,<:QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T}
         wp=h + sz*(H.cols[k]-1)
         yp=y+sz*(k-1)
 
-        dt=dot(M,wp,1,yp,1)
+        dt = BandedMatrices.dot(M,wp,1,yp,1)
         BLAS.axpy!(M,-2*dt,wp,1,yp,1)
         k+=1
     end

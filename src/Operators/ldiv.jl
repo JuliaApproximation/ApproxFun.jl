@@ -24,18 +24,18 @@ will approximately satisfy `A*u = b`.
 \(::Operator,_)
 
 # Solve each column separately
-function \(A::Operator,B::AbstractMatrix;kwds...)
+function \(A::Operator, B::AbstractMatrix; kwds...)
     ds=domainspace(A)
     if isambiguous(ds)
         return choosespaces(A,B[:,1])\B
     end
 
     ret=Matrix{VFun{typeof(ds),
-               promote_type(eltype(A),mapreduce(eltype,promote_type,B))}}(undef,1,size(B,2))
+               promote_type(eltype(A),mapreduce(cfstype,promote_type,B))}}(undef,1,size(B,2))
 
     QR = factorize(A) # reuse computation
     for j=1:size(B,2)
-        ret[:,j] .= \(QR,B[:,j];kwds...)
+        ret[1,j] = \(QR,B[:,j];kwds...)
     end
     Fun(ret)
 end

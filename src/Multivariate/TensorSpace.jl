@@ -322,7 +322,8 @@ TensorSpace(A::ProductDomain) = TensorSpace(tuple(map(Space,A.domains)...))
 domain(f::TensorSpace) = mapreduce(domain,*,f.spaces)
 Space(sp::ProductDomain) = TensorSpace(sp)
 
-*(A::Space,B::Space) = A⊗B
+*(A::Space, B::Space) = A⊗B
+^(A::Space, p::Integer) = p == 1 ? A : A*A^(p-1)
 
 
 ## TODO: generalize

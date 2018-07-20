@@ -128,6 +128,12 @@ one(f::Fun{S,T}) where {S,T} = ones(T,f.space)
 cfstype(::Fun{S,T}) where {S,T} = T
 cfstype(::Type{Fun{S,T,VT}}) where {S,T,VT} = T
 
+# Number and Array conform to the Fun interface
+cfstype(::Type{T}) where T<: Number = T
+cfstype(::T) where T<: Number = T
+cfstype(::Type{<:AbstractArray{T}}) where T = T
+cfstype(::AbstractArray{T}) where T = T
+
 #supports broadcasting and scalar iterator
 const ScalarFun = Fun{S} where S<:Space{D,R} where {D,R<:Number}
 const ArrayFun = Fun{S} where {S<:Space{D,R}} where {D,R<:AbstractArray}

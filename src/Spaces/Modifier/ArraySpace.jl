@@ -127,7 +127,7 @@ Base.getindex(f::Fun{DSS},kj::CartesianIndex{2}) where {DSS<:ArraySpace} = f[kj[
 function Fun(A::AbstractArray{Fun{VectorSpace{S,DD,RR},V,VV},2}) where {S,V,VV,DD,RR}
     @assert size(A,1)==1
 
-    M=Matrix{Fun{S,V,VV}}(length(space(A[1])),size(A,2))
+    M = Matrix{Fun{S,V,VV}}(undef, length(space(A[1])),size(A,2))
     for k=1:size(A,2)
         M[:,k]=vec(A[k])
     end
@@ -208,7 +208,7 @@ end
 coefficients(Q::AbstractVector{F},rs::VectorSpace) where {F<:Fun} =
     interlace(map(coefficients,Q,rs),rs)
 
-
+coefficients(Q::AbstractVector, rs::VectorSpace) = coefficients(Fun.(Q), rs)
 
 
 Fun(f::AbstractVector{FF},d::VectorSpace) where {FF<:Fun} = Fun(d,coefficients(f,d))
