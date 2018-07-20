@@ -87,7 +87,6 @@ using ApproxFun, SpecialFunctions, Test
         @test g(.123) ≈ csc(10*.123)
     end
 
-
     @testset "Ray and Line" begin
         @test Inf in Ray()   # this was a bug
 
@@ -139,7 +138,6 @@ using ApproxFun, SpecialFunctions, Test
         @test ≈((D^2*f)(.2),-0.9752522555114987;atol=1000000eps())
     end
 
-
     @testset "LogWeight" begin
         x=Fun(identity,-1..1)
         f=exp(x+1)-1
@@ -162,11 +160,6 @@ using ApproxFun, SpecialFunctions, Test
         @test (p-p(0.))(0.5) ≈ -log(1-0.5)
     end
 
-
-
-
-
-
     @testset "Complex domains sqrt" begin
         a=1+10*im;b=2-6*im
         d=Curve(Fun(x->1+a*x+b*x^2))
@@ -181,7 +174,6 @@ using ApproxFun, SpecialFunctions, Test
         ζ=Fun(identity,a)
         f=Fun(exp,a)*sqrt(abs((ζ-1)*(ζ-im)))
     end
-
 
     @testset "DiracDelta and PointSpace" begin
         a,b=DiracDelta(0.),DiracDelta(1.)
@@ -223,12 +215,6 @@ using ApproxFun, SpecialFunctions, Test
         # for some reason this test is broken only on Travis
         @test_skip g/h ≈ f/a + Fun(1,2..3)
     end
-
-
-
-
-
-
 
     @testset "Multiple roots" begin
         x=Fun(identity,-1..1)

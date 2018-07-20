@@ -107,7 +107,7 @@ function setdiff(d::AffineDomain,ptsin::Vector)
     isempty(pts) && return d
     tol=sqrt(eps(arclength(d)))
     da=first(d)
-    isapprox(da,pts[1];atol=tol) && shift!(pts)
+    isapprox(da,pts[1];atol=tol) && popfirst!(pts)
     isempty(pts) && return d
     db=last(d)
     isapprox(db,pts[end];atol=tol) && pop!(pts)
