@@ -624,11 +624,11 @@ eye(S::Space) = IdentityOperator(S)
 eye(S::Domain) = eye(Space(S))
 
 Operator{T}(f::Fun) where {T} =
-    norm(f.coefficients)==0 ? zero(A) : convert(A,Multiplication(f))
+    norm(f.coefficients)==0 ? zero(Operator{T}) : convert(Operator{T}, Multiplication(f))
 
 Operator(f::Fun) = norm(f.coefficients)==0 ? ZeroOperator() : Multiplication(f)
 
-convert(A::Type{O}, f::Fun) where O<:Operator = O(f)
+convert(::Type{O}, f::Fun) where O<:Operator = O(f)
 Operator{T}(A::Operator) where T = convert(Operator{T}, A)
 
 

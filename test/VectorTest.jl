@@ -37,8 +37,8 @@ using ApproxFun, Test
         @test (f*3)(0.1) ≈ f(0.1)*3
         @test (3*f)(0.1) ≈ f(0.1)*3
 
-        @test (f.+1)(0.1) ≈ f(0.1).+1
-        @test (1.+f)(0.1) ≈ f(0.1).+1
+        @test (f .+ 1)(0.1) ≈ f(0.1).+1
+        @test (1 .+ f)(0.1) ≈ f(0.1).+1
 
         @test_broken transpose(f)*[1,2] ≈ transpose(f(0.1))*[1,2]
 

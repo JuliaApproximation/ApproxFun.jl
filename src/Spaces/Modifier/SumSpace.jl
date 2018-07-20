@@ -401,10 +401,10 @@ linebilinearform(f::Fun{S},g::Fun{V}) where {S<:PiecewiseSpace,V<:PiecewiseSpace
 
 
 
-function ones(::Type{T},S::SumSpace) where T<:Number
+function ones(::Type{T}, S::SumSpace) where T<:Number
     for sp in components(S)
         if isconvertible(ConstantSpace(),sp)
-            return Fun(fill(one(T),sp), S)
+            return Fun(ones(T,sp), S)
         end
     end
 
