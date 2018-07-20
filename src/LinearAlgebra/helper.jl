@@ -576,6 +576,7 @@ abstract type Iterator end
 
 BroadcastStyle(::Type{<:Iterator}) = DefaultArrayStyle{1}()
 broadcastable(x::Iterator) = x
+size(x::Iterator) = (length(x),)
 
 function findfirst(testf::Function, A::Iterator)
     for (k,v) in enumerate(A)
@@ -676,7 +677,6 @@ next(it::AbstractRepeated,state) = value(it),nothing
 done(::AbstractRepeated,state) = false
 
 length(::AbstractRepeated) = ∞
-size(::AbstractRepeated) = (∞,)
 
 getindex(it::AbstractRepeated,k::Integer) = value(it)
 getindex(it::AbstractRepeated,k::AbstractRange) = take(it,length(k))

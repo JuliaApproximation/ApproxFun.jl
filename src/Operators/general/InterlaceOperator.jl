@@ -474,7 +474,7 @@ function _hvcat(rows::Tuple{Vararg{Int}},as::OperatorTypes...)
     rs = Array{Any,1}(undef, nbr)
     a = 1
     for i = 1:nbr
-        rs[i] = hcat(map(Operator,as[a:a-1+rows[i]])...)
+        rs[i] = hcat(map(op -> convert(Operator,op),as[a:a-1+rows[i]])...)
         a += rows[i]
     end
     vcat(rs...)

@@ -438,9 +438,9 @@ for TYP in (:Matrix, :BandedMatrix, :RaggedMatrix)
 
         # The following returns a banded Matrix with all rows
         # for large k its upper triangular
-        BA=$TYP{T}(P.ops[end][krl[end,1]:krl[end,2],jr])
-        for m=(length(P.ops)-1):-1:1
-            BA=$TYP{T}(P.ops[m][krl[m,1]:krl[m,2],krl[m+1,1]:krl[m+1,2]])*BA
+        BA = convert($TYP{T}, P.ops[end][krl[end,1]:krl[end,2],jr])
+        for m = (length(P.ops)-1):-1:1
+            BA = convert($TYP{T}, P.ops[m][krl[m,1]:krl[m,2],krl[m+1,1]:krl[m+1,2]])*BA
         end
 
         $TYP{T}(BA)

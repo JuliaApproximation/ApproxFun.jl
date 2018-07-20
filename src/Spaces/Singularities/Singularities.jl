@@ -27,12 +27,12 @@ end
 
 function plan_transform(S::WeightSpace,vals::AbstractVector)
     pts=points(S,length(vals))
-    WeightSpacePlan(S,plan_transform(S.space,vals),pts,weight.(S,pts))
+    WeightSpacePlan(S,plan_transform(S.space,vals),pts,weight.(Ref(S),pts))
 end
 
 function plan_itransform(S::WeightSpace,vals::AbstractVector)
     pts=points(S,length(vals))
-    IWeightSpacePlan(S,plan_itransform(S.space,vals),pts,weight.(S,pts))
+    IWeightSpacePlan(S,plan_itransform(S.space,vals),pts,weight.(Ref(S),pts))
 end
 
 *(P::WeightSpacePlan,vals::AbstractVector) = P.plan*(vals./P.weights)

@@ -13,9 +13,6 @@ using ApproxFun, Test
         @test x .+ [1,2] ≈ [x+1,x+2]
         @test [1,2] .+ x ≈ [x+1,x+2]
 
-        @test (x .+ Fun([1,2]))(0.1) ≈ [1.1,2.1]
-        @test (Fun([1,2]) .+ x)(0.1) ≈ [1.1,2.1]
-
         @test x.*[1,2] ≈ [x,2x]
         @test [1,2].*x ≈ [x,2x]
         @test (x*[1,2])(0.1) ≈ [0.1,0.2]
@@ -36,9 +33,6 @@ using ApproxFun, Test
         @test ([1 2]*f)(0.1) ≈ [1 2]*f(0.1)
         @test (f*3)(0.1) ≈ f(0.1)*3
         @test (3*f)(0.1) ≈ f(0.1)*3
-
-        @test (f .+ 1)(0.1) ≈ f(0.1).+1
-        @test (1 .+ f)(0.1) ≈ f(0.1).+1
 
         @test_broken transpose(f)*[1,2] ≈ transpose(f(0.1))*[1,2]
 
@@ -71,7 +65,6 @@ using ApproxFun, Test
         @test (a+m)(0.1) ≈ a+m(0.1)
         @test (m+a)(0.1) ≈ m(0.1)+a
 
-        @test (m.+1)(0.1) ≈ m(0.1).+1
         @test (m+I)(0.1) ≈ m(0.1)+I
     end
 
@@ -83,8 +76,6 @@ using ApproxFun, Test
         @test (a*f)(0.1) ≈ a*f(0.1)
         @test Fun(a)*f ≈ a*f
         @test Fun(a*Array(f)) ≈ a*f
-
-        @test (f.+1)(0.1) ≈ f(0.1).+1
     end
 
     @testset "CosSpace Matrix" begin
@@ -98,7 +89,6 @@ using ApproxFun, Test
         @test (a+m)(0.1) ≈ a+m(0.1)
         @test (m+a)(0.1) ≈ m(0.1)+a
 
-        @test (m.+1)(0.1) ≈ m(0.1).+1
         @test (m+I)(0.1) ≈ m(0.1)+I
     end
 
@@ -110,8 +100,6 @@ using ApproxFun, Test
         @test Fun(a*Array(f)) ≈ a*f
 
         @test all(sp -> sp isa SinSpace, space(a*f).spaces)
-
-        @test (f.+1)(0.1) ≈ f(0.1).+1
     end
 
     @testset "CosSpace Matrix" begin
@@ -127,7 +115,6 @@ using ApproxFun, Test
         @test (a+m)(0.1) ≈ a+m(0.1)
         @test (m+a)(0.1) ≈ m(0.1)+a
 
-        @test (m.+1)(0.1) ≈ m(0.1).+1
         @test (m+I)(0.1) ≈ m(0.1)+I
     end
 
@@ -193,13 +180,6 @@ using ApproxFun, Test
         @test norm(u1'-u1+2u2-f1)<10eps()
         @test norm(u2'+u2-f2)<10eps()
 
-        Ai=Operator(A)
-        @time u=Ai\b
-        u1=vec(u)[1];u2=vec(u)[2];
-
-        @test norm(u1'-u1+2u2-f1)<10eps()
-        @test norm(u2'+u2-f2)<10eps()
-
         A=[B 0;
            Bn 0;
            0 B;
@@ -225,7 +205,7 @@ using ApproxFun, Test
         A=rand(n,n)
         L=[B;D-A]
         @time u=L\Matrix(I,2n,n)
-        @test norm(u(1.)-expm(A))<eps(1000.)
+        @test norm(u(1.)-exp(A))<eps(1000.)
 
         n=4
         d=fill(Interval(0.,1.),n)
@@ -234,7 +214,7 @@ using ApproxFun, Test
         A=rand(n,n)
         L=[B;D-A]
         @time u=L\Matrix(I,2n,2)
-        @test norm(u(1.)-expm(A)[:,1:2])<eps(1000.)
+        @test norm(u(1.)-exp(A)[:,1:2])<eps(1000.)
     end
 
 
@@ -381,7 +361,7 @@ using ApproxFun, Test
         B_row2 = [(2+a*cos(2t))   D  -I            0I]
         @test ([B_row;B_row2]*[f;f;f;f])(0.1) ≈ [0.,(2+a*cos(2*0.1))*f(0.1) + f'(0.1) - f(0.1)]
 
-        A=[ Operator(diagm(fill(ldirichlet(d),n)));
+        A=[ Operator(diagm(0 => fill(ldirichlet(d),n)));
             D             -I  0I            0I;
            (2+a*cos(2t))   D  -I            0I;
            0I             0I   D            -I;

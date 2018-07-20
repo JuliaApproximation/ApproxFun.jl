@@ -240,8 +240,8 @@ function rootsunit_coeffs(c::Vector{T}, htol::Float64,clplan::ClenshawPlan{S,T})
 
         # Recurse (and map roots back to original interval):
         p = plan_chebyshevtransform( v1 )
-        r = [ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs( p*v1, 2*htol,clplan) ;
-                 (splitPoint + 1)/2 + (1 - splitPoint)/2*rootsunit_coeffs( p*v2, 2*htol,clplan) ]
+        r = [ (splitPoint - 1)/2 .+ (splitPoint + 1)/2 .* rootsunit_coeffs( p*v1, 2*htol,clplan) ;
+                 (splitPoint + 1)/2 .+ (1 - splitPoint)/2 .* rootsunit_coeffs( p*v2, 2*htol,clplan) ]
 
     end
 

@@ -34,9 +34,9 @@ getindex(C::ConstantOperator,k::Integer,j::Integer) =
     k==j ? eltype(C)(C.λ) : zero(eltype(C))
 
 
-==(C1::ConstantOperator,C2::ConstantOperator) = C1.λ==C2.λ
+==(C1::ConstantOperator, C2::ConstantOperator) = C1.λ==C2.λ
 
-function convert(::Type{Operator{T}},C::ConstantOperator) where T
+function convert(::Type{Operator{T}}, C::ConstantOperator) where T
     if T == eltype(C)
         C
     else
@@ -46,12 +46,12 @@ end
 
 # zero needs to be different since it can take a space to
 # a ConstantSpace, in creating functionals
-convert(::Type{Operator{T}},x::Number) where {T} =
+convert(::Type{Operator{T}}, x::Number) where {T} =
     x==0 ? ZeroOperator(T) : Multiplication(convert(T,x))
-convert(::Type{Operator{T}},L::UniformScaling) where {T} =
+convert(::Type{Operator{T}}, L::UniformScaling) where {T} =
     ConstantOperator(T,L.λ)
 
-convert(::Type{Operator},n::Number) = Operator{typeof(n)}(n)
+convert(::Type{Operator},n::Number) = convert(Operator{typeof(n)}, n)
 convert(::Type{Operator},L::UniformScaling) = ConstantOperator(L.λ)
 
 ## Algebra

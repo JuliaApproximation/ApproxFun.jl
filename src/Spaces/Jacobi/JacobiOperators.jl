@@ -436,7 +436,7 @@ function BandedMatrix(S::SubOperator{T,ConcreteConversion{J,CC,T},Tuple{UnitRang
     kr,jr = parentindices(S)
     k=(kr ∩ jr)
 
-    vals = jacobip(T,k-1,-one(T)/2,-one(T)/2,one(T))
+    vals = jacobip(T,k.-1,-one(T)/2,-one(T)/2,one(T))
 
     ret[band(bandshift(S))] = vals
     ret
