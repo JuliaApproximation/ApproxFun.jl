@@ -574,6 +574,8 @@ end
 
 abstract type Iterator end
 
+BroadcastStyle(::Type{<:Iterator}) = DefaultArrayStyle{1}()
+broadcastable(x::Iterator) = x
 
 function findfirst(testf::Function, A::Iterator)
     for (k,v) in enumerate(A)
@@ -674,6 +676,7 @@ next(it::AbstractRepeated,state) = value(it),nothing
 done(::AbstractRepeated,state) = false
 
 length(::AbstractRepeated) = ∞
+size(::AbstractRepeated) = (∞,)
 
 getindex(it::AbstractRepeated,k::Integer) = value(it)
 getindex(it::AbstractRepeated,k::AbstractRange) = take(it,length(k))
@@ -930,7 +933,7 @@ cache(A::AbstractCount) = A
 # flatten an iterator of iterators
 # we add indexing
 
-struct Flatten{I}
+struct Flatten{I} <: Iterator
     it::I
 end
 
@@ -1001,25 +1004,25 @@ minimum(f::Flatten) = mapreduce(minimum,min,f.it)
 
 ## Iterator Algebra
 
-broadcast(op,f::Flatten,c...) = Flatten(map(it->op(it,c...),f.it))
+broadcasted(::DefaultArrayStyle{1}, op, f::Flatten, c...) = Flatten(map(it->op(it,c...),f.it))
 
 
-broadcast(op,a::AbstractRepeated,b::AbstractRepeated) = repeated(op.(value(a),value(b)))
-broadcast(op,a::AbstractRepeated,b::Number) = repeated(op.(value(a),b))
-broadcast(op,a::Number,b::AbstractRepeated) = repeated(op.(a,value(b)))
+broadcasted(::DefaultArrayStyle{1}, op,a::AbstractRepeated,b::AbstractRepeated) = repeated(op.(value(a),value(b)))
+broadcasted(::DefaultArrayStyle{1}, op,a::AbstractRepeated,b::Number) = repeated(op.(value(a),b))
+broadcasted(::DefaultArrayStyle{1}, op,a::Number,b::AbstractRepeated) = repeated(op.(a,value(b)))
 
-broadcast(op,a::AbstractCount,b::AbstractRepeated) = op.(a,value(b))
-broadcast(op,a::AbstractRepeated,b::AbstractCount) = op.(value(a),b)
+broadcasted(::DefaultArrayStyle{1}, op,a::AbstractCount,b::AbstractRepeated) = op.(a,value(b))
+broadcasted(::DefaultArrayStyle{1}, op,a::AbstractRepeated,b::AbstractCount) = op.(value(a),b)
 
-function broadcast(op,a::Flatten,b::AbstractRepeated)
+function broadcasted(::DefaultArrayStyle{1}, op,a::Flatten,b::AbstractRepeated)
     @assert isinf(length(a.it[end]))
     flatten(map(it->op.(it,value(b)),a.it))
 end
-function broadcast(op,a::AbstractRepeated,b::Flatten)
+function broadcasted(::DefaultArrayStyle{1}, op,a::AbstractRepeated,b::Flatten)
     @assert isinf(length(b.it[end]))
     flatten(map(it->op.(value(a),it),b.it))
 end
-function broadcast(op,a::Flatten,b::AbstractCount)
+function broadcasted(::DefaultArrayStyle{1}, op,a::Flatten,b::AbstractCount)
     K=0
     it=tuple()
     for k=1:length(a.it)
@@ -1028,7 +1031,7 @@ function broadcast(op,a::Flatten,b::AbstractCount)
     end
     flatten(it)
 end
-function broadcast(op,a::AbstractCount,b::Flatten)
+function broadcasted(::DefaultArrayStyle{1}, op,a::AbstractCount,b::Flatten)
     K=0
     it=tuple()
     for k=1:length(b.it)
@@ -1037,16 +1040,16 @@ function broadcast(op,a::AbstractCount,b::Flatten)
     end
     flatten(it)
 end
-function broadcast(op,a::Take,b::Take)
+function broadcasted(::DefaultArrayStyle{1}, op,a::Take,b::Take)
     n = length(a)
     @assert n == length(b)
     take(op.(a.xs,b.xs),n)
 end
-function broadcast(op,a::Take,b::Number)
+function broadcasted(::DefaultArrayStyle{1}, op,a::Take,b::Number)
     n = length(a)
     take(op.(a.xs,b),n)
 end
-function broadcast(op,a::Number,b::Take)
+function broadcasted(::DefaultArrayStyle{1}, op,a::Number,b::Take)
     n = length(b)
     take(op.(a,b.xs),n)
 end
@@ -1139,15 +1142,23 @@ for OP in (:+,:-)
 
         $OP(a::Number,b::AbstractCount) = $OP(b) + a
 
-        broadcast(::typeof($OP),a::InfiniteIterators,b::InfiniteIterators) = $OP(a,b)
-        broadcast(::typeof($OP),a::Number,b::InfiniteIterators) = $OP(a,b)
-        broadcast(::typeof($OP),a::InfiniteIterators,b::Number) = $OP(a,b)
+        broadcasted(::DefaultArrayStyle{1}, ::typeof($OP),a::AbstractRepeated,b::AbstractRepeated) = $OP(a,b)
+        broadcasted(::DefaultArrayStyle{1}, ::typeof($OP),a::Number,b::AbstractRepeated) = $OP(a,b)
+        broadcasted(::DefaultArrayStyle{1}, ::typeof($OP),a::AbstractRepeated,b::Number) = $OP(a,b)
+
+        broadcasted(::DefaultArrayStyle{1}, ::typeof($OP),a::AbstractCount,b::AbstractCount) = $OP(a,b)
+        broadcasted(::DefaultArrayStyle{1}, ::typeof($OP),a::Number,b::AbstractCount) = $OP(a,b)
+        broadcasted(::DefaultArrayStyle{1}, ::typeof($OP),a::AbstractCount,b::Number) = $OP(a,b)
+
+        broadcasted(::DefaultArrayStyle{1}, ::typeof($OP),a::Flatten,b::Flatten) = $OP(a,b)
+        broadcasted(::DefaultArrayStyle{1}, ::typeof($OP),a::Number,b::Flatten) = $OP(a,b)
+        broadcasted(::DefaultArrayStyle{1}, ::typeof($OP),a::Flatten,b::Number) = $OP(a,b)
     end
 end
 
-broadcast(::typeof(*),a::ZeroRepeated,b::ZeroRepeated) = a
-broadcast(::typeof(*),a::Number,b::AbstractCount) = Count(start(b)*a,step(b)*a)
-broadcast(::typeof(*),b::AbstractCount,a::Number) = a*b
+broadcasted(::DefaultArrayStyle{1}, ::typeof(*),a::ZeroRepeated,b::ZeroRepeated) = a
+broadcasted(::DefaultArrayStyle{1}, ::typeof(*),a::Number,b::AbstractCount) = Count(start(b)*a,step(b)*a)
+broadcasted(::DefaultArrayStyle{1}, ::typeof(*),b::AbstractCount,a::Number) = a*b
 
 
 +(a::Number,b::UnitCount) = UnitCount(a+b.start)
