@@ -56,7 +56,7 @@ using ApproxFun, Test
     Q=gamma(.5)*LeftIntegral(S,.5)
 
 
-    @test sum(f/sqrt(1.-x)) ≈ last(Q*f)
+    @test sum(f/sqrt(1-x)) ≈ last(Q*f)
 
     L=I+Q
 

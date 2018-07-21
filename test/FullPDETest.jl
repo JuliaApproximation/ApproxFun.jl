@@ -79,9 +79,9 @@ using ApproxFun, Test
 
     # Checks bug in constructor
     f=Fun((x,y)->real(exp(x+1.0im*y)),component(rangespace(A)[1],1),22)
-    @test f(-1.,0.1) ≈ real(exp(-1.+0.1im))
+    @test f(-1.,0.1) ≈ real(exp(-1+0.1im))
     f=Fun((x,y)->real(exp(x+1.0im*y)),component(rangespace(A)[1],1))
-    @test f(-1.,0.1) ≈ real(exp(-1.+0.1im))
+    @test f(-1.,0.1) ≈ real(exp(-1+0.1im))
 
 
     F=[Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A)[1]);

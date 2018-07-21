@@ -71,16 +71,16 @@ function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(last)},kr::AbstractRang
 
 
     if op.order == 0
-        jacobip(T,kr-1,a,b,one(T))
+        jacobip(T,kr.-1,a,b,one(T))
     elseif op.order == 1
         d=domain(op)
         @assert isa(d,Segment)
         if kr[1]==1 && kr[end] ≥ 2
-            tocanonicalD(d,d.a)*(a+b+kr).*T[zero(T);jacobip(T,0:kr[end]-2,1+a,1+b,one(T))]/2
+            tocanonicalD(d,d.a)*((a+b).+kr).*T[zero(T);jacobip(T,0:kr[end]-2,1+a,1+b,one(T))]/2
         elseif kr[1]==1  # kr[end] ≤ 1
             zeros(T,length(kr))
         else
-            tocanonicalD(d,d.a)*(a+b+kr).*jacobip(T,kr-1,1+a,1+b,one(T))/2
+            tocanonicalD(d,d.a)*((a+b).+kr).*jacobip(T,kr.-1,1+a,1+b,one(T))/2
         end
     else
         error("Not implemented")
