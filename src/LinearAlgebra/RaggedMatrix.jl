@@ -207,7 +207,7 @@ function BLAS.axpy!(a,X::RaggedMatrix,
 
 
         BLAS.axpy!(a,view(X.data,kr),
-                    view(P.data,(P.cols[j + jsh] + ksh-1) + (1:length(kr))))
+                    view(P.data,(P.cols[j + jsh] + ksh-1) .+ (1:length(kr))))
     end
 
     Y

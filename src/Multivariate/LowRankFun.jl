@@ -223,7 +223,7 @@ function findapproxmax!(f::Function,X::AbstractMatrix,ptsx::AbstractVector,ptsy:
         end
     end
     maxabsf,impt = findmaxabs(X)
-    imptple = ind2sub((gridx,gridy),impt)
+    imptple = CartesianIndices((gridx,gridy))[impt]
     maxabsf,[ptsx[imptple[1]],ptsy[imptple[2]]]
 end
 
@@ -231,7 +231,7 @@ function findapproxmax!(A::Fun,B::Fun,X::AbstractMatrix,ptsx::Vector,ptsy::Vecto
     Ax,By = A.(ptsx),B.(ptsy)
     subtractrankone!(Ax,By,X,gridx,gridy)
     maxabsf,impt = findmaxabs(X)
-    imptple = ind2sub((gridx,gridy),impt)
+    imptple = CartesianIndices((gridx,gridy))[impt]
     [ptsx[imptple[1]],ptsy[imptple[2]]]
 end
 
