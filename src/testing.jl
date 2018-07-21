@@ -44,7 +44,7 @@ function testcalculus(S::Space;haslineintegral=true,hasintegral=true)
         @test norm(Derivative()*f-f') < 100eps()
         if hasintegral
             @test norm(differentiate(integrate(f))-f) < 100eps()
-            @test norm(differentiate(cumsum(f))-f) < 100eps()
+            @test norm(differentiate(cumsum(f))-f) < 200eps()
             @test norm(first(cumsum(f))) < 100eps()
         end
     end

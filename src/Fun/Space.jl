@@ -511,6 +511,7 @@ for OP in (:maxspace,:(union))
 end
 
 space(x::Number) = ConstantSpace(typeof(x))
+space(f::AbstractArray{T}) where T<:Number = ArraySpace(ConstantSpace{T}(), size(f)...)
 
 
 

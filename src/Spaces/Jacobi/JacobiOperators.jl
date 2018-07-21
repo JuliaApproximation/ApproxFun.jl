@@ -487,7 +487,7 @@ function BandedMatrix(S::SubOperator{T,ConcreteConversion{J,US,T},Tuple{UnitRang
     k=(kr ∩ jr)
 
     sp=domainspace(parent(S))
-    jp=jacobip(T,k-1,sp.a,sp.b,one(T))
+    jp=jacobip(T,k.-1,sp.a,sp.b,one(T))
     um=Evaluation(T,setcanonicaldomain(rangespace(parent(S))),last,0)[k]
     vals = jp./um
 

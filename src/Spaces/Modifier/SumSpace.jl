@@ -453,16 +453,9 @@ interlace(v::AbstractVector{F},sp::DirectSumSpace) where {F<:Fun} =
 
 
 function interlace(v::Union{Tuple,Vector{Any}},sp::DirectSumSpace)
-    if all(vk->isa(vk,Fun),v)
-        V=Array{Vector{mapreduce(eltype,promote_type,v)}}(undef, length(v))
-        for k=1:length(v)
-            V[k]=coefficients(v[k])
-        end
-    else
-        V=Array{Vector{mapreduce(eltype,promote_type,v)}}(undef, length(v))
-        for k=1:length(v)
-            V[k]=v[k]
-        end
+    V=Array{Vector{mapreduce(cfstype,promote_type,v)}}(undef, length(v))
+    for k=1:length(v)
+        V[k]=coefficients(v[k])
     end
     interlace(V,sp)
 end

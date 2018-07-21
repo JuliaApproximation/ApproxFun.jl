@@ -26,9 +26,9 @@ struct QuotientSpace{S,O<:Operator,DD,T,RT} <: Space{DD,T}
         U = zeros(T, n, n)
         Σ = Diagonal(zeros(T, n))
         VT = zeros(T, n, n)
-        work = Vector{T}(max((3n+7)*n,68))
-        iwork = Vector{BlasInt}(8*n)
-        rwork = Vector{RT}((5*n+7)*n)
+        work = Vector{T}(undef,max((3n+7)*n,68))
+        iwork = Vector{BlasInt}(undef,8*n)
+        rwork = Vector{RT}(undef,(5*n+7)*n)
         info = Ref{BlasInt}()
         new{S,O,DD,T,RT}(space, bcs, A, x, b, U, Σ, VT, work, iwork, rwork, info)
     end

@@ -43,7 +43,7 @@ end
 
 plan_itransform(S::Jacobi,cfs::AbstractVector) = JacobiITransformPlan(S,points(S,length(cfs)))
 *(P::JacobiITransformPlan,cfs) =
-    jacobip.((0:length(cfs)-1)',P.space.a,P.space.b,tocanonical(P.space,P.points))*cfs
+    jacobip.((0:length(cfs)-1)',P.space.a,P.space.b,tocanonical.(Ref(P.space),P.points))*cfs
 
 
 function coefficients(f::AbstractVector,a::Jacobi,b::Chebyshev)

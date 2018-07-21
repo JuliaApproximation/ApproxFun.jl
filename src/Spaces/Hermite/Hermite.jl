@@ -48,7 +48,7 @@ function hermitep(r::AbstractRange,x::Number)
             v[k+1]=((x-recα(T,H,k))*v[k] - recγ(T,H,k)*v[k-1])/recβ(T,H,k)
         end
     end
-    v[r+1]
+    v[r.+1]
 end
 hermitep(n::Integer,v::Number) = hermitep(n:n,v)[1]
 

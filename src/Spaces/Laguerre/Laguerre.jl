@@ -51,7 +51,7 @@ function laguerrel(::Type{T},r::AbstractRange,α,x) where T
         if n<=2
             v=T[1,1.0-x+α]
         else
-            v=Vector{T}(n)  # x may be complex
+            v=Vector{T}(undef,n)  # x may be complex
             v[1]=1
             v[2]=1.0-x+α
 
@@ -59,7 +59,7 @@ function laguerrel(::Type{T},r::AbstractRange,α,x) where T
                 v[k+1]=((x-laguerrerecα(T,α,k))*v[k] - laguerrerecγ(T,α,k)*v[k-1])/laguerrerecβ(T,α,k)
             end
         end
-        v[r+1]
+        v[r.+1]
     end
 end
 

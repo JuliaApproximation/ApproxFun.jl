@@ -22,7 +22,7 @@ import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, 
                 zeros, zero, one, promote_rule, repeat, length, resize!, isinf,
                 getproperty, findfirst, unsafe_getindex, fld, cld, div, real, imag,
                 @_inline_meta, eachindex, lastindex, keys,
-                Array, Vector, Matrix
+                Array, Vector, Matrix, view, ones
 
 import Base.Broadcast: BroadcastStyle, Broadcasted, AbstractArrayStyle, broadcastable,
                         DefaultArrayStyle, broadcasted
@@ -69,8 +69,6 @@ import BlockBandedMatrices: blockbandwidth, blockbandwidths, blockcolstop, block
 
 # convenience for 1-d block ranges
 const BlockRange1 = BlockRange{1,Tuple{UnitRange{Int}}}
-
-import Base: view
 
 import StaticArrays: SVector
 

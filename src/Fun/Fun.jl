@@ -134,6 +134,10 @@ cfstype(::T) where T<: Number = T
 cfstype(::Type{<:AbstractArray{T}}) where T = T
 cfstype(::AbstractArray{T}) where T = T
 
+coefficients(f::Number) = [f]
+coefficients(f::AbstractArray) = f
+
+
 #supports broadcasting and scalar iterator
 const ScalarFun = Fun{S} where S<:Space{D,R} where {D,R<:Number}
 const ArrayFun = Fun{S} where {S<:Space{D,R}} where {D,R<:AbstractArray}

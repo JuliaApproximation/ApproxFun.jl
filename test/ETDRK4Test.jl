@@ -9,7 +9,7 @@ import ApproxFun: expα, expβ, expγ
 #
 
 @testset "ETDRK4" begin
-    x = logspace(-15,2,18)
+    x = 10 .^ range(-15, stop=2, length=18)
 
     @test norm(expα.(x)./expα.(big.(x)).-1,Inf) < eps()
     @test norm(expβ.(x)./expβ.(big.(x)).-1,Inf) < eps()

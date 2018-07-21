@@ -52,10 +52,10 @@ using ApproxFun, Test, StaticArrays
 
     x=Fun(identity)
     ri=0.5/(1-x)
-    @test ((1-x)/2.*Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) ≈ (1-.1)./2*exp(.1)
+    @test ((1-x)/2 .* Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) ≈ (1-.1)./2*exp(.1)
 
 
-    @test ((1-x)/2.*Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) ≈ (1-.1)./2*exp(.1)
+    @test ((1-x)/2 .* Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) ≈ (1-.1)./2*exp(.1)
 
 
     @test (ri*Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) ≈ .5/(1-.1)*exp(.1)
