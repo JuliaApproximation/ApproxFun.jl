@@ -662,6 +662,7 @@ coefficients(f::AbstractVector,sp::ConstantSpace,ts::TensorSpace{SV,D,R}) where 
 #     coefficients(f,sp,setdomain(factor(ts,1),a))
 # end
 
+
 function coefficients(f::AbstractVector,sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R}
     @assert length(ts.spaces) == 2
 

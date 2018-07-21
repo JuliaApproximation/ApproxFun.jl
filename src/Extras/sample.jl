@@ -192,7 +192,7 @@ function sample(f::LowRankFun{C,C,TensorSpace{Tuple{C,C},DD,RR},Float64},n::Inte
     AB=CB*fA
     chebnormalizedcumsum!(AB)
     rx=chebbisectioninv(AB,rand(n))
-  [fromcanonical(domain(f,1),rx) ry]
+    [fromcanonical.(Ref(domain(f,1)),rx) ry]
 end
 
 

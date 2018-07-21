@@ -53,15 +53,15 @@ using ApproxFun, Test
     end
 
     @testset "Bilaplacian" begin
-        dx=dy=Interval()
-        d=dx*dy
-        Dx=Derivative(dx);Dy=Derivative(dy)
-        L=Dx^4⊗I + 2*Dx^2⊗Dy^2 + I⊗Dy^4
+        dx = dy = Interval()
+        d = dx*dy
+        Dx = Derivative(dx); Dy = Derivative(dy)
+        L = Dx^4⊗I + 2*Dx^2⊗Dy^2 + I⊗Dy^4
 
         testbandedblockbandedoperator(L)
 
         B = Dirichlet(dx) ⊗ eye(dy)
-        testraggedbelowoperator(Dirichlet(dx) ⊗ eye(dy))
+        testraggedbelowoperator(B)
 
         A=[Dirichlet(dx) ⊗ eye(dy);
                 eye(dx)  ⊗ Dirichlet(dy);
@@ -74,9 +74,6 @@ using ApproxFun, Test
         @time u=\(A,[[1,1],[1,1],[0,0],[0,0],0];tolerance=1E-5)
         @test u(0.1,0.2) ≈ 1.0
     end
-
-
-
 
     @testset "Periodic x Interval" begin
         d=PeriodicInterval()*Interval()
@@ -97,7 +94,6 @@ using ApproxFun, Test
 
         @test u(.1,.2) ≈ real(cos(.1+.2im))
     end
-
 
     @testset "Schrodinger" begin
         dx=Interval(0.,1.); dt=Interval(0.0,0.001)

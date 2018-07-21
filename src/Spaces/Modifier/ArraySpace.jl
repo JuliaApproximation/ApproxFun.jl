@@ -197,7 +197,7 @@ Base.diff(f::Fun{AS,T},n...) where {AS<:ArraySpace,T} = Fun(diff(Array(f),n...))
 
 ## conversion
 
-function coefficients(f::AbstractVector,a::VectorSpace,b::VectorSpace)
+function coefficients(f::AbstractVector, a::VectorSpace, b::VectorSpace)
     if size(a) ≠ size(b)
         throw(DimensionMismatch("dimensions must match"))
     end
@@ -251,3 +251,19 @@ EuclideanSpace(n::Integer) = ArraySpace(ConstantSpace(Float64),n)
 npieces(f::Fun{<:ArraySpace}) = npieces(f[1])
 piece(f::Fun{<:ArraySpace}, k) = Fun(piece.(Array(f),k))
 pieces(f::Fun{<:ArraySpace}) = [piece(f,k) for k=1:npieces(f)]
+
+
+
+## TODO: This is a hack to get tests working
+
+function coefficients(f::AbstractVector,sp::ArraySpace{<:ConstantSpace{AnyDomain}},ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R}
+    @assert length(ts.spaces) == 2
+
+    if ts.spaces[1] isa ArraySpace
+        coefficients(f, sp, ts.spaces[1])
+    elseif ts.spaces[2] isa ArraySpace
+        coefficients(f, sp, ts.spaces[2])
+    else
+        error("Cannot convert coefficients from $sp to $ts")
+    end
+end
