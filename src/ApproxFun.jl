@@ -30,7 +30,7 @@ import Base.Broadcast: BroadcastStyle, Broadcasted, AbstractArrayStyle, broadcas
 
 import LinearAlgebra: BlasInt, BlasFloat, norm, ldiv!, mul!, det, eigvals, dot, cross,
                         qr, isdiag, rank, issymmetric, ishermitian, Tridiagonal,
-                        diagm, factorize, nullspace, adjoint, transpose, diagm_container
+                        diagm, factorize, nullspace, adjoint, transpose, diagm_container, eye
 
 import SparseArrays: blockdiag
 

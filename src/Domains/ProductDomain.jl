@@ -46,7 +46,7 @@ factor(d::ProductDomain, k::Integer) = d.domains[k]
 
 first(d::ProductDomain) = (first(d[1]),cfirst(d[2]))
 
-in(x::Vec, d::ProductDomain) = reduce(&,vmap(in,x,d.domains))
+in(x::Vec, d::ProductDomain) = reduce(&,map(in,x,d.domains))
 
 
 function pushappendpts!(ret, xx, pts)

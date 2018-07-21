@@ -587,7 +587,7 @@ for OP in (:block,:blockstart,:blockstop)
 end
 
 function points(sp::TensorSpace,n)
-    pts=Array{eltype(domain(sp))}(0)
+    pts=Array{eltype(domain(sp))}(undef,0)
     a,b = sp.spaces
     if isfinite(dimension(a)) && isfinite(dimension(b))
         N,M=dimension(a),dimension(b)

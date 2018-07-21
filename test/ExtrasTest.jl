@@ -1,4 +1,5 @@
 using ApproxFun, Test, DualNumbers
+    import ApproxFun: eigs
 
 @testset "Extras" begin
     @testset "Dual numbers" begin

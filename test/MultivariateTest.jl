@@ -1,5 +1,5 @@
 using ApproxFun, Test
-    import ApproxFun: testbandedblockbandedoperator, testraggedbelowoperator, factor, Block
+    import ApproxFun: testbandedblockbandedoperator, testraggedbelowoperator, factor, Block, cfstype
 
 @testset "Multivariate" begin
     @testset "Square" begin
@@ -13,7 +13,7 @@ using ApproxFun, Test
         end
 
         @time for k=0:5,j=0:5
-            ff=(x,y)->cos(k*acos(x/2))*cos(j*acos(y/2))
+            ff = (x,y)->cos(k*acos(x/2))*cos(j*acos(y/2))
             f=Fun(ff,Interval(-2,2)^2)
             @test f(0.1,0.2) ≈ ff(0.1,0.2)
         end
@@ -68,9 +68,9 @@ using ApproxFun, Test
         # test "fast" grid evaluation of LowRankFun
         f = LowRankFun((x,y) -> exp(x) * cos(y)); n = 1000
         x = range(-1, stop=1, length=n); y = range(-1, stop=1, length=n)
-        X = fill(1.0,n) * range(-1, stop=1, length=n)'; Y = range(-1, stop=1, length=n) * fill(1.0, 1, n)
+        X = x * fill(1.0,1,n); Y = fill(1.0, n) * y'
         @time v1 = f.(X, Y);
-        @time v2 = f.(collect(x), collect(y)');
+        @time v2 = f.(x, y');
         @test v1 ≈ v2
     end
 
@@ -116,7 +116,7 @@ using ApproxFun, Test
 
     @testset "Multivariate calculus" begin
         ## Sum
-        ff=(x,y)->(x-y)^2*exp(-x^2/2.-y^2/2)
+        ff = (x,y) -> (x-y)^2*exp(-x^2/2-y^2/2)
         f=Fun(ff,Domain(-4..4)^2)
         @test f(0.1,0.2) ≈ ff(0.1,0.2)
 
@@ -212,9 +212,9 @@ using ApproxFun, Test
 
     A = [B; Laplacian()]
 
-    @test eltype([g;0.0]) == Float64
+    @test cfstype([g;0.0]) == Float64
     g2 = Fun([g;0.0],rangespace(A))
-    @test eltype(g2) == Float64
+    @test cfstype(g2) == Float64
 
 
     @test g2[1](-0.1,-1.0) ≈ g[1](-0.1,-1.0)
