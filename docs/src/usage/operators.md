@@ -286,7 +286,7 @@ ConcreteMultiplication:ConstantSpace→Chebyshev(【-1.0,1.0】)
  1.10368e-8
   ⋮         
 
-julia> M*Q
+julia> M*Σ
 TimesOperator:Chebyshev(【-1.0,1.0】)→Chebyshev(【-1.0,1.0】)
  2.53213     0.0  -0.844044     0.0  …  0.0  -0.0401926    0.0  ⋯
  2.26064     0.0  -0.753545     0.0     0.0  -0.0358831    0.0  ⋱
