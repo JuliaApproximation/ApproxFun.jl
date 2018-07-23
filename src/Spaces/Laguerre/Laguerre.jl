@@ -257,3 +257,13 @@ function Multiplication(f::Fun{LaguerreWeight{H,T}},S::Laguerre) where {H<:Lague
     rs=rangespace(M)
     MultiplicationWrapper(f,SpaceOperator(M,S,LaguerreWeight(rs.α, rs)))
 end
+
+
+## Integration
+function integrate(f::Fun{LW}) where LW <: LaguerreWeight{LL} where LL <: Laguerre
+    α = space(f).α
+    @assert space(f).space.α == α
+    @assert f.coefficients[1] == 0  && α == 0
+    n = length(f.coefficients)
+    Fun(WeightedLaguerre(1), f.coefficients[2:end] ./ (1:n-1))
+end
