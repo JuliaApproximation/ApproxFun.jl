@@ -67,6 +67,9 @@ import BlockBandedMatrices: blockbandwidth, blockbandwidths, blockcolstop, block
                             isblockbanded, isbandedblockbanded, bb_numentries, BlockBandedSizes,
                             BandedBlockBandedSizes
 
+import FastTransforms: ChebyshevTransformPlan, IChebyshevTransformPlan, plan_chebyshevtransform,
+                        plan_chebyshevtransform!, plan_ichebyshevtransform, plan_ichebyshevtransform!
+
 # convenience for 1-d block ranges
 const BlockRange1 = BlockRange{1,Tuple{UnitRange{Int}}}
 

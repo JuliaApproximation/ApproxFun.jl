@@ -80,19 +80,6 @@ domainscompatible(a,b) = domainscompatible(domain(a),domain(b))
 domainscompatible(a::Domain,b::Domain) = isambiguous(a) || isambiguous(b) ||
                     isapprox(a,b)
 
-function chebyshevpoints(::Type{T},n::Integer;kind::Int=1) where T<:Number
-    if kind == 1
-        T[sinpi((n-2k-one(T))/2n) for k=0:n-1]
-    elseif kind == 2
-        if n==1
-            zeros(T,1)
-        else
-            T[cospi(k/(n-one(T))) for k=0:n-1]
-        end
-    end
-end
-chebyshevpoints(n::Integer;kind::Int=1) = chebyshevpoints(Float64,n;kind=kind)
-
 ##TODO: Should fromcanonical be fromcanonical!?
 
 points(d::IntervalDomain{T},n::Integer;kind::Int=1) where {T} =
