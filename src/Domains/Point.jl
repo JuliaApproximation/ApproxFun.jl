@@ -21,7 +21,6 @@ Base.isnan(d::Point) = false
 
 
 issubset(a::Point,d::UnionDomain) = a.x in d
-issubset(a::Point,b::Domain) = a.x in b
 
 intersect(a::Point,b::Point) = b.x in a ? b : EmptyDomain()
 intersect(a::UnionDomain,b::Point) = b.x in a ? b : EmptyDomain()

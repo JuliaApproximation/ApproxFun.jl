@@ -22,7 +22,7 @@ Chebyshev(d) = Chebyshev(Domain(d))
 
 
 Space(d::Segment) = Chebyshev(d)
-Space(d::AbstractInterval) = Chebyshev(d)
+Space(d::Domains.AbstractInterval) = Chebyshev(d)
 
 
 setdomain(S::Chebyshev,d::Domain) = Chebyshev(d)

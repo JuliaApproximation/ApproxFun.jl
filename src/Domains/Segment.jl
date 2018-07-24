@@ -20,7 +20,7 @@ struct Segment{T} <: SegmentDomain{T}
 end
 
 
-const IntervalOrSegment{T} = Union{AbstractInterval{T}, Segment{T}}
+const IntervalOrSegment{T} = Union{Domains.AbstractInterval{T}, Segment{T}}
 
 
 
@@ -80,7 +80,7 @@ fromcanonical(d::IntervalOrSegment{T},x) where {T<:Vec} = (d.a + d.b)/2 + (d.b -
 fromcanonicalD(d::IntervalOrSegment,x) = (d.b- d.a) / 2
 
 
-arclength(d::AbstractInterval) = norm(maximum(d) - minimum(d))
+arclength(d::Domains.AbstractInterval) = norm(maximum(d) - minimum(d))
 arclength(d::Segment) = norm(d.b - d.a)
 Base.angle(d::IntervalOrSegment) = angle(last(d)-first(d))
 Base.sign(d::IntervalOrSegment) = sign(last(d)-first(d))

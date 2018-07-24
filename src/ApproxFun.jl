@@ -10,7 +10,7 @@ module ApproxFun
 
 import Domains: Domain, indomain, UnionDomain, ProductDomain, FullSpace, Point, elements, DifferenceDomain,
             Interval, ChebyshevInterval
-=======
+
 import AbstractFFTs: Plan, fft, ifft
 import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
                 r2r!, r2r,  plan_fft, plan_ifft, plan_ifft!, plan_fft!

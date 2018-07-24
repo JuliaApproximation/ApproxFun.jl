@@ -121,7 +121,7 @@ rangespace(D::ConcreteDerivative{WeightedJacobi{DDD,RR}}) where {DDD<:IntervalOr
     WeightedJacobi(domainspace(D).β-1,domainspace(D).α-1,domain(D))
 
 getindex(D::ConcreteDerivative{WeightedJacobi{DDD,RR}},k::Integer,j::Integer) where {DDD<:IntervalOrSegment,RR} =
-    j==k-1? eltype(D)(-4(k-1)./complexlength(domain(D))) : zero(eltype(D))
+    j==k-1 ? eltype(D)(-4(k-1)./complexlength(domain(D))) : zero(eltype(D))
 
 
 

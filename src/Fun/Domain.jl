@@ -56,9 +56,9 @@ intersect(a::Domain,b::Domain) = a==b ? a : EmptyDomain()
 ## Interval Domains
 
 abstract type SegmentDomain{T} <: UnivariateDomain{T} end
-const IntervalDomain{T} = Union{AbstractInterval{T}, SegmentDomain{T}}
+const IntervalDomain{T} = Union{Domains.AbstractInterval{T}, SegmentDomain{T}}
 
-canonicaldomain(d::AbstractInterval) = ChebyshevInterval{real(prectype(d))}()
+canonicaldomain(d::Domains.AbstractInterval) = ChebyshevInterval{real(prectype(d))}()
 canonicaldomain(d::SegmentDomain) = Segment{real(prectype(d))}()
 
 isapprox(a::Domain,b::Domain) = a==b
