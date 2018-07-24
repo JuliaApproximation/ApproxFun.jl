@@ -230,7 +230,7 @@ using ApproxFun, SpecialFunctions, Test
     @testset "special function singularities" begin
         x=Fun(0..1)
         @test erf(sqrt(x))(0.1) ≈ erf(sqrt(0.1))
-        @test_skip erfc(sqrt(x))(0.1) ≈ erfc(sqrt(0.1)) # causes compile crash
+        @test erfc(sqrt(x))(0.1) ≈ erfc(sqrt(0.1))
 
         ## roots of log(abs(x-y))
         x=Fun(-2..(-1))

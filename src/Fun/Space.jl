@@ -457,7 +457,7 @@ end
 struct ZeroSpace{DD,R} <: Space{DD,R}
     domain::DD
     ZeroSpace{DD,R}(d::DD) where {DD,R} = new(d)
-    ZeroSpace{DD,R}(d::AnyDomain) where {DD,R} = new(DD(d))
+    ZeroSpace{DD,R}(d::AnyDomain) where {DD,R} = new(convert(DD,d))
 end
 
 

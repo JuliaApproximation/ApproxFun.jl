@@ -1,4 +1,4 @@
-using ApproxFun, Test
+using ApproxFun, SpecialFunctions, Test
     import ApproxFun: ldiv_coefficients
 
 ## ODEs

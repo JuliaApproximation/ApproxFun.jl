@@ -1,7 +1,4 @@
-## Intro
-
-
-using ApproxFun, Test
+using ApproxFun, SpecialFunctions, Test
 
 
 @testset "Readme" begin

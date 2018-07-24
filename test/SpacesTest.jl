@@ -130,16 +130,16 @@ using ApproxFun, Test
         @test Fun(exp,d)(.1) ≈ exp(.1)
     end
 
-    println("TODO: Renable Triple SumSPace")
-    # @testset "Triple SumSpace" begin
-    #     x=Fun()
-    #     w=log(1-x)+sqrt(1-x^2)
-    #     f=w+x
-    #     @test f(0.1) ≈ (w(0.1)+0.1)
-    #     @test (w+1)(0.1) ≈ (w(0.1)+1)
-    #     @test (w+x+1)(0.1) ≈ (w(0.1)+1.1)
-    #     @test ((w+x)+1)(0.1) ≈ (w(0.1)+1.1)
-    # end
+
+    @testset "Triple SumSpace" begin
+        x=Fun()
+        w=log(1-x)+sqrt(1-x^2)
+        f=w+x
+        @test f(0.1) ≈ (w(0.1)+0.1)
+        @test (w+1)(0.1) ≈ (w(0.1)+1)
+        @test (w+x+1)(0.1) ≈ (w(0.1)+1.1)
+        @test ((w+x)+1)(0.1) ≈ (w(0.1)+1.1)
+    end
 
     @testset "SumSpace bug" begin
         dsp=JacobiWeight(1.,0.,Jacobi(1.,0.,0..1))⊕JacobiWeight(0.5,0.,Jacobi(0.5,-0.5,0..1))

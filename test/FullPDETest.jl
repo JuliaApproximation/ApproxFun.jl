@@ -159,12 +159,12 @@ using ApproxFun, Test
         resizedata!(QR.R_cache,:,col+100)
         resizedata!(QR,:,col)
         QR2=qr!(CachedOperator(RaggedMatrix,Δ;padding=true))
-        resizedata!(QR2.R,:,QR.ncols+100)
+        resizedata!(QR2.R_cache,:,QR.ncols+100)
         resizedata!(QR2,:,QR.ncols)
         n=min(size(QR.H,1),size(QR2.H,1))
         @test QR.H[1:n,1:col] ≈ QR2.H[1:n,1:col]
-        @test QR.R_cache[1:col,1:col] ≈ QR2.R[1:col,1:col]
-        @test QR.R_cache[1:col+10,1:col+10] ≈ QR2.R[1:col+10,1:col+10]
+        @test QR.R_cache[1:col,1:col] ≈ QR2.R_cache[1:col,1:col]
+        @test QR.R_cache[1:col+10,1:col+10] ≈ QR2.R_cache[1:col+10,1:col+10]
     end
 
     QR=qr(Δ)
@@ -174,8 +174,8 @@ using ApproxFun, Test
         resizedata!(QR2,:,QR.ncols)
         n=min(size(QR.H,1),size(QR2.H,1))
         @test QR.H[1:n,1:col] ≈ QR2.H[1:n,1:col]
-        @test QR.R_cache[1:col,1:col] ≈ QR2.R[1:col,1:col]
-        @test QR.R_cache[1:col+10,1:col+10] ≈ QR2.R[1:col+10,1:col+10]
+        @test QR.R_cache[1:col,1:col] ≈ QR2.R_cache[1:col,1:col]
+        @test QR.R_cache[1:col+10,1:col+10] ≈ QR2.R_cache[1:col+10,1:col+10]
     end
 
     # this checks a bug
@@ -276,13 +276,13 @@ using ApproxFun, Test
 
 
     QR1 = qr(A)
-    @time ApproxFun.resizedata!(QR1.R,:,1000)
+    @time ApproxFun.resizedata!(QR1.R_cache,:,1000)
     QR2 = qr([Dirichlet(d);Laplacian()+100I])
-    @time ApproxFun.resizedata!(QR2.R,:,500)
-    n=450;QR1.R.data[1:n,1:n]-QR2.R.data[1:n,1:n]|>norm
-    @time ApproxFun.resizedata!(QR2.R,:,1000)
-    N=450;QR1.R.data[1:N,1:N]-QR2.R.data[1:N,1:N]|>norm
-    N=1000;QR1.R.data[1:N,1:N]-QR2.R.data[1:N,1:N]|>norm
+    @time ApproxFun.resizedata!(QR2.R_cache,:,500)
+    n=450;QR1.R_cache.data[1:n,1:n]-QR2.R_cache.data[1:n,1:n]|>norm
+    @time ApproxFun.resizedata!(QR2.R_cache,:,1000)
+    N=450;QR1.R_cache.data[1:N,1:N]-QR2.R_cache.data[1:N,1:N]|>norm
+    N=1000;QR1.R_cache.data[1:N,1:N]-QR2.R_cache.data[1:N,1:N]|>norm
 
     QR1 = qr(A)
     @time ApproxFun.resizedata!(QR1,:,1000)

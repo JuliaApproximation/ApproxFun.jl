@@ -3,7 +3,7 @@
 function nullspace(A::Operator{T};tolerance=10eps(real(T)),maxlength=1_000_000) where T
    K=transpose_nullspace(qr(A'),tolerance,maxlength)
     # drop extra rows, and use QR to determine rank
-    Q,R=qr(K,Val{true})
+    Q,R = qr(K,Val(true))
     ind=findfirst(r->abs(r)≤100tolerance,diag(R))
     Kret=ind==0 ? Q : Q[:,1:ind-1]
     Fun(Space(fill(domainspace(A),(1,ind-1))),vec(Kret'))

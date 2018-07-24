@@ -17,7 +17,7 @@ function cumsum(d::DualFun)
 end
 
 
-transpose(d::DualFun)=differentiate(d)
+adjoint(d::DualFun) = differentiate(d)
 
 ^(d::DualFun,k::Integer)=DualFun(d.f^k,k*d.f^(k-1)*d.J)
 

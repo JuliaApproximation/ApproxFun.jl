@@ -379,7 +379,7 @@ end
 
 function Base.cumsum(f::Fun{V}) where V<:PiecewiseSpace
     vf=components(f)
-    r=zero(eltype(f))
+    r=zero(cfstype(f))
     for k=1:length(vf)
         vf[k]=cumsum(vf[k]) + r
         r=last(vf[k])

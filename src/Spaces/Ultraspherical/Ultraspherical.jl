@@ -95,7 +95,7 @@ ones(S::Ultraspherical) = Fun(S,fill(1.0,1))
 
 function Base.first(f::Fun{Ultraspherical{Int,D,R}}) where {D,R}
     n = length(f.coefficients)
-    n == 0 && return zero(eltype(f))
+    n == 0 && return zero(cfstype(f))
     n == 1 && return first(f.coefficients)
     foldr(-,coefficients(f,Chebyshev))
 end
