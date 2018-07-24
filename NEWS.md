@@ -3,11 +3,17 @@
 
 ### notes on release changes, ongoing development, and future planned work
 
-#### 0.7.2- (current master)
+#### 0.8.1 (current master)
+ - Support BandedMatrices v0.5
+ - Bug fixes and minor improvements
+
+#### 0.8
+- In-place transform functionality for `Fourier`
+- Use BandedBlockBandedMatrices.jl for more reliable solution of PDEs
 - Adds `jumplocations` for finding discontinuities of a piecewise `Fun` (thanks lcw)
 - Adds `KroneckerDelta` (thaks marcusdavidwebb)
 - Improvements for `BigFloat` with `JacobiWeight`
-- Fix several bugs
+- Fix several bugs and performance enhancements
 
 #### 0.7.1
 - `F` was renamed `DFunction` for dynamic funtion
@@ -15,7 +21,7 @@
 - Support `f^k` for polynomial `f` and real `k`
 - Fix several bugs and performance enhancements
 
-#### 0.7 
+#### 0.7
 - Examples moved to [ApproxFunExamples](https://github.com/JuliaApproximation/ApproxFunExamples) repository
 - `vcat`, `hcat` and `hvcat` of operators now returns an `Operator`
 - `Dirichlet` and `Neumann` operators supported in 1D, replacing

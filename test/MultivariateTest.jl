@@ -1,5 +1,5 @@
-using ApproxFun, Compat.Test
-    import ApproxFun: testbandedblockbandedoperator, testraggedbelowoperator, factor, Block
+using ApproxFun, Test
+    import ApproxFun: testbandedblockbandedoperator, testraggedbelowoperator, factor, Block, cfstype
 
 @testset "Multivariate" begin
     @testset "Square" begin
@@ -13,7 +13,7 @@ using ApproxFun, Compat.Test
         end
 
         @time for k=0:5,j=0:5
-            ff=(x,y)->cos(k*acos(x/2))*cos(j*acos(y/2))
+            ff = (x,y)->cos(k*acos(x/2))*cos(j*acos(y/2))
             f=Fun(ff,Interval(-2,2)^2)
             @test f(0.1,0.2) ≈ ff(0.1,0.2)
         end
@@ -25,28 +25,6 @@ using ApproxFun, Compat.Test
             @test f(0.1,0.2) ≈ ff(0.1,0.2)
         end
 
-<<<<<<< HEAD
-@time for k=0:5,j=0:5
-    ff=(x,y)->cos(k*acos(x))*cos(j*acos(y))
-    f=Fun(ff,ChebyshevInterval()^2)
-    @test f(0.1,0.2) ≈ ff(0.1,0.2)
-end
-
-@time for k=0:5,j=0:5
-    ff=(x,y)->cos(k*acos(x/2))*cos(j*acos(y/2))
-    f=Fun(ff,Interval(-2,2)^2)
-    @test f(0.1,0.2) ≈ ff(0.1,0.2)
-end
-
-
-@time for k=0:5,j=0:5
-    ff=(x,y)->cos(k*acos(x-1))*cos(j*acos(y-1))
-    f=Fun(ff,Interval(0,2)^2)
-    @test f(0.1,0.2) ≈ ff(0.1,0.2)
-end
-=======
->>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
-
         ## Try constructor variants
 
         ff=(x,y)->exp(-10(x+.2)^2-20(y-.1)^2)*cos(x*y)
@@ -54,20 +32,7 @@ end
         f=Fun(ff,Interval()^2,10000)
         @test f(0.,0.) ≈ ff(0.,0.)
 
-<<<<<<< HEAD
-ff=(x,y)->exp(-10(x+.2)^2-20(y-.1)^2)*cos(x*y)
-gg=x->exp(-10(x[1]+.2)^2-20(x[1]-.1)^2)*cos(x[1]*x[2])
-f=Fun(ff,ChebyshevInterval()^2,10000)
-@test f(0.,0.) ≈ ff(0.,0.)
 
-f=Fun(gg,ChebyshevInterval()^2,10000)
-@test f(0.,0.) ≈ ff(0.,0.)
-
-f=Fun(ff,ChebyshevInterval()^2)
-@test f(0.,0.) ≈ ff(0.,0.)
-f=Fun(gg,ChebyshevInterval()^2)
-@test f(0.,0.) ≈ ff(0.,0.)
-=======
         f=Fun(gg,Interval()^2,10000)
         @test f(0.,0.) ≈ ff(0.,0.)
 
@@ -75,8 +40,6 @@ f=Fun(gg,ChebyshevInterval()^2)
         @test f(0.,0.) ≈ ff(0.,0.)
         f=Fun(gg,Interval()^2)
         @test f(0.,0.) ≈ ff(0.,0.)
-
->>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
 
         f=Fun(ff)
         @test f(0.,0.) ≈ ff(0.,0.)
@@ -103,10 +66,10 @@ f=Fun(gg,ChebyshevInterval()^2)
 
         # test "fast" grid evaluation of LowRankFun
         f = LowRankFun((x,y) -> exp(x) * cos(y)); n = 1000
-        x = linspace(-1, 1, n); y = linspace(-1, 1, n)
-        X = ones(n) * linspace(-1, 1, n)'; Y = linspace(-1, 1, n) * ones(1, n)
+        x = range(-1, stop=1, length=n); y = range(-1, stop=1, length=n)
+        X = x * fill(1.0,1,n); Y = fill(1.0, n) * y'
         @time v1 = f.(X, Y);
-        @time v2 = f.(collect(x), collect(y)');
+        @time v2 = f.(x, y');
         @test v1 ≈ v2
     end
 
@@ -152,7 +115,7 @@ f=Fun(gg,ChebyshevInterval()^2)
 
     @testset "Multivariate calculus" begin
         ## Sum
-        ff=(x,y)->(x-y)^2*exp(-x^2/2.-y^2/2)
+        ff = (x,y) -> (x-y)^2*exp(-x^2/2-y^2/2)
         f=Fun(ff,Domain(-4..4)^2)
         @test f(0.1,0.2) ≈ ff(0.1,0.2)
 
@@ -228,16 +191,12 @@ f=Fun(gg,ChebyshevInterval()^2)
         @test y(1.0,0.2) ≈ 0.2
     end
 
-<<<<<<< HEAD
-@time let d=ChebyshevInterval()^2
+    # test conversion between
+    dx = dy = ChebyshevInterval()
+    d = dx*dy
     x,y=Fun(d)
     @test x(0.1,0.2) ≈ 0.1
     @test y(0.1,0.2) ≈ 0.2
-=======
-    # test conversion between
-    dx = dy = Interval()
-    d = dx*dy
->>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
 
     x,y = Fun(∂(d))
     x,y = components(x),components(y)
@@ -255,15 +214,14 @@ f=Fun(gg,ChebyshevInterval()^2)
 
     A = [B; Laplacian()]
 
-<<<<<<< HEAD
-# test conversion between
-dx=dy=ChebyshevInterval()
-d=dx × dy
-=======
+
     @test eltype([g;0.0]) == Float64
     g2 = Fun([g;0.0],rangespace(A))
     @test eltype(g2) == Float64
->>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
+
+    @test cfstype([g;0.0]) == Float64
+    g2 = Fun([g;0.0],rangespace(A))
+    @test cfstype(g2) == Float64
 
 
     @test g2[1](-0.1,-1.0) ≈ g[1](-0.1,-1.0)
@@ -298,14 +256,7 @@ d=dx × dy
     testbandedblockbandedoperator(rDr)
 
 
-
-<<<<<<< HEAD
-dom = Interval(0.001, 1) × PeriodicInterval(-pi, pi)
-=======
     ## Cheby * Interval
->>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
-
-
     d = Interval()^2
     x,y = Fun(∂(d))
 
@@ -326,13 +277,7 @@ dom = Interval(0.001, 1) × PeriodicInterval(-pi, pi)
     @test f(0.2,0.3) ≈ exp(0.1*cos(0.1))
 
 
-<<<<<<< HEAD
-d = ChebyshevInterval()^2
-x,y = Fun(∂(d))
-=======
     ## Test DefiniteIntegral
->>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
-
     f = Fun((x,y) -> exp(-x*cos(y)))
     @test Number(DefiniteIntegral()*f) ≈ sum(f)
 
@@ -344,8 +289,8 @@ x,y = Fun(∂(d))
     a = Fun(0..1) + Fun(2..3)
     f = a ⊗ a
     @test f(0.1,0.2) ≈ 0.1*0.2
-    @test f(1.1,0.2) == 0
-    @test f(2.1,0.2) == 2.1*0.2
+    @test f(1.1,0.2) ≈ 0
+    @test f(2.1,0.2) ≈ 2.1*0.2
 
     @test component(space(f),1,1) == Chebyshev(0..1)^2
     @test component(space(f),1,2) == Chebyshev(0..1)*Chebyshev(2..3)

@@ -1,6 +1,4 @@
-versioninfo()
-
-using ApproxFun, Compat.Test
+using ApproxFun, Test
     import ApproxFun: Infinity, ∞
 
 @testset "Helper" begin

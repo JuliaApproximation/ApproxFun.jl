@@ -17,7 +17,7 @@ convert(::Type{Operator{T}},R::ReOperator) where {T} = ReOperator{typeof(R.op),T
 
 
 getindex(RI::ReOperator{O,T},k::Integer,j::Integer) where {O,T} =
-    T(real(RI.op[k,j]))
+    convert(T,real(RI.op[k,j]))
 
 choosedomainspace(R::ReOperator,sp::Space) = choosedomainspace(R.op,sp)
 for OP in (:promotedomainspace,:promoterangespace)
@@ -30,5 +30,5 @@ end
 
 
 # TODO: can't do this because UnsetSpace might change type
-#Base.real{T<:Real}(op::Operator{T})=op
-Base.real(op::Operator) = ReOperator(op)
+#real{T<:Real}(op::Operator{T})=op
+real(op::Operator) = ReOperator(op)

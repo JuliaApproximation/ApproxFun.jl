@@ -81,7 +81,7 @@ struct JacobiZ{S<:Space,T} <: TridiagonalOperator{T}
 end
 
 JacobiZ(sp::PolynomialSpace,z) =
-    (T = promote_type(prectype(sp),typeof(z)); JacobiZ{typeof(sp),T}(sp,T(z)))
+    (T = promote_type(prectype(sp),typeof(z)); JacobiZ{typeof(sp),T}(sp,convert(T,z)))
 
 convert(::Type{Operator{T}},J::JacobiZ{S}) where {T,S} = JacobiZ{S,T}(J.space,J.z)
 
@@ -128,7 +128,7 @@ getindex(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) where {PS<:Pol
 # specified by b, not by the parameters in B
 function jac_gbmm!(α, J, B, β, C, b)
     if β ≠ 1
-        scale!(β,C)
+        lmul!(β,C)
     end
 
     Jp = view(J, band(1))
@@ -175,11 +175,10 @@ end
 
 
 
-function convert(::Type{BandedMatrix},
-                      S::SubOperator{T,ConcreteMultiplication{C,PS,T},
+function BandedMatrix(S::SubOperator{T,ConcreteMultiplication{C,PS,T},
                                      Tuple{UnitRange{Int},UnitRange{Int}}}) where {PS<:PolynomialSpace,T,C<:PolynomialSpace}
     M=parent(S)
-    kr,jr=parentindexes(S)
+    kr,jr=parentindices(S)
     f=M.f
     a=f.coefficients
     sp=space(f)
@@ -190,7 +189,7 @@ function convert(::Type{BandedMatrix},
     elseif n==1
         ret = BandedMatrix(Zeros, S)
         shft=kr[1]-jr[1]
-        ret[band(shft)] = a[1]
+        ret[band(shft)] .= a[1]
         return ret::BandedMatrix{T}
     elseif n==2
         # we have U_x = [1 α-x; 0 β]
@@ -198,9 +197,9 @@ function convert(::Type{BandedMatrix},
         # implying
         α,β=recα(T,sp,1),recβ(T,sp,1)
         ret=Operator{T}(ApproxFun.Recurrence(M.space))[kr,jr]::BandedMatrix{T}
-        scale!(a[2]/β,ret)
+        lmul!(a[2]/β,ret)
         shft=kr[1]-jr[1]
-        ret[band(shft)] += a[1]-α*a[2]/β
+        ret[band(shft)] .+= a[1]-α*a[2]/β
         return ret::BandedMatrix{T}
     end
 
@@ -216,26 +215,26 @@ function convert(::Type{BandedMatrix},
     Bk2[band(0)] = a[n]/recβ(T,sp,n-1)
     α,β = recα(T,sp,n-1),recβ(T,sp,n-2)
     Bk1 = (-α/β)*Bk2
-    Base.axpy!(a[n-1]/β,I,Bk1)
+    LinearAlgebra.axpy!(a[n-1]/β,I,Bk1)
     jac_gbmm!(one(T)/β,J,Bk2,one(T),Bk1,0)
     b=1  # we keep track of bandwidths manually to reuse memory
     for k=n-2:-1:2
         α,β,γ=recα(T,sp,k),recβ(T,sp,k-1),recγ(T,sp,k+1)
-        scale!(-γ/β,Bk2)
-        Base.axpy!(a[k]/β,I,Bk2)
+        lmul!(-γ/β,Bk2)
+        LinearAlgebra.axpy!(a[k]/β,I,Bk2)
         jac_gbmm!(1/β,J,Bk1,one(T),Bk2,b)
-        Base.axpy!(-α/β,Bk1,Bk2)
+        LinearAlgebra.axpy!(-α/β,Bk1,Bk2)
         Bk2,Bk1=Bk1,Bk2
         b+=1
     end
     α,γ=recα(T,sp,1),recγ(T,sp,2)
-    scale!(-γ,Bk2)
-    Base.axpy!(a[1],I,Bk2)
+    lmul!(-γ,Bk2)
+    LinearAlgebra.axpy!(a[1],I,Bk2)
     jac_gbmm!(one(T),J,Bk1,one(T),Bk2,b)
-    Base.axpy!(-α,Bk1,Bk2)
+    LinearAlgebra.axpy!(-α,Bk1,Bk2)
 
     # relationship between jkr and kr, jr
-    kr2,jr2=kr-jkr[1]+1,jr-jkr[1]+1
+    kr2,jr2=kr.-jkr[1].+1,jr.-jkr[1].+1
 
     # TODO: reuse memory of Bk2, though profile suggests it's not too important
     BandedMatrix(view(Bk2,kr2,jr2))::BandedMatrix{T}
@@ -246,9 +245,10 @@ end
 
 ## All polynomial spaces can be converted provided spaces match
 
-isconvertible(a::PolynomialSpace,b::PolynomialSpace) = domain(a)==domain(b)
+isconvertible(a::PolynomialSpace,b::PolynomialSpace) = domain(a) == domain(b)
 union_rule(a::PolynomialSpace{D},b::PolynomialSpace{D}) where {D} =
     domainscompatible(a,b) ? (a < b ? a : b) : NoSpace()   # the union of two polys is always a poly
+
 
 
 ## General clenshaw
@@ -279,12 +279,12 @@ end
 
 # evaluate polynomial
 # indexing starts from 0
-function forwardrecurrence(::Type{T},S::Space,r::Range,x::Number) where T
+function forwardrecurrence(::Type{T},S::Space,r::AbstractRange,x::Number) where T
     if isempty(r)
         return T[]
     end
     n=maximum(r)+1
-    v=Vector{T}(n)  # x may be complex
+    v=Vector{T}(undef, n)  # x may be complex
     if n > 0
         v[1]=1
         if n > 1
@@ -296,7 +296,7 @@ function forwardrecurrence(::Type{T},S::Space,r::Range,x::Number) where T
         end
     end
 
-    return v[r+1]
+    return v[r.+1]
 end
 
 
@@ -311,25 +311,25 @@ function Evaluation(S::PolynomialSpace,x,order)
 end
 
 
-function getindex(op::ConcreteEvaluation{J,typeof(first)},kr::Range) where J<:PolynomialSpace
+function getindex(op::ConcreteEvaluation{J,typeof(first)},kr::AbstractRange) where J<:PolynomialSpace
     sp=op.space
     T=eltype(op)
 
-    forwardrecurrence(T,sp,kr-1,-one(T))
+    forwardrecurrence(T,sp,kr.-1,-one(T))
 end
 
-function getindex(op::ConcreteEvaluation{J,typeof(last)},kr::Range) where J<:PolynomialSpace
+function getindex(op::ConcreteEvaluation{J,typeof(last)},kr::AbstractRange) where J<:PolynomialSpace
     sp=op.space
     T=eltype(op)
 
-    forwardrecurrence(T,sp,kr-1,one(T))
+    forwardrecurrence(T,sp,kr.-1,one(T))
 end
 
 
-function getindex(op::ConcreteEvaluation{J,TT},kr::Range) where {J<:PolynomialSpace,TT<:Number}
+function getindex(op::ConcreteEvaluation{J,TT},kr::AbstractRange) where {J<:PolynomialSpace,TT<:Number}
     sp=op.space
     T=eltype(op)
     x=op.x
 
-    forwardrecurrence(T,sp,kr-1,x)
+    forwardrecurrence(T,sp,kr.-1,tocanonical(sp,x))
 end

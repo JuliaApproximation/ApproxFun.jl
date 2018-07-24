@@ -2,11 +2,12 @@
 
 
 
-## Ac_mul_B! for QROperatorQ
+## Ac'* for QROperatorQ
 
-function Ac_mul_Bpars(A::QROperatorQ,B::AbstractVector,tolerance,maxlength)
+function mul_pars(Ac::Adjoint{<:Any,<:QROperatorQ},B::AbstractVector,tolerance,maxlength)
+    A = parent(Ac)
     T = promote_type(eltype(A),eltype(B))
-    Ac_mul_Bpars(Operator{T}(A),Array{T}(B),tolerance,maxlength)
+    mulpars(Operator{T}(A)',Array{T}(B),tolerance,maxlength)
 end
 
 

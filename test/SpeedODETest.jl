@@ -1,5 +1,5 @@
-using ApproxFun, Compat.Test
-    import ApproxFun: A_ldiv_B_coefficients
+using ApproxFun, SpecialFunctions, Test
+    import ApproxFun: ldiv_coefficients
 
 ## ODEs
 
@@ -30,10 +30,10 @@ D=Derivative(S)
 L=D^2+(7+2x+6x^2)
 B=Dirichlet(S)
 n=20000
-rhs=ones(n+2)
-u=A_ldiv_B_coefficients([B;L],rhs)
-u=A_ldiv_B_coefficients([B;L],rhs)
-@time u=A_ldiv_B_coefficients([B;L],rhs)
+rhs=fill(1.0,n+2)
+u=ldiv_coefficients([B;L],rhs)
+u=ldiv_coefficients([B;L],rhs)
+@time u=ldiv_coefficients([B;L],rhs)
 println("Poly: should be ~0.020926 seconds (3.00 k allocations: 9.416 MiB)")
 
 
@@ -43,10 +43,10 @@ D=Derivative(S)
 L=D^2+cos(x)
 B=Dirichlet(S)
 n=2000
-rhs=ones(n+2)
-u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
-u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
-@time u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
+rhs=fill(1.0,n+2)
+u=ldiv_coefficients([B;L],rhs;maxlength=Inf)
+u=ldiv_coefficients([B;L],rhs;maxlength=Inf)
+@time u=ldiv_coefficients([B;L],rhs;maxlength=Inf)
 println("Cos: should be ~0.0075")
 
 S=Chebyshev()
@@ -55,10 +55,10 @@ D=Derivative(S)
 L=D^2+sin(x)
 B=Dirichlet(S)
 n=2000
-rhs=ones(n+2)
-u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
-u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
-@time u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
+rhs=fill(1.0,n+2)
+u=ldiv_coefficients([B;L],rhs;maxlength=Inf)
+u=ldiv_coefficients([B;L],rhs;maxlength=Inf)
+@time u=ldiv_coefficients([B;L],rhs;maxlength=Inf)
 println("Sin: should be ~0.008663 seconds (660 allocations: 2.987 MB)")
 
 ## Bessel
@@ -116,6 +116,6 @@ d=Interval(-300.,5.)
 x=Fun(identity,d)
 A=Derivative(d)^2-x
 u=nullspace(A)
-@test A[1:10,1:10] ≈ (A.')[1:10,1:10].'
+@test A[1:10,1:10] ≈ transpose(transpose(A)[1:10,1:10])
 @time u=nullspace(A)
 println("Nullspace Airy: 0.052730 seconds (75.21 k allocations: 56.736 MB)")

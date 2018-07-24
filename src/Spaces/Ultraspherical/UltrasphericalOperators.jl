@@ -74,7 +74,7 @@ function getindex(D::ConcreteDerivative{Ultraspherical{TT,DD,RR},K,T},
     λ=order(domainspace(D))
 
     if j==k+m
-        T((pochhammer(one(T)*λ,m)*(4./(d.b-d.a)).^m))
+        convert(T,(pochhammer(one(T)*λ,m)*(4/(d.b-d.a)).^m))
     else
         zero(T)
     end
@@ -99,9 +99,9 @@ function getindex(Q::ConcreteIntegral{Ultraspherical{LT,DD,RR}},k::Integer,j::In
 
     if λ == 1 && k==j+1
         C = (d.b-d.a)/2
-        T(C./(k-1))
+        convert(T,C./(k-1))
     elseif λ > 1 && k==j+m
-        T(pochhammer(one(T)*λ,-m)*((d.b-d.a)/4)^m)
+        convert(T,pochhammer(one(T)*λ,-m)*((d.b-d.a)/4)^m)
     else
         zero(T)
     end
@@ -204,12 +204,12 @@ bandinds(C::ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR}}) wher
 bandinds(C::ConcreteConversion{Ultraspherical{Int,DD,RR},Ultraspherical{Int,DD,RR}}) where {DD,RR} = 0,2
 
 bandinds(C::ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{LT,DD,RR}}) where {LT,DD,RR} =
-    0,order(rangespace(C))==1?2:∞
+    0,order(rangespace(C))==1 ? 2 : ∞
 bandinds(C::ConcreteConversion{Ultraspherical{LT,DD,RR},Chebyshev{DD,RR}}) where {LT,DD,RR} =
-    0,order(domainspace(C))==1?2:∞
+    0,order(domainspace(C))==1 ? 2 : ∞
 
 bandinds(C::ConcreteConversion{Ultraspherical{LT1,DD,RR},Ultraspherical{LT2,DD,RR}}) where {LT1,LT2,DD,RR} =
-    0,order(domainspace(C))+1==order(rangespace(C))?2:∞
+    0,order(domainspace(C))+1==order(rangespace(C)) ? 2 : ∞
 
 Base.stride(C::ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR}}) where {DD,RR} = 2
 Base.stride(C::ConcreteConversion{Ultraspherical{LT1,DD,RR},Ultraspherical{LT2,DD,RR}}) where {LT1,LT2,DD,RR} = 2
@@ -227,7 +227,7 @@ conversion_rule(a::Chebyshev,b::Ultraspherical{Int}) =
 
 conversion_rule(a::Ultraspherical{LT},b::Ultraspherical{LT}) where {LT} =
     if domainscompatible(a,b) && isapproxinteger(order(a)-order(b))
-        order(a) < order(b)?a:b
+        order(a) < order(b) ? a : b
     else
         NoSpace()
     end
@@ -280,9 +280,9 @@ function getindex(M::ConcreteConversion{C,Ultraspherical{LT,DD,RR},T},
         if j==k==1
             one(T)
         elseif j==k
-            T(sqrt(π)/(2FastTransforms.Λ(k-1)))
+            convert(T,sqrt(π)/(2FastTransforms.Λ(k-1)))
         elseif k < j && iseven(k-j)
-            T(-(j-1)*(k-0.5)*(FastTransforms.Λ((j-k-2)/2)/(j-k))*
+            convert(T,-(j-1)*(k-0.5)*(FastTransforms.Λ((j-k-2)/2)/(j-k))*
                             (FastTransforms.Λ((j+k-3)/2)/(j+k-1)))
         else
             zero(T)
@@ -309,9 +309,9 @@ function getindex(M::ConcreteConversion{Ultraspherical{LT,DD,RR},C,T},
         end
     elseif λ == 0.5
         if k==1 && isodd(j)
-            T(FastTransforms.Λ((j-1)/2)^2/π)
+            convert(T,FastTransforms.Λ((j-1)/2)^2/π)
         elseif k ≤ j && iseven(k-j)
-            T(FastTransforms.Λ((j-k)/2)*FastTransforms.Λ((k+j-2)/2)*2/π)
+            convert(T,FastTransforms.Λ((j-k)/2)*FastTransforms.Λ((k+j-2)/2)*2/π)
         else
             zero(T)
         end
@@ -329,7 +329,7 @@ function getindex(M::ConcreteConversion{Ultraspherical{LT,DD,RR},
     λ2 = order(rangespace(M))
     if abs(λ1-λ2) < 1
         if j ≥ k && iseven(k-j)
-            T((λ1 < λ2 && k ≠ j ? -1 : 1) *  # fix sign for lgamma
+            convert(T,(λ1 < λ2 && k ≠ j ? -1 : 1) *  # fix sign for lgamma
                 exp(lgamma(λ2)+log(k-1+λ2)-lgamma(λ1)-lgamma(λ1-λ2) + lgamma((j-k)/2+λ1-λ2)-
                 lgamma((j-k)/2+1)+lgamma((k+j-2)/2+λ1)-lgamma((k+j-2)/2+λ2+1)))
         else

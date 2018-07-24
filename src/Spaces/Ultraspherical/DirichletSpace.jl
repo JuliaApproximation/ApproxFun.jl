@@ -71,7 +71,7 @@ end
 
 function idirichlettransform!(s::Bool,w::AbstractVector)
     for k=2:length(w)
-        @inbounds w[k-1]+= (s?-1:1)*w[k]
+        @inbounds w[k-1]+= (s ? -1 : 1)*w[k]
     end
 
     w
@@ -80,7 +80,7 @@ end
 
 function dirichlettransform!(s::Bool,w::AbstractVector)
     for k=length(w)-1:-1:1
-        @inbounds w[k] += (s?1:-1)*w[k+1]
+        @inbounds w[k] += (s ? 1 : -1)*w[k+1]
     end
 
     w
@@ -109,10 +109,10 @@ getindex(C::ConcreteConversion{ChebyshevDirichlet{1,0,D,R},CC,T},k::Integer,j::I
     j==k || j==k+1 ? one(T) : zero(T)
 
 getindex(C::ConcreteConversion{ChebyshevDirichlet{0,1,D,R},CC,T},k::Integer,j::Integer) where {D,R,CC<:Chebyshev,T} =
-    j==k ? one(T) : ( j==k+1? -one(T) : zero(eltype(C)))
+    j==k ? one(T) : ( j==k+1 ? -one(T) : zero(eltype(C)))
 
 getindex(C::ConcreteConversion{ChebyshevDirichlet{1,1,D,R},CC,T},k::Integer,j::Integer) where {D,R,CC<:Chebyshev,T} =
-    j==k ? one(T) : ( j==k+2? -one(T) : zero(eltype(C)))
+    j==k ? one(T) : ( j==k+2 ? -one(T) : zero(eltype(C)))
 
 function getindex(C::ConcreteConversion{ChebyshevDirichlet{2,2,D,R},CC,T},k::Integer,j::Integer) where {D,R,CC<:Chebyshev,T}
     if j==k
@@ -154,63 +154,63 @@ bandinds(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(last)}) where 
 bandinds(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(first)}) where {D,R} = 0,1
 bandinds(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(last)}) where {D,R} = 0,1
 
-function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(first)},kr::Range) where {D,R}
+function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(first)},kr::AbstractRange) where {D,R}
     d = domain(B)
 
     if B.order == 0
-        Float64[k==1?1.0:0.0 for k=kr]
+        Float64[k==1 ? 1.0 : 0.0 for k=kr]
     else
         (Evaluation(d,B.x,B.order)*Conversion(domainspace(B)))[kr]
     end
 end
 
-function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(last)},kr::Range) where {D,R}
+function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(last)},kr::AbstractRange) where {D,R}
     d = domain(B)
 
     if B.order == 0
-        Float64[k==1?1.0:2.0 for k=kr]
+        Float64[k==1 ? 1.0 : 2.0 for k=kr]
     else
         (Evaluation(d,B.x,B.order)*Conversion(domainspace(B)))[kr]
     end
 end
 
-function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(first)},kr::Range) where {D,R}
+function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(first)},kr::AbstractRange) where {D,R}
     S = Space(domain(B))
 
     if B.order == 0
-        Float64[k==1?1.0:-(-1)^k*2.0 for k=kr]
+        Float64[k==1 ? 1.0 : -(-1)^k*2.0 for k=kr]
     else
         (Evaluation(S,B.x,B.order)*Conversion(domainspace(B),S))[kr]
     end
 end
 
-function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(last)},kr::Range) where {D,R}
+function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(last)},kr::AbstractRange) where {D,R}
     S = Space(domain(B))
 
 
     if B.order == 0
-        Float64[k==1?1.0:0.0 for k=kr]
+        Float64[k==1 ? 1.0 : 0.0 for k=kr]
     else
         (Evaluation(S,B.x,B.order)*Conversion(domainspace(B),S))[kr]
     end
 end
 
 
-function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(first)},kr::Range) where {D,R}
+function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(first)},kr::AbstractRange) where {D,R}
     S = Space(domain(B))
 
     if B.order == 0
-        Float64[k==1?1.0:(k==2?-1.0:0.0) for k=kr]
+        Float64[k==1 ? 1.0 : (k==2 ? -1.0 : 0.0) for k=kr]
     else
         getindex(Evaluation(S,B.x,B.order)*Conversion(domainspace(B),S),kr)
     end
 end
 
-function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(last)},kr::Range) where {D,R}
+function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(last)},kr::AbstractRange) where {D,R}
     S = Space(domain(B))
 
     if B.order == 0
-        Float64[k==1||k==2?1.0:0.0 for k=kr]
+        Float64[k==1||k==2 ? 1.0 : 0.0 for k=kr]
     else
         getindex(Evaluation(S,B.x,B.order)*Conversion(domainspace(B),S),kr)
     end

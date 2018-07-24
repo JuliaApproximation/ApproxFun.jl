@@ -14,13 +14,13 @@ bandinds(::DiagonalOperator)=0,0
 
 
 
-Base.Tridiagonal(J::TridiagonalOperator{T},n::Integer) where {T}=Tridiagonal(T[J.γ(k) for k=2:n],
+Tridiagonal(J::TridiagonalOperator{T},n::Integer) where {T}=Tridiagonal(T[J.γ(k) for k=2:n],
 T[J.α(k) for k=1:n],
 T[J.β(k) for k=1:n-1])
 
 
 function symmetrize(J::TridiagonalOperator{T},n::Integer) where T
-    d=Array{T}(n)
+    d=Array{T}(undef, n)
     d[1]=1
     for k=2:n
         d[k]=sqrt(J[k,k-1]/J[k-1,k])*d[k-1]
@@ -39,9 +39,9 @@ end
 DiagIteratorOperator(it) = DiagIteratorOperator{typeof(it),eltype(it)}(it)
 
 getindex(D::DiagIteratorOperator,k::Integer,j::Integer) =
-    k==j? D.iterator[k] : zero(eltype(D))
+    k==j ? D.iterator[k] : zero(eltype(D))
 
 domainspace(D::DiagIteratorOperator) = ℓ⁰
 rangespace(D::DiagIteratorOperator) = ℓ⁰
 
-Base.diagm(c::AbstractCount) = DiagIteratorOperator(c)
+diagm(c::AbstractCount) = DiagIteratorOperator(c)

@@ -1,7 +1,4 @@
-## Intro
-
-
-using ApproxFun, Compat.Test
+using ApproxFun, SpecialFunctions, Test
 
 
 @testset "Readme" begin
@@ -112,7 +109,7 @@ using ApproxFun, Compat.Test
 
 
 
-        QR = qrfact([Dirichlet(d);Laplacian()+100I])
+        QR = qr([Dirichlet(d);Laplacian()+100I])
                 @time ApproxFun.resizedata!(QR,:,4000)
                 @time u = \(QR,
                                 [ones(∂(d));0.];tolerance=1E-7)

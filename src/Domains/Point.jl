@@ -5,30 +5,32 @@ convert(::Type{Point},::AnyDomain) = Point(NaN)
 convert(::Type{Point{T}},::AnyDomain) where T = Point{T}(NaN)
 
 
+
 isambiguous(d::Point) = isnan(d.x)
 
 
 
 
-Base.norm(p::Point) = norm(p.x)
+norm(p::Point) = norm(p.x)
 
-Base.getindex(p::Point,k...) = p.x[k...]
-Base.first(p::Point) = p.x
-Base.last(p::Point) = p.x
+getindex(p::Point,k...) = p.x[k...]
+first(p::Point) = p.x
+last(p::Point) = p.x
 
 Base.isnan(d::Point) = false
 
-Base.issubset(a::Point,d::UnionDomain) = a.x in d
-Base.issubset(a::Point,b::Domain) = a.x in b
 
-Base.intersect(a::Point,b::Point) = b.x in a ? b : EmptyDomain()
-Base.intersect(a::UnionDomain,b::Point) = b.x in a ? b : EmptyDomain()
-Base.intersect(a::Domain,b::Point) = b.x in a ? b : EmptyDomain()
-Base.intersect(b::Point,a::UnionDomain) = b.x in a ? b : EmptyDomain()
-Base.intersect(b::Point,a::Domain) = b.x in a ? b : EmptyDomain()
+issubset(a::Point,d::UnionDomain) = a.x in d
+issubset(a::Point,b::Domain) = a.x in b
 
-Base.setdiff(a::Point,b::Point) = a==b ? EmptyDomain() : a
-Base.reverse(a::Point) = a
+intersect(a::Point,b::Point) = b.x in a ? b : EmptyDomain()
+intersect(a::UnionDomain,b::Point) = b.x in a ? b : EmptyDomain()
+intersect(a::Domain,b::Point) = b.x in a ? b : EmptyDomain()
+intersect(b::Point,a::UnionDomain) = b.x in a ? b : EmptyDomain()
+intersect(b::Point,a::Domain) = b.x in a ? b : EmptyDomain()
+
+setdiff(a::Point,b::Point) = a==b ? EmptyDomain() : a
+reverse(a::Point) = a
 
 
 canonicaldomain(a::Point) = Point(0.)

@@ -17,7 +17,6 @@ const AffineDomain = Union{Segment,PeriodicInterval,Ray,Line}
 
 points(d::IntervalSets.ClosedInterval,n) = points(Domain(d),n)
 
-
 # These are needed for spaces to auto-convert [a,b] to Interval
 function convert(::Type{PeriodicDomain},d::IntervalSets.ClosedInterval)
     a,b=d.left,d.right
@@ -32,25 +31,24 @@ end
 
 convert(::Type{Space},d::IntervalSets.ClosedInterval) = Space(Domain(d))
 
-
 #issubset between domains
 
-Base.issubset(a::PeriodicInterval,b::Segment) = Segment(a.a,a.b)⊆b
-Base.issubset(a::Segment,b::PeriodicInterval) = PeriodicInterval(a.a,a.b)⊆b
-Base.issubset(a::Segment{T},b::PiecewiseSegment{T}) where {T<:Real} =
+issubset(a::PeriodicInterval,b::Segment) = Segment(a.a,a.b)⊆b
+issubset(a::Segment,b::PeriodicInterval) = PeriodicInterval(a.a,a.b)⊆b
+issubset(a::Segment{T},b::PiecewiseSegment{T}) where {T<:Real} =
     a⊆Segment(first(b.points),last(b.points))
-Base.issubset(a::Segment,b::Line) = first(a)∈b && last(a)∈b
+issubset(a::Segment,b::Line) = first(a)∈b && last(a)∈b
 
 
-function Base.intersect(a::Segment,b::Line)
+function intersect(a::Segment,b::Line)
     @assert a ⊆ b
     a
 end
 
-Base.intersect(b::Line,a::Segment) = intersect(a,b)
+intersect(b::Line,a::Segment) = intersect(a,b)
 
 
-function Base.setdiff(b::Line,a::Segment)
+function setdiff(b::Line,a::Segment)
     @assert a ⊆ b
     if first(a)>last(a)
         b\reverse(a)
@@ -59,7 +57,7 @@ function Base.setdiff(b::Line,a::Segment)
     end
 end
 
-function Base.setdiff(b::Segment,a::Point)
+function setdiff(b::Segment,a::Point)
     if !(a ⊆ b)
         b
     elseif first(b) == a.x  || last(b) == a.x
@@ -71,8 +69,8 @@ end
 
 # sort
 
-Base.isless(d1::Segment{T1},d2::Ray{false,T2}) where {T1<:Real,T2<:Real} = d1 ≤ d2.center
-Base.isless(d2::Ray{true,T2},d1::Segment{T1}) where {T1<:Real,T2<:Real} = d2.center ≤ d1
+isless(d1::Segment{T1},d2::Ray{false,T2}) where {T1<:Real,T2<:Real} = d1 ≤ d2.center
+isless(d2::Ray{true,T2},d1::Segment{T1}) where {T1<:Real,T2<:Real} = d2.center ≤ d1
 
 
 # ^
@@ -90,7 +88,7 @@ function Base.setdiff(d::AffineDomain,ptsin::UnionDomain{AS}) where {AS <: Abstr
     isempty(pts) && return d
     tol=sqrt(eps(arclength(d)))
     da=first(d)
-    isapprox(da,pts[1];atol=tol) && shift!(pts)
+    isapprox(da,pts[1];atol=tol) && popfirst!(pts)
     isempty(pts) && return d
     db=last(d)
     isapprox(db,pts[end];atol=tol) && pop!(pts)
@@ -102,7 +100,7 @@ function Base.setdiff(d::AffineDomain,ptsin::UnionDomain{AS}) where {AS <: Abstr
     isempty(pts) && return d
     length(pts) == 1 && return d \ pts[1]
 
-    ret = Array{Domain}(length(pts)+1)
+    ret = Array{Domain}(undef, length(pts)+1)
     ret[1] = Domain(d.a..pts[1])
     for k = 2:length(pts)
         ret[k] = Domain(pts[k-1]..pts[k])

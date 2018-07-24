@@ -15,8 +15,8 @@ Fun(d::Space) = Fun(identity,d)
 
 chebyshevt(n::Int,d::Segment{T}) where {T<:Number} = Fun(Chebyshev(d),[zeros(T,n);one(T)])
 chebyshevu(n::Int,d::Segment{T}) where {T<:Number} =
-    mod(n,2) == 1 ? Fun(Chebyshev(d),interlace(zeros(T,div(n+2,2)),2ones(T,div(n+2,2)))) :
-                    Fun(Chebyshev(d),interlace(2ones(T,div(n+2,2)),zeros(T,div(n+2,2)))[1:n+1]-[one(T);zeros(T,n)])
+    mod(n,2) == 1 ? Fun(Chebyshev(d),interlace(zeros(T,div(n+2,2)),2fill(one(T),div(n+2,2)))) :
+                    Fun(Chebyshev(d),interlace(2fill(one(T),div(n+2,2)),zeros(T,div(n+2,2)))[1:n+1]-[one(T);zeros(T,n)])
 legendre(n::Int,d::Segment{T}) where {T<:Number} = Fun(Legendre(d),[zeros(T,n);one(T)])
 
 for poly in (:chebyshevt,:chebyshevu,:legendre)
@@ -24,7 +24,7 @@ for poly in (:chebyshevt,:chebyshevu,:legendre)
         $poly(n::Int,a::T,b::T) where {T<:Number} = $poly(n,Segment(a,b))
         $poly(::Type{T},n::Int) where {T<:Number} = $poly(n,Segment{T}())
         $poly(n::Int) = $poly(Float64,n)
-        $poly(n::Range,d::Segment{T}) where {T<:Number} = map(i->$poly(i,d),n)
+        $poly(n::AbstractRange,d::Segment{T}) where {T<:Number} = map(i->$poly(i,d),n)
     end
 end
 
@@ -42,8 +42,8 @@ bvp(d) = bvp(d,2)
 
 
 
-# use conj(f.') for ArraySpace
-Base.ctranspose(f::Fun)=differentiate(f)
+# use conj(transpose(f)) for ArraySpace
+adjoint(f::Fun)=differentiate(f)
 
 
 ∫(f::Fun)=integrate(f)
@@ -54,8 +54,8 @@ for OP in (:Σ,:∮,:⨍,:⨎)
 end
 
 ∇(F::MultivariateFun) = grad(F)
-Base.dot(∇::Function,F::Vector{M}) where {M<:MultivariateFun} = div(F)
-Base.cross(∇::Function,F::Vector{M}) where {M<:MultivariateFun} = curl(F)
+dot(∇::Function,F::Vector{M}) where {M<:MultivariateFun} = div(F)
+cross(∇::Function,F::Vector{M}) where {M<:MultivariateFun} = curl(F)
 
 
 ## Domains

@@ -39,7 +39,7 @@ end
 
 isperiodic(d::PiecewiseSegment) = first(d.points)==last(d.points)
 
-Base.reverse(d::PiecewiseSegment) = PiecewiseSegment(reverse(d.points))
+reverse(d::PiecewiseSegment) = PiecewiseSegment(reverse(d.points))
 
 isambiguous(d::PiecewiseSegment)=isempty(d.points)
 convert(::Type{PiecewiseSegment{T}},::AnyDomain) where {T<:Number}=PiecewiseSegment{T}([])
@@ -56,17 +56,17 @@ end
 
 
 
-Base.rand(d::PiecewiseSegment) = rand(d[rand(1:ncomponents(d))])
+rand(d::PiecewiseSegment) = rand(d[rand(1:ncomponents(d))])
 checkpoints(d::PiecewiseSegment{T}) where {T} =
     mapreduce(checkpoints,union,components(d))::Vector{T}
 
-for OP in (:(Base.first),:(Base.last))
+for OP in (:(first),:(last))
     @eval $OP(d::PiecewiseSegment) = $OP(d.points)
 end
 
 
 # Comparison with UnionDomain
-for OP in (:(Base.isapprox),:(==))
+for OP in (:(isapprox),:(==))
     @eval begin
         $OP(a::PiecewiseSegment,b::UnionDomain) = $OP(UnionDomain(components(a)),b)
         $OP(b::UnionDomain,a::PiecewiseSegment) = $OP(UnionDomain(components(a)),b)

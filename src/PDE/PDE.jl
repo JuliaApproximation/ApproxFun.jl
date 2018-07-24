@@ -58,4 +58,4 @@ function *(B::Operator,f::ProductFun)
     end
 end
 
-*(f::ProductFun,B::Operator)=(B*(f.')).'
+*(f::ProductFun,B::Operator) = transpose(B*(transpose(f)))

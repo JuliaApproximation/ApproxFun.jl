@@ -20,9 +20,6 @@ include("ProductDomain.jl")
 
 
 ## Union
-
-
-
 function Base.join(p1::AbstractVector{IT},p2::AbstractVector{IT}) where IT<:IntervalOrSegment
     for k=length(p1):-1:1,j=length(p2):-1:1
         if p1[k]==reverse(p2[j])

@@ -1,4 +1,5 @@
-using ApproxFun, Compat.Test, DualNumbers
+using ApproxFun, Test, DualNumbers
+    import ApproxFun: eigs
 
 @testset "Extras" begin
     @testset "Dual numbers" begin
@@ -6,6 +7,7 @@ using ApproxFun, Compat.Test, DualNumbers
 
         f=Fun(exp,Segment(dual(1.0,1),dual(2.0)),20)
         @test Fun(h->Fun(exp,Segment(1.0+h,2.0)).coefficients[1],0..1)'(0.) ≈ DualNumbers.epsilon(f.coefficients[1])
+
 
         ud=let d=dual(0.0,1.0)..1.0
             B = ldirichlet(d)
@@ -44,50 +46,51 @@ using ApproxFun, Compat.Test, DualNumbers
         end
     end
 
-    ## Eig test #336
+    @testset "Eig test #336" begin
+        d = Interval(0.,π)
+        A=Derivative(d)^2
+        λ=eigvals(Dirichlet(d),A,100)
+        @test sort(λ)[end-5:end] ≈ -(-6:-1).^2
+        λ=eigvals(Dirichlet(), A, 100)
+        @test sort(λ)[end-5:end] ≈ -(-6:-1).^2
 
-    d = Interval(0.,π)
-    A=Derivative(d)^2
-    λ=eigvals(Dirichlet(d),A,100)
-    @test sort(λ)[end-5:end] ≈ -(-6:-1).^2
+        F = x->x^8
+        d = Interval(0.0,1.0)
+        f = Fun(F,d)
+        ginf = Fun(x->exp(-x),d)
+        gp = ginf'
+        Af = Fun(x->x+f(x),d)
+        transport_ = Fun(x-> x - 1,d)
+        damping = Fun(x-> 1 - f(x),d)
+        A = transport_*Derivative(d) + damping
+        P = -DefiniteIntegral(Chebyshev(d))[LowRankFun((x,y)->gp(x)*(y+f(y)),d^2)];
+        λ,V = eigs(A,100)
+        @test norm(sort(real(filter(x->isreal(x),λ)))[1:5]-(0:4)) ≤ 100000eps()
+
+        λ,V = eigs(A+P,100)
+        @test sort(real(filter(x->isreal(x),λ)))[5] ≈ 3.93759261234502 atol=1E-3
+    end
+
+    @testset "Sampling" begin
+        ff=(x,y)->(x-y)^2*exp(-x^2/2-y^2/2)
+
+        f=Fun(ff,Domain(-4..4)^2)
+        r=ApproxFun.sample(f,5000)
 
 
-    F = x->x^8
-    d = Interval(0.0,1.0)
-    f = Fun(F,d)
-    ginf = Fun(x->exp(-x),d)
-    gp = ginf'
-    Af = Fun(x->x+f(x),d)
-    transport_ = Fun(x-> x - 1,d)
-    damping = Fun(x-> 1 - f(x),d)
-    A = transport_*Derivative(d) + damping
-    P = -DefiniteIntegral(Chebyshev(d))[LowRankFun((x,y)->gp(x)*(y+f(y)),d^2)];
-    λ,V = ApproxFun.eigs(A,100)
-    @test norm(sort(real(filter(x->isreal(x),λ)))[1:5]-(0:4)) ≤ 100000eps()
+        #We can compare the histogram to the 1-point correlation
+        g=sum(f,1)/sum(f)
+        @test  g(0.1) ≈ 0.2004758624973169
 
-    λ,V = ApproxFun.eigs(A+P,100)
-    @test sort(real(filter(x->isreal(x),λ)))[5] ≈ 3.93759261234502 atol=1E-3
+        # check bisection inv
+        f = Fun(x -> exp(-x^2/2),-5..5)
+        g = cumsum(f)
+        @test g(ApproxFun.bisectioninv(g,0.5)) ≈ 0.5
+    end
 
-
-    ## Sampling
-
-    ff=(x,y)->(x-y)^2*exp(-x^2/2-y^2/2)
-    ApproxFun.tensorizer(Chebyshev()^2)
-    f=Fun(ff,Domain(-4..4)^2)
-    r=ApproxFun.sample(f,5000)
-
-
-    #We can compare the histogram to the 1-point correlation
-    g=sum(f,1)/sum(f)
-    @test  g(0.1) ≈ 0.2004758624973169
-
-    # check bisection inv
-    f = Fun(x -> exp(-x^2/2),-5..5)
-    g = cumsum(f)
-    @test g(ApproxFun.bisectioninv(g,0.5)) ≈ 0.5
-
-    # check findmin, findmax
-    f = Fun(x -> exp(0.25x) + sin(x) + 0.5cos(10x), -4..4)
-    @test [findmax(f)...] ≈ [3.0531164509549584, 1.886754631165656]
-    @test [findmin(f)...] ≈ [-0.825047261209411, -1.5741041425422948]
+    @testset "findmin/max" begin
+        f = Fun(x -> exp(0.25x) + sin(x) + 0.5cos(10x), -4..4)
+        @test [findmax(f)...] ≈ [3.0531164509549584, 1.886754631165656]
+        @test [findmin(f)...] ≈ [-0.825047261209411, -1.5741041425422948]
+    end
 end

@@ -1,6 +1,6 @@
-using ApproxFun, Compat.Test, StaticArrays
+using ApproxFun, Test, StaticArrays
     import ApproxFun: testbandedbelowoperator, testbandedoperator, testspace, testtransforms, Vec,
-                        maxspace, NoSpace, hasconversion
+                        maxspace, NoSpace, hasconversion, testfunctional
 
 @testset "Jacobi" begin
     @test ApproxFun.jacobip(0:5,2,0.5,0.1) ≈ [1.,0.975,-0.28031249999999996,-0.8636328125,-0.0022111816406250743,0.7397117980957031]
@@ -52,10 +52,10 @@ using ApproxFun, Compat.Test, StaticArrays
 
     x=Fun(identity)
     ri=0.5/(1-x)
-    @test ((1-x)/2.*Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) ≈ (1-.1)./2*exp(.1)
+    @test ((1-x)/2 .* Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) ≈ (1-.1)./2*exp(.1)
 
 
-    @test ((1-x)/2.*Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) ≈ (1-.1)./2*exp(.1)
+    @test ((1-x)/2 .* Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) ≈ (1-.1)./2*exp(.1)
 
 
     @test (ri*Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) ≈ .5/(1-.1)*exp(.1)
@@ -213,12 +213,12 @@ using ApproxFun, Compat.Test, StaticArrays
     @test f(0.1) ≈ 5.215
 
 
-    f = Fun(Laguerre(0.1),ones(100))
+    f = Fun(Laguerre(0.1),fill(1.0,100))
     @test f(0.2) ≈ 8.840040924281498
 
 
     @test (Derivative(Laguerre(0.1))*f)(0.2) ≈ -71.44556705957386
-    f = Fun(Laguerre(0.2),ones(100))
+    f = Fun(Laguerre(0.2),fill(1.0,100))
     @test (Derivative(Laguerre(0.2))*f)(0.3) ≈ -137.05785783078218
 
 
@@ -227,7 +227,7 @@ using ApproxFun, Compat.Test, StaticArrays
 
 
 
-    f=Fun(LaguerreWeight(0.,Laguerre(0.1)),ones(100))
+    f=Fun(LaguerreWeight(0.,Laguerre(0.1)),fill(1.0,100))
     @test f'(0.2) ≈ -65.7322962859456
 
 
@@ -240,6 +240,13 @@ using ApproxFun, Compat.Test, StaticArrays
     D=Derivative(S)
     u=[ldirichlet();D^2-x]\[airyai(0.0);0.0]
     @test u(1.0) ≈ airyai(1.0)
+
+    w = Fun(WeightedLaguerre(), [1.0])
+    @test sum(w) == 1
+    t = Fun(identity, space(w))
+    @test t(10.0) == 10.0
+    M = Multiplication(t^2+1, space(w))
+    (M \ w)(1.0) ≈ exp(-1)/2
     #
 
 
@@ -295,5 +302,22 @@ using ApproxFun, Compat.Test, StaticArrays
         @test maxspace(a,b) == NoSpace()
         @test union(a,b) == Jacobi(-0.5,-0.5)
         @test !hasconversion(a,b)
+    end
+
+    @testset "Definite integral tests" begin
+        B = DefiniteIntegral(WeightedJacobi(0,0))
+        testfunctional(B)
+        @test ApproxFun.rowstop(B,1) == 1
+    end
+end
+
+@testset "Definite integral tests" begin
+    for S in (WeightedJacobi(0,0), JacobiWeight(0,0, Legendre(1.1..2.3)), Legendre())
+        B = DefiniteIntegral(S)
+        testfunctional(B)
+        @test ApproxFun.rowstop(B,1) == 1
+        B[1] == arclength(domain(S))
+        f = Fun(exp, S)
+        B*f == sum(Fun(exp,domain(S)))
     end
 end

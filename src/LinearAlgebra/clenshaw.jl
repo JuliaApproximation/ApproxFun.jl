@@ -20,7 +20,7 @@ function ClenshawPlan(::Type{T},sp,N::Int,n::Int) where T
     A = T[recA(T,sp,k) for k=0:N-1]
     B = T[recB(T,sp,k) for k=0:N-1]
     C = T[recC(T,sp,k) for k=1:N]
-    ClenshawPlan(sp,Array{T}(n),Array{T}(n),Array{T}(n),A,B,C)
+    ClenshawPlan(sp,Array{T}(undef,n),Array{T}(undef,n),Array{T}(undef,n),A,B,C)
 end
 
 macro clenshaw(x, c...)

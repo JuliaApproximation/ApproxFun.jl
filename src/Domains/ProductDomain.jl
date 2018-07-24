@@ -8,11 +8,11 @@ for OP in (:fromcanonical,:tocanonical)
     @eval $OP(d::ProductDomain,x::Vec) = Vec(map($OP,d.domains,x)...)
 end
 
+
 nfactors(d::ProductDomain) = length(d.domains)
 factor(d::ProductDomain,k::Integer) = d.domains[k]
 
-
-function pushappendpts!(ret,xx,pts)
+function pushappendpts!(ret, xx, pts)
     if isempty(pts)
         push!(ret,Vec(xx...))
     else
@@ -25,7 +25,7 @@ end
 
 function checkpoints(d::ProductDomain)
     pts=map(checkpoints,d.domains)
-    ret=Vector{Vec{length(d.domains),mapreduce(eltype,promote_type,d.domains)}}(0)
+    ret=Vector{Vec{length(d.domains),mapreduce(eltype,promote_type,d.domains)}}(undef, 0)
 
     pushappendpts!(ret,(),pts)
     ret
@@ -34,12 +34,12 @@ end
 function points(d::ProductDomain,n::Tuple)
     @assert length(d.domains) == length(n)
     pts=map(points,d.domains,n)
-    ret=Vector{Vec{length(d.domains),mapreduce(eltype,promote_type,d.domains)}}(0)
+    ret=Vector{Vec{length(d.domains),mapreduce(eltype,promote_type,d.domains)}}(undef, 0)
     pushappendpts!(ret,Vec(x),pts)
     ret
 end
 
-Base.reverse(d::ProductDomain) = ProductDomain(map(reverse,d.domains))
+reverse(d::ProductDomain) = ProductDomain(map(reverse,d.domains))
 
 domainscompatible(a::ProductDomain,b::ProductDomain) =
                         length(a.domains)==length(b.domains) &&

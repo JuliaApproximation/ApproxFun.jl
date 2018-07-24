@@ -7,6 +7,7 @@ convert(::Type{UnionDomain{DD,T}},::AnyDomain) where {DD,T} =
     UnionDomain{DD,T}(map(D->D(AnyDomain()),DD.parameters))
 convert(::Type{IT},::AnyDomain) where {IT<:UnionDomain} = UnionDomain(tuple())
 
+
 #support tuple set
 components(d::UnionDomain) = elements(d)
 component(d::UnionDomain,k) = components(d)[k]
@@ -18,6 +19,7 @@ npieces(d::UnionDomain) = length(elements(d))
 
 
 arclength(d::UnionDomain) = mapreduce(arclength,+,d.domains)
+
 
 Base.reverse(d::UnionDomain) = UnionDomain(reverse(map(reverse,d.domains)))
 
@@ -37,10 +39,8 @@ pieces_npoints(d, n::Int) = components_npoints(d, n)
 
 points(d::UnionDomain,n) = vcat(points.(pieces(d), pieces_npoints(d,n))...)
 
-Base.rand(d::UnionDomain) = rand(component(d,rand(1:length(d))))
+rand(d::UnionDomain) = rand(component(d,rand(1:length(d))))
 checkpoints(d::UnionDomain) = mapreduce(checkpoints,union,d.domains)
-
-
 
 
 ## to move over
@@ -53,20 +53,23 @@ function Base.merge(d1::UnionDomain,m::Segment)
             sa=setdiff(ret[k],it)
             m=setdiff(m,it)
             if isempty(sa)
-                ret = [ret[1:k-1]...;it;ret[k+1:end]...]
+                ret = [ret[1:k-1]...; it; ret[k+1:end]...]
             else
-                ret = [ret[1:k-1]...;sa;it;ret[k+1:end]...]
+                ret = [ret[1:k-1]...; sa; it; ret[k+1:end]...]
             end
             if isempty(m)
                 break
             end
         end
     end
-    @assert isempty(m)
+    if !isempty(m)
+        ret = [ret...; m]
+    end
+
     UnionDomain(sort!(ret,by=first))
 end
 
-function Base.merge(d1::UnionDomain,d2::UnionDomain)
+function merge(d1::UnionDomain,d2::UnionDomain)
     ret=d1
     for m in d2.domains
         ret=merge(ret,m)

@@ -11,13 +11,13 @@ domain(df::DualFun) = domain(df.f)
 
 differentiate(d::DualFun) = DualFun(d.f',Derivative(rangespace(d.J))*d.J)
 integrate(d::DualFun) = DualFun(integrate(d.f),Integral(rangespace(d.J))*d.J)
-function Base.cumsum(d::DualFun)
+function cumsum(d::DualFun)
     Q=Integral(rangespace(d.J))*d.J
     DualFun(cumsum(d.f),(I-Evaluation(rangespace(Q),first))*Q)
 end
 
 
-Base.transpose(d::DualFun)=differentiate(d)
+adjoint(d::DualFun) = differentiate(d)
 
 ^(d::DualFun,k::Integer)=DualFun(d.f^k,k*d.f^(k-1)*d.J)
 
@@ -49,13 +49,13 @@ end
 
 
 (d::DualFun)(x) = DualFun(d.f(x),Evaluation(rangespace(d.J),x)*d.J)
-Base.first(d::DualFun) = DualFun(first(d.f),Evaluation(rangespace(d.J),first)*d.J)
-Base.last(d::DualFun) = DualFun(last(d.f),Evaluation(rangespace(d.J),last)*d.J)
+first(d::DualFun) = DualFun(first(d.f),Evaluation(rangespace(d.J),first)*d.J)
+last(d::DualFun) = DualFun(last(d.f),Evaluation(rangespace(d.J),last)*d.J)
 
 jacobian(d::DualFun)=d.J
 
 
-Base.promote_rule(::Type{DF},::Type{T}) where {DF<:DualFun,T<:Number}=DualFun
+promote_rule(::Type{DF},::Type{T}) where {DF<:DualFun,T<:Number}=DualFun
 convert(::Type{DualFun},b::Number) = DualFun(b,0)
 
 
@@ -98,7 +98,7 @@ function newton(N,u0::Fun;maxiterations=15,tolerance=1E-15)
             u=chop(unew,tolerance)
         end
     end
-    warn("Maximum number of iterations $maxiterations reached, with approximate accuracy of $err.")
+    @warn "Maximum number of iterations $maxiterations reached, with approximate accuracy of $err."
     return u
 end
 

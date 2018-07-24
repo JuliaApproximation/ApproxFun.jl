@@ -4,7 +4,7 @@ export Ultraspherical
 #Ultraspherical Spaces
 
 
-doc"""
+"""
 `Ultraspherical(λ)` is the space spanned by the ultraspherical polynomials
 ```
     C_0^{(λ)}(x),C_1^{(λ)}(x),C_2^{(λ)}(x),…
@@ -18,7 +18,7 @@ struct Ultraspherical{T,D<:Domain,R} <: PolynomialSpace{D,R}
     Ultraspherical{T,D,R}(m::T,d::D) where {T,D,R} = (@assert m ≠ 0; new(m,d))
     Ultraspherical{T,D,R}(m::Number,d::Domain) where {T,D,R} = (@assert m ≠ 0; new(convert(T,m),convert(D,d)))
     Ultraspherical{T,D,R}(d::Domain) where {T,D,R} = new(one(T),convert(D,d))
-    Ultraspherical{T,D,R}(m::Number) where {T,D,R} = (@assert m ≠ 0; new(T(m),D()))
+    Ultraspherical{T,D,R}(m::Number) where {T,D,R} = (@assert m ≠ 0; new(convert(T,m),D()))
 end
 
 Ultraspherical(m::Number,d::Domain) = Ultraspherical{typeof(m),typeof(d),real(prectype(d))}(m,d)
@@ -86,8 +86,8 @@ plan_itransform(sp::Ultraspherical,cfs::AbstractVector) = UltrasphericalIPlan(or
 
 #domain(S) may be any domain
 
-Base.ones(::Type{T},S::Ultraspherical) where {T<:Number} = Fun(S,ones(T,1))
-Base.ones(S::Ultraspherical) = Fun(S,ones(1))
+ones(::Type{T},S::Ultraspherical) where {T<:Number} = Fun(S,fill(one(T),1))
+ones(S::Ultraspherical) = Fun(S,fill(1.0,1))
 
 
 
@@ -95,7 +95,7 @@ Base.ones(S::Ultraspherical) = Fun(S,ones(1))
 
 function Base.first(f::Fun{Ultraspherical{Int,D,R}}) where {D,R}
     n = length(f.coefficients)
-    n == 0 && return zero(eltype(f))
+    n == 0 && return zero(cfstype(f))
     n == 1 && return first(f.coefficients)
     foldr(-,coefficients(f,Chebyshev))
 end

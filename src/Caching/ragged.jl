@@ -1,6 +1,6 @@
 
 CachedOperator(::Type{RaggedMatrix},op::Operator;padding::Bool=false) =
-    CachedOperator(op,RaggedMatrix{eltype(op)}(uninitialized, 0, Int[]),padding)
+    CachedOperator(op,RaggedMatrix{eltype(op)}(undef, 0, Int[]),padding)
 
 ## Grow cached operator
 
@@ -61,7 +61,7 @@ end
 ## Grow QR
 
 QROperator(R::CachedOperator{T,RaggedMatrix{T}}) where {T} =
-    QROperator(R,RaggedMatrix{T}(uninitialized,0,Int[]),0)
+    QROperator(R,RaggedMatrix{T}(undef,0,Int[]),0)
 
 function resizedata!(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
                                                   MM,DS,RS,BI}},
@@ -70,7 +70,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
         return QR
     end
 
-    MO=QR.R
+    MO=QR.R_cache
     W=QR.H
 
     if col > MO.datasize[2]
@@ -83,8 +83,8 @@ function resizedata!(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
             for j=m+1:MO.datasize[2]
                 kr=J:J+length(wp)-1
                 v=view(MO.data,kr,j)
-                dt=dot(wp,v)
-                Base.axpy!(-2*dt,wp,v)
+                dt=BandedMatrices.dot(wp,v)
+                LinearAlgebra.axpy!(-2*dt,wp,v)
             end
         end
     end
@@ -114,8 +114,8 @@ function resizedata!(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
         kr=k:k+length(wp)-1
         for j=k:MO.datasize[2]
             v=view(MO.data,kr,j)
-            dt=dot(wp,v)
-            Base.axpy!(-2*dt,wp,v)
+            dt=BandedMatrices.dot(wp,v)
+            LinearAlgebra.axpy!(-2*dt,wp,v)
         end
     end
     QR.ncols=col
@@ -133,7 +133,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
         return QR
     end
 
-    MO=QR.R
+    MO=QR.R_cache
     W=QR.H
 
     sz=sizeof(T)
@@ -156,7 +156,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
 
             for j=m+1:MO.datasize[2]
                 v=r+(R.cols[j]+k-2)*sz
-                dt=dot(M,wp,1,v,1)
+                dt=BandedMatrices.dot(M,wp,1,v,1)
                 BLAS.axpy!(M,-2*dt,wp,1,v,1)
             end
         end
@@ -192,7 +192,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
         # scale rows entries
         for j=k:MO.datasize[2]
             v=r+(R.cols[j]+k-2)*sz
-            dt=dot(M,wp,1,v,1)
+            dt=BandedMatrices.dot(M,wp,1,v,1)
             BLAS.axpy!(M,-2*dt,wp,1,v,1)
         end
     end
@@ -206,14 +206,14 @@ end
 
 ## back substitution
 for ArrTyp in (:AbstractVector, :AbstractMatrix)
-    @eval function A_ldiv_B!(U::UpperTriangular{T, SubArray{T, 2, RaggedMatrix{T}, Tuple{UnitRange{Int}, UnitRange{Int}}, false}},
+    @eval function ldiv!(U::UpperTriangular{T, SubArray{T, 2, RaggedMatrix{T}, Tuple{UnitRange{Int}, UnitRange{Int}}, false}},
                              u::$ArrTyp{T}) where T
         n = size(u,1)
         n == size(U,1) || throw(DimensionMismatch())
 
         V = parent(U)
-        @assert parentindexes(V)[1][1] == 1
-        @assert parentindexes(V)[2][1] == 1
+        @assert parentindices(V)[1][1] == 1
+        @assert parentindices(V)[2][1] == 1
 
         A = parent(V)
 
@@ -233,8 +233,9 @@ end
 ## Apply Q
 
 
-function Ac_mul_Bpars(A::QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T},
+function mulpars(Ac::Adjoint{T,<:QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T}},
                       B::AbstractVector{T},tolerance,maxlength) where {RR,T}
+    A = parent(Ac)
     if length(B) > A.QR.ncols
         # upper triangularize extra columns to prepare for \
         resizedata!(A.QR,:,length(B)+size(A.QR.H,1)+10)
@@ -249,7 +250,7 @@ function Ac_mul_Bpars(A::QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T},
     yp=view(Y,1:length(B))
     while (k ≤ m || norm(yp) > tolerance )
         if k > maxlength
-            warn("Maximum length $maxlength reached.")
+            @warn "Maximum length $maxlength reached."
             break
         end
         if k > A.QR.ncols
@@ -268,8 +269,8 @@ function Ac_mul_Bpars(A::QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T},
         wp=view(H,cr,k)
         yp=view(Y,k-1+(cr))
 
-        dt=dot(wp,yp)
-        Base.axpy!(-2*dt,wp,yp)
+        dt=BandedMatrices.dot(wp,yp)
+        LinearAlgebra.axpy!(-2*dt,wp,yp)
         k+=1
     end
     resize!(Y,k)  # chop off zeros
@@ -279,8 +280,9 @@ end
 
 # BLAS apply Q
 
-function Ac_mul_Bpars(A::QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T},
+function mulpars(Ac::Adjoint{T,<:QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T}},
            B::AbstractVector{T},tolerance,maxlength) where {RR,T<:BlasFloat}
+    A = parent(Ac)
     if length(B) > A.QR.ncols
         # upper triangularize extra columns to prepare for \
         resizedata!(A.QR,:,length(B)+size(A.QR.H,1)+10)
@@ -301,7 +303,7 @@ function Ac_mul_Bpars(A::QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T},
     yp=y
     while (k ≤ m || BLAS.nrm2(M,yp,1) > tolerance )
         if k > maxlength
-            warn("Maximum length $maxlength reached.")
+            @warn "Maximum length $maxlength reached."
             break
         end
         if k > A.QR.ncols
@@ -323,7 +325,7 @@ function Ac_mul_Bpars(A::QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T},
         wp=h + sz*(H.cols[k]-1)
         yp=y+sz*(k-1)
 
-        dt=dot(M,wp,1,yp,1)
+        dt = BandedMatrices.dot(M,wp,1,yp,1)
         BLAS.axpy!(M,-2*dt,wp,1,yp,1)
         k+=1
     end

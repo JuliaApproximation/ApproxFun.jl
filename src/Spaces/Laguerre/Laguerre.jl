@@ -26,14 +26,14 @@ canonicaldomain(::Laguerre) = Ray()
 domain(::Laguerre) = Ray()
 tocanonical(::Laguerre,x) = x
 
-@inline laguerrerecα(::Type{T},α,k) where {T} = T(2k+α-1)
-@inline laguerrerecβ(::Type{T},_,k) where {T} = T(-k)
-@inline laguerrerecγ(::Type{T},α,k) where {T} = T(-(k-1+α))
+@inline laguerrerecα(::Type{T},α,k) where {T} = convert(T,2k+α-1)
+@inline laguerrerecβ(::Type{T},_,k) where {T} = convert(T,-k)
+@inline laguerrerecγ(::Type{T},α,k) where {T} = convert(T,-(k-1+α))
 
 
-@inline laguerrerecA(::Type{T},_,k) where {T} = T(-1/(k+1))
-@inline laguerrerecB(::Type{T},α,k) where {T} = T((2k+α+1)/(k+1))
-@inline laguerrerecC(::Type{T},α,k) where {T} = T((k+α)/(k+1))
+@inline laguerrerecA(::Type{T},_,k) where {T} = convert(T,-1/(k+1))
+@inline laguerrerecB(::Type{T},α,k) where {T} = convert(T,(2k+α+1)/(k+1))
+@inline laguerrerecC(::Type{T},α,k) where {T} = convert(T,(k+α)/(k+1))
 
 for (REC,JREC) in ((:recα,:laguerrerecα),(:recβ,:laguerrerecβ),(:recγ,:laguerrerecγ),
                    (:recA,:laguerrerecA),(:recB,:laguerrerecB),(:recC,:laguerrerecC))
@@ -41,11 +41,9 @@ for (REC,JREC) in ((:recα,:laguerrerecα),(:recβ,:laguerrerecβ),(:recγ,:lagu
 end
 
 
-Fun(::typeof(identity), L::Laguerre) = Fun(L,[1+L.α,-1.0])
 
 
-
-function laguerrel(::Type{T},r::Range,α,x) where T
+function laguerrel(::Type{T},r::AbstractRange,α,x) where T
     if isempty(r)
         T[]
     else
@@ -53,7 +51,7 @@ function laguerrel(::Type{T},r::Range,α,x) where T
         if n<=2
             v=T[1,1.0-x+α]
         else
-            v=Vector{T}(n)  # x may be complex
+            v=Vector{T}(undef,n)  # x may be complex
             v[1]=1
             v[2]=1.0-x+α
 
@@ -61,29 +59,29 @@ function laguerrel(::Type{T},r::Range,α,x) where T
                 v[k+1]=((x-laguerrerecα(T,α,k))*v[k] - laguerrerecγ(T,α,k)*v[k-1])/laguerrerecβ(T,α,k)
             end
         end
-        v[r+1]
+        v[r.+1]
     end
 end
 
-laguerrel(r::Range,α,x) = laguerrel(promote_type(typeof(α),typeof(x)),r,α,x)
+laguerrel(r::AbstractRange,α,x) = laguerrel(promote_type(typeof(α),typeof(x)),r,α,x)
 
 laguerrel(::Type{T},n::Integer,α,v) where {T} = laguerrel(T,n:n,α,v)[1]
 laguerrel(n::Integer,α,v) = laguerrel(n:n,α,v)[1]
-laguerrel(::Type{T},n::Range,α,v::AbstractVector) where {T} = transpose(hcat(map(x->laguerrel(T,n,α,x),v)...))
-laguerrel(n::Range,α,v::AbstractVector) = transpose(hcat(map(x->laguerrel(n,α,x),v)...))
+laguerrel(::Type{T},n::AbstractRange,α,v::AbstractVector) where {T} = transpose(hcat(map(x->laguerrel(T,n,α,x),v)...))
+laguerrel(n::AbstractRange,α,v::AbstractVector) = transpose(hcat(map(x->laguerrel(n,α,x),v)...))
 laguerrel(::Type{T},n::Integer,α,v::AbstractVector) where {T} = map(x->laguerrel(T,n,α,x),v)
 laguerrel(n::Integer,α,v::AbstractVector) = map(x->laguerrel(n,α,x),v)
 laguerrel(::Type{T},n::Integer,S::Laguerre,v::AbstractVector) where {T} = laguerrel(T,n,S.a,S.b,v)
-laguerrel(::Type{T},n::Range,S::Laguerre,v::AbstractVector) where {T} = laguerrel(T,n,S.a,S.b,v)
+laguerrel(::Type{T},n::AbstractRange,S::Laguerre,v::AbstractVector) where {T} = laguerrel(T,n,S.a,S.b,v)
 laguerrel(::Type{T},n,S::Laguerre,v::AbstractVector) where {T} = laguerrel(T,n,S.a,S.b,v)
 laguerrel(::Type{T},n::Integer,S::Laguerre,v) where {T} = laguerrel(T,n,S.a,S.b,v)
-laguerrel(::Type{T},n::Range,S::Laguerre,v) where {T} = laguerrel(T,n,S.a,S.b,v)
+laguerrel(::Type{T},n::AbstractRange,S::Laguerre,v) where {T} = laguerrel(T,n,S.a,S.b,v)
 laguerrel(::Type{T},n,S::Laguerre,v) where {T} = laguerrel(T,n,S.a,S.b,v)
 laguerrel(n::Integer,S::Laguerre,v::AbstractVector) = laguerrel(n,S.a,S.b,v)
-laguerrel(n::Range,S::Laguerre,v::AbstractVector) = laguerrel(n,S.a,S.b,v)
+laguerrel(n::AbstractRange,S::Laguerre,v::AbstractVector) = laguerrel(n,S.a,S.b,v)
 laguerrel(n,S::Laguerre,v::AbstractVector) = laguerrel(n,S.a,S.b,v)
 laguerrel(n::Integer,S::Laguerre,v) = laguerrel(n,S.a,S.b,v)
-laguerrel(n::Range,S::Laguerre,v) = laguerrel(n,S.a,S.b,v)
+laguerrel(n::AbstractRange,S::Laguerre,v) = laguerrel(n,S.a,S.b,v)
 laguerrel(n,S::Laguerre,v) = laguerrel(n,S.a,S.b,v)
 
 
@@ -147,16 +145,30 @@ struct LaguerreWeight{S,T} <: WeightSpace{S,Ray{false,Float64},Float64}
     space::S
 end
 
-LaguerreWeight(α,space::Space) = LaguerreWeight(α,1.0,space)
+LaguerreWeight(α, space::Space) = LaguerreWeight(α, one(α),space)
 
-WeightedLaguerre(α) = LaguerreWeight(α,Laguerre(α))
+WeightedLaguerre(α) = LaguerreWeight(α, Laguerre(α))
+WeightedLaguerre() = WeightedLaguerre(0)
 
 @inline laguerreweight(α,L,x) = x.^α.*exp(-L*x)
 @inline weight(L::LaguerreWeight,x) = laguerreweight(L.α,L.L,x)
 
 
+Fun(::typeof(identity), sp::Laguerre) = Fun(sp,[sp.α+1,-1])
+Fun(::typeof(identity), sp::LaguerreWeight) = Fun(identity, sp.space)
+
+
 spacescompatible(a::LaguerreWeight,b::LaguerreWeight) =
     spacescompatible(a.space,b.space) && isapprox(a.α,b.α) && isapprox(a.L,b.L)
+
+function Base.sum(f::Fun{LaguerreWeight{H,T}}) where {H<:Laguerre,T}
+    @assert space(f).L == 1  # only implemented with matching weight
+    @assert space(f).α == space(f).space.α  # only implemented with matching weight
+    f.coefficients[1]*gamma(1+space(f).α)
+end
+
+
+
 
 function Derivative(sp::LaguerreWeight,k)
     @assert sp.α == 0
@@ -180,7 +192,7 @@ end
 function conversion_rule(A::LaguerreWeight,B::LaguerreWeight)
     if isapproxinteger(A.α-B.α) && A.L == B.L
         ct=conversion_type(A.space,B.space)
-        ct==NoSpace()?NoSpace():LaguerreWeight(max(A.α,B.α),A.L,ct)
+        ct==NoSpace() ? NoSpace() : LaguerreWeight(max(A.α,B.α),A.L,ct)
     else
         NoSpace()
     end
@@ -230,3 +242,18 @@ Conversion(A::LaguerreWeight,B::Space{D,RR}) where {D<:Ray,RR<:Real} = Conversio
     SpaceOperator(
         Conversion(A,LaguerreWeight(0,0,B)),
         A,B))
+
+
+## Combine later
+
+function Multiplication(f::Fun{H},S::LaguerreWeight{H}) where H<:Laguerre
+    M=Multiplication(f,S.space)
+    rs=rangespace(M)
+    MultiplicationWrapper(f,SpaceOperator(M,S,LaguerreWeight(rs.α, rs)))
+end
+
+function Multiplication(f::Fun{LaguerreWeight{H,T}},S::Laguerre) where {H<:Laguerre,T}
+    M=Multiplication(Fun(space(f).space,f.coefficients),S)
+    rs=rangespace(M)
+    MultiplicationWrapper(f,SpaceOperator(M,S,LaguerreWeight(rs.α, rs)))
+end

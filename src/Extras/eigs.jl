@@ -1,10 +1,10 @@
 
 
 
-Base.eigvals(A::Operator,n::Integer;tolerance::Float64=100eps()) =
+eigvals(A::Operator,n::Integer;tolerance::Float64=100eps()) =
     eigs(A,n;tolerance=tolerance)[1]
 
-function Base.eigs(A::Operator,n::Integer;tolerance::Float64=100eps())
+function eigs(A::Operator,n::Integer;tolerance::Float64=100eps())
     typ = eltype(A)
 
     ds=domainspace(A)
@@ -14,15 +14,17 @@ function Base.eigs(A::Operator,n::Integer;tolerance::Float64=100eps())
     A1[1:end,1:n] = A[1:n,1:n]
     C1[1:end,1:n] = C[1:n,1:n]
 
-    λ,V=eig(A1,C1)
+    λ,V=eigen(A1,C1)
 
     pruneeigs(λ,V,ds,tolerance)
 end
 
-Base.eigvals(Bcs::Operator,A::Operator,n::Integer;tolerance::Float64=100eps()) =
+eigvals(Bcs::Operator,A::Operator,n::Integer;tolerance::Float64=100eps()) =
     eigs(Bcs,A,n;tolerance=tolerance)[1]
 
-function Base.eigs(Bcs::Operator,A::Operator,n::Integer;tolerance::Float64=100eps())
+function eigs(Bcs_in::Operator,A_in::Operator,n::Integer;tolerance::Float64=100eps())
+    Bcs, A = promotedomainspace([Bcs_in, A_in])
+
     nf = size(Bcs,1)
     @assert isfinite(nf)
 
@@ -36,9 +38,11 @@ function Base.eigs(Bcs::Operator,A::Operator,n::Integer;tolerance::Float64=100ep
     A1[nf+1:end,1:n] = A[1:n-nf,1:n]
     C1[nf+1:end,1:n] = C[1:n-nf,1:n]
 
-    λ,V=eig(A1,C1)
+    λ,V = eigen(A1,C1)
 
-    pruneeigs(λ,V,ds,tolerance)
+    λ, V = pruneeigs(λ,V,ds,tolerance)
+    p = sortperm(λ; lt=(x,y) -> isless(abs(x),abs(y)))
+    λ[p], V[p]
 end
 
 function pruneeigs(λ,V,ds,tolerance)

@@ -95,7 +95,8 @@ function blocklengths(sp::DirectSumSpace)
     N=mapreduce(length,max,bl)
     mapreduce(b->pad(b,N),+,bl)
 end
-block(sp::DirectSumSpace,k::Int) = Block(findfirst(x->x≥k,cumsum(blocklengths(sp))))
+block(sp::DirectSumSpace,k::Int) =
+    Block(findfirst(x->x≥k,cumsum(blocklengths(sp))))
 
 
 
@@ -275,7 +276,7 @@ function component_coefficients(it,cfs,k)
     d=dimension(it,k)
 
     # preallocate: we know we have at most N coefficients
-    ret=Array{eltype(cfs)}(N)
+    ret=Array{eltype(cfs)}(undef, N)
     j=1  # current coefficient
     p=0  # current length
     for (n,m) in it
@@ -380,7 +381,7 @@ end
 
 function Base.cumsum(f::Fun{V}) where V<:PiecewiseSpace
     vf=components(f)
-    r=zero(eltype(f))
+    r=zero(cfstype(f))
     for k=1:length(vf)
         vf[k]=cumsum(vf[k]) + r
         r=last(vf[k])
@@ -402,7 +403,7 @@ linebilinearform(f::Fun{S},g::Fun{V}) where {S<:PiecewiseSpace,V<:PiecewiseSpace
 
 
 
-function Base.ones(::Type{T},S::SumSpace) where T<:Number
+function ones(::Type{T}, S::SumSpace) where T<:Number
     for sp in components(S)
         if isconvertible(ConstantSpace(),sp)
             return Fun(ones(T,sp), S)
@@ -412,11 +413,11 @@ function Base.ones(::Type{T},S::SumSpace) where T<:Number
     error("$S does not contain constants")
 end
 
-Base.ones(S::SumSpace) = ones(Float64,S)
+ones(S::SumSpace) = ones(Float64,S)
 
-Base.ones(::Type{T},S::PiecewiseSpace{SS,V}) where {T<:Number,SS,V} =
+ones(::Type{T},S::PiecewiseSpace{SS,V}) where {T<:Number,SS,V} =
     Fun(map(ones,components(S)),PiecewiseSpace)
-Base.ones(S::PiecewiseSpace) = ones(Float64,S)
+ones(S::PiecewiseSpace) = ones(Float64,S)
 
 
 Fun(::typeof(identity), S::PiecewiseSpace) = Fun(Fun.(identity,S.spaces),PiecewiseSpace)
@@ -424,7 +425,7 @@ Fun(::typeof(identity), S::PiecewiseSpace) = Fun(Fun.(identity,S.spaces),Piecewi
 
 # interlace coefficients according to iterator
 function interlace(::Type{T},v::AbstractVector{V},it::BlockInterlacer) where {T,V<:AbstractVector}
-    ret=Array{T}(0)
+    ret=Array{T}(undef,0)
     N=mapreduce(length,max,v)
     cnts = Vector(map(length,v))  # convert to Vector to ensure mutable
 
@@ -454,16 +455,9 @@ interlace(v::AbstractVector{F},sp::DirectSumSpace) where {F<:Fun} =
 
 
 function interlace(v::Union{Tuple,Vector{Any}},sp::DirectSumSpace)
-    if all(vk->isa(vk,Fun),v)
-        V=Array{Vector{mapreduce(eltype,promote_type,v)}}(length(v))
-        for k=1:length(v)
-            V[k]=coefficients(v[k])
-        end
-    else
-        V=Array{Vector{mapreduce(eltype,promote_type,v)}}(length(v))
-        for k=1:length(v)
-            V[k]=v[k]
-        end
+    V=Array{Vector{mapreduce(cfstype,promote_type,v)}}(undef, length(v))
+    for k=1:length(v)
+        V[k]=coefficients(v[k])
     end
     interlace(V,sp)
 end
@@ -486,10 +480,10 @@ points(d::PiecewiseSpace,n) = vcat(points.(pieces(d), pieces_npoints(d,n))...)
 
 
 plan_transform(sp::PiecewiseSpace,vals::AbstractVector) =
-    TransformPlan{eltype(vals),typeof(sp),false,Void}(sp,nothing)
+    TransformPlan{eltype(vals),typeof(sp),false,Nothing}(sp,nothing)
 
 plan_itransform(sp::PiecewiseSpace,vals::AbstractVector) =
-    ITransformPlan{eltype(vals),typeof(sp),false,Void}(sp,nothing)
+    ITransformPlan{eltype(vals),typeof(sp),false,Nothing}(sp,nothing)
 
 
 
@@ -500,13 +494,13 @@ function *(P::TransformPlan{T,PS,false},vals::AbstractVector{T}) where {PS<:Piec
     k=div(n,K)
     PT=promote_type(prectype(P.space),eltype(vals))
     if k==0
-        M=Array{Vector{PT}}(n)
+        M=Array{Vector{PT}}(undef, n)
         for j=1:n
             M[j]=transform(S[j],[vals[j]])
         end
     else
         r=n-K*k
-        M=Array{Vector{PT}}(K)
+        M=Array{Vector{PT}}(undef, K)
 
         for j=1:r
             M[j]=transform(S[j],vals[(j-1)*(k+1)+1:j*(k+1)])

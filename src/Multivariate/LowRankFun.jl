@@ -7,7 +7,6 @@ export LowRankFun
 """
 `LowRankFun` gives an approximation to a bivariate function in low rank form.
 """
-
 mutable struct LowRankFun{S<:Space,M<:Space,SS<:AbstractProductSpace,T<:Number} <: BivariateFun{T}
     A::Vector{VFun{S,T}}
     B::Vector{VFun{M,T}}
@@ -31,9 +30,9 @@ LowRankFun(A::Vector{VFun{S,T}},B::Vector{VFun{M,V}}) where {S,M,T,V} =
     LowRankFun(convert(Vector{VFun{S,promote_type(T,V)}},A),
                convert(Vector{VFun{M,promote_type(T,V)}},B),
                space(first(A))⊗space(first(B)))
-Base.rank(f::LowRankFun) = length(f.A)
-Base.size(f::LowRankFun,k::Integer) = k==1?mapreduce(length,max,f.A):mapreduce(length,max,f.B)
-Base.size(f::LowRankFun) = size(f,1),size(f,2)
+rank(f::LowRankFun) = length(f.A)
+size(f::LowRankFun,k::Integer) = k==1 ? mapreduce(length,max,f.A) : mapreduce(length,max,f.B)
+size(f::LowRankFun) = size(f,1),size(f,2)
 
 ## Construction via a Matrix of coefficients
 
@@ -135,7 +134,7 @@ function standardLowRankFun(f::Function,dx::Space,dy::Space;tolerance::Union{Sym
         a,b = Fun(dx,p₁*Avals) - dotu(Br,A),Fun(dy,p₂*Bvals) - dotu(Ar,B)
         chop!(a,tol10),chop!(b,tol10)
     end
-    warn("Maximum rank of " * string(maxrank) * " reached")
+    @warn "Maximum rank of " * string(maxrank) * " reached"
     return LowRankFun(A,B),maxabsf
 end
 
@@ -184,7 +183,7 @@ function CholeskyLowRankFun(f::Function,dx::Space;tolerance::Union{Symbol,Tuple{
         a = Fun(dx,p₁*Avals) - dotu(Br,A)
         chop!(a,tol10)
     end
-    warn("Maximum rank of " * string(maxrank) * " reached")
+    @warn "Maximum rank of " * string(maxrank) * " reached"
     return LowRankFun(A,B),maxabsf
 end
 
@@ -224,7 +223,7 @@ function findapproxmax!(f::Function,X::AbstractMatrix,ptsx::AbstractVector,ptsy:
         end
     end
     maxabsf,impt = findmaxabs(X)
-    imptple = ind2sub((gridx,gridy),impt)
+    imptple = CartesianIndices((gridx,gridy))[impt]
     maxabsf,[ptsx[imptple[1]],ptsy[imptple[2]]]
 end
 
@@ -232,7 +231,7 @@ function findapproxmax!(A::Fun,B::Fun,X::AbstractMatrix,ptsx::Vector,ptsy::Vecto
     Ax,By = A.(ptsx),B.(ptsy)
     subtractrankone!(Ax,By,X,gridx,gridy)
     maxabsf,impt = findmaxabs(X)
-    imptple = ind2sub((gridx,gridy),impt)
+    imptple = CartesianIndices((gridx,gridy))[impt]
     [ptsx[imptple[1]],ptsy[imptple[2]]]
 end
 
@@ -285,18 +284,18 @@ end
 
 (f::LowRankFun)(x,y)=evaluate(f,x,y)
 
-domain(f::LowRankFun,k::Integer) = k==1? domain(first(f.A)) : domain(first(f.B))
-space(f::LowRankFun,k::Integer) = k==1? space(first(f.A)) : space(first(f.B))
+domain(f::LowRankFun,k::Integer) = k==1 ? domain(first(f.A)) : domain(first(f.B))
+space(f::LowRankFun,k::Integer) = k==1 ? space(first(f.A)) : space(first(f.B))
 space(f::LowRankFun)=f.space
 
-Base.transpose(f::LowRankFun{S,M,SS,T}) where {S,M,SS,T}=LowRankFun(f.B,f.A,transpose(space(f)))
+transpose(f::LowRankFun{S,M,SS,T}) where {S,M,SS,T}=LowRankFun(f.B,f.A,transpose(space(f)))
 
 function values(f::LowRankFun)
     xm=mapreduce(ncoefficients,max,f.A)
     ym=mapreduce(ncoefficients,max,f.B)
     ret=zeros(xm,ym)
     for k=1:length(f.A)
-        ret+=values(pad(f.A[k],xm))*values(pad(f.B[k],ym)).'
+        ret+=values(pad(f.A[k],xm))*transpose(values(pad(f.B[k],ym)))
     end
     ret
 end
@@ -307,7 +306,7 @@ function coefficients(f::LowRankFun)
     ym=mapreduce(ncoefficients,max,f.B)
     ret=zeros(xm,ym)
     for k=1:length(f.A)
-        ret+=pad(f.A[k].coefficients,xm)*pad(f.B[k].coefficients,ym).'
+        ret+=pad(f.A[k].coefficients,xm)*transpose(pad(f.B[k].coefficients,ym))
     end
     ret
 end
@@ -317,7 +316,7 @@ function coefficients(f::LowRankFun,n::Space,m::Space)
     ym=mapreduce(ncoefficients,max,f.B)
     ret=zeros(xm,ym)
     for k=1:length(f.A)
-        ret+=pad(coefficients(f.A[k],n),xm)*pad(coefficients(f.B[k],m),ym).'
+        ret+=pad(coefficients(f.A[k],n),xm)*transpose(pad(coefficients(f.B[k],m),ym))
     end
     ret
 end
@@ -334,7 +333,7 @@ end
 
 
 evaluate(A::Vector{T},B::Vector{M},x,y) where {T<:Fun,M<:Fun}=dotu(evaluate(A,x),evaluate(B,y))
-evaluate(A::Vector{T},B::Vector{M},x::AbstractVector,y::AbstractVector) where {T<:Fun,M<:Fun}=evaluate.(A.',x)*evaluate.(B,y.')
+evaluate(A::Vector{T},B::Vector{M},x::AbstractVector,y::AbstractVector) where {T<:Fun,M<:Fun}=evaluate.(transpose(A),x)*evaluate.(B,transpose(y))
 
 evaluate(f::LowRankFun,x,y)=evaluate(f.A,f.B,x,y)
 evaluate(f::LowRankFun,::Colon,::Colon)=f
@@ -358,7 +357,7 @@ end
     f.(x::AbstractVector, y':::AbstractMatrix)
 Fast evaluation of a LowRankFun on a cartesian grid x ⨂ y.
 """
-function Base.broadcast(f::LowRankFun, x::AbstractVector, y::AbstractMatrix)
+function broadcast(f::LowRankFun, x::AbstractVector, y::AbstractMatrix)
     ret = zeros(length(y), length(x))
     #println(InRed * "FROM BROADCAST" * InDefault)
     for k = 1:rank(f)
@@ -369,7 +368,7 @@ end
 
 ## Truncate
 #TODO: should reduce rank if needed
-Base.chop(f::LowRankFun,tol)=LowRankFun(map(g->chop(g,tol),f.A),map(g->chop(g,tol),f.B),f.space)
+chop(f::LowRankFun,tol)=LowRankFun(map(g->chop(g,tol),f.A),map(g->chop(g,tol),f.B),f.space)
 function pad(f::LowRankFun,m::Integer,n::Integer)
     A,B = deepcopy(f.A),deepcopy(f.B)
 
@@ -404,24 +403,24 @@ end
 
 ## QR factorization of a LowRankFun
 
-function Base.qr(f::LowRankFun)
+function qr(f::LowRankFun)
     sp,r = space(f),rank(f)
     Q,R = qr(coefficients(f.A))
-    BR = coefficients(f.B)*R.'
+    BR = coefficients(f.B)*transpose(R)
     LowRankFun(map(i->Fun(sp[1],Q[:,i]),1:r),map(i->Fun(sp[2],BR[:,i]),1:r),sp)
 end
 
 ## Special functions
 
-Base.real(u::LowRankFun)=LowRankFun([map(real,u.A),map(imag,u.A)],[map(real,u.B),-map(imag,u.B)])
-Base.imag(u::LowRankFun)=LowRankFun([map(real,u.A),map(imag,u.A)],[map(imag,u.B),map(real,u.B)])
+real(u::LowRankFun)=LowRankFun([map(real,u.A),map(imag,u.A)],[map(real,u.B),-map(imag,u.B)])
+imag(u::LowRankFun)=LowRankFun([map(real,u.A),map(imag,u.A)],[map(imag,u.B),map(real,u.B)])
 
 
 ## Calculus
 
 
-Base.sum(g::LowRankFun)=dotu(map(sum,g.A),map(sum,g.B))
-Base.sum(g::LowRankFun,n::Integer)=(n==1)?dotu(g.B,map(sum,g.A)):dotu(g.A,map(sum,g.B))
-Base.cumsum(g::LowRankFun,n::Integer)=(n==1)?LowRankFun(map(cumsum,g.A),copy(g.B)):LowRankFun(copy(g.A),map(cumsum,g.B))
-differentiate(g::LowRankFun,n::Integer)=(n==1)?LowRankFun(map(differentiate,g.A),copy(g.B)):LowRankFun(copy(g.A),map(differentiate,g.B))
-integrate(g::LowRankFun,n::Integer)=(n==1)?LowRankFun(map(integrate,g.A),copy(g.B)):LowRankFun(copy(g.A),map(integrate,g.B))
+sum(g::LowRankFun)=dotu(map(sum,g.A),map(sum,g.B))
+sum(g::LowRankFun,n::Integer)=(n==1) ? dotu(g.B,map(sum,g.A)) : dotu(g.A,map(sum,g.B))
+cumsum(g::LowRankFun,n::Integer)=(n==1) ? LowRankFun(map(cumsum,g.A),copy(g.B)) : LowRankFun(copy(g.A),map(cumsum,g.B))
+differentiate(g::LowRankFun,n::Integer)=(n==1) ? LowRankFun(map(differentiate,g.A),copy(g.B)) : LowRankFun(copy(g.A),map(differentiate,g.B))
+integrate(g::LowRankFun,n::Integer)=(n==1) ? LowRankFun(map(integrate,g.A),copy(g.B)) : LowRankFun(copy(g.A),map(integrate,g.B))

@@ -1,6 +1,6 @@
-using ApproxFun, Compat.Test
+using ApproxFun, Test
     import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, testbandedblockbandedoperator,
-                        testblockbandedoperator, A_ldiv_B_coefficients, A_mul_B_coefficients,
+                        testblockbandedoperator, ldiv_coefficients, mul_coefficients,
                         factor
 @testset "Full PDE" begin
 
@@ -81,9 +81,9 @@ using ApproxFun, Compat.Test
 
     # Checks bug in constructor
     f=Fun((x,y)->real(exp(x+1.0im*y)),component(rangespace(A)[1],1),22)
-    @test f(-1.,0.1) ≈ real(exp(-1.+0.1im))
+    @test f(-1.,0.1) ≈ real(exp(-1+0.1im))
     f=Fun((x,y)->real(exp(x+1.0im*y)),component(rangespace(A)[1],1))
-    @test f(-1.,0.1) ≈ real(exp(-1.+0.1im))
+    @test f(-1.,0.1) ≈ real(exp(-1+0.1im))
 
 
     F=[Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A)[1]);
@@ -120,7 +120,7 @@ using ApproxFun, Compat.Test
              L]
 
 
-    u=\(A,[ones(8);0];tolerance=1E-5)
+    u=\(A,[fill(1.0,8);0];tolerance=1E-5)
     @test u(0.1,0.2) ≈ 1.0
 
 
@@ -159,31 +159,31 @@ using ApproxFun, Compat.Test
 
     # Check that QR is growing correctly
     for col in (1,2,3,10,11,40)
-        QR=qrfact(Δ)
-        resizedata!(QR.R,:,col+100)
+        QR=qr(Δ)
+        resizedata!(QR.R_cache,:,col+100)
         resizedata!(QR,:,col)
-        QR2=qrfact!(CachedOperator(RaggedMatrix,Δ;padding=true))
-        resizedata!(QR2.R,:,QR.ncols+100)
+        QR2=qr!(CachedOperator(RaggedMatrix,Δ;padding=true))
+        resizedata!(QR2.R_cache,:,QR.ncols+100)
         resizedata!(QR2,:,QR.ncols)
         n=min(size(QR.H,1),size(QR2.H,1))
         @test QR.H[1:n,1:col] ≈ QR2.H[1:n,1:col]
-        @test QR.R[1:col,1:col] ≈ QR2.R[1:col,1:col]
-        @test QR.R[1:col+10,1:col+10] ≈ QR2.R[1:col+10,1:col+10]
+        @test QR.R_cache[1:col,1:col] ≈ QR2.R_cache[1:col,1:col]
+        @test QR.R_cache[1:col+10,1:col+10] ≈ QR2.R_cache[1:col+10,1:col+10]
     end
 
-    QR=qrfact(Δ)
-    QR2=qrfact!(CachedOperator(RaggedMatrix,Δ;padding=true))
+    QR=qr(Δ)
+    QR2=qr!(CachedOperator(RaggedMatrix,Δ;padding=true))
     for col in (80,200)
         resizedata!(QR,:,col)
         resizedata!(QR2,:,QR.ncols)
         n=min(size(QR.H,1),size(QR2.H,1))
         @test QR.H[1:n,1:col] ≈ QR2.H[1:n,1:col]
-        @test QR.R[1:col,1:col] ≈ QR2.R[1:col,1:col]
-        @test QR.R[1:col+10,1:col+10] ≈ QR2.R[1:col+10,1:col+10]
+        @test QR.R_cache[1:col,1:col] ≈ QR2.R_cache[1:col,1:col]
+        @test QR.R_cache[1:col+10,1:col+10] ≈ QR2.R_cache[1:col+10,1:col+10]
     end
 
     # this checks a bug
-    QR=qrfact(Δ)
+    QR=qr(Δ)
     resizedata!(QR,:,548)
     resizedata!(QR,:,430)
 
@@ -192,7 +192,7 @@ using ApproxFun, Compat.Test
     f=-2π^2*u
 
 
-    QR=qrfact(Δ)
+    QR=qr(Δ)
     v=QR\f
     @test norm((u-v).coefficients)<100eps()
 
@@ -255,45 +255,45 @@ using ApproxFun, Compat.Test
     # Check resizing
     d=ChebyshevInterval()^2
     A=[Dirichlet(d);Laplacian()+100I]
-    QR = qrfact(A)
-    @time ApproxFun.resizedata!(QR.R,:,2000)
-    @test norm(QR.R.data[1:200,1:200] - A[1:200,1:200]) ==0
+    QR = qr(A)
+    @time ApproxFun.resizedata!(QR.R_cache,:,2000)
+    @test norm(QR.R_cache.data[1:200,1:200] - A[1:200,1:200]) ==0
 
     @time ApproxFun.resizedata!(QR,:,200)
     j=56
-    v=QR.R.op[1:100,j]
-    @test norm(A_ldiv_B_coefficients(QR[:Q],v;maxlength=300)[j+1:end]) < 100eps()
+    v=QR.R_cache.op[1:100,j]
+    @test norm(ldiv_coefficients(QR.Q,v;maxlength=300)[j+1:end]) < 100eps()
 
     j=195
-    v=QR.R.op[1:ApproxFun.colstop(QR.R.op,j),j]
-    @test norm(A_ldiv_B_coefficients(QR[:Q],v;maxlength=1000)[j+1:end]) < 100eps()
+    v=QR.R_cache.op[1:ApproxFun.colstop(QR.R_cache.op,j),j]
+    @test norm(ldiv_coefficients(QR.Q,v;maxlength=1000)[j+1:end]) < 100eps()
 
 
     j=300
-    v=QR.R.op[1:ApproxFun.colstop(QR.R.op,j),j]
-    @test norm(A_ldiv_B_coefficients(QR[:Q],v;maxlength=1000)[j+1:end]) < j*20eps()
+    v=QR.R_cache.op[1:ApproxFun.colstop(QR.R_cache.op,j),j]
+    @test norm(ldiv_coefficients(QR.Q,v;maxlength=1000)[j+1:end]) < j*20eps()
 
-    @test ApproxFun.colstop(QR.R.op,195)-194 == ApproxFun.colstop(QR.H,195)
+    @test ApproxFun.colstop(QR.R_cache.op,195)-194 == ApproxFun.colstop(QR.H,195)
 
 
-    QR1 = qrfact(A)
-    @time ApproxFun.resizedata!(QR1.R,:,1000)
-    QR2 = qrfact([Dirichlet(d);Laplacian()+100I])
-    @time ApproxFun.resizedata!(QR2.R,:,500)
-    n=450;QR1.R.data[1:n,1:n]-QR2.R.data[1:n,1:n]|>norm
-    @time ApproxFun.resizedata!(QR2.R,:,1000)
-    N=450;QR1.R.data[1:N,1:N]-QR2.R.data[1:N,1:N]|>norm
-    N=1000;QR1.R.data[1:N,1:N]-QR2.R.data[1:N,1:N]|>norm
+    QR1 = qr(A)
+    @time ApproxFun.resizedata!(QR1.R_cache,:,1000)
+    QR2 = qr([Dirichlet(d);Laplacian()+100I])
+    @time ApproxFun.resizedata!(QR2.R_cache,:,500)
+    n=450;QR1.R_cache.data[1:n,1:n]-QR2.R_cache.data[1:n,1:n]|>norm
+    @time ApproxFun.resizedata!(QR2.R_cache,:,1000)
+    N=450;QR1.R_cache.data[1:N,1:N]-QR2.R_cache.data[1:N,1:N]|>norm
+    N=1000;QR1.R_cache.data[1:N,1:N]-QR2.R_cache.data[1:N,1:N]|>norm
 
-    QR1 = qrfact(A)
+    QR1 = qr(A)
     @time ApproxFun.resizedata!(QR1,:,1000)
-    QR2 = qrfact([Dirichlet(d);Laplacian()+100I])
+    QR2 = qr([Dirichlet(d);Laplacian()+100I])
     @time ApproxFun.resizedata!(QR2,:,500)
     @time ApproxFun.resizedata!(QR2,:,1000)
 
     @test norm(QR1.H[1:225,1:1000]-QR2.H[1:225,1:1000]) ≤ 10eps()
 
-    QR1 = qrfact(A)
+    QR1 = qr(A)
     @time ApproxFun.resizedata!(QR1,:,5000)
     @time u=\(QR1,[ones(∂(d));0.];tolerance=1E-7)
 
@@ -328,7 +328,7 @@ using ApproxFun, Compat.Test
        eye(factor(S,1))⊗rdirichlet(factor(S,2));
        Laplacian()]
 
-    u=\(B,[ones(4);0];tolerance=1E-14)
+    u=\(B,[fill(1.0,4);0];tolerance=1E-14)
     @test norm((u-Fun(S,[1.])).coefficients)<10eps()
 
     g=map(sp->Fun(ff,sp),rangespace(B)[1:4])
@@ -571,7 +571,7 @@ Bx=[ldirichlet(s);continuity(s,0)]
     @test ApproxFun.colstop(CO.op,2) == 2
     ApproxFun.resizedata!(CO,:,2)
     ApproxFun.resizedata!(CO,:,4)
-    @test A_mul_B_coefficients(CO,collect(1:4)) ≈ [3.,-1.]
+    @test mul_coefficients(CO,collect(1:4)) ≈ [3.,-1.]
 
 
 

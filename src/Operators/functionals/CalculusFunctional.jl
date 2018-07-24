@@ -7,8 +7,8 @@ abstract type CalculusFunctional{S,T} <: Operator{T} end
 ##TODO: Add ConcreteOp
 
 macro calculus_functional(Op)
-    ConcOp=parse("Concrete"*string(Op))
-    WrappOp=parse(string(Op)*"Wrapper")
+    ConcOp=Meta.parse("Concrete"*string(Op))
+    WrappOp=Meta.parse(string(Op)*"Wrapper")
     return esc(quote
         abstract type $Op{SSS,TTT} <: CalculusFunctional{SSS,TTT} end
         struct $ConcOp{S,T} <: $Op{S,T}
@@ -32,12 +32,12 @@ macro calculus_functional(Op)
 
 
         Base.convert(::Type{Operator{T}},Σ::$ConcOp) where {T} =
-            (T==eltype(Σ)?Σ:$ConcOp{typeof(Σ.domainspace),T}(Σ.domainspace))::Operator{T}
+            (T==eltype(Σ) ? Σ : $ConcOp{typeof(Σ.domainspace),T}(Σ.domainspace))::Operator{T}
 
         ApproxFun.domain(Σ::$ConcOp) = domain(Σ.domainspace)
         ApproxFun.domainspace(Σ::$ConcOp) = Σ.domainspace
 
-        Base.getindex(::$ConcOp{UnsetSpace},kr::Range) =
+        Base.getindex(::$ConcOp{UnsetSpace},kr::AbstractRange) =
             error("Spaces cannot be inferred for operator")
 
         $WrappOp(op::Operator) =
@@ -45,7 +45,7 @@ macro calculus_functional(Op)
 
 
         Base.convert(::Type{Operator{T}},Σ::$WrappOp) where {T} =
-            (T==eltype(Σ)?Σ:$WrappOp(convert(Operator{T},Σ.op)))::Operator{T}
+            (T==eltype(Σ) ? Σ : $WrappOp(convert(Operator{T},Σ.op)))::Operator{T}
     end)
 end
 

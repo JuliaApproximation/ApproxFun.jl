@@ -95,13 +95,13 @@ end
 # equivalent to sum of indices -1
 
 # block(it::Tensorizer,k) = Block(sum(it[k])-length(it.blocks)+1)
-block{T}(ci::CachedIterator{T,TrivialTensorizer{2}},k::Int) =
+block(ci::CachedIterator{T,TrivialTensorizer{2}},k::Int) where {T} =
     Block(k == 0 ? 0 : sum(ci[k])-length(ci.iterator.blocks)+1)
 
 block(::TrivialTensorizer{2},n::Int) =
     Block(floor(Integer,sqrt(2n) + 1/2))
 
-block{S,T}(sp::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Int) =
+block(sp::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Int) where {S,T} =
     Block(floor(Integer,sqrt(2floor(Integer,(n-1)/(sp.blocks[1].x*sp.blocks[2].x))+1) + 1/2))
 block(sp::Tensorizer,k::Int) = Block(findfirst(x->x≥k,cumsum(blocklengths(sp))))
 block(sp::CachedIterator,k::Int) = block(sp.iterator,k)
@@ -160,7 +160,7 @@ function getindex(it::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Integer) whe
 end
 
 
-blockstart(it,K)::Int = K==1?1:sum(blocklengths(it)[1:K-1])+1
+blockstart(it,K)::Int = K==1 ? 1 : sum(blocklengths(it)[1:K-1])+1
 blockstop(it,::Infinity{Bool}) = ∞
 blockstop(it,K)::Int = sum(blocklengths(it)[1:K])
 
@@ -252,7 +252,7 @@ tensorblocklengths(a,b,c,d...) = tensorblocklengths(tensorblocklengths(a,b),c,d.
 
 # TensorSpace
 # represents the tensor product of several subspaces
-doc"""
+"""
     TensorSpace(a::Space,b::Space)
 
 represents a tensor product of two 1D spaces `a` and `b`.
@@ -322,7 +322,8 @@ TensorSpace(A::ProductDomain) = TensorSpace(tuple(map(Space,A.domains)...))
 domain(f::TensorSpace) = mapreduce(domain,×,f.spaces)
 Space(sp::ProductDomain) = TensorSpace(sp)
 
-*(A::Space,B::Space) = A⊗B
+*(A::Space, B::Space) = A⊗B
+^(A::Space, p::Integer) = p == 1 ? A : A*A^(p-1)
 
 
 ## TODO: generalize
@@ -586,7 +587,7 @@ for OP in (:block,:blockstart,:blockstop)
 end
 
 function points(sp::TensorSpace,n)
-    pts=Array{eltype(domain(sp))}(0)
+    pts=Array{eltype(domain(sp))}(undef,0)
     a,b = sp.spaces
     if isfinite(dimension(a)) && isfinite(dimension(b))
         N,M=dimension(a),dimension(b)
@@ -660,6 +661,7 @@ coefficients(f::AbstractVector,sp::ConstantSpace,ts::TensorSpace{SV,D,R}) where 
 #
 #     coefficients(f,sp,setdomain(factor(ts,1),a))
 # end
+
 
 function coefficients(f::AbstractVector,sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R}
     @assert length(ts.spaces) == 2

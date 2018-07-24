@@ -1,5 +1,5 @@
 
-points(S::Jacobi,n) = fromcanonical.(S,gaussjacobi(n,S.a,S.b)[1])
+points(S::Jacobi,n) = fromcanonical.(Ref(S),gaussjacobi(n,S.a,S.b)[1])
 
 struct JacobiTransformPlan{DD,RR,T}
     space::Jacobi{DD,RR}
@@ -13,7 +13,7 @@ function *(plan::JacobiTransformPlan,vals)
 #    @assert S==plan.space
     S = plan.space
     x,w = plan.points, plan.weights
-    V=jacobip.((0:length(vals)-1),S.a,S.b,x.')
+    V=jacobip.((0:length(vals)-1),S.a,S.b,transpose(x))
 #    w2=w.*(1-x).^(S.a-plan.space.a).*(1+x).^(S.b-plan.space.b)   # need to weight if plan is different
     w2=w
     nrm=(V.^2)*w2
@@ -25,7 +25,7 @@ end
 # used for ProductFun
 function transform(S::Jacobi,vals,plan::JacobiTransformPlan)
     x,w = plan.points, plan.weights
-    V=broadcast(jacobip, (0:length(vals)-1), S.a,S.b, x.')
+    V=broadcast(jacobip, (0:length(vals)-1), S.a,S.b, transpose(x))
     w2=w.*(1-x).^(S.a-plan.space.a).*(1+x).^(S.b-plan.space.b)   # need to weight if plan is different
     nrm=(V.^2)*w2
 
@@ -43,7 +43,7 @@ end
 
 plan_itransform(S::Jacobi,cfs::AbstractVector) = JacobiITransformPlan(S,points(S,length(cfs)))
 *(P::JacobiITransformPlan,cfs) =
-    jacobip.((0:length(cfs)-1)',P.space.a,P.space.b,tocanonical(P.space,P.points))*cfs
+    jacobip.((0:length(cfs)-1)',P.space.a,P.space.b,tocanonical.(Ref(P.space),P.points))*cfs
 
 
 function coefficients(f::AbstractVector,a::Jacobi,b::Chebyshev)

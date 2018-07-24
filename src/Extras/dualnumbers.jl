@@ -7,8 +7,10 @@ DualNumbers.dualpart(f::Fun{S,T}) where {S,T<:Dual} = Fun(space(f),dualpart(coef
 
 
 DualNumbers.realpart(d::Segment{DD}) where {DD<:Dual} = Segment(realpart(d.a),realpart(d.b))
+
 indomain(x::Number,d::Segment{DD}) where {DD<:Dual} = in(x,realpart(d))
 indomain(x::Dual,d::Segment{DD}) where {DD<:Dual} = in(realpart(x),realpart(d))
+
 
 
 # for QR Factorization.  These have been submitted to DualNumbers
@@ -112,7 +114,7 @@ function dualcfsFun(f,S)
             return Fun(S,realpart(simplifycfs!(cf.coefficients,tol*length(cf))))
         end
     end
-    warn("Maximum length "*string(2^20+1)*" reached")
+    @warn "Maximum length "*string(2^20+1)*" reached"
 
     Fun(f,S,2^21)
 end
