@@ -175,8 +175,8 @@ end
 Base.inv(f::Fun{PS}) where PS<:PointSpace = Fun(space(f),1./f.coefficients)
 
 #DiracSpace sampling
-cfs = f.coefficients/sum(f.coefficients)
 function randweights(cfs)
+    cfs = f.coefficients/sum(f.coefficients)
     cs = cumsum(cfs)
     r = rand()
     if r≤cs[1]
