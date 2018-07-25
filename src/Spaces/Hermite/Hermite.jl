@@ -110,3 +110,19 @@ function Multiplication(f::Fun{GaussWeight{H,T}},S::Hermite) where {H<:Hermite,T
     rs=rangespace(M)
     MultiplicationWrapper(f,SpaceOperator(M,S,GaussWeight(rs,rs.L)))
 end
+
+
+
+function integrate(f::Fun{GW}) where GW <: GaussWeight{H} where H <: Hermite
+    n = length(f.coefficients);
+    if f.coefficients[1] == 0
+        Fun(GaussWeight(), f.coefficients[2:end]*(-1))
+    else
+        g = Fun(GaussWeight(), f.coefficients[2:end]*(-1));
+        f₀ = Fun(GaussWeight(), [f.coefficients[1]]);
+        f₀ = Fun(f₀, Chebyshev(-Inf .. Inf));
+        g₀ = integrate(f₀);
+        g₀ = g₀ - last(g₀);
+        g + g₀
+    end
+end
