@@ -1,7 +1,7 @@
 export DiracDelta, KroneckerDelta
 
 doc"""
-`DiracSpace([x₁,x₂,x₃,...])` is the space spanned the the DiracDelta functions
+DiracSpace([x₁,x₂,x₃,...]) is the space spanned the the DiracDelta functions
 ```
 DiracDelta(x₁),DiracDelta(x₂),DiracDelta(x₃),...
 ```
