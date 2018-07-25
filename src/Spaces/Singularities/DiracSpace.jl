@@ -187,7 +187,6 @@ function sample(f::Fun{<:DiracSpace})
     randweights(cfs)
 end
 
-
 #integrate DiracSpace
 function integrate(f::Fun{<:DiracSpace})
     pts=f.space.points
@@ -195,4 +194,3 @@ function integrate(f::Fun{<:DiracSpace})
     int=Fun(HeavisideSpace([pts;Inf]),cumsum(cfs))
     return int
 end
-
