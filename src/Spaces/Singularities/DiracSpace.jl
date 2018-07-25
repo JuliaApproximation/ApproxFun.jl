@@ -195,3 +195,13 @@ function sample(f::Fun{<:DiracSpace})
     cfs = f.coefficients/sum(f.coefficients)
     randweights(cfs)
 end
+
+
+#integrate DiracSpace
+function integrate(f::Fun{<:DiracSpace})
+    pts=f.space.points
+    cfs=f.coefficients
+    int=Fun(HeavisideSpace([pts;Inf]),cumsum(cfs))
+    return int
+end
+
