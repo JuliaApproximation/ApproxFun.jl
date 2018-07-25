@@ -1,3 +1,14 @@
+#documentation
+doc"""
+HeavisideSpace([x₁,x₂,x₃,...]) is the space spanned by
+```
+H(x₁)-H(x₂),H(x₂)-H(x₃),H(x₃)-H(x₄),...
+```
+where H(x) is the Heaviside Step Function
+
+"""
+
+
 # SplineSpace represents a Spline, right now piecewise constant HeavisideSpace is only implemented case
 struct SplineSpace{order,T,R} <: Space{PiecewiseSegment{T},R}
     domain::PiecewiseSegment{T}
