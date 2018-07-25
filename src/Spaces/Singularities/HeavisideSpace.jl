@@ -120,6 +120,3 @@ differentiate(f::Fun{SplineSpace{1,T,R}}) where {T,R} =
 integrate(f::Fun{HeavisideSpace{T,R}}) where {T,R} =
     Fun(SplineSpace{1,T,R}(space(f).domain),
         [0;cumsum(f.coefficients).*diff(space(f).domain.points)])
-
-
-
