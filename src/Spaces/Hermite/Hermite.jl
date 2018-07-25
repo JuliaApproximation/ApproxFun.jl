@@ -64,6 +64,10 @@ end
 GaussWeight(H::Hermite)=GaussWeight(H,H.L)
 GaussWeight()=GaussWeight(Hermite())
 
+doc"""
+`GaussWeight()` is a space spanned by `exp(-x²) * Hₙ(x)` where `Hₙ(x)`'s
+are Hermite polynomials.
+"""
 
 Fun(::typeof(identity), sp::Hermite) = Fun(sp,[0.,0.5])
 Fun(::typeof(identity), sp::GaussWeight) = Fun(identity, sp.space)
