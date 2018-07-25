@@ -112,16 +112,6 @@ function Base.sum(f::Fun{SplineSpace{1,T,R}}) where {T,R}
     ret
 end
 
-
-differentiate(f::Fun{SplineSpace{1,T,R}}) where {T,R} =
-    Fun(HeavisideSpace(space(f).domain),
-        diff(pad(f.coefficients,dimension(space(f))))./diff(space(f).domain.points))
-
-integrate(f::Fun{HeavisideSpace{T,R}}) where {T,R} =
-    Fun(SplineSpace{1,T,R}(space(f).domain),
-        [0;cumsum(f.coefficients).*diff(space(f).domain.points)])
-
-
 #diffentiate HeavisideSpace
 function differentiate(f::Fun{<:HeavisideSpace})
     dp=domain(f).points
@@ -132,3 +122,15 @@ function differentiate(f::Fun{<:HeavisideSpace})
     end
     return diff
 end
+
+
+differentiate(f::Fun{SplineSpace{1,T,R}}) where {T,R} =
+    Fun(HeavisideSpace(space(f).domain),
+        diff(pad(f.coefficients,dimension(space(f))))./diff(space(f).domain.points))
+
+integrate(f::Fun{HeavisideSpace{T,R}}) where {T,R} =
+    Fun(SplineSpace{1,T,R}(space(f).domain),
+        [0;cumsum(f.coefficients).*diff(space(f).domain.points)])
+
+
+
