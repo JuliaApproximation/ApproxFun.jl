@@ -104,7 +104,7 @@ function default_Fun(f, d::Space)
     isinf(dimension(d)) || return Fun(f,d,dimension(d))  # use exactly dimension number of sample points
 
     #TODO: reuse function values?
-    T = real(eltype(domain(d)))
+    T = real(prectype(domain(d)))
 
     r=checkpoints(d)
     f0=f(first(r))

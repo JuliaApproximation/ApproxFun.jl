@@ -182,8 +182,6 @@ reverse(d::PeriodicLine{false})=PeriodicLine{true}(d.center,d.L)
 reverse(d::PeriodicLine{a}) where {a}=PeriodicLine{a-1}(d.center,d.L)
 
 tocanonical(d::PeriodicLine{false},x) = real(2atan((x-d.center)/d.L))
-fromcanonical(d::PeriodicLine{false},v::AbstractArray) =
-    eltype(d)[fromcanonical(d,vk) for vk in v]
 fromcanonical(d::PeriodicLine{false},θ) = d.L*tan(θ/2) + d.center
 
 tocanonical(d::PeriodicLine{a},x) where {a} = tocanonical(PeriodicLine{false,Float64}(0.,d.L),exp(-π*im*a)*(x-d.center))

@@ -53,7 +53,7 @@ convert(::Type{Segment},::AnyDomain) = AnySegment()
 @inline Base.minimum(d::Segment) = min(d.a,d.b)
 @inline Base.maximum(d::Segment) = max(d.a,d.b)
 
-Base.isempty(d::Segment) = isapprox(d.a,d.b;atol=200eps(eltype(d)))
+Base.isempty(d::Segment) = isapprox(d.a, d.b; atol=200eps(eltype(d)))
 
 issubset(a::Segment,b::Segment) = first(a)∈b && last(a)∈b
 

@@ -50,7 +50,7 @@ function points(d::PiecewiseSegment,n)
    k=div(n,ncomponents(d))
     r=n-ncomponents(d)*k
 
-    eltype(d)[vcat([points(component(d,j),k+1) for j=1:r]...);
+    float(eltype(d))[vcat([points(component(d,j),k+1) for j=1:r]...);
         vcat([points(component(d,j),k) for j=r+1:ncomponents(d)]...)]
 end
 

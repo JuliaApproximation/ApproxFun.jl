@@ -42,4 +42,4 @@ checkpoints(d::Disk) = [fromcanonical(d,(.1,.2243));fromcanonical(d,(-.212423,-.
 # end
 
 
-∂(d::Disk) = Circle(d.center,d.radius)
+boundary(d::Disk) = Circle(d.center,d.radius)

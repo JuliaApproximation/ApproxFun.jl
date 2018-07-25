@@ -254,14 +254,14 @@ extremal_args(f::Fun{S}) where {S<:PiecewiseSpace} = cat(1,[extremal_args(fp) fo
 
 
 function extremal_args(f::Fun)
-    d=domain(f)
+    d = domain(f)
     if isa(d,PeriodicInterval)
         roots(differentiate(f))
     elseif isa(d,PeriodicDomain)  # avoid complex domains
         S=typeof(space(f))
         fromcanonical.(f,extremal_args(setcanonicaldomain(f)))
     else
-        dab=∂(domain(f))
+        dab = Number.(components(∂(domain(f))))
         if ncoefficients(f) <=2 #TODO this is only relevant for Polynomial bases
             dab
         else
@@ -272,7 +272,6 @@ end
 
 for op in (:(maximum),:(minimum),:(extrema))
     @eval function $op(f::Fun{S,T}) where {S<:RealSpace,T<:Real}
-
         pts = iszero(f') ? [first(domain(f))] : extremal_args(f)
 
         $op(f.(pts))

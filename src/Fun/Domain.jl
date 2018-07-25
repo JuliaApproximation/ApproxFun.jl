@@ -24,8 +24,8 @@ dimension(d::Domain) = dimension(typeof(d))
 # mimicking scalar vs vector
 
 # prectype gives the precision, including for Vec
-prectype(d::Domain) = eltype(eltype(d))
-prectype(::Type{D}) where {D<:Domain} = eltype(eltype(D))
+prectype(::Type{D}) where {D<:Domain} = float(eltype(eltype(D)))
+prectype(d::Domain) = prectype(typeof(d))
 
 #TODO: bivariate AnyDomain
 struct AnyDomain <: Domain{UnsetNumber} end
@@ -183,16 +183,8 @@ checkpoints(d::PeriodicDomain) = fromcanonical.(Ref(d),[1.223972,3.14,5.83273484
 
 ## boundary
 
-"""
-    ∂(d::Domain)
-
-returns the boundary of `d`.  For example, the boundary of a `Disk()`
-is a `Circle()`, and the boundary of `ChebyshevInterval()^2` is a piecewise interval
-that sketches the boundary of a rectangle.
-"""
-∂(d::Domain) = EmptyDomain()   # This is meant to be overriden
-∂(d::SegmentDomain) = [first(d),last(d)] #TODO: Points domain
-∂(d::PeriodicDomain) = EmptyDomain()
+boundary(d::SegmentDomain) = [first(d),last(d)] #TODO: Points domain
+boundary(d::PeriodicDomain) = EmptyDomain()
 
 
 

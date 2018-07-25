@@ -8,7 +8,7 @@ show(io::IO,c::Count) = print(io,"$(c.start):$(c.step):∞")
 
 ## Domains
 
-show(io::IO,d::Segment) = print(io,"【$(d.a),$(d.b)】")
+show(io::IO,d::Segment) = print(io,"the segment [$(d.a),$(d.b)]")
 function show(io::IO,d::Line)
     if d.center == angle(d) == 0 && d.α == d.β == -1.
         print(io,"ℝ")

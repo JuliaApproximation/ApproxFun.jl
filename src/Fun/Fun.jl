@@ -519,9 +519,9 @@ end
 
 for op in (:+,:-,:*,:/,:^)
     @eval begin
-        broadcast(::typeof($op),a::Fun,b::Fun) = $op(a,b)
-        broadcast(::typeof($op),a::Fun,b::Number) = $op(a,b)
-        broadcast(::typeof($op),a::Number,b::Fun) = $op(a,b)
+        broadcast(::typeof($op), a::Fun, b::Fun) = $op(a,b)
+        broadcast(::typeof($op), a::Fun, b::Number) = $op(a,b)
+        broadcast(::typeof($op), a::Number, b::Fun) = $op(a,b)
     end
 end
 

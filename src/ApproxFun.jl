@@ -9,7 +9,7 @@ module ApproxFun
 
 
 import Domains: Domain, indomain, UnionDomain, ProductDomain, FullSpace, Point, elements, DifferenceDomain,
-            Interval, ChebyshevInterval
+            Interval, ChebyshevInterval, boundary, ∂
 
 import AbstractFFTs: Plan, fft, ifft
 import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
@@ -25,7 +25,7 @@ import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, 
                 zeros, zero, one, promote_rule, repeat, length, resize!, isinf,
                 getproperty, findfirst, unsafe_getindex, fld, cld, div, real, imag,
                 @_inline_meta, eachindex, lastindex, keys,
-                Array, Vector, Matrix, view, ones
+                Array, Vector, Matrix, view, ones, float
 
 import Base.Broadcast: BroadcastStyle, Broadcasted, AbstractArrayStyle, broadcastable,
                         DefaultArrayStyle, broadcasted

@@ -38,6 +38,9 @@ real(::Type{Array{T,n}}) where {T<:Complex,n} = Array{real(T),n}
 real(::Type{Vec{N,T}}) where {N,T<:Real} = Vec{N,T}
 real(::Type{Vec{N,T}}) where {N,T<:Complex} = Vec{N,real(T)}
 
+float(::UnsetNumber) = UnsetNumber()
+float(::Type{UnsetNumber}) = UnsetNumber
+
 
 eps(x...) = Base.eps(x...)
 eps(x) = Base.eps(x)

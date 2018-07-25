@@ -88,7 +88,7 @@ function dualFun(f,S,n)
 end
 
 function dualcfsFun(f,S)
-    T = eltype(domain(S))
+    T = float(eltype(domain(S)))
     if T <: Complex
         T = T.parameters[1] #get underlying real representation
     end

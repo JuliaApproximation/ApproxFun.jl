@@ -20,6 +20,7 @@ points(d::IntervalSets.ClosedInterval,n) = points(Domain(d),n)
 # These are needed for spaces to auto-convert [a,b] to Interval
 function convert(::Type{PeriodicDomain},d::IntervalSets.ClosedInterval)
     a,b=d.left,d.right
+    a,b = float(a),float(b)
     if isinf(norm(a)) && isinf(norm(b))
         PeriodicLine(d)
     elseif isinf(norm(a)) || isinf(norm(b))

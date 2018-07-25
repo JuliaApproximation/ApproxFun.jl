@@ -536,4 +536,4 @@ spacescompatible(::SequenceSpace,::SequenceSpace) = true
 
 ## Boundary
 
-∂(S::Space) = ∂(domain(S))
+boundary(S::Space) = boundary(domain(S))
