@@ -120,3 +120,15 @@ differentiate(f::Fun{SplineSpace{1,T,R}}) where {T,R} =
 integrate(f::Fun{HeavisideSpace{T,R}}) where {T,R} =
     Fun(SplineSpace{1,T,R}(space(f).domain),
         [0;cumsum(f.coefficients).*diff(space(f).domain.points)])
+
+
+#diffentiate HeavisideSpace
+function differentiate(f::Fun{<:HeavisideSpace})
+    dp=domain(f).points
+    cfs=f.coefficients
+    diff=0.0
+    for n=1:length(cfs)
+        diff=diff+cfs[n]*(DiracDelta(dp[n])-DiracDelta(dp[n+1]))
+    end
+    return diff
+end
