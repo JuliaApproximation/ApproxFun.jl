@@ -1,16 +1,20 @@
 export Hermite,GaussWeight
 
 #TODO: Add general lines
+
+"""
+Represents H_k(sqrt(L)*x) where H_k are Hermite polynomials
+"""
 struct Hermite{T} <: PolynomialSpace{Line{false,Float64},Float64}
     L::T
 end
-Hermite()=Hermite(1.0)
+Hermite() = Hermite(1.0)
 
 domain(::Hermite) = Line()
 canonicalspace(H::Hermite) = Hermite()
-spacescompatible(::Hermite,::Hermite)=true #TODO:L
-canonicaldomain(H::Hermite)=Line()
-tocanonical(H::Hermite,x)=x
+spacescompatible(::Hermite,::Hermite) = true #TODO:L
+canonicaldomain(H::Hermite) = Line()
+tocanonical(H::Hermite,x) = x
 
 
 #####
@@ -19,8 +23,12 @@ tocanonical(H::Hermite,x)=x
 #####
 
 
-recα(::Type,::Hermite,k)=0;recβ(::Type,::Hermite,k)=0.5;recγ(::Type,::Hermite,k)=k-1
-recA(::Type,::Hermite,k)=2;recB(::Type,::Hermite,k)=0;recC(::Type,::Hermite,k)=2k
+recα(::Type,::Hermite,k) = 0;
+recβ(::Type,H::Hermite,k) = 0.5/sqrt(H.L);
+recγ(::Type,H::Hermite,k) = (k-1)/sqrt(H.L);
+recA(::Type,H::Hermite,k) = 2*sqrt(H.L);
+recB(::Type,::Hermite,k) = 0;
+recC(::Type,::Hermite,k) = 2k
 
 
 Derivative(H::Hermite,order)=ConcreteDerivative(H,order)

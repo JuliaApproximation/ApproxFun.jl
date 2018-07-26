@@ -207,7 +207,7 @@ using ApproxFun, Compat.Test, StaticArrays
 
 
 
-    ## Laguerre and Hermite
+    ## Laguerre 
 
     f=Fun(Laguerre(0.),[1,2,3])
     @test f(0.1) ≈ 5.215

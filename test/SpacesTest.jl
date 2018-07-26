@@ -201,18 +201,6 @@ using ApproxFun, Compat.Test
     Fun(f,JacobiWeight(1.,0.,0..1))
 
 
-    ## Hermite
-    f=Fun(x->x+x^2,Hermite())
-    @test f(1.) ≈ 2.
-    @test values(f) ≈ points(f)+points(f).^2
-
-    D = Derivative(Hermite())
-    testbandedoperator(D)
-
-    g = D*f
-    @test g(1.) ≈ 3.
-
-
     ## Arc exp
 
     z=Fun(identity,Arc(0.,.1,0.,π/2))

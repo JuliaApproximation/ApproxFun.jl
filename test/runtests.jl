@@ -124,6 +124,7 @@ end
 @time include("IntegralEquationsTest.jl")
 @time include("SpacesTest.jl")
 @time include("JacobiTest.jl")
+@time include("HermiteTest.jl")
 @time include("ETDRK4Test.jl")
 @time include("ExtrasTest.jl")
 @time include("MultivariateTest.jl")
