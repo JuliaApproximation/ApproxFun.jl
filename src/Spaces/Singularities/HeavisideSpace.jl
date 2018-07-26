@@ -1,3 +1,11 @@
+#documentation
+doc"""
+HeavisideSpace([x₁,x₂,x₃,x₄,...]) is the space sapnned by
+```
+T_1,T_2,T_3...
+```
+where T_n=δ(n)-δ(n+1) and δ is the DiracDelta function
+"""
 # SplineSpace represents a Spline, right now piecewise constant HeavisideSpace is only implemented case
 struct SplineSpace{order,T,R} <: Space{PiecewiseSegment{T},R}
     domain::PiecewiseSegment{T}
