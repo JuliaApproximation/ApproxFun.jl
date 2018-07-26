@@ -1,11 +1,4 @@
 export DiracDelta, KroneckerDelta
-#documentation
-doc"""
-DiracSpace([x₁,x₂,x₃,...]) is the space sapnned by the DiracDelta functions
-```
-δ(x₁),δ(x₂),δ(x₃),...
-```
-"""
 for TYP in (:DiracSpace,:PointSpace)
     @eval begin
         struct $TYP{T,D,R} <: Space{D,R}
