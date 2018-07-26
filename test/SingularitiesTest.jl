@@ -224,10 +224,39 @@ using ApproxFun, Compat.Test
         @test_skip g/h ≈ f/a + Fun(1,2..3)
     end
 
+    @testset "DiracDelta integration and differentiation" begin
+        δ = DiracDelta()
+        h = integrate(δ)
+        @test domain(h) == ApproxFun.PiecewiseSegment([0,Inf])
+        @test h(-2) == 0
+        @test h(2) == 1
 
+        δ = 0.3DiracDelta(0.1) + 3DiracDelta(2.3)
+        h = integrate(δ)
+        @test domain(h) == ApproxFun.PiecewiseSegment([0.1,2.3,Inf])
+        @test h(-2) == 0
+        @test h(2) == 0.3
+        @test h(3) == 3.3
 
+        δ = (0.3+1im)DiracDelta(0.1) + 3DiracDelta(2.3)
+        h = integrate(δ)
+        @test domain(h) == ApproxFun.PiecewiseSegment([0.1,2.3,Inf])
+        @test h(-2) == 0
+        @test h(2) == 0.3+1im
+        @test h(3) == 3.3+1im
+    end
 
+    @testset "DiracDelta sampling" begin
+        δ = 0.3DiracDelta(0.1) + 3DiracDelta(2.3)
+        srand(0)
+        for _=1:10
+            @test sample(δ) ∈ [0.1, 2.3]
+        end
 
+        srand(0)
+        r = sample(δ, 10_000)
+        @test count(i -> i == 0.1, r)/length(r) ≈ 0.3/(3.3) atol=0.01
+    end
 
 
     @testset "Multiple roots" begin

@@ -166,15 +166,14 @@ end
 Base.inv(f::Fun{PS}) where PS<:PointSpace = Fun(space(f),1./f.coefficients)
 
 #DiracSpace sampling
-function randweights(cfs)
-    cfs = f.coefficients/sum(f.coefficients)
+function randweights(pts, cfs)
     cs = cumsum(cfs)
     r = rand()
     if r≤cs[1]
-        return f.space.points[1]
+        return pts[1]
     else
         for n=1:length(cfs)-1
-            if cs[n]<r≤cs[n+1] && return f.space.points[n+1]
+            if cs[n]<r≤cs[n+1] && return pts[n+1]
                 break
             end
         end
@@ -182,9 +181,10 @@ function randweights(cfs)
 end
 
 
-function sample(f::Fun{<:DiracSpace})
+function sample(f::Fun{<:DiracSpace,<:Real})
     cfs = f.coefficients/sum(f.coefficients)
-    randweights(cfs)
+    any(c -> c < 0, cfs) && throw(ArgumentError("All weights must be non-negative"))
+    randweights(f.space.points, cfs)
 end
 
 #integrate DiracSpace
