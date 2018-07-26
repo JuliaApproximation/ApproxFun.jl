@@ -187,6 +187,13 @@ function sample(f::Fun{<:DiracSpace,<:Real})
     randweights(f.space.points, cfs)
 end
 
+function sample(f::Fun{<:DiracSpace,<:Real},n::Integer)
+    p=[]
+    for i=1:n
+        p=[p;sample(f)]
+    end
+    return p
+end
 #integrate DiracSpace
 function integrate(f::Fun{<:DiracSpace})
     pts=f.space.points
