@@ -252,7 +252,6 @@ using ApproxFun, Compat.Test
         for _=1:10
             @test sample(δ) ∈ [0.1, 2.3]
         end
-
         srand(0)
         r = sample(δ, 10_000)
         @test count(i -> i == 0.1, r)/length(r) ≈ 0.3/(3.3) atol=0.01
