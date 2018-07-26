@@ -46,7 +46,7 @@ convert(::Type{Arc{T,V}},::AnyDomain) where {T<:Number,V<:Real} =
 convert(::Type{IT},::AnyDomain) where {IT<:Arc} =
     Arc(NaN,NaN,(NaN,NaN))
 
-reverse(a::Arc) = Arc(a.center,a.radius,reverse(a.angles))
+reverseorientation(a::Arc) = Arc(a.center,a.radius,reverse(a.angles))
 
 arclength(d::Arc) = d.radius*(d.angles[2]-d.angles[1])
 
@@ -102,6 +102,6 @@ end
 
 # allow exp(im*Segment(0,1)) for constructing arc
 function exp(d::Segment{CMP}) where CMP<:Complex
-    @assert isapprox(real(d.a),0) && isapprox(real(d.b),0)
-    Arc(0,1,(imag(d.a),imag(d.b)))
+    @assert isapprox(real(leftendpoint(d)),0) && isapprox(real(rightendpoint(d)),0)
+    Arc(0,1,(imag(leftendpoint(d)),imag(rightendpoint(d))))
 end

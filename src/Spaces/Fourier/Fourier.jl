@@ -323,7 +323,7 @@ Fourier(d::Domain) = Fourier{typeof(d),real(prectype(d))}(d)
 for Typ in (:Laurent,:Fourier)
     @eval begin
         $Typ() = $Typ(PeriodicInterval())
-        $Typ(d) = $Typ(PeriodicDomain(d))
+        $Typ(d) = $Typ(convert(PeriodicDomain, d))
 
         hasfasttransform(::$Typ{D,R}) where {D,R} = true
     end
@@ -458,7 +458,7 @@ Fun(::typeof(identity), S::Fourier{DD,RR}) where {DD<:Circle,RR} =
 
 
 reverseorientation(f::Fun{Fourier{DD,RR}}) where {DD,RR} =
-    Fun(Fourier(reverse(domain(f))),alternatesign!(copy(f.coefficients)))
+    Fun(Fourier(reverseorientation(domain(f))),alternatesign!(copy(f.coefficients)))
 function reverseorientation(f::Fun{Laurent{DD,RR}}) where {DD,RR}
     # exp(im*k*x) -> exp(-im*k*x), or equivalentaly z -> 1/z
     n=ncoefficients(f)
@@ -472,7 +472,7 @@ function reverseorientation(f::Fun{Laurent{DD,RR}}) where {DD,RR}
     end
     iseven(n) && (ret[n] = 0)
 
-    Fun(Laurent(reverse(domain(f))),ret)
+    Fun(Laurent(reverseorientation(domain(f))),ret)
 end
 
 include("calculus.jl")

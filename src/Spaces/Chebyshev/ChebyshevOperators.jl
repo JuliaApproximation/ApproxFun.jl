@@ -63,7 +63,7 @@ function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(first)},k::Abst
     x = op.x
     d = domain(op)
     p = op.order
-    cst = convert(T,(2/(d.b-d.a))^p)
+    cst = convert(T,(2/complexlength(d))^p)
     n=length(k)
 
     ret = Array{T}(undef, n)
@@ -89,7 +89,7 @@ function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(last)},k::Abstr
     x = op.x
     d = domain(op)
     p = op.order
-    cst = convert(T,(2/(d.b-d.a))^p)
+    cst = convert(T,(2/complexlength(d))^p)
     n=length(k)
 
     ret = fill(one(T),n)
@@ -247,7 +247,7 @@ function getindex(D::ConcreteDerivative{Chebyshev{DD,RR},K,T},k::Integer,j::Inte
     d=domain(D)
 
     if j==k+m
-        C=convert(T,pochhammer(one(T),m-1)/2*(4/(d.b-d.a))^m)
+        C=convert(T,pochhammer(one(T),m-1)/2*(4/complexlength(d))^m)
         convert(T,C*(m+k-one(T)))
     else
         zero(T)

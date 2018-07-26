@@ -37,7 +37,7 @@ dimension(::AnyDomain) = 1
 complexlength(::AnyDomain) = NaN
 arclength(::AnyDomain) = NaN
 
-reverse(a::Union{AnyDomain,EmptyDomain}) = a
+reverseorientation(a::Union{AnyDomain,EmptyDomain}) = a
 
 canonicaldomain(a::Union{AnyDomain,EmptyDomain}) = a
 
@@ -45,12 +45,15 @@ indomain(x::Domain,::EmptyDomain) = false
 
 convert(::Type{Domain{T}}, ::AnyDomain) where T = Domain(T)
 
+
+union(::AnyDomain, d::Domain) = d
+union(d::Domain, ::AnyDomain) = d
 ##General routines
 
 
 isempty(::EmptyDomain) = true
 isempty(::Domain) = false
-intersect(a::Domain,b::Domain) = a==b ? a : EmptyDomain()
+intersect(a::Domain, b::Domain) = a==b ? a : EmptyDomain()
 
 
 ## Interval Domains
@@ -113,7 +116,7 @@ points(d::PeriodicDomain{T},n::Integer) where {T} =
 fourierpoints(n::Integer) = fourierpoints(Float64,n)
 fourierpoints(::Type{T},n::Integer) where {T<:Number} = convert(T,π)*collect(0:2:2n-2)/n
 
-function indomain(x,d::PeriodicDomain{T}) where T
+function indomain(x, d::PeriodicDomain{T}) where T
     y=tocanonical(d,x)
     if !isapprox(fromcanonical(d,y),x)
         return false
@@ -145,9 +148,6 @@ ones(d::Domain) = ones(prectype(d),Space(d))
 zeros(d::Domain) = zeros(prectype(d),Space(d))
 
 
-
-
-
 function commondomain(P::AbstractVector)
     ret = AnyDomain()
 
@@ -168,8 +168,6 @@ commondomain(P::AbstractVector,g) = commondomain([P;g])
 
 
 domain(::Number) = AnyDomain()
-
-
 
 
 ## rand

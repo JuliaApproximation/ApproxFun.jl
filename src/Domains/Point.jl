@@ -29,7 +29,7 @@ intersect(b::Point,a::UnionDomain) = b.x in a ? b : EmptyDomain()
 intersect(b::Point,a::Domain) = b.x in a ? b : EmptyDomain()
 
 setdiff(a::Point,b::Point) = a==b ? EmptyDomain() : a
-reverse(a::Point) = a
+reverseorientation(a::Point) = a
 
 
 canonicaldomain(a::Point) = Point(0.)

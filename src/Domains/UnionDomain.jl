@@ -21,7 +21,7 @@ npieces(d::UnionDomain) = length(elements(d))
 arclength(d::UnionDomain) = mapreduce(arclength,+,d.domains)
 
 
-Base.reverse(d::UnionDomain) = UnionDomain(reverse(map(reverse,d.domains)))
+reverseorientation(d::UnionDomain) = UnionDomain(reverse(map(reverseorientation,d.domains)))
 
 Base.first(d::UnionDomain) = first(first(elements(d)))
 Base.last(d::UnionDomain) = last(last(elements(d)))

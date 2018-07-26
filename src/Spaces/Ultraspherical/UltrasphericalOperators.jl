@@ -74,7 +74,7 @@ function getindex(D::ConcreteDerivative{Ultraspherical{TT,DD,RR},K,T},
     λ=order(domainspace(D))
 
     if j==k+m
-        convert(T,(pochhammer(one(T)*λ,m)*(4/(d.b-d.a)).^m))
+        convert(T,(pochhammer(one(T)*λ,m)*(4/complexlength(d)).^m))
     else
         zero(T)
     end
@@ -98,10 +98,10 @@ function getindex(Q::ConcreteIntegral{Ultraspherical{LT,DD,RR}},k::Integer,j::In
     @assert m<=λ
 
     if λ == 1 && k==j+1
-        C = (d.b-d.a)/2
+        C = complexlength(d)/2
         convert(T,C./(k-1))
     elseif λ > 1 && k==j+m
-        convert(T,pochhammer(one(T)*λ,-m)*((d.b-d.a)/4)^m)
+        convert(T,pochhammer(one(T)*λ,-m)*(complexlength(d)/4)^m)
     else
         zero(T)
     end

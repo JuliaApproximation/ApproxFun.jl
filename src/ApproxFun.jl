@@ -4,12 +4,12 @@ module ApproxFun
     using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers,
             BlockArrays, BandedMatrices, BlockBandedMatrices, Domains, IntervalSets,
             SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions,
-            LinearAlgebra, LowRankApprox, SparseArrays #, Arpack
+            LinearAlgebra, LowRankApprox, SparseArrays, Statistics #, Arpack
     import StaticArrays, ToeplitzMatrices, Calculus
 
 
 import Domains: Domain, indomain, UnionDomain, ProductDomain, FullSpace, Point, elements, DifferenceDomain,
-            Interval, ChebyshevInterval, boundary, ∂
+            Interval, ChebyshevInterval, boundary, ∂, rightendpoint, leftendpoint
 
 import AbstractFFTs: Plan, fft, ifft
 import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
@@ -30,6 +30,7 @@ import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, 
 import Base.Broadcast: BroadcastStyle, Broadcasted, AbstractArrayStyle, broadcastable,
                         DefaultArrayStyle, broadcasted
 
+import Statistics: mean
 
 import LinearAlgebra: BlasInt, BlasFloat, norm, ldiv!, mul!, det, eigvals, dot, cross,
                         qr, qr!, isdiag, rank, issymmetric, ishermitian, Tridiagonal,

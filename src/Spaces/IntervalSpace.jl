@@ -6,7 +6,7 @@ Space(d::IntervalDomain) = Chebyshev(d)
 Space(d::FullSpace{<:Real}) = Chebyshev(Line())
 
 Fun(::typeof(identity), d::Segment{T}) where {T<:Number} =
-    Fun(Chebyshev(d), T[(d.b+d.a)/2,(d.b-d.a)/2])
+    Fun(Chebyshev(d), T[(rightendpoint(d)+leftendpoint(d))/2, complexlength(d)/2])
 
 
 ## Calculus

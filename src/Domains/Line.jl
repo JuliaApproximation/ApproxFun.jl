@@ -36,9 +36,9 @@ Line{a}() where {a} = Line{a,Float64}()
 
 angle(d::Line{a}) where {a} = a*π
 
-reverse(d::Line{true}) = Line{false}(d.center,d.β,d.α)
-reverse(d::Line{false}) = Line{true}(d.center,d.β,d.α)
-reverse(d::Line{a}) where {a} = Line{a-1}(d.center,d.β,d.α)
+reverseorientation(d::Line{true}) = Line{false}(d.center,d.β,d.α)
+reverseorientation(d::Line{false}) = Line{true}(d.center,d.β,d.α)
+reverseorientation(d::Line{a}) where {a} = Line{a-1}(d.center,d.β,d.α)
 
 # ensure the angle is always in (-1,1]
 Line(c,a,α,β) = Line{mod(a/π-1,-2)+1,typeof(c)}(c,α,β)
@@ -177,9 +177,9 @@ convert(::Type{IT},::AnyDomain) where {IT<:PeriodicLine} = PeriodicLine(NaN,NaN)
 
 angle(d::PeriodicLine{a}) where {a}=a*π
 
-reverse(d::PeriodicLine{true})=PeriodicLine{false}(d.center,d.L)
-reverse(d::PeriodicLine{false})=PeriodicLine{true}(d.center,d.L)
-reverse(d::PeriodicLine{a}) where {a}=PeriodicLine{a-1}(d.center,d.L)
+reverseorientation(d::PeriodicLine{true})=PeriodicLine{false}(d.center,d.L)
+reverseorientation(d::PeriodicLine{false})=PeriodicLine{true}(d.center,d.L)
+reverseorientation(d::PeriodicLine{a}) where {a}=PeriodicLine{a-1}(d.center,d.L)
 
 tocanonical(d::PeriodicLine{false},x) = real(2atan((x-d.center)/d.L))
 fromcanonical(d::PeriodicLine{false},θ) = d.L*tan(θ/2) + d.center

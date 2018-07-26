@@ -34,30 +34,37 @@ Segment(a,b) = Segment{promote_type(typeof(a),typeof(b))}(a,b)
 Segment(a::Tuple,b::Tuple) = Segment(Vec(a...),Vec(b...))
 
 
-convert(::Type{Domain{T}}, d::Segment) where {T<:Number} = Segment{T}(d.a,d.b)
-convert(::Type{Segment{T}}, d::Segment) where {T<:Number} = Segment{T}(d.a,d.b)
+convert(::Type{Domain{T}}, d::Segment) where {T<:Number} = Segment{T}(leftendpoint(d),rightendpoint(d))
+convert(::Type{Segment{T}}, d::Segment) where {T<:Number} = Segment{T}(leftendpoint(d),rightendpoint(d))
 convert(::Type{Segment},d::IntervalSets.ClosedInterval) = Segment(d.left,d.right)
 
 
 AnySegment(::Type{T}) where {T} = Segment{T}(NaN,NaN)
 AnySegment() = AnySegment(Float64)
-isambiguous(d::Segment) = all(isnan(d.a)) && all(isnan(d.b))
+isambiguous(d::Segment) = all(isnan(leftendpoint(d))) && all(isnan(rightendpoint(d)))
 convert(::Type{Segment{T}},::AnyDomain) where {T<:Number} = AnySegment(T)
 convert(::Type{Segment},::AnyDomain) = AnySegment()
 
 
 ## Information
-@inline Base.first(d::Segment) = d.a
-@inline Base.last(d::Segment) = d.b
+@inline leftendpoint(d::Segment) = d.a
+@inline rightendpoint(d::Segment) = d.b
 
-@inline Base.minimum(d::Segment) = min(d.a,d.b)
-@inline Base.maximum(d::Segment) = max(d.a,d.b)
+@inline minimum(d::Segment) = min(leftendpoint(d),rightendpoint(d))
+@inline maximum(d::Segment) = max(leftendpoint(d),rightendpoint(d))
 
-Base.isempty(d::Segment) = isapprox(d.a, d.b; atol=200eps(eltype(d)))
+isempty(d::Segment) = isapprox(leftendpoint(d), rightendpoint(d); atol=200eps(eltype(d)))
 
 issubset(a::Segment,b::Segment) = first(a)∈b && last(a)∈b
 
 
+
+arclength(d::Domains.AbstractInterval) = norm(maximum(d) - minimum(d))
+arclength(d::Segment) = norm(complexlength(d))
+complexlength(d::IntervalOrSegment) = rightendpoint(d)-leftendpoint(d)
+mean(d::IntervalOrSegment) = (rightendpoint(d)+leftendpoint(d))/2
+angle(d::IntervalOrSegment) = angle(complexlength(d))
+sign(d::IntervalOrSegment) = sign(complexlength(d))
 
 ## Map interval
 # The first definition  is the more general
@@ -70,27 +77,21 @@ fromcanonicalD(d::ChebyshevInterval{T},x) where {T<:Number} = one(x)
 tocanonical(d::ChebyshevInterval{T},x) where {T<:Number} = x
 tocanonicalD(d::ChebyshevInterval{T},x) where {T<:Number} = one(x)
 
-tocanonical(d::IntervalOrSegment{T},x) where {T} = 2norm(x-d.a)/arclength(d)-1
-tocanonical(d::IntervalOrSegment{T},x::Number) where {T<:Complex} = 2norm(x-d.a)/arclength(d)-1
-mobius(d::IntervalOrSegment,x) = (d.a + d.b - 2x)/(d.a - d.b)
+tocanonical(d::IntervalOrSegment{T},x) where {T} = 2norm(x-leftendpoint(d))/arclength(d)-1
+tocanonical(d::IntervalOrSegment{T},x::Number) where {T<:Complex} = 2norm(x-leftendpoint(d))/arclength(d)-1
+mobius(d::IntervalOrSegment,x) = (2x - leftendpoint(d) - rightendpoint(d))/complexlength(d)
 tocanonical(d::IntervalOrSegment{T},x) where {T<:Real} = mobius(d,x)
-tocanonicalD(d::IntervalOrSegment{T},x) where {T<:Real} = 2/(d.b- d.a)
-fromcanonical(d::IntervalOrSegment{T},x) where {T<:Number} = (d.a + d.b)/2 + (d.b - d.a)x/2
-fromcanonical(d::IntervalOrSegment{T},x) where {T<:Vec} = (d.a + d.b)/2 + (d.b - d.a)x/2
-fromcanonicalD(d::IntervalOrSegment,x) = (d.b- d.a) / 2
+tocanonicalD(d::IntervalOrSegment{T},x) where {T<:Real} = 2/complexlength(d)
+fromcanonical(d::IntervalOrSegment{T},x) where {T<:Number} = mean(d) + complexlength(d)x/2
+fromcanonical(d::IntervalOrSegment{T},x) where {T<:Vec} = mean(d) + complexlength(d)x/2
+fromcanonicalD(d::IntervalOrSegment,x) = complexlength(d) / 2
 
 
-arclength(d::Domains.AbstractInterval) = norm(maximum(d) - minimum(d))
-arclength(d::Segment) = norm(d.b - d.a)
-Base.angle(d::IntervalOrSegment) = angle(last(d)-first(d))
-Base.sign(d::IntervalOrSegment) = sign(last(d)-first(d))
-complexlength(d::IntervalOrSegment) = last(d)-first(d)
 
-
-==(d::Segment,m::Segment) = (isambiguous(d) && isambiguous(m)) || (d.a == m.a && d.b == m.b)
+==(d::Segment,m::Segment) = (isambiguous(d) && isambiguous(m)) || (leftendpoint(d) == m.a && rightendpoint(d) == m.b)
 function isapprox(d::Segment,m::Segment)
     tol=10E-12
-    norm(d.a-m.a)<tol&&norm(d.b-m.b)<tol
+    norm(leftendpoint(d)-m.a)<tol&&norm(rightendpoint(d)-m.b)<tol
 end
 
 
@@ -99,18 +100,18 @@ end
 
 for op in (:*,:+,:-)
     @eval begin
-        $op(c::Number,d::Segment) = Segment($op(c,d.a),$op(c,d.b))
-        $op(d::Segment,c::Number) = Segment($op(d.a,c),$op(d.b,c))
+        $op(c::Number,d::Segment) = Segment($op(c,leftendpoint(d)),$op(c,rightendpoint(d)))
+        $op(d::Segment,c::Number) = Segment($op(leftendpoint(d),c),$op(rightendpoint(d),c))
     end
 end
 
-broadcast(::typeof(^),c::Number,d::Segment) = Segment(c^d.a,c^d.b)
-broadcast(::typeof(^),d::Segment,c::Number) = Segment(d.a^c,d.b^c)
+broadcast(::typeof(^),c::Number,d::Segment) = Segment(c^leftendpoint(d),c^rightendpoint(d))
+broadcast(::typeof(^),d::Segment,c::Number) = Segment(leftendpoint(d)^c,rightendpoint(d)^c)
 
-/(d::Segment,c::Number) = Segment(d.a/c,d.b/c)
+/(d::Segment,c::Number) = Segment(leftendpoint(d)/c,rightendpoint(d)/c)
 
 
-sqrt(d::Segment)=Segment(sqrt(d.a),sqrt(d.b))
+sqrt(d::Segment)=Segment(sqrt(leftendpoint(d)),sqrt(rightendpoint(d)))
 
 +(d1::Segment,d2::Segment)=Segment(d1.a+d2.a,d1.b+d2.b)
 
@@ -118,13 +119,13 @@ sqrt(d::Segment)=Segment(sqrt(d.a),sqrt(d.b))
 
 ## intersect/union
 
-reverse(d::Segment)=Segment(d.b,d.a)
+reverseorientation(d::IntervalOrSegment) = Segment(rightendpoint(d),leftendpoint(d))
 
 function intersect(a::Segment{T},b::Segment{V}) where {T<:Real,V<:Real}
     if first(a) > last(a)
-        intersect(reverse(a),b)
+        intersect(reverseorientation(a),b)
     elseif first(b) > last(b)
-        intersect(a,reverse(b))
+        intersect(a,reverseorientation(b))
     elseif first(a) > first(b)
         intersect(b,a)
     elseif last(a) <= first(b)
@@ -142,9 +143,9 @@ end
 function setdiff(a::Segment{T},b::Segment{V}) where {T<:Real,V<:Real}
     # ensure a/b are well-ordered
     if first(a) > last(a)
-        intersect(reverse(a),b)
+        intersect(reverseorientation(a),b)
     elseif first(b) > last(b)
-        intersect(a,reverse(b))
+        intersect(a,reverseorientation(b))
     elseif first(a)< first(b)
         if last(a) <= first(b)
             a

@@ -36,6 +36,7 @@ Evaluation(sp::Space,x,order) = Evaluation(rangetype(sp),sp,x,order)
 Evaluation(d::Space,x::Union{Number,typeof(first),typeof(last)}) = Evaluation(d,x,0)
 Evaluation(::Type{T},d::Space,n...) where {T} = error("Override Evaluation for $(typeof(d))")
 Evaluation(::Type{T},d,n...) where {T} = Evaluation(T,Space(d),n...)
+Evaluation(S::Space,n...) = error("Override Evaluation for $(typeof(S))")
 Evaluation(d,n...) = Evaluation(Space(d),n...)
 Evaluation(x::Union{Number,typeof(first),typeof(last)}) = Evaluation(UnsetSpace(),x,0)
 Evaluation(x::Union{Number,typeof(first),typeof(last)},k::Integer) =

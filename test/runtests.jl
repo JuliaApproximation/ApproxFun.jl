@@ -81,7 +81,7 @@ end
 @testset "Domain" begin
     @test 0.45-0.65im ∉ Segment()
 
-    @test reverse(Arc(1,2,(0.1,0.2))) == Arc(1,2,(0.2,0.1))
+    @test reverseorientation(Arc(1,2,(0.1,0.2))) == Arc(1,2,(0.2,0.1))
     @test 0.1 ∈ PeriodicInterval(2π,0)
     @test 100.0 ∈ PeriodicInterval(0,2π)
     @test -100.0 ∈ PeriodicInterval(0,2π)

@@ -90,7 +90,7 @@ end
 
 
 
-reverse(d::Circle) = Circle(d.center,d.radius,!d.orientation)
+reverseorientation(d::Circle) = Circle(d.center,d.radius,!d.orientation)
 conj(d::Circle) = Circle(conj(d.center),d.radius,!d.orientation)
 
 

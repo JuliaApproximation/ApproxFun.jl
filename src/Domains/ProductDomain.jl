@@ -39,7 +39,7 @@ function points(d::ProductDomain,n::Tuple)
     ret
 end
 
-reverse(d::ProductDomain) = ProductDomain(map(reverse,d.domains))
+reverseorientation(d::ProductDomain) = ProductDomain(map(reverseorientation, d.domains))
 
 domainscompatible(a::ProductDomain,b::ProductDomain) =
                         length(a.domains)==length(b.domains) &&

@@ -269,7 +269,7 @@ end
 
 
 reverseorientation(f::Fun{C}) where {C<:Chebyshev} =
-    Fun(Chebyshev(reverse(domain(f))),alternatesign!(copy(f.coefficients)))
+    Fun(Chebyshev(reverseorientation(domain(f))),alternatesign!(copy(f.coefficients)))
 
 
 include("ChebyshevOperators.jl")

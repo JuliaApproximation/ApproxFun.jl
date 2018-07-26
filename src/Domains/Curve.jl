@@ -58,8 +58,8 @@ function indomain(x,c::Curve)
     end
 end
 
-reverse(d::IntervalCurve) = IntervalCurve(reverseorientation(d.curve))
-reverse(d::PeriodicCurve) = PeriodicCurve(reverseorientation(d.curve))
+reverseorientation(d::IntervalCurve) = IntervalCurve(reverseorientation(d.curve))
+reverseorientation(d::PeriodicCurve) = PeriodicCurve(reverseorientation(d.curve))
 
 isambiguous(d::Curve) = ncoefficients(d.curve)==0 && isambiguous(domain(d.curve))
 convert(::Type{IntervalCurve{S,T}},::AnyDomain) where {S,T}=Fun(S(AnyDomain()),[NaN])

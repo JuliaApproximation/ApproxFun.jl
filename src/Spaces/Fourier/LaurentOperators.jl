@@ -78,12 +78,12 @@ bandinds(D::ConcreteDerivative{Hardy{s,DD,RR}}) where {s,DD<:Circle,RR}=s ? (0,D
 rangespace(D::ConcreteDerivative{S}) where {S<:Hardy}=D.space
 
 function taylor_derivative_getindex(d::PeriodicInterval,m,k::Integer,j::Integer)
-    C=2/(d.b-d.a)*π*im
+    C=2/complexlength(d)*π*im
     k==j ? (C*(k-1))^m : zero(C)
 end
 
 function hardyfalse_derivative_getindex(d::PeriodicInterval,m,k::Integer,j::Integer)
-    C=2/(d.b-d.a)*π*im
+    C=2/complexlength(d)*π*im
     k==j ? (-C*k)^m : zero(C)
 end
 
@@ -204,7 +204,7 @@ function getindex(D::ConcreteIntegral{Hardy{false,DD,RR}},k::Integer,j::Integer)
     d=domain(D)
     m=D.order
     T=eltype(D)
-    C=2/(d.b-d.a)*π*im
+    C=2/complexlength(d)*π*im
     if k==j
         convert(T,(-C*k)^(-m))
     else
@@ -224,7 +224,7 @@ function getindex(D::ConcreteIntegral{SubSpace{Taylor{DD,RR},UnitCount{Int64},DD
     d=domain(D)
     m=D.order
     TT=eltype(D)
-    C=2/(d.b-d.a)*π*im
+    C=2/complexlength(d)*π*im
     if k==j
         convert(TT,(C*(k+n-1))^(-m))
     else
@@ -287,7 +287,7 @@ bandinds(Σ::ConcreteDefiniteLineIntegral{Laurent{D,R}}) where {D,R} = 0,0
 
 conversion_type(A::Laurent{DD,RR},B::Laurent{DD,RR}) where {DD<:Circle,RR}=domain(A).orientation ? A : B
 function Conversion(A::Laurent{DD,RR},B::Laurent{DD,RR}) where {DD,RR}
-    @assert domain(A) == reverse(domain(B))
+    @assert domain(A) == reverseorientation(domain(B))
     ConversionWrapper(SpaceOperator(
         InterlaceOperator(Diagonal([eye(1),PermutationOperator([2,1])]))
     ,A,B))

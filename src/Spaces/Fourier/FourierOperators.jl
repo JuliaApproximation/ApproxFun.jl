@@ -65,12 +65,12 @@ end
 
 conversion_type(A::Fourier{DD,R1},B::Fourier{DD,R2}) where {DD<:Circle,R1,R2} = domain(A).orientation ? A : B
 
-hasconversion(A::Fourier{DD,R1},B::Fourier{DD,R2}) where {DD,R1,R2} = domain(A) == reverse(domain(B))
+hasconversion(A::Fourier{DD,R1},B::Fourier{DD,R2}) where {DD,R1,R2} = domain(A) == reverseorientation(domain(B))
 function Conversion(A::Fourier{DD,R1},B::Fourier{DD,R2}) where {DD,R1,R2}
     if A==B
         ConversionWrapper(eye(A))
     else
-        @assert domain(A) == reverse(domain(B))
+        @assert domain(A) == reverseorientation(domain(B))
         ConcreteConversion(A,B)
     end
 end
@@ -101,7 +101,7 @@ rangespace(D::ConcreteDerivative{S}) where {S<:SinSpace} = iseven(D.order) ? D.s
 function getindex(D::ConcreteDerivative{CS,OT,T},k::Integer,j::Integer) where {CS<:CosSpace,OT,T}
     d=domain(D)
     m=D.order
-    C=convert(T,2/(d.b-d.a)*π)
+    C=convert(T,2/complexlength(d)*π)
 
     if k==j && mod(m,4)==0
         (C*(k-1))^m
@@ -119,7 +119,7 @@ end
 function getindex(D::ConcreteDerivative{CS,OT,T},k::Integer,j::Integer) where {CS<:SinSpace,OT,T}
     d=domain(D)
     m=D.order
-    C=convert(T,2/(d.b-d.a)*π)
+    C=convert(T,2/complexlength(d)*π)
 
     if k==j && mod(m,4)==0
         (C*k)^m
@@ -152,7 +152,7 @@ function getindex(D::ConcreteIntegral{CS,OT,T},k::Integer,j::Integer) where {CS<
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     m=D.order
-    C=convert(T,2/(d.b-d.a)*π)
+    C=convert(T,2/complexlength(d)*π)
 
 
     if k==j && mod(m,4)==0
@@ -183,7 +183,7 @@ function getindex(D::ConcreteIntegral{SubSpace{CS,UnitCount{Int64},DD,RR}},
     d=domain(D)
     m=D.order
     T=eltype(D)
-    C=convert(T,2/(d.b-d.a)*π)
+    C=convert(T,2/complexlength(d)*π)
 
 
     if k==j

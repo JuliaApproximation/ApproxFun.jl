@@ -39,7 +39,7 @@ end
 
 isperiodic(d::PiecewiseSegment) = first(d.points)==last(d.points)
 
-reverse(d::PiecewiseSegment) = PiecewiseSegment(reverse(d.points))
+reverseorientation(d::PiecewiseSegment) = PiecewiseSegment(reverse(d.points))
 
 isambiguous(d::PiecewiseSegment)=isempty(d.points)
 convert(::Type{PiecewiseSegment{T}},::AnyDomain) where {T<:Number}=PiecewiseSegment{T}([])

@@ -26,21 +26,25 @@ function convert(::Type{PeriodicInterval}, d::IntervalSets.ClosedInterval)
     PeriodicInterval(a,b)
 end
 
-Segment(d::PeriodicInterval) = Segment(d.a,d.b)
-Interval(d::PeriodicInterval) = Interval(d.a,d.b)
-PeriodicInterval(d::Segment) = PeriodicInterval(d.a,d.b)
+Segment(d::PeriodicInterval) = Segment(leftendpoint(d),rightendpoint(d))
+Interval(d::PeriodicInterval) = Interval(leftendpoint(d),rightendpoint(d))
+PeriodicInterval(d::Segment) = PeriodicInterval(leftendpoint(d),rightendpoint(d))
 
-convert(::Type{PeriodicInterval{T}}, d::PeriodicInterval) where {T<:Number} = PeriodicInterval{T}(d.a,d.b)
+convert(::Type{PeriodicInterval{T}}, d::PeriodicInterval) where {T<:Number} = PeriodicInterval{T}(leftendpoint(d),rightendpoint(d))
 
-isambiguous(d::PeriodicInterval) = all(isnan(d.a)) && all(isnan(d.b))
+isambiguous(d::PeriodicInterval) = all(isnan(leftendpoint(d))) && all(isnan(rightendpoint(d)))
 convert(::Type{PeriodicInterval{T}},::AnyDomain) where {T<:Number} = PeriodicInterval{T}(NaN,NaN)
 convert(::Type{PeriodicInterval{Vec{d,T}}},::AnyDomain) where {d,T} = PeriodicInterval(Vec(fill(NaN,d)...),Vec(fill(NaN,d)...))
 convert(::Type{PeriodicInterval{T}},::AnyDomain) where {T} = PeriodicInterval(nan(T),nan(T))
+PeriodicInterval{T}(d) where T = convert(PeriodicInterval{T}, d)
+PeriodicInterval(d) = convert(PeriodicInterval, d)
 
 
 ## Information
+leftendpoint(d::PeriodicInterval) = d.a
+rightendpoint(d::PeriodicInterval) = d.b
 
-first(d::PeriodicInterval) = d.a
+first(d::PeriodicInterval) = leftendpoint(d)
 
 issubset(a::PeriodicInterval,b::PeriodicInterval) = first(a)∈b && (a.b∈b || a.b == b.b)
 
@@ -57,14 +61,14 @@ fromcanonicalD(d::PeriodicInterval,θ) = fromcanonicalD(Segment(d),θ/π-1)/π
 
 
 
-arclength(d::PeriodicInterval) = norm(d.b - d.a)
-angle(d::PeriodicInterval) = angle(d.b - d.a)
-complexlength(d::PeriodicInterval) = d.b-d.a
-reverse(d::PeriodicInterval) = PeriodicInterval(d.b,d.a)
+arclength(d::PeriodicInterval) = norm(complexlength(d))
+angle(d::PeriodicInterval) = angle(complexlength(d))
+complexlength(d::PeriodicInterval) = rightendpoint(d) - leftendpoint(d)
+reverseorientation(d::PeriodicInterval) = PeriodicInterval(rightendpoint(d), leftendpoint(d))
 
 
 
-==(d::PeriodicInterval,m::PeriodicInterval) = d.a == m.a && d.b == m.b
+==(d::PeriodicInterval,m::PeriodicInterval) = leftendpoint(d) == m.a && rightendpoint(d) == m.b
 
 
 
@@ -74,12 +78,12 @@ reverse(d::PeriodicInterval) = PeriodicInterval(d.b,d.a)
 
 for op in (:*,:+,:-)
     @eval begin
-        $op(c::Number,d::PeriodicInterval) = PeriodicInterval($op(c,d.a),$op(c,d.b))
-        $op(d::PeriodicInterval,c::Number) = PeriodicInterval($op(d.a,c),$op(d.b,c))
+        $op(c::Number,d::PeriodicInterval) = PeriodicInterval($op(c,leftendpoint(d)),$op(c,rightendpoint(d)))
+        $op(d::PeriodicInterval,c::Number) = PeriodicInterval($op(leftendpoint(d),c),$op(rightendpoint(d),c))
     end
 end
 
 
-@eval /(d::PeriodicInterval,c::Number) = PeriodicInterval(/(d.a,c),/(d.b,c))
+@eval /(d::PeriodicInterval,c::Number) = PeriodicInterval(/(leftendpoint(d),c),/(rightendpoint(d),c))
 
 +(d1::PeriodicInterval,d2::PeriodicInterval) = PeriodicInterval(d1.a+d2.a,d1.b+d2.b)

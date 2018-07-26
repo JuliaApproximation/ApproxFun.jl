@@ -52,7 +52,7 @@ intersect(b::Line,a::Segment) = intersect(a,b)
 function setdiff(b::Line,a::Segment)
     @assert a ⊆ b
     if first(a)>last(a)
-        b\reverse(a)
+        b\reverseorientation(a)
     else
         Ray([first(b),first(a)]) ∪ Ray([last(a),last(b)])
     end
@@ -95,18 +95,18 @@ function Base.setdiff(d::AffineDomain,ptsin::UnionDomain{AS}) where {AS <: Abstr
     isapprox(db,pts[end];atol=tol) && pop!(pts)
 
     sort!(pts)
-    d.a > d.b && reverse!(pts)
+    leftendpoint(d) > rightendpoint(d) && reverse!(pts)
     filter!(p->p ∈ d,pts)
 
     isempty(pts) && return d
     length(pts) == 1 && return d \ pts[1]
 
     ret = Array{Domain}(undef, length(pts)+1)
-    ret[1] = Domain(d.a..pts[1])
+    ret[1] = Domain(leftendpoint(d) .. pts[1])
     for k = 2:length(pts)
         ret[k] = Domain(pts[k-1]..pts[k])
     end
-    ret[end] = Domain(pts[end]..d.b)
+    ret[end] = Domain(pts[end] .. rightendpoint(d))
     UnionDomain(ret)
 end
 

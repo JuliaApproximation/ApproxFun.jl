@@ -42,16 +42,16 @@ function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(first)},kr::AbstractRan
     elseif op.order == 1&&  b==0
         d=domain(op)
         @assert isa(d,Segment)
-        T[tocanonicalD(d,d.a)/2*(a+k)*(k-1)*(-1)^k for k=kr]
+        T[tocanonicalD(d,leftendpoint(d))/2*(a+k)*(k-1)*(-1)^k for k=kr]
     elseif op.order == 1
         d=domain(op)
         @assert isa(d,Segment)
         if kr[1]==1 && kr[end] ≥ 2
-            tocanonicalD(d,d.a)*(a+b+kr).*T[zero(T);jacobip(T,0:kr[end]-2,1+a,1+b,-one(T))]/2
+            tocanonicalD(d,leftendpoint(d))*(a+b+kr).*T[zero(T);jacobip(T,0:kr[end]-2,1+a,1+b,-one(T))]/2
         elseif kr[1]==1  # kr[end] ≤ 1
             zeros(T,length(kr))
         else
-            tocanonicalD(d,d.a)*(a+b+kr).*jacobip(T,kr-1,1+a,1+b,-one(T))/2
+            tocanonicalD(d,leftendpoint(d))*(a+b+kr).*jacobip(T,kr-1,1+a,1+b,-one(T))/2
         end
     elseif op.order == 2
         @assert b==0
@@ -76,11 +76,11 @@ function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(last)},kr::AbstractRang
         d=domain(op)
         @assert isa(d,Segment)
         if kr[1]==1 && kr[end] ≥ 2
-            tocanonicalD(d,d.a)*((a+b).+kr).*T[zero(T);jacobip(T,0:kr[end]-2,1+a,1+b,one(T))]/2
+            tocanonicalD(d,leftendpoint(d))*((a+b).+kr).*T[zero(T);jacobip(T,0:kr[end]-2,1+a,1+b,one(T))]/2
         elseif kr[1]==1  # kr[end] ≤ 1
             zeros(T,length(kr))
         else
-            tocanonicalD(d,d.a)*((a+b).+kr).*jacobip(T,kr.-1,1+a,1+b,one(T))/2
+            tocanonicalD(d,leftendpoint(d))*((a+b).+kr).*jacobip(T,kr.-1,1+a,1+b,one(T))/2
         end
     else
         error("Not implemented")
@@ -169,7 +169,7 @@ bandinds(V::ConcreteVolterra{J}) where {J<:Jacobi}=-1,0
 
 function getindex(V::ConcreteVolterra{J},k::Integer,j::Integer) where J<:Jacobi
     d=domain(V)
-    C = 0.5(d.b-d.a)
+    C = complexlength(d)/2
     if k≥2
         if j==k-1
             C/(k-1.5)

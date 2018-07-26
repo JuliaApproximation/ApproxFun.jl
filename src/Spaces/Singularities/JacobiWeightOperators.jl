@@ -20,7 +20,7 @@ for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:arclength))
                 $Func(increase_jacobi_parameter(+1,f))
             elseif β ≤ -1.0 || α ≤ -1.0
                 fs = Fun(f.space.space,f.coefficients)
-                return Inf*0.5*$Len(d)*(sign(fs(d.a))+sign(fs(d.b)))/2
+                return Inf*0.5*$Len(d)*(sign(fs(leftendpoint(d)))+sign(fs(rightendpoint(d))))/2
             elseif β == α == -0.5
                 return 0.5*$Len(d)*f.coefficients[1]*π
             elseif β == α == 0.5
@@ -56,19 +56,19 @@ function differentiate(f::Fun{JacobiWeight{SS,DD,RR,TT}}) where {SS,DD<:Interval
     elseif S.β==0
         x=Fun(identity,d)
         M=tocanonical(d,x)
-        Mp=tocanonicalD(d,d.a)
+        Mp=tocanonicalD(d,leftendpoint(d))
         u=-Mp*S.α*ff +(1-M).*differentiate(ff)
         Fun(JacobiWeight(0.,S.α-1,space(u)),u.coefficients)
     elseif S.α==0
         x=Fun(identity,d)
         M=tocanonical(d,x)
-        Mp=tocanonicalD(d,d.a)
+        Mp=tocanonicalD(d,leftendpoint(d))
         u=Mp*S.β*ff +(1+M).*differentiate(ff)
         Fun(JacobiWeight(S.β-1,0.,space(u)),u.coefficients)
     else
         x=Fun(identity,d)
         M=tocanonical(d,x)
-        Mp=tocanonicalD(d,d.a)
+        Mp=tocanonicalD(d,leftendpoint(d))
         u=(Mp*S.β)*(1-M).*ff- (Mp*S.α)*(1+M).*ff +(1-M.^2).*differentiate(ff)
         Fun(JacobiWeight(S.β-1,S.α-1,space(u)),u.coefficients)
     end
@@ -91,7 +91,7 @@ function integrate(f::Fun{JacobiWeight{SS,DD,RR,TT}}) where {SS,DD<:IntervalOrSe
         p=first(g)  # first value without weight
         fp = Fun(f-Fun(S,[p]),S.space)  # Subtract out right value and divide singularity via conversion
         d=domain(f)
-        Mp=tocanonicalD(d,d.a)
+        Mp=tocanonicalD(d,leftendpoint(d))
         integrate(fp) ⊕ Fun(LogWeight(1.,0.,S.space),[p/Mp])
     elseif S.β ≈ -1 && S.α > 0 && isapproxinteger(S.α)
         # convert to zero case and integrate
@@ -100,7 +100,7 @@ function integrate(f::Fun{JacobiWeight{SS,DD,RR,TT}}) where {SS,DD<:IntervalOrSe
         p=last(g)  # last value without weight
         fp = Fun(f-Fun(S,[p]),S.space)  # Subtract out right value and divide singularity via conversion
         d=domain(f)
-        Mp=tocanonicalD(d,d.a)
+        Mp=tocanonicalD(d,leftendpoint(d))
         integrate(fp) ⊕ Fun(LogWeight(zero(TT),one(TT),S.space),[-p/Mp])
     elseif isapprox(S.α,-1) && S.β > 0 && isapproxinteger(S.β)
         # convert to zero case and integrate
@@ -149,7 +149,7 @@ function jacobiweightDerivative(S::JacobiWeight{SS,DDD}) where {SS,DDD<:Interval
 
     if d!=Segment()
         # map to canonical
-        Mp=fromcanonicalD(d,d.a)
+        Mp=fromcanonicalD(d,leftendpoint(d))
         DD=jacobiweightDerivative(setdomain(S,Segment()))
 
         return DerivativeWrapper(SpaceOperator(DD.op.op,S,setdomain(rangespace(DD),d))/Mp,1)
@@ -344,7 +344,7 @@ function  Base.getindex(op::ConcreteEvaluation{<:JacobiWeight,typeof(first)},kr:
             2^S.α*getindex(Evaluation(S.space,op.x),kr)
         else #op.order ===1
             @assert isa(d,IntervalDomain)
-            2^S.α*getindex(Evaluation(S.space,op.x,1),kr)-(tocanonicalD(d,d.a)*S.α*2^(S.α-1))*getindex(Evaluation(S.space,op.x),kr)
+            2^S.α*getindex(Evaluation(S.space,op.x,1),kr)-(tocanonicalD(d,leftendpoint(d))*S.α*2^(S.α-1))*getindex(Evaluation(S.space,op.x),kr)
         end
     else
         @assert op.order==0
@@ -364,7 +364,7 @@ function  Base.getindex(op::ConcreteEvaluation{<:JacobiWeight,typeof(last)},kr::
         else #op.order ===1
             @assert isa(d,IntervalDomain)
             2^S.β*getindex(Evaluation(S.space,op.x,1),kr)+
-                (tocanonicalD(d,d.a)*S.β*2^(S.β-1))*getindex(Evaluation(S.space,op.x),kr)
+                (tocanonicalD(d,leftendpoint(d))*S.β*2^(S.β-1))*getindex(Evaluation(S.space,op.x),kr)
         end
     else
         @assert op.order==0

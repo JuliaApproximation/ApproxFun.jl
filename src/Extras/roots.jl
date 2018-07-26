@@ -261,7 +261,7 @@ function extremal_args(f::Fun)
         S=typeof(space(f))
         fromcanonical.(f,extremal_args(setcanonicaldomain(f)))
     else
-        dab = Number.(components(∂(domain(f))))
+        dab = convert(Vector{Number}, collect(components(∂(domain(f)))))
         if ncoefficients(f) <=2 #TODO this is only relevant for Polynomial bases
             dab
         else

@@ -28,7 +28,7 @@ function abs(f::Fun)
 end
 
 
-midpoints(d::Segment) = [(d.b+d.a)/2]
+midpoints(d::Segment) = [mean(d)]
 midpoints(d::UnionDomain) = mapreduce(midpoints,vcat,d.domains)
 
 
@@ -127,13 +127,13 @@ function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:IntervalOrSegment,RR}
         g=divide_singularity((1,0),fc)
         p=c/g
         x = Fun(identity,domain(p))
-        return scaleshiftdomain(p/(1+x),(d.b - d.a)/2,(d.a + d.b)/2 )
+        return scaleshiftdomain(p/(1+x),complexlength(d)/2,mean(d) )
     elseif abs(last(fc)) ≤ tol
         #right root
         g=divide_singularity((0,1),fc)
         p=c/g
         x=Fun(identity,domain(p))
-        return scaleshiftdomain(p/(1-x),(d.b - d.a)/2,(d.a + d.b)/2 )
+        return scaleshiftdomain(p/(1-x),complexlength(d)/2,mean(d) )
     else
         r = roots(fc)
 
@@ -144,13 +144,13 @@ function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:IntervalOrSegment,RR}
             g=divide_singularity((1,0),fc)
             p=c/g
             x=Fun(identity,domain(p))
-            return scaleshiftdomain(p/(1+x),(d.b - d.a)/2,(d.a + d.b)/2 )
+            return scaleshiftdomain(p/(1+x),complexlength(d)/2,mean(d) )
         elseif abs(last(r)-1.0)≤tol  # double check
             #right root
             g=divide_singularity((0,1),fc)
             p=c/g
             x=Fun(identity,domain(p))
-            return scaleshiftdomain(p/(1-x),(d.b - d.a)/2,(d.a + d.b)/2 )
+            return scaleshiftdomain(p/(1-x),complexlength(d)/2,mean(d) )
         else
             # no roots on the boundary
             return c/splitatroots(f)

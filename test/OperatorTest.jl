@@ -27,7 +27,7 @@ using ApproxFun, BlockBandedMatrices,  Test
                                               0.0 0.0  0.3333333333333333 0.0 -0.2
                                               0.0 0.0  0.0                0.25 0.0
                                               0.0 0.0  0.0                0.0  0.2]
-        d=Interval()
+        d=ChebyshevInterval()
         A=Conversion(Chebyshev(d),Ultraspherical(2,d))
         x = Fun()
         f=Fun(exp)
@@ -161,7 +161,7 @@ using ApproxFun, BlockBandedMatrices,  Test
     end
 
     @testset "Mixed" begin
-        d = Interval()
+        d = ChebyshevInterval()
         D = Derivative(d)
         x = Fun(identity,d)
         A = D*(x*D)

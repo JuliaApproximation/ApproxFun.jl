@@ -63,7 +63,8 @@ blocklengths(S::Space) = repeated(true,dimension(S))
 nblocks(S::Space) = length(blocklengths(S))
 block(S::Space,k) = Block(k)
 
-Space(d::AbstractVector{D}) where {D<:Number} = Space(convert(Domain,d))
+Space(s::Space) = s
+
 
 
 abstract type AmbiguousSpace <: Space{AnyDomain,UnsetNumber} end
@@ -86,7 +87,7 @@ end
 # end
 
 setcanonicaldomain(s) = setdomain(s,canonicaldomain(s))
-reverseorientation(S::Space) = setdomain(S,reverse(domain(S)))
+reverseorientation(S::Space) = setdomain(S,reverseorientation(domain(S)))
 
 
 # UnsetSpace dictates that an operator is not defined until
