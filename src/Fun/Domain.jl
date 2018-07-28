@@ -36,6 +36,8 @@ dimension(::AnyDomain) = 1
 
 complexlength(::AnyDomain) = NaN
 arclength(::AnyDomain) = NaN
+arclength(::EmptyDomain) = false
+arclength(::Domains.EmptySpace) = false
 
 reverseorientation(a::Union{AnyDomain,EmptyDomain}) = a
 

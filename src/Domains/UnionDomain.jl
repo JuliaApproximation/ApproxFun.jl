@@ -44,20 +44,20 @@ checkpoints(d::UnionDomain) = mapreduce(checkpoints,union,d.domains)
 
 
 ## to move over
-function Base.merge(d1::UnionDomain,m::Segment)
+function Base.merge(d1::UnionDomain,m::IntervalOrSegment)
     ret=d1.domains
 
     for k=length(ret):-1:1
         it=intersect(ret[k],m)
-        if !isempty(it)
+        if arclength(it) ≠ 0
             sa=setdiff(ret[k],it)
             m=setdiff(m,it)
-            if isempty(sa)
+            if arclength(sa) == 0
                 ret = [ret[1:k-1]...; it; ret[k+1:end]...]
             else
                 ret = [ret[1:k-1]...; sa; it; ret[k+1:end]...]
             end
-            if isempty(m)
+            if arclength(m) == 0
                 break
             end
         end

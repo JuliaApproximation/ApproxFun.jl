@@ -46,6 +46,7 @@ eps(x...) = Base.eps(x...)
 eps(x) = Base.eps(x)
 
 eps(::Type{T}) where {T<:Integer} = zero(T)
+eps(::T) where T<:Integer = eps(T)
 
 eps(::Type{Complex{T}}) where {T<:Real} = eps(real(T))
 eps(z::Complex{T}) where {T<:Real} = eps(abs(z))

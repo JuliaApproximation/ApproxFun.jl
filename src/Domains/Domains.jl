@@ -12,7 +12,7 @@ include("Curve.jl")
 include("Point.jl")
 
 
-const AffineDomain = Union{Segment,PeriodicInterval,Ray,Line}
+const AffineDomain = Union{Domains.AbstractInterval,Segment,PeriodicInterval,Ray,Line}
 
 
 points(d::IntervalSets.ClosedInterval,n) = points(Domain(d),n)

@@ -212,7 +212,7 @@ using ApproxFun, BlockBandedMatrices,  Test
         testbandedoperator(ApproxFun.ReverseOrientation(Chebyshev()))
 
         @test ApproxFun.Reverse(Chebyshev())*Fun(exp) ≈ Fun(x->exp(-x))
-        @test ApproxFun.ReverseOrientation(Chebyshev())*Fun(exp) ≈ Fun(exp,1..(-1))
+        @test ApproxFun.ReverseOrientation(Chebyshev())*Fun(exp) ≈ Fun(exp,Segment(1,-1))
 
 
         @test norm(ApproxFun.Reverse(Fourier())*Fun(t->cos(cos(t-0.2)-0.1),Fourier()) - Fun(t->cos(cos(-t-0.2)-0.1),Fourier())) < 10eps()

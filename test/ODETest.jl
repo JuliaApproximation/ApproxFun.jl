@@ -1,4 +1,4 @@
-using ApproxFun, SpecialFunctions, Test
+using ApproxFun, Domains, SpecialFunctions, Test
     import ApproxFun: Multiplication, testraggedbelowoperator, testbandedoperator, interlace, ∞
 
 @testset "ODE" begin
@@ -16,7 +16,7 @@ using ApproxFun, SpecialFunctions, Test
         testbandedoperator(D2-X)
         testraggedbelowoperator([B;D2-X])
 
-        @time u=[B;D2-X]\[airyai(d.a),airyai(d.b),0.];
+        @time u = [B;D2-X] \ [airyai(d.a),airyai(d.b),0.];
         @test Number.(Array(B*u)) ≈ [airyai(d.a),airyai(d.b)]
 
         @test ≈(u(0.),airyai(0.);atol=10ncoefficients(u)*eps())
@@ -53,8 +53,8 @@ using ApproxFun, SpecialFunctions, Test
         g=Fun(t->exp(-t^2))
 
         fp=f';
-        Bm=Evaluation(domain(f),domain(f).a);
-        u=[Bm,Derivative(domain(f)) - fp]\[exp(f(domain(f).a)),0.];
+        Bm=Evaluation(domain(f),leftendpoint(domain(f)));
+        u=[Bm,Derivative(domain(f)) - fp]\[exp(f(leftendpoint(domain(f)))),0.];
         @test norm(u-g)<100eps()
     end
 
@@ -70,7 +70,7 @@ using ApproxFun, SpecialFunctions, Test
     end
 
     @testset "Bessel" begin
-        d=Interval()
+        d=ChebyshevInterval()
         D=Derivative(d)
         x=Fun(identity,d)
         A=x^2*D^2+x*D+x^2
@@ -78,7 +78,7 @@ using ApproxFun, SpecialFunctions, Test
         testbandedoperator(ToeplitzOperator([0.5],[0.0,0.5]))
         testbandedoperator(HankelOperator(Float64[]))
         testbandedoperator(A)
-        u=[ldirichlet(d);A]\[besselj(0,d.a),0.];
+        u=[ldirichlet(d);A]\[besselj(0,leftendpoint(d)),0.];
 
         @test u(0.1) ≈ besselj(0.,0.1)
         @test norm(A*u)<10eps()

@@ -1,7 +1,8 @@
-
-
 export Segment
 
+
+convert(::Type{ChebyshevInterval}, ::AnyDomain) = ChebyshevInterval()
+convert(::Type{ChebyshevInterval{T}}, ::AnyDomain) where T = ChebyshevInterval{T}()
 
 
 ## Standard interval
@@ -140,7 +141,7 @@ function intersect(a::Segment{T},b::Segment{V}) where {T<:Real,V<:Real}
 end
 
 
-function setdiff(a::Segment{T},b::Segment{V}) where {T<:Real,V<:Real}
+function setdiff(a::Segment{T}, b::Segment{V}) where {T<:Real,V<:Real}
     # ensure a/b are well-ordered
     if first(a) > last(a)
         intersect(reverseorientation(a),b)
