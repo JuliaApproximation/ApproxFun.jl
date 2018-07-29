@@ -69,7 +69,7 @@ end
 
 @testset "Full ODE" begin
     ## Null space
-    d=Interval()
+    d=ChebyshevInterval()
     D=Derivative(d)
     A=D^2-I
     @time κ=nullspace(A)

@@ -81,7 +81,7 @@ println("Fifth image done")
 ## Multivariate
 
 
-d = Interval()^2                            # Defines a rectangle
+d = ChebyshevInterval()^2                            # Defines a rectangle
 
 u = [dirichlet(d);lap(d)+100I]\[[1.0,1.0,1.0,1.0]]      # First four entries of rhs are
                                             # boundary conditions

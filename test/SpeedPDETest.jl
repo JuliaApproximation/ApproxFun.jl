@@ -19,7 +19,7 @@ QR=qr(Δ)
 println("Laplace Dirichlet: should be ~0.015, 0.015, 0.001")
 
 
-d=Interval()^2
+d=ChebyshevInterval()^2
 #dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
 A=[Dirichlet(d); Laplacian(d)]
 f=Fun((x,y)->real(exp(x+im*y)),∂(d))
@@ -37,7 +37,7 @@ println("Laplace: should be ~0.06, 0.001")
 
 
 
-d=Interval()^2
+d=ChebyshevInterval()^2
 u = [Neumann(d); Laplacian(d)+100I] \ [[[1,1],[1,1]],0]
 @time u = [Neumann(d); Laplacian(d)+100I] \ [[[1,1],[1,1]],0]
 println("Neumann Helmholtz: should be ~0.032 (currently ~4.6s)")

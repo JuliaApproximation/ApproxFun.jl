@@ -420,7 +420,7 @@ x,t=Fun(dx×dt)
 
     println("    Time evolution tests")
 
-    dx=Interval();dt=Interval(0,0.2)
+    dx=ChebyshevInterval();dt=Interval(0,0.2)
     d=dx*dt
     Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
     x,t=Fun(dx*dt)
@@ -457,7 +457,7 @@ g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
 >>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
 
 
-    d=PeriodicInterval()*Interval()
+    d=PeriodicInterval()*ChebyshevInterval()
     g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
 
     @test g(0.1,1.0) ≈ real(cos(0.1+im))
@@ -552,7 +552,7 @@ dt=Interval(0,2.)
 Dx=Derivative(s);Dt=Derivative(dt)
 Bx=[ldirichlet(s);continuity(s,0)]
 =======
-    d=Interval()^2
+    d=ChebyshevInterval()^2
     @time u=\([Neumann(d);Laplacian(d)-100.0I],[[[1,1],[1,1]],0.];tolerance=1E-12)
     @test u(.1,.9) ≈ 0.03679861429138079
 >>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
@@ -583,7 +583,7 @@ x,y=Fun(identity,d)
 @time u=\([I⊗ldirichlet(dt);Dt+x*Dx],[Fun(x->exp(-20x^2),dx);0.];tolerance=1E-12)
 =======
     ## Test error
-    dx=Interval();dt=Interval(0,2.)
+    dx=ChebyshevInterval();dt=Interval(0,2.)
     d=dx*dt
     Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
     x,y=Fun(identity,d)

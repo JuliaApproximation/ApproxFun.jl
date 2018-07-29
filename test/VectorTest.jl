@@ -161,7 +161,7 @@ using ApproxFun, Test
     end
 
     @testset "Vector ODE" begin
-        d=Interval()
+        d=ChebyshevInterval()
         D=Derivative(d);
         B=ldirichlet();
         Bn=lneumann();
@@ -221,7 +221,7 @@ using ApproxFun, Test
 
 
     @testset "Multiplication" begin
-        d = Interval()
+        d = ChebyshevInterval()
         t=Fun(identity,d)
         f = Fun([t^2, sin(t)])
         @test norm(((Derivative(space(f))*f)-Fun(t->[2t,cos(t)])).coefficients)<100eps()
@@ -273,7 +273,7 @@ using ApproxFun, Test
         F = (G-I)[:,1]
 
         @test Fun(F) ≡ F
-        
+
         @test F(exp(0.1im)) ≈ [-exp(-0.1im)+1+2exp(0.1im);-3exp(-0.1im)+1+1exp(0.1im)]
         @test Fun(F̃,space(F))(exp(0.1im)) ≈ [-exp(-0.1im)+1+2exp(0.1im);-3exp(-0.1im)+1+1exp(0.1im)]
 

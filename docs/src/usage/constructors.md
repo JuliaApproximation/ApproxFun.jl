@@ -47,11 +47,11 @@ The default space is `Chebyshev`, which can represent non-periodic functions on 
 are synonyms:
 ```julia
 Fun(exp,Chebyshev(Interval(-1,1)))
-Fun(exp,Chebyshev(Interval()))
+Fun(exp,Chebyshev(ChebyshevInterval()))
 Fun(exp,Chebyshev(-1..1))
 Fun(exp,Chebyshev())
 Fun(exp,-1..1)
-Fun(exp,Interval())
+Fun(exp,ChebyshevInterval())
 Fun(exp,Interval(-1,1))
 Fun(exp)
 ```

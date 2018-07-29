@@ -3,12 +3,12 @@ using ApproxFun, Test
 
 @testset "Multivariate" begin
     @testset "Square" begin
-        S = Space(Interval()^2)
+        S = Space(ChebyshevInterval()^2)
         @test ApproxFun.block(ApproxFun.tensorizer(S), 1) == Block(1)
 
         @time for k=0:5,j=0:5
             ff=(x,y)->cos(k*acos(x))*cos(j*acos(y))
-            f=Fun(ff,Interval()^2)
+            f=Fun(ff,ChebyshevInterval()^2)
             @test f(0.1,0.2) ≈ ff(0.1,0.2)
         end
 
@@ -29,16 +29,16 @@ using ApproxFun, Test
 
         ff=(x,y)->exp(-10(x+.2)^2-20(y-.1)^2)*cos(x*y)
         gg=x->exp(-10(x[1]+.2)^2-20(x[1]-.1)^2)*cos(x[1]*x[2])
-        f=Fun(ff,Interval()^2,10000)
+        f=Fun(ff,ChebyshevInterval()^2,10000)
         @test f(0.,0.) ≈ ff(0.,0.)
 
 
-        f=Fun(gg,Interval()^2,10000)
+        f=Fun(gg,ChebyshevInterval()^2,10000)
         @test f(0.,0.) ≈ ff(0.,0.)
 
-        f=Fun(ff,Interval()^2)
+        f=Fun(ff,ChebyshevInterval()^2)
         @test f(0.,0.) ≈ ff(0.,0.)
-        f=Fun(gg,Interval()^2)
+        f=Fun(gg,ChebyshevInterval()^2)
         @test f(0.,0.) ≈ ff(0.,0.)
 
         f=Fun(ff)
@@ -164,7 +164,7 @@ using ApproxFun, Test
     end
 
     @time @testset "x,y constructors" begin
-        d=Interval()^2
+        d=ChebyshevInterval()^2
         x,y=Fun(d)
         @test x(0.1,0.2) ≈ 0.1
         @test y(0.1,0.2) ≈ 0.2
@@ -257,7 +257,7 @@ using ApproxFun, Test
 
 
     ## Cheby * Interval
-    d = Interval()^2
+    d = ChebyshevInterval()^2
     x,y = Fun(∂(d))
 
 

@@ -31,7 +31,7 @@ using ApproxFun, Test
     end
 
     @testset "Rectangle Laplace/Poisson" begin
-        dx=dy=Interval()
+        dx=dy=ChebyshevInterval()
         d=dx*dy
         g=Fun((x,y)->exp(x)*cos(y),∂(d))
 
@@ -45,7 +45,7 @@ using ApproxFun, Test
         @test u(.1,.2) ≈ real(exp(0.1+0.2im))
 
         ## Poisson
-        f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),Interval()^2,500)  #default is [-1,1]^2
+        f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),ChebyshevInterval()^2,500)  #default is [-1,1]^2
         d=domain(f)
         A=[Dirichlet(d);Laplacian(d)]
         @time  u=\(A,[zeros(∂(d));f];tolerance=1E-7)

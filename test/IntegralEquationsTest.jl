@@ -139,16 +139,8 @@ using ApproxFun, Test
     end
 
 
-
-<<<<<<< HEAD
-K=LowRankFun((x,y)->cos(x-y),ChebyshevInterval()^2)
-Σ=DefiniteIntegral(Chebyshev())
-testbandedbelowoperator(Σ[K])
-=======
     ## Fredholm integral
->>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
-
-    K=LowRankFun((x,y)->cos(x-y),Interval()^2)
+    K=LowRankFun((x,y)->cos(x-y),ChebyshevInterval()^2)
     Σ=DefiniteIntegral(Chebyshev())
     testbandedbelowoperator(Σ[K])
 

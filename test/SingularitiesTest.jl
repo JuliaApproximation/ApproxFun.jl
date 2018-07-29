@@ -17,7 +17,7 @@ using ApproxFun, SpecialFunctions, Test
 
         f = Fun(x->x*cot(π*x/2))
         x = Fun(identity)
-        u = Fun(JacobiWeight(1.,1.,Interval()), (f/(1-x^2)).coefficients)
+        u = Fun(JacobiWeight(1.,1.,ChebyshevInterval()), (f/(1-x^2)).coefficients)
         @test 1/(0.1*cot(π*.1/2)) ≈ (1/u)(.1)
 
         @test (x/u)(.1) ≈ tan(π*.1/2)

@@ -37,7 +37,15 @@ Segment(a::Tuple,b::Tuple) = Segment(Vec(a...),Vec(b...))
 
 convert(::Type{Domain{T}}, d::Segment) where {T<:Number} = Segment{T}(leftendpoint(d),rightendpoint(d))
 convert(::Type{Segment{T}}, d::Segment) where {T<:Number} = Segment{T}(leftendpoint(d),rightendpoint(d))
-convert(::Type{Segment},d::IntervalSets.ClosedInterval) = Segment(d.left,d.right)
+convert(::Type{Segment}, d::IntervalSets.AbstractInterval) = Segment(d.left,d.right)
+convert(::Type{Segment}, d::Domains.AbstractInterval) = Segment(leftendpoint(d), rightendpoint(d))
+convert(::Type{Segment{T}}, d::Union{IntervalSets.ClosedInterval,Domains.ClosedInterval}) where T =
+    convert(Segment{T}, convert(Segment, d))
+
+
+
+Segment(d::Union{IntervalSets.AbstractInterval,Domains.AbstractInterval}) =
+    convert(Segment, d)
 
 
 AnySegment(::Type{T}) where {T} = Segment{T}(NaN,NaN)
@@ -89,10 +97,18 @@ fromcanonicalD(d::IntervalOrSegment,x) = complexlength(d) / 2
 
 
 
-==(d::Segment,m::Segment) = (isambiguous(d) && isambiguous(m)) || (leftendpoint(d) == m.a && rightendpoint(d) == m.b)
-function isapprox(d::Segment,m::Segment)
+==(d::Segment, m::Segment) = (isambiguous(d) && isambiguous(m)) || (leftendpoint(d) == m.a && rightendpoint(d) == m.b)
+function isapprox(d::Segment, m::Segment)
     tol=10E-12
-    norm(leftendpoint(d)-m.a)<tol&&norm(rightendpoint(d)-m.b)<tol
+    norm(leftendpoint(d)-m.a)<tol && norm(rightendpoint(d)-m.b)<tol
+end
+
+for op in (:(==), :isapprox),
+    AI in (:(Domains.AbstractInterval), :(IntervalSets.AbstractInterval))
+    @eval begin
+        $op(d::Segment, m::$AI) = $op(d, Segment(m))
+        $op(m::$AI, d::Segment) = $op(Segment(m), d)
+    end
 end
 
 

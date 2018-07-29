@@ -9,9 +9,9 @@ Periodic domains include `PeriodicInterval`, `PeriodicLine` and `Circle`.
 ## Relationship with spaces
 
 Every domain `d` has a default space, constructed via `Space(d)`.  For example,
-the default space for `Interval()` is `Chebyshev(Interval())`, which is
+the default space for `ChebyshevInterval()` is `Chebyshev(ChebyshevInterval())`, which is
 efficient for representing smooth functions.  On the other hand, the
-default space for `PeriodicInterval()` is `Fourier(Interval())`, which
+default space for `PeriodicInterval()` is `Fourier(PeriodicInterval())`, which
 uses trigonometric polynomials to approximate periodic functions.  
 
 
@@ -19,7 +19,7 @@ uses trigonometric polynomials to approximate periodic functions.
 
 Domains can be manipulated to make more complicated domains.  For example, you can take the union of an interval and a circle
 ```julia
-Interval() ∪ Circle(3,0.5)    # equivalent to union(Interval(),Circle(3,0.5))
+ChebyshevInterval() ∪ Circle(3,0.5)    # equivalent to union(ChebyshevInterval(),Circle(3,0.5))
 ```
 and the following creates a rectangle `[0,1]^2`:
 ```julia
@@ -27,5 +27,5 @@ rect=Interval(0,1)^2
 ```
 Some other set operations are partially implemented:
 ```julia
-Interval(0,2) ∩ Interval() # returns Interval(0,1)
+Interval(0,2) ∩ ChebyshevInterval() # returns Interval(0,1)
 ```
