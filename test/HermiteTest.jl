@@ -3,27 +3,35 @@ using ApproxFun, Compat.Test
 
 @testset "Hermite and GaussWeight" begin
     @testset "Evaluation" begin
-        f=Fun(x->x+x^2,Hermite())
-        @test f(1.) ≈ 2.
-        @test values(f) ≈ points(f)+points(f).^2
+        f = Fun(x-> x + x^2, Hermite())
+        @test f(1.0) ≈ 2.0
+        @test values(f) ≈ points(f) + points(f).^2
+
 
         w = Fun(GaussWeight(), [1.0])
         @test w(0.1) ≈ exp(-0.1^2)
         w = Fun(GaussWeight(), Float64[])
         @test w(1) == 0
 
+
         w = Fun(GaussWeight(), Float64[1.0])
-        f = Fun(x->1 + x+x^2,Hermite())*w
-        @test f(0.1) ≈ exp(-0.1^2)*(1+0.1+0.1^2)
+        f = Fun(x-> 1 + x + x^2, Hermite()) * w
+        @test f(0.1) ≈ exp(-0.1^2) * (1+0.1+0.1^2)
+
+        w = Fun(GaussWeight(Hermite(2), 2), Float64[1.0])
+        f = Fun(x-> 1 + x + x^2, Hermite()) * w
+        @test f(0.1) ≈ exp(-0.1^2) * (1+0.1+0.1^2)
+
 
         H₀ = Fun(Hermite(), [1.0])
-        L = 1.3; H̃₀ = Fun(Hermite(L), [1.0])
-        x = 1.2;
-        @test H̃₀(x) ≈ H₀(sqrt(L)*x)
+        H̃₀ = Fun(Hermite(L), [1.0])
+        L = 1.3; x = 1.2;
+        @test H̃₀(x) ≈ H₀(sqrt(L) * x)
+
         H₁ = Fun(Hermite(), [0.0,1.0])
-        L = 1.3; H̃₁ = Fun(Hermite(L), [0.0,1.0])
-        x = 1.2;
-        @test H̃₁(x) ≈ H₁(sqrt(L)*x)
+        H̃₁ = Fun(Hermite(L), [0.0,1.0])
+        L = 1.3; x = 1.2;
+        @test H̃₁(x) ≈ H₁(sqrt(L) * x)
     end
 
 
@@ -31,34 +39,47 @@ using ApproxFun, Compat.Test
         D = Derivative(Hermite())
         testbandedoperator(D)
 
-        f=Fun(x->x+x^2,Hermite())
-        g = D*f
+        f = Fun( x-> x + x^2, Hermite())
+        g = D * f
         @test g(1.) ≈ 3.
     end
 
     @testset "Integration" begin
-        w = Fun(GaussWeight(), [1.0])
-        g = integrate(w)
-        @test_skip w̃ = Fun(w, -7..7)
-        w̃ = Fun(x -> w(x), -7..7)
-        g̃ = cumsum(w̃)
-        @test g(3) - g(-7) ≈ g̃(3)
+        @test_throws ArgumentError integrate(Fun(GaussWeight(Hermite(2),1), [0.0,1.0]))
 
         w = Fun(GaussWeight(), Float64[])
         g = integrate(w)
         @test g(0.1) == 0.0
 
+        w = Fun(GaussWeight(), [1.0])
+        g = integrate(w)
+        @test_skip w̃ = Fun(w, -7..7)
+        w̃ = Fun( x-> w(x), -7..7)
+        g̃ = cumsum(w̃)
+        @test g(3) - g(-7) ≈ g̃(3)
+
         w = Fun(GaussWeight(), Float64[1.0])
-        f = Fun(x->1 + x+x^2,Hermite())*w
         g = integrate(w)
         @test_skip w̃ = Fun(w, -7..7)
         w̃ = Fun(x -> w(x), -7..7)
         g̃ = cumsum(w̃)
         @test g(3) - g(-7) ≈ g̃(3)
 
-        @test_throws ArgumentError integrate(Fun(GaussWeight(Hermite(2),1), [0.0,1.0]))
-        w = Fun(GaussWeight(Herimite(2),2), Float64[1.0])
-        f = Fun(x->1 + x+x^2,Hermite(2))*w
+        w = Fun(GaussWeight(Hermite(2), 2), Float64[1.0])
+        g = integrate(w)
+        @test_skip w̃ = Fun(w, -7..7)
+        w̃ = Fun(x -> w(x), -7..7)
+        g̃ = cumsum(w̃)
+        @test g(3) - g(-7) ≈ g̃(3)
+
+        w = Fun(GaussWeight(), Float64[0.0, 1.0])
+        g = integrate(w)
+        @test_skip w̃ = Fun(w, -7..7)
+        w̃ = Fun(x -> w(x), -7..7)
+        g̃ = cumsum(w̃)
+        @test g(3) - g(-7) ≈ g̃(3)
+
+        w = Fun(GaussWeight(Hermite(2), 2), Float64[0.0, 1.0])
         g = integrate(w)
         @test_skip w̃ = Fun(w, -7..7)
         w̃ = Fun(x -> w(x), -7..7)

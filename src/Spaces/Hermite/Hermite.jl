@@ -3,8 +3,10 @@ export Hermite,GaussWeight
 #TODO: Add general lines
 
 """
-Represents H_k(sqrt(L)*x) where H_k are Hermite polynomials
+`Hemite(L)` represents `H_k(sqrt(L) * x)` where `H_k` are Hermite polynomials.
+`Hermite()` is equivalent to `Hermite(1.0)`.
 """
+
 struct Hermite{T} <: PolynomialSpace{Line{false,Float64},Float64}
     L::T
 end
@@ -24,41 +26,41 @@ tocanonical(H::Hermite,x) = x
 
 
 recα(::Type,::Hermite,k) = 0;
-recβ(::Type,H::Hermite,k) = 0.5/sqrt(H.L);
-recγ(::Type,H::Hermite,k) = (k-1)/sqrt(H.L);
-recA(::Type,H::Hermite,k) = 2*sqrt(H.L);
+recβ(::Type,H::Hermite,k) = 0.5 / sqrt(H.L);
+recγ(::Type,H::Hermite,k) = (k-1) / sqrt(H.L);
+recA(::Type,H::Hermite,k) = 2 * sqrt(H.L);
 recB(::Type,::Hermite,k) = 0;
-recC(::Type,::Hermite,k) = 2k
+recC(::Type,::Hermite,k) = 2k;
 
 
-Derivative(H::Hermite,order)=ConcreteDerivative(H,order)
+Derivative(H::Hermite,order) = ConcreteDerivative(H,order)
 
 
-bandinds(D::ConcreteDerivative{H}) where {H<:Hermite}=0,D.order
-rangespace(D::ConcreteDerivative{H}) where {H<:Hermite}=domainspace(D)
+bandinds(D::ConcreteDerivative{H}) where {H<:Hermite} = 0,D.order
+rangespace(D::ConcreteDerivative{H}) where {H<:Hermite} = domainspace(D)
 getindex(D::ConcreteDerivative{H},k::Integer,j::Integer) where {H<:Hermite} =
-        j==k+D.order?one(eltype(D))*2^D.order*pochhammer(k,D.order):zero(eltype(D))
+        j == k + D.order?one(eltype(D)) * 2^D.order * pochhammer(k,D.order):zero(eltype(D))
 
 
 
 function hermitep(r::Range,x::Number)
-    n=r[end]+1
+    n = r[end] + 1
     T = typeof(x)
     H = Hermite()
-    if n≤2
-        v=[1.,2x]
+    if n ≤ 2
+        v = [1.,2x]
     else
-        v=Array{promote_type(Float64,typeof(x))}(n)  # x may be complex
-        v[1]=1.
-        v[2]=2x
+        v = Array{promote_type(Float64, typeof(x))}(n)  # x may be complex
+        v[1] = 1.
+        v[2] = 2x
 
-        for k=2:n-1
-            v[k+1]=((x-recα(T,H,k))*v[k] - recγ(T,H,k)*v[k-1])/recβ(T,H,k)
+        for k = 2:n-1
+            v[k + 1] = ((x - recα(T,H,k)) * v[k] - recγ(T,H,k) * v[k - 1]) / recβ(T,H,k)
         end
     end
-    v[r+1]
+    v[r + 1]
 end
-hermitep(n::Integer,v::Number) = hermitep(n:n,v)[1]
+hermitep(n::Integer, v::Number) = hermitep(n:n,v)[1]
 
 
 
@@ -69,12 +71,14 @@ struct GaussWeight{S,T} <: WeightSpace{S,Line{Float64},Float64}
     L::T
 end
 
-GaussWeight(H::Hermite)=GaussWeight(H,H.L)
-GaussWeight()=GaussWeight(Hermite())
+GaussWeight(H::Hermite) = GaussWeight(H,H.L)
+GaussWeight() = GaussWeight(Hermite())
 
 doc"""
-`GaussWeight()` is a space spanned by `exp(-x²) * Hₙ(x)` where `Hₙ(x)`'s
-are Hermite polynomials.
+`GaussWeight(Hermite(L), L)` is a space spanned by `exp(-Lx²) * H_k(sqrt(L) * x)`
+where `H_k(x)`'s are Hermite polynomials.
+
+`GaussWeight()` is equivalent to `GaussWeight(Hermite(), 1.0)` by default.
 """
 
 Fun(::typeof(identity), sp::Hermite) = Fun(sp,[0.,0.5])
@@ -83,22 +87,22 @@ Fun(::typeof(identity), sp::GaussWeight) = Fun(identity, sp.space)
 spacescompatible(a::GaussWeight,b::GaussWeight)=spacescompatible(a.space,b.space)&&isapprox(a.L,b.L)
 
 function Derivative(sp::GaussWeight,k::Integer)
-   if k==1
-        x=Multiplication(Fun(identity,sp.space),sp.space)
-        D=Derivative(sp.space)
-        D2=D-(2sp.L)x
+   if k == 1
+        x = Multiplication(Fun(identity,sp.space),sp.space)
+        D = Derivative(sp.space)
+        D2 = D - (2sp.L)x
         DerivativeWrapper(SpaceOperator(D2,sp,GaussWeight(rangespace(D2),sp.L)),1)
     else
-        D=Derivative(sp)
+        D = Derivative(sp)
         DerivativeWrapper(TimesOperator(Derivative(rangespace(D),k-1).op,D.op),k)
     end
 end
 
-weight(H::GaussWeight,x) = exp(-H.L*x^2)
+weight(H::GaussWeight,x) = exp(-H.L * x^2)
 
 function Base.sum(f::Fun{GaussWeight{H,T}}) where {H<:Hermite,T}
-    @assert space(f).space.L==space(f).L  # only implemented with matching weight
-    f.coefficients[1]*sqrt(T(π))/sqrt(space(f).L)
+    @assert space(f).space.L == space(f).L  # only implemented with matching weight
+    f.coefficients[1] * sqrt(T(π)) / sqrt(space(f).L)
 end
 
 include("hermitetransform.jl")
@@ -107,30 +111,38 @@ include("hermitetransform.jl")
 
 
 
-function Multiplication(f::Fun{H},S::GaussWeight{H}) where H<:Hermite
-    M=Multiplication(f,S.space)
-    rs=rangespace(M)
-    MultiplicationWrapper(f,SpaceOperator(M,S,GaussWeight(rs,rs.L)))
+function Multiplication(f::Fun{H}, S::GaussWeight{H}) where H<:Hermite
+    M = Multiplication(f, S.space)
+    rs = rangespace(M)
+    MultiplicationWrapper(f, SpaceOperator(M, S, GaussWeight(rs, rs.L)))
 end
 
-function Multiplication(f::Fun{GaussWeight{H,T}},S::Hermite) where {H<:Hermite,T}
-    M=Multiplication(Fun(space(f).space,f.coefficients),S)
-    rs=rangespace(M)
-    MultiplicationWrapper(f,SpaceOperator(M,S,GaussWeight(rs,rs.L)))
+function Multiplication(f::Fun{GaussWeight{H,T}}, S::Hermite) where {H<:Hermite,T}
+    M = Multiplication(Fun(space(f).space, f.coefficients), S)
+    rs = rangespace(M)
+    MultiplicationWrapper(f, SpaceOperator(M, S, GaussWeight(rs, rs.L)))
 end
 
 
 
-function integrate(f::Fun{GW}) where GW <: GaussWeight{H} where H <: Hermite
+
+
+function integrate(f::Fun{GW}) where GW<:GaussWeight{H} where H<:Hermite
     n = length(f.coefficients);
-    if f.coefficients[1] == 0
-        Fun(GaussWeight(), f.coefficients[2:end]*(-1))
+    if space(f).space.L != space(f).L
+        throw(ArgumentError("`Integrate` is applicable only if parameters of GaussWeight and Hermite are equal."))
     else
-        g = Fun(GaussWeight(), f.coefficients[2:end]*(-1));
-        f₀ = Fun(GaussWeight(), [f.coefficients[1]]);
-        f₀ = Fun(f₀, Chebyshev(-Inf .. Inf));
-        g₀ = integrate(f₀);
-        g₀ = g₀ - last(g₀);
-        g + g₀
+        if n == 0
+            return Fun(0)
+        elseif f.coefficients[1] == 0
+            return Fun(GaussWeight(Hermite(space(f).L), space(f).L), f.coefficients[2:end] / -sqrt(space(f).L))
+        else
+            g = Fun(GaussWeight(Hermite(space(f).L), space(f).L), f.coefficients[2:end] / -sqrt(space(f).L));
+            f₀ = Fun(GaussWeight(Hermite(space(f).L), space(f).L), [f.coefficients[1]]);
+            f₀ = Fun(f₀, Chebyshev(-Inf .. Inf));
+            g₀ = integrate(f₀);
+            g₀ = g₀ - last(g₀);
+            return g + g₀
+        end
     end
 end

@@ -93,7 +93,7 @@ ConcreteDerivative:Chebyshev(【-1.0,1.0】)→Ultraspherical(1,【-1.0,1.0】)
 
 ## Functionals
 
-A particularly useful class of operators are _functionals_, which map
+A particularly useful class of operators are `functionals`, which map
 from functions to scalar numbers.  These are represented by operators
 of size `1 × ∞`: that is, infinite-dimensional analogues of row vectors.
 
@@ -133,6 +133,54 @@ Fun(2-element ArraySpace:
 julia> B*Fun(exp) ≈ Fun([exp(-1),exp(1)])
 true
 ```
+
+## Multiplication
+
+A `Multiplication` operator sends a `Fun` to a `Fun` in the corresponding space by multiplying a given function. The `Multiplication` operators are presented in matrix form in `ApproxFun`.
+
+```jldoctest
+julia> x = Fun();
+
+julia> M = Multiplication(1 + 2x + x^2, Chebyshev())
+ConcreteMultiplication:Chebyshev(【-1.0,1.0】)→Chebyshev(【-1.0,1.0】)
+ 1.5  1.0   0.25
+ 2.0  1.75  1.0   0.25
+ 0.5  1.0   1.5   1.0   0.25
+      0.25  1.0   1.5   1.0   0.25
+            0.25  1.0   1.5   1.0   0.25
+                  0.25  1.0   1.5   1.0   0.25
+                        0.25  1.0   1.5   1.0   ⋱
+                              0.25  1.0   1.5   ⋱
+                                    0.25  1.0   ⋱
+                                          0.25  ⋱
+                                                ⋱
+
+julia> (M * x).coefficients == ((1 + 2x + x^2) * x).coefficients == M[1:4,1:2] * x.coefficients
+true
+```
+
+It is possible for domain space and range space to be different under `Mulitplication`.
+
+```jldoctest
+julia> c = Fun(θ -> cos(θ), CosSpace());
+
+julia> Multiplication(c, SinSpace())
+ConcreteMultiplication:SinSpace(【0.0,6.283185307179586❫)→SinSpace(【0.0,6.283185307179586❫)
+ 8.9743e-17   0.5
+ 0.5          8.9743e-17   0.5
+              0.5          8.9743e-17   0.5
+                           0.5          8.9743e-17   0.5
+                                        0.5          8.9743e-17   ⋱
+                                                     0.5          ⋱
+                                                                  ⋱
+```
+
+The matrix above can be easily derived from:
+$$ f(\theta) = \sum_{n=1}^{\infty}  {\lambda}_{n} * sin(n\theta) $$
+$$ cos(\theta) * f(\theta) = cos(\theta) \cdot (\sum_{n=1}^{\infty}  {\lambda}_{n} \cdot sin(n\theta) $$
+$$ = \sum_{n=1}^{\infty}  {\lambda}_{n} \cdot cos(\theta) \cdot sin(n\theta) $$
+$$ = \sum_{n=1}^{\infty}  {\lambda}_{n} \cdot 0.5 \cdot ((sin(n-1)\theta) + (sin(n+1)\theta) $$
+$$ = \sum_{n=1}^{\infty}  0.5 \cdot ({\lambda}_{n-1} + {\lambda}_{n+1}) \cdot sin(n\theta) $$.
 
 ## Algebraic manipulation of operators
 
@@ -355,4 +403,4 @@ DocTestSetup = nothing
 
 The concatenation functions `vcat`, `hcat` and `hvcat` are overriden for
 operators to represent the resulting combined operator, now with
-a `rangespace` or `domainspace` that is an `ArraySpace`. 
+a `rangespace` or `domainspace` that is an `ArraySpace`.
