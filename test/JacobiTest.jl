@@ -309,15 +309,23 @@ using ApproxFun, Compat.Test, StaticArrays
         testfunctional(B)
         @test ApproxFun.rowstop(B,1) == 1
     end
-end
 
-@testset "Definite integral tests" begin
-    for S in (WeightedJacobi(0,0), JacobiWeight(0,0, Legendre(1.1..2.3)), Legendre())
-        B = DefiniteIntegral(S)
-        testfunctional(B)
-        @test ApproxFun.rowstop(B,1) == 1
-        B[1] == arclength(domain(S))
-        f = Fun(exp, S)
-        B*f == sum(Fun(exp,domain(S)))
+    @testset "WeightedLaguerre cumsum" begin
+        α = 2.7
+        f = Fun(WeightedLaguerre(α), [1.0]);
+        f = Fun(f, JacobiWeight(α,0,Chebyshev(0.0 .. Inf)));
+        g = integrate(f)
+        g(3.0) - cumsum(Fun(x -> f(x), 0..6))(3.0)
+    end
+
+    @testset "Definite integral tests" begin
+        for S in (WeightedJacobi(0,0), JacobiWeight(0,0, Legendre(1.1..2.3)), Legendre())
+            B = DefiniteIntegral(S)
+            testfunctional(B)
+            @test ApproxFun.rowstop(B,1) == 1
+            B[1] == arclength(domain(S))
+            f = Fun(exp, S)
+            B*f == sum(Fun(exp,domain(S)))
+        end
     end
 end
