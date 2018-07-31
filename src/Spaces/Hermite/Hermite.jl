@@ -129,16 +129,19 @@ end
 
 function integrate(f::Fun{GW}) where GW<:GaussWeight{H} where H<:Hermite
     n = length(f.coefficients);
-    if space(f).space.L != space(f).L
-        throw(ArgumentError("`Integrate` is applicable only if parameters of GaussWeight and Hermite are equal."))
+    L = space(f).L;
+    if L == 0
+        return Fun(Hermite(space(f).space.L), [0; f.coefficients] ./ [1; 2:2:2n])
+    elseif space(f).space.L != L
+        throw(ArgumentError("`integrate` is applicable if only parameters of GaussWeight and Hermite are equal."))
     else
         if n == 0
             return Fun(0)
         elseif f.coefficients[1] == 0
-            return Fun(GaussWeight(Hermite(space(f).L), space(f).L), f.coefficients[2:end] / -sqrt(space(f).L))
+            return Fun(GaussWeight(Hermite(L), L), f.coefficients[2:end] / -sqrt(L))
         else
-            g = Fun(GaussWeight(Hermite(space(f).L), space(f).L), f.coefficients[2:end] / -sqrt(space(f).L));
-            f₀ = Fun(GaussWeight(Hermite(space(f).L), space(f).L), [f.coefficients[1]]);
+            g = Fun(GaussWeight(Hermite(L), L), f.coefficients[2:end] / -sqrt(L));
+            f₀ = Fun(GaussWeight(Hermite(L), L), [f.coefficients[1]]);
             f₀ = Fun(f₀, Chebyshev(-Inf .. Inf));
             g₀ = integrate(f₀);
             g₀ = g₀ - last(g₀);
