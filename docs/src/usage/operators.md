@@ -93,7 +93,7 @@ ConcreteDerivative:Chebyshev(【-1.0,1.0】)→Ultraspherical(1,【-1.0,1.0】)
 
 ## Functionals
 
-A particularly useful class of operators are `functionals`, which map
+A particularly useful class of operators are _functionals_, which map
 from functions to scalar numbers.  These are represented by operators
 of size `1 × ∞`: that is, infinite-dimensional analogues of row vectors.
 
@@ -175,12 +175,14 @@ ConcreteMultiplication:SinSpace(【0.0,6.283185307179586❫)→SinSpace(【0.0,6
                                                                   ⋱
 ```
 
-The matrix above can be easily derived from:
-$$ f(\theta) = \sum_{n=1}^{\infty}  {\lambda}_{n} * sin(n\theta) $$
-$$ cos(\theta) * f(\theta) = cos(\theta) \cdot (\sum_{n=1}^{\infty}  {\lambda}_{n} \cdot sin(n\theta) $$
-$$ = \sum_{n=1}^{\infty}  {\lambda}_{n} \cdot cos(\theta) \cdot sin(n\theta) $$
-$$ = \sum_{n=1}^{\infty}  {\lambda}_{n} \cdot 0.5 \cdot ((sin(n-1)\theta) + (sin(n+1)\theta) $$
-$$ = \sum_{n=1}^{\infty}  0.5 \cdot ({\lambda}_{n-1} + {\lambda}_{n+1}) \cdot sin(n\theta) $$.
+If a function is given by the expansion
+$$ f(\theta) = \sum_{n=1}^{\infty}  {f}_{n} * sin(n\theta) $$
+
+Then the matrix above can be easily derived from
+$$ cos(\theta) * f(\theta) = cos(\theta) \cdot (\sum_{n=1}^{\infty}  {f}_{n} \cdot sin(n\theta) $$
+$$ = \sum_{n=1}^{\infty}  {f}_{n} \cdot cos(\theta) \cdot sin(n\theta) $$
+$$ = \sum_{n=1}^{\infty}  {f}_{n} \cdot 0.5 \cdot ((sin(n-1)\theta) + (sin(n+1)\theta) $$
+$$ = \sum_{n=1}^{\infty}  0.5 \cdot ({f}_{n-1} + {f}_{n+1}) \cdot sin(n\theta) $$.
 
 ## Algebraic manipulation of operators
 
