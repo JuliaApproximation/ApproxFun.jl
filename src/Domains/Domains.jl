@@ -15,10 +15,8 @@ include("Point.jl")
 const AffineDomain = Union{Domains.AbstractInterval,Segment,PeriodicInterval,Ray,Line}
 
 
-points(d::IntervalSets.ClosedInterval,n) = points(Domain(d),n)
-
 # These are needed for spaces to auto-convert [a,b] to Interval
-function convert(::Type{PeriodicDomain},d::IntervalSets.ClosedInterval)
+function convert(::Type{PeriodicDomain},d::ClosedInterval)
     a,b=d.left,d.right
     a,b = float(a),float(b)
     if isinf(norm(a)) && isinf(norm(b))
@@ -30,12 +28,12 @@ function convert(::Type{PeriodicDomain},d::IntervalSets.ClosedInterval)
     end
 end
 
-convert(::Type{Space},d::IntervalSets.ClosedInterval) = Space(Domain(d))
+convert(::Type{Space},d::ClosedInterval) = Space(Domain(d))
 
 #issubset between domains
 
-issubset(a::PeriodicInterval,b::Segment) = Segment(a.a,a.b)⊆b
-issubset(a::Segment,b::PeriodicInterval) = PeriodicInterval(a.a,a.b)⊆b
+issubset(a::PeriodicInterval,b::Segment) = Segment(endpoints(a)...)⊆b
+issubset(a::Segment,b::PeriodicInterval) = PeriodicInterval(endpoints(a)...)⊆b
 issubset(a::Segment{T},b::PiecewiseSegment{T}) where {T<:Real} =
     a⊆Segment(first(b.points),last(b.points))
 issubset(a::Segment,b::Line) = first(a)∈b && last(a)∈b
@@ -73,14 +71,6 @@ end
 isless(d1::Segment{T1},d2::Ray{false,T2}) where {T1<:Real,T2<:Real} = d1 ≤ d2.center
 isless(d2::Ray{true,T2},d1::Segment{T1}) where {T1<:Real,T2<:Real} = d2.center ≤ d1
 
-
-# ^
-*(a::IntervalSets.ClosedInterval,b::Domain) = Domain(a)*b
-*(a::Domain,b::IntervalSets.ClosedInterval) = a*Domain(b)
-
-#union
-Base.union(a::IntervalSets.ClosedInterval,b::Domain) = union(Domain(a),b)
-Base.union(a::Domain,b::IntervalSets.ClosedInterval) = union(a,Domain(b))
 
 
 ## set minus

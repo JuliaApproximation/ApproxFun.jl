@@ -86,7 +86,7 @@ d = domain(x)
 D = Derivative(d)
 B = Dirichlet(d)
 L = D^2 - x
-u = [B;L] \ [[airyai(d.a),airyai(d.b)],0]
+u = [B;L] \ [airy.(endpoints(d)), 0]
 plot(u)
 ```
 

@@ -75,9 +75,9 @@ using ApproxFun, Test
 
 
     @testset  "Vec segment" begin
-        d=Domain(ApproxFun.Vec(0.,0.) .. ApproxFun.Vec(1.,1.))
+        d=ApproxFun.Vec(0.,0.) .. ApproxFun.Vec(1.,1.)
         x=Fun()
-        @test ((d.b - d.a)x/2)(0.1)  ≈ (d.b - d.a)*0.1/2
+        @test (width(d)*x/2)(0.1)  ≈ (d.b - d.a)*0.1/2
         @test ApproxFun.fromcanonical(d,x)(0.1) ≈ (d.b+d.a)/2 + (d.b - d.a)*0.1/2
 
         x,y = Fun(ApproxFun.Vec(0.,0.) .. ApproxFun.Vec(2.,1.))

@@ -73,7 +73,7 @@ domainscompatible(a::Domain,b::Domain) = isambiguous(a) || isambiguous(b) ||
 
 ##TODO: Should fromcanonical be fromcanonical!?
 
-points(d::IntervalDomain{T},n::Integer;kind::Int=1) where {T} =
+points(d::IntervalDomain{T},n::Integer; kind::Int=1) where {T} =
     fromcanonical.(Ref(d), chebyshevpoints(float(real(eltype(T))), n; kind=kind))  # eltype to handle point
 bary(v::AbstractVector{Float64},d::IntervalDomain,x::Float64) = bary(v,tocanonical(d,x))
 

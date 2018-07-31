@@ -333,45 +333,100 @@ using ApproxFun, Test
     end
 
     @testset "Floquet" begin
-        T = π;a=0.15
-        t = Fun(identity,0..T)
-        d=domain(t)
-        D=Derivative(d)
-        B=ldirichlet(d)
-
-        B_row = [D             -I  0I            0I]
-        f=Fun(exp,d)
-        @test norm((B_row*[f;f;f;f])[1]) ≤ 1000eps()
-        @test B_row isa ApproxFun.MatrixInterlaceOperator
-
-        @test size([B_row;B_row].ops) == (2,4)
-
-        @test norm(([B_row;B_row]*[f;f;f;f])[1]) ≤ 1000eps()
-
-        n=4
-        Dg = Operator(diagm(0 => fill(ldirichlet(d),n)))
-        @test Dg isa ApproxFun.MatrixInterlaceOperator
-        @test size([Dg; B_row].ops) == (5,4)
-        @test ([Dg; B_row]*[f;f;f;f])(0.1) ≈ [fill(1.0,4);0]
-
-        @test hcat(Dg).ops == Dg.ops
+using ApproxFun
+T = π; a = 0.15
+d= 0..T
+D=Derivative(d)
+B_row = [D             -I  0I            0I]
+f=Fun(exp,d)
+g = [f;f;f;f]
+@which B_row*g
+A = B_row
+ds = domainspace(A)
+rs = rangespace(A)
+b = g
+length(b)
+length(ds)
+f,a,b = (b[1].coefficients, b[1].space, ds[1])
+b === Chebyshev(d)
+f
+ApproxFun.defaultcoefficients(view([1.0,2.0],1:1:2),Chebyshev(0..1.0),Chebyshev(0..1.0))
+V, a = view([1.0,2.0],1:1:2),Chebyshev(0..1.0)
+precompile(ApproxFun.defaultcoefficients, (typeof(V), typeof(a),typeof(a)))
 
 
-        B_row2 = [(2+a*cos(2t))   D  -I            0I]
-        @test ([B_row;B_row2]*[f;f;f;f])(0.1) ≈ [0.,(2+a*cos(2*0.1))*f(0.1) + f'(0.1) - f(0.1)]
 
-        A=[ Operator(diagm(0 => fill(ldirichlet(d),n)));
-            D             -I  0I            0I;
-           (2+a*cos(2t))   D  -I            0I;
-           0I             0I   D            -I;
-           -I             0I  (2+a*cos(2t))  D]
+ct=conversion_type(a,b) # gives a space that has a banded conversion to both a and b
+spacescompatible(a,b)
+if spacescompatible(a,b)
+    f
+elseif hasconversion(a,b)
+    mul_coefficients(Conversion(a,b),f)
+elseif hasconversion(b,a)
+    ldiv_coefficients(Conversion(b,a),f)
+else
+    csp=canonicalspace(a)
+
+    if spacescompatible(a,csp)# a is csp, so try b
+        csp=canonicalspace(b)
+    end
+    if spacescompatible(a,csp) || spacescompatible(b,csp)
+        # b is csp too, so we are stuck, try Fun constructor
+        coefficients(default_Fun(Fun(a,f),b))
+    else
+        coefficients(f,a,csp,b)
+    end
+end
+map(coefficients,b,ds)
+mul_coefficients(A,coefficients(b,ds))
+if isambiguous(ds)
+    promotedomainspace(A,space(b))*b
+elseif isambiguous(rs)
+    error("Assign spaces to $A before multiplying.")
+else
+    Fun(rs,
+        mul_coefficients(A,coefficients(b,ds)))
+end
+
+t = Fun(identity,d)
+
+D=Derivative(d)
+B=ldirichlet(d)
 
 
-        Φ = A\Matrix(I,2n,n);
+f=Fun(exp,d)
+g = [f;f;f;f]
+@test norm((B_row*[f;f;f;f])[1]) ≤ 1000eps()
+@test B_row isa ApproxFun.MatrixInterlaceOperator
 
-        @test Φ(π) ≈ [-0.170879 -0.148885 -0.836059 0.265569;
-                 0.732284 -0.170879 -0.612945 -0.836059;
-                 -0.836059 0.265569 -0.170879 -0.148885;
-                 -0.612945 -0.836059 0.732284 -0.170879] atol=1E-3
+@test size([B_row;B_row].ops) == (2,4)
+
+@test norm(([B_row;B_row]*[f;f;f;f])[1]) ≤ 1000eps()
+
+n=4
+Dg = Operator(diagm(0 => fill(ldirichlet(d),n)))
+@test Dg isa ApproxFun.MatrixInterlaceOperator
+@test size([Dg; B_row].ops) == (5,4)
+@test ([Dg; B_row]*[f;f;f;f])(0.1) ≈ [fill(1.0,4);0]
+
+@test hcat(Dg).ops == Dg.ops
+
+
+B_row2 = [(2+a*cos(2t))   D  -I            0I]
+@test ([B_row;B_row2]*[f;f;f;f])(0.1) ≈ [0.,(2+a*cos(2*0.1))*f(0.1) + f'(0.1) - f(0.1)]
+
+A=[ Operator(diagm(0 => fill(ldirichlet(d),n)));
+    D             -I  0I            0I;
+   (2+a*cos(2t))   D  -I            0I;
+   0I             0I   D            -I;
+   -I             0I  (2+a*cos(2t))  D]
+
+
+Φ = A\Matrix(I,2n,n);
+
+@test Φ(π) ≈ [-0.170879 -0.148885 -0.836059 0.265569;
+         0.732284 -0.170879 -0.612945 -0.836059;
+         -0.836059 0.265569 -0.170879 -0.148885;
+         -0.612945 -0.836059 0.732284 -0.170879] atol=1E-3
     end
 end

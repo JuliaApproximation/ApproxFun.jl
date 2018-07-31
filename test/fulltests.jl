@@ -85,7 +85,7 @@ end
     x=Fun(identity,d)
     D=Derivative(d)
     @time u=nullspace(D^2-x)
-    c=[u(d.a); u(d.b)]\[airyai(d.a),airyai(d.b)]
+    c=[u(leftendpoint(d)); u(rightendpoint(d))]\[airyai(d.a),airyai(d.b)]
     @test norm((u*c)[1]-Fun(airyai,d))<10000eps()
 
 

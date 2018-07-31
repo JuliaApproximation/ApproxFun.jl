@@ -7,8 +7,8 @@ using ApproxFun, Domains, SpecialFunctions, Test
         S=Chebyshev(d)
 
 
-        Bm=Evaluation(d,d.a);
-        Bp=Evaluation(d,d.b);
+        Bm=Evaluation(d,leftendpoint(d));
+        Bp=Evaluation(d,rightendpoint(d));
         B=[Bm;Bp];
         D2=Derivative(d,2);
         X=Multiplication(Fun(x->x,d));
@@ -16,30 +16,30 @@ using ApproxFun, Domains, SpecialFunctions, Test
         testbandedoperator(D2-X)
         testraggedbelowoperator([B;D2-X])
 
-        @time u = [B;D2-X] \ [airyai(d.a),airyai(d.b),0.];
-        @test Number.(Array(B*u)) ≈ [airyai(d.a),airyai(d.b)]
+        @time u = [B;D2-X] \ [airyai.(endpoints(d))...,0.];
+        @test Number.(Array(B*u)) ≈ [airyai.(endpoints(d))...]
 
         @test ≈(u(0.),airyai(0.);atol=10ncoefficients(u)*eps())
 
-        @time u=[Bm;D2-X;Bp]\[airyai(d.a),0.,airyai(d.b)];
+        @time u=[Bm;D2-X;Bp]\[airyai(leftendpoint(d)),0.,airyai(rightendpoint(d))];
         @test ≈(u(0.),airyai(0.);atol=10ncoefficients(u)*eps())
 
-        @time u=[D2-X;Bm;Bp]\[0.,airyai(d.a),airyai(d.b)];
+        @time u=[D2-X;Bm;Bp]\[0.,airyai(leftendpoint(d)),airyai(rightendpoint(d))];
         @test ≈(u(0.),airyai(0.);atol=10ncoefficients(u)*eps())
 
         d=Interval(-1000.,5.);
-        Bm=Evaluation(d,d.a);
-        Bp=Evaluation(d,d.b);
+        Bm=Evaluation(d,leftendpoint(d));
+        Bp=Evaluation(d,rightendpoint(d));
         B=[Bm;Bp];
         D2=Derivative(d,2);
         X=Multiplication(Fun(x->x,d));
 
-        u=[B;D2-X]\[airyai(d.a),airyai(d.b),0.];
+        u=[B;D2-X]\[airyai(leftendpoint(d)),airyai(rightendpoint(d)),0.];
         @test ≈(u(0.),airyai(0.);atol=10ncoefficients(u)*eps())
 
         B=Neumann(d);
         A=[B;D2-X];
-        b=[[airyaiprime(d.a),airyaiprime(d.b)],0.];
+        b=[[airyaiprime(leftendpoint(d)),airyaiprime(rightendpoint(d))],0.];
 
         @time u=A\b;
 

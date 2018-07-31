@@ -93,7 +93,7 @@ export pad!, pad, chop!, sample,
 ##Testing
 export bisectioninv
 
-export .., Interval, ChebyshevInterval
+export .., Interval, ChebyshevInterval, leftendpoint, rightendpoint, endpoints
 
 
 

@@ -147,6 +147,6 @@ using ApproxFun, Test
 
     @testset "Large scaling" begin
         w = Fun(x -> 1e5/(x*x+1), 283.72074879785936 .. 335.0101119042838)
-        @test w(domain(w).a) ≈ 1e5/(domain(w).a^2+1)
+        @test w(leftendpoint(domain(w))) ≈ 1e5/(leftendpoint(domain(w))^2+1)
     end
 end

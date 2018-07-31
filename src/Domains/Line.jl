@@ -222,7 +222,7 @@ complexlength(d::Union{Line,PeriodicLine})=Inf
 ## vectorized
 
 for typ in (:Line,:PeriodicLine)
-    @eval function convert(::Type{$typ},d::IntervalSets.ClosedInterval)
+    @eval function convert(::Type{$typ},d::ClosedInterval)
         a,b=d.left,d.right
         @assert abs(a) == abs(b) == Inf
 

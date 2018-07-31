@@ -4,17 +4,17 @@ include("ProductDomain.jl")
 ## boundary
 
 boundary(d::ProductDomain{Tuple{A,B}}) where {A<:IntervalOrSegment,B<:IntervalOrSegment} =
-    PiecewiseSegment([Vec(factor(d,1).a,factor(d,2).a),
-                      Vec(factor(d,1).b,factor(d,2).a),
-                      Vec(factor(d,1).b,factor(d,2).b),
-                      Vec(factor(d,1).a,factor(d,2).b),
-                      Vec(factor(d,1).a,factor(d,2).a)])
+    PiecewiseSegment([Vec(leftendpoint(factor(d,1)),leftendpoint(factor(d,2))),
+                      Vec(rightendpoint(factor(d,1)),leftendpoint(factor(d,2))),
+                      Vec(rightendpoint(factor(d,1)),rightendpoint(factor(d,2))),
+                      Vec(leftendpoint(factor(d,1)),rightendpoint(factor(d,2))),
+                      Vec(leftendpoint(factor(d,1)),leftendpoint(factor(d,2)))])
 boundary(d::ProductDomain{Tuple{A,B}}) where {A<:IntervalOrSegment,B<:PeriodicInterval} =
-    UnionDomain((PeriodicInterval(Vec(factor(d,1).b,factor(d,2).a),Vec(factor(d,1).b,factor(d,2).b)),
-        PeriodicInterval(Vec(factor(d,1).a,factor(d,2).b),Vec(factor(d,1).a,factor(d,2).a))))
+    UnionDomain((PeriodicInterval(Vec(rightendpoint(factor(d,1)),leftendpoint(factor(d,2))),Vec(rightendpoint(factor(d,1)),rightendpoint(factor(d,2)))),
+        PeriodicInterval(Vec(leftendpoint(factor(d,1)),rightendpoint(factor(d,2))),Vec(leftendpoint(factor(d,1)),leftendpoint(factor(d,2))))))
 boundary(d::ProductDomain{Tuple{A,B}}) where {A<:PeriodicInterval,B<:IntervalOrSegment} =
-    UnionDomain((PeriodicInterval(Vec(factor(d,1).a,factor(d,2).a),Vec(factor(d,1).b,factor(d,2).a)),
-        PeriodicInterval(Vec(factor(d,1).b,factor(d,2).b),Vec(factor(d,1).a,factor(d,2).b))))
+    UnionDomain((PeriodicInterval(Vec(leftendpoint(factor(d,1)),leftendpoint(factor(d,2))),Vec(rightendpoint(factor(d,1)),leftendpoint(factor(d,2)))),
+        PeriodicInterval(Vec(rightendpoint(factor(d,1)),rightendpoint(factor(d,2))),Vec(leftendpoint(factor(d,1)),rightendpoint(factor(d,2))))))
 boundary(d::ProductDomain{Tuple{A,B}}) where {A<:PeriodicInterval,B<:PeriodicInterval} = EmptyDomain()
 
 
