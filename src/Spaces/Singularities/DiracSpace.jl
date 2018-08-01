@@ -1,5 +1,4 @@
 export DiracDelta, KroneckerDelta
-
 for TYP in (:DiracSpace,:PointSpace)
     @eval begin
         struct $TYP{T,D,R} <: Space{D,R}
@@ -164,3 +163,40 @@ end
 
 /(f::Fun,g::Fun{PS}) where PS<:PointSpace = f*inv(g)
 Base.inv(f::Fun{PS}) where PS<:PointSpace = Fun(space(f),1./f.coefficients)
+
+#DiracSpace sampling
+function randweights(pts, cfs)
+    cs = cumsum(cfs)
+    r = rand()
+    if r≤cs[1]
+        return pts[1]
+    else
+        for n=1:length(cfs)-1
+            if cs[n]<r≤cs[n+1] && return pts[n+1]
+                break
+            end
+        end
+    end
+end
+
+
+function sample(f::Fun{<:DiracSpace,<:Real})
+    cfs = f.coefficients/sum(f.coefficients)
+    any(c -> c < 0, cfs) && throw(ArgumentError("All weights must be non-negative"))
+    randweights(f.space.points, cfs)
+end
+
+function sample(f::Fun{<:DiracSpace,<:Real},n::Integer)
+    p=[]
+    for i=1:n
+        p=[p;sample(f)]
+    end
+    return p
+end
+#integrate DiracSpace
+function integrate(f::Fun{<:DiracSpace})
+    pts=f.space.points
+    cfs=f.coefficients
+    int=Fun(HeavisideSpace([pts;Inf]),cumsum(cfs))
+    return int
+end

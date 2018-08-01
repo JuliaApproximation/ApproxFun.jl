@@ -147,16 +147,36 @@ function Conversion(A::Laguerre,B::Laguerre)
 end
 
 
-# x^α*exp(-L*x)
+"""
+    LaguerreWeight(α, L, space)
+
+weights `space` by `x^α * exp(-L*x)`.
+"""
 struct LaguerreWeight{S,T} <: WeightSpace{S,Ray{false,Float64},Float64}
     α::T
     L::T
     space::S
 end
 
+
+"""
+    LaguerreWeight(α, space)
+
+weights `space` by `x^α * exp(-x)`.
+"""
 LaguerreWeight(α, space::Space) = LaguerreWeight(α, one(α),space)
 
+"""
+    WeightedLaguerre(α)
+
+is the weighted generalized Laguerre space x^α*exp(-x)*L_k^(α)(x).
+"""
 WeightedLaguerre(α) = LaguerreWeight(α, Laguerre(α))
+"""
+    WeightedLaguerre()
+
+is the weighted Laguerre space exp(-x)*L_k(x).
+"""
 WeightedLaguerre() = WeightedLaguerre(0)
 
 doc"""
