@@ -122,9 +122,9 @@ rangespace(D::ConcreteDerivative{H}) where {H<:HeavisideSpace} = domain(D).point
 
 function getindex(D::ConcreteDerivative{H,T},k::Integer,j::Integer) where {H<:HeavisideSpace,T}
     if k==j
-        1
+        one(T)
     elseif k==j+1
-        -1
+        -one(T)
     else
         zero(T)
     end
