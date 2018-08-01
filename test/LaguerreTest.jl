@@ -21,6 +21,7 @@ using ApproxFun, Compat.Test
 
 
     @testset "Conversion" begin
+        f = Fun(Laguerre(0.2), ones(100))
         @test (Conversion(Laguerre(0.2), Laguerre(1.2)) * f)(0.1) ≈ f(0.1)
         @test (Conversion(Laguerre(0.2), Laguerre(2.2)) * f)(0.1) ≈ f(0.1)
     end
