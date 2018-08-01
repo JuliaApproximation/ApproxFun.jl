@@ -206,51 +206,6 @@ using ApproxFun, Compat.Test, StaticArrays
 
 
 
-
-    ## Laguerre and Hermite
-
-    f=Fun(Laguerre(0.),[1,2,3])
-    @test f(0.1) ≈ 5.215
-
-
-    f = Fun(Laguerre(0.1),ones(100))
-    @test f(0.2) ≈ 8.840040924281498
-
-
-    @test (Derivative(Laguerre(0.1))*f)(0.2) ≈ -71.44556705957386
-    f = Fun(Laguerre(0.2),ones(100))
-    @test (Derivative(Laguerre(0.2))*f)(0.3) ≈ -137.05785783078218
-
-
-    @test (Conversion(Laguerre(0.2),Laguerre(1.2))*f)(0.1) ≈ f(0.1)
-    @test (Conversion(Laguerre(0.2),Laguerre(2.2))*f)(0.1) ≈ f(0.1)
-
-
-
-    f=Fun(LaguerreWeight(0.,Laguerre(0.1)),ones(100))
-    @test f'(0.2) ≈ -65.7322962859456
-
-
-    B=Evaluation(LaguerreWeight(0.,Laguerre(0.1)),false)
-    @test B*f ≈ 151.53223385808576
-
-
-    x=Fun(Laguerre(0.0))
-    S=WeightedLaguerre(0.0)
-    D=Derivative(S)
-    u=[ldirichlet();D^2-x]\[airyai(0.0);0.0]
-    @test u(1.0) ≈ airyai(1.0)
-
-    w = Fun(WeightedLaguerre(), [1.0])
-    @test sum(w) == 1
-    t = Fun(identity, space(w))
-    @test t(10.0) == 10.0
-    M = Multiplication(t^2+1, space(w))
-    (M \ w)(1.0) ≈ exp(-1)/2
-    #
-
-
-
     ## Test vector valued case
 
     f=Fun((x,y)->real(exp(x+im*y)),Legendre(Vec(0.,0.)..Vec(1.,1.)))
@@ -309,15 +264,23 @@ using ApproxFun, Compat.Test, StaticArrays
         testfunctional(B)
         @test ApproxFun.rowstop(B,1) == 1
     end
-end
 
-@testset "Definite integral tests" begin
-    for S in (WeightedJacobi(0,0), JacobiWeight(0,0, Legendre(1.1..2.3)), Legendre())
-        B = DefiniteIntegral(S)
-        testfunctional(B)
-        @test ApproxFun.rowstop(B,1) == 1
-        B[1] == arclength(domain(S))
-        f = Fun(exp, S)
-        B*f == sum(Fun(exp,domain(S)))
+    @testset "WeightedLaguerre cumsum" begin
+        α = 2.7
+        f = Fun(WeightedLaguerre(α), [1.0]);
+        f = Fun(f, JacobiWeight(α,0,Chebyshev(0.0 .. Inf)));
+        g = integrate(f)
+        g(3.0) - cumsum(Fun(x -> f(x), 0..6))(3.0)
+    end
+
+    @testset "Definite integral tests" begin
+        for S in (WeightedJacobi(0,0), JacobiWeight(0,0, Legendre(1.1..2.3)), Legendre())
+            B = DefiniteIntegral(S)
+            testfunctional(B)
+            @test ApproxFun.rowstop(B,1) == 1
+            B[1] == arclength(domain(S))
+            f = Fun(exp, S)
+            B*f == sum(Fun(exp,domain(S)))
+        end
     end
 end

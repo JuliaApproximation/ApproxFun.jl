@@ -511,6 +511,7 @@ end
 
 space(x::Number) = ConstantSpace(typeof(x))
 
+setdomain(A::ConstantSpace{DD,R}, d) where {DD,R} = ConstantSpace{typeof(d),R}(d)
 
 
 # Range type is Void since function evaluation is not defined
