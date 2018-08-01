@@ -132,6 +132,24 @@ end
 
 issubcomponent(a::Domain,b::Domain) = a in components(b)
 
+
+##### canoncial
+"""
+    canonicaldomain(d)
+
+returns a domain which we map to for operations. For example,
+the canonical domain for an interval [a,b] is [-1,1]
+"""
+function canonicaldomain end
+
+
+"""
+    tocanonical(d, x)
+
+maps the point `x` in `d` to a point in `canonical(d,x)`
+"""
+function tocanonical end
+
 ###### Periodic domains
 
 abstract type PeriodicDomain{T} <: UnivariateDomain{T} end
