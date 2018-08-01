@@ -206,7 +206,7 @@ LowRankFun(c::Number,etc...) = LowRankFun((x,y)->c,etc...)
 
 ## Construction from other LowRankFuns
 
-LowRankFun(f::LowRankFun,d1::IntervalDomain,d2::IntervalDomain) =
+LowRankFun(f::LowRankFun,d1::IntervalOrSegment,d2::IntervalOrSegment) =
     LowRankFun(map(g->Fun(d1,g.coefficients),f.A),
                map(g->Fun(d2,g.coefficients),f.B))
 LowRankFun(f::LowRankFun) = LowRankFun(f,ChebyshevInterval(),ChebyshevInterval())

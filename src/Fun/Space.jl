@@ -517,6 +517,7 @@ end
 space(x::Number) = ConstantSpace(typeof(x))
 space(f::AbstractArray{T}) where T<:Number = ArraySpace(ConstantSpace{T}(), size(f)...)
 
+setdomain(A::ConstantSpace{DD,R}, d) where {DD,R} = ConstantSpace{typeof(d),R}(d)
 
 
 # Range type is Nothing since function evaluation is not defined

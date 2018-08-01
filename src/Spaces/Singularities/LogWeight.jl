@@ -61,13 +61,13 @@ end
 # Same as JacobiWeight
 
 # avoid redundency
-function Multiplication(f::Fun{JacobiWeight{SS,DD,RR,TT},T}, S::LogWeight{LWS,DD,RR}) where {SS,LWS,DD<:IntervalDomain,RR,T,TT}
+function Multiplication(f::Fun{JacobiWeight{SS,DD,RR,TT},T}, S::LogWeight{LWS,DD,RR}) where {SS,LWS,DD<:IntervalOrSegment,RR,T,TT}
     M=Multiplication(Fun(space(f).space,f.coefficients),S)
     rsp=JacobiWeight(space(f).β,space(f).α,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
 end
 
-function Multiplication(f::Fun{<:LogWeight},S::JacobiWeight{SS,DD}) where {SS,DD<:IntervalDomain}
+function Multiplication(f::Fun{<:LogWeight},S::JacobiWeight{SS,DD}) where {SS,DD<:IntervalOrSegment}
     M=Multiplication(f,S.space)
     rsp=JacobiWeight(S.β,S.α,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))

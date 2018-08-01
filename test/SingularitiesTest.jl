@@ -1,4 +1,4 @@
-using ApproxFun, SpecialFunctions, Test
+using ApproxFun, IntervalSets, SpecialFunctions, Test
 
 @testset "Singularities" begin
     @testset "sqrt" begin
@@ -42,7 +42,7 @@ using ApproxFun, SpecialFunctions, Test
         S=JacobiWeight(-1.,-1.,Chebyshev(0..1))
 
         # Checks bug in Derivative(S)
-        @test typeof(ConstantSpace(Domain(0..1))) <: Space{Segment{Float64},Float64}
+        @test typeof(ConstantSpace(Domain(0..1))) <: Space{ClosedInterval{Float64},Float64}
 
         D=Derivative(S)
         f=Fun(S,Fun(exp,0..1).coefficients)

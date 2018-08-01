@@ -22,9 +22,9 @@ Evaluation(::Type{T},sp::Space,x,order) where {T} =
 # TODO: This seems like a bad idea: if you are specifying x, just go with the generic version
 function Evaluation(::Type{T},sp::UnivariateSpace,x::Number,order) where {T}
     d=domain(sp)
-    if isa(d,IntervalDomain) && isapprox(first(d),x)
+    if isa(d,IntervalOrSegment) && isapprox(first(d),x)
         Evaluation(T,sp,first,order)
-    elseif isa(d,IntervalDomain) && isapprox(last(d),x)
+    elseif isa(d,IntervalOrSegment) && isapprox(last(d),x)
         Evaluation(T,sp,last,order)
     else
         ConcreteEvaluation{typeof(sp),typeof(x),typeof(order),T}(sp,x,order)

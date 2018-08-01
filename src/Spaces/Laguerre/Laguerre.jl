@@ -150,9 +150,12 @@ LaguerreWeight(α, space::Space) = LaguerreWeight(α, one(α),space)
 WeightedLaguerre(α) = LaguerreWeight(α, Laguerre(α))
 WeightedLaguerre() = WeightedLaguerre(0)
 
-@inline laguerreweight(α,L,x) = x.^α.*exp(-L*x)
+@inline laguerreweight(α,L,x) = isinf(x) ? zero(x) : x^α * exp(-L*x)
 @inline weight(L::LaguerreWeight,x) = laguerreweight(L.α,L.L,x)
 
+
+evaluate(f::AbstractVector,S::LaguerreWeight,x) =
+    isinf(x) ? zero(x) : weight(S,x)*evaluate(f,S.space,x)
 
 Fun(::typeof(identity), sp::Laguerre) = Fun(sp,[sp.α+1,-1])
 Fun(::typeof(identity), sp::LaguerreWeight) = Fun(identity, sp.space)

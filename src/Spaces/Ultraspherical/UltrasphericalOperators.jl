@@ -43,8 +43,8 @@ end
 ## Derivative
 
 
-#Derivative(k::Integer,d::IntervalDomain)=Derivative(k-1:k,d)
-#Derivative(d::IntervalDomain)=Derivative(1,d)
+#Derivative(k::Integer,d::IntervalOrSegment)=Derivative(k-1:k,d)
+#Derivative(d::IntervalOrSegment)=Derivative(1,d)
 
 
 Derivative(sp::Ultraspherical{LT,DD},m::Integer) where {LT,DD<:IntervalOrSegment} =

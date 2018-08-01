@@ -21,10 +21,6 @@ struct Segment{T} <: SegmentDomain{T}
 end
 
 
-const IntervalOrSegment{T} = Union{Domains.AbstractInterval{T}, Segment{T}}
-
-
-
 Segment() = Segment{Float64}()
 Segment(a::Complex{IT1},b::Complex{IT2}) where {IT1<:Integer,IT2<:Integer} =
 	Segment(ComplexF64(a),ComplexF64(b)) #convenience method
