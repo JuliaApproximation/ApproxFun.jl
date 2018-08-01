@@ -97,6 +97,18 @@ using ApproxFun, Compat.Test
         f = Fun(WeightedLaguerre(α), [1.0, 1.0])
         g = integrate(f)
         @test g(3.0) - cumsum(Fun(x -> f(x), 0..6))(3.0) ≈ g(0.0)
+
+        @testset "Correct domain" begin
+            w = Fun(WeightedLaguerre(0.5),[1.0])
+            h = cumsum(w)
+            @test domain(h) == Ray()
+        end
     end
 
+    @testset "Multiplication rangespace" begin
+        x = Fun(Laguerre())
+        w = Fun(WeightedLaguerre(-0.5),[1.0])
+        M = Multiplication(w,space(1+x))
+        @test rangespace(M) == LaguerreWeight(-0.5,Laguerre())
+    end
 end

@@ -145,6 +145,12 @@ for TYP in (:SumSpace,:PiecewiseSpace)
     end
 end
 
+# TODO: Fix this Hack
+SumSpace(A::ConstantSpace{AnyDomain}, B::ConstantSpace{AnyDomain}) = error("Should not happen")
+SumSpace(A::SumSpace, B::ConstantSpace{AnyDomain}) = SumSpace(A, setdomain(B, domain(A)))
+SumSpace(B::ConstantSpace{AnyDomain}, A::SumSpace) = SumSpace(setdomain(B, domain(A)), A)
+SumSpace(A::Space, B::ConstantSpace{AnyDomain}) = SumSpace(A, setdomain(B, domain(A)))
+SumSpace(B::ConstantSpace{AnyDomain}, A::Space) = SumSpace(setdomain(B, domain(A)), A)
 
 pieces(sp::PiecewiseSpace) = sp.spaces
 piece(s::Space,k) = pieces(s)[k]

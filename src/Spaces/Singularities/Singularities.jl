@@ -47,10 +47,7 @@ itransform(sp::WeightSpace,cfs::AbstractVector,plan::WeightSpacePlan) =
 
 
 
-function evaluate(f::AbstractVector,S::WeightSpace,x)
-    fv=evaluate(f,S.space,x)
-    weight(S,x).*fv
-end
+evaluate(f::AbstractVector,S::WeightSpace,x) = weight(S,x)*evaluate(f,S.space,x)
 
 function evaluate(f::AbstractVector,S::WeightSpace,x...)
     fv=evaluate(f,S.space,x...)

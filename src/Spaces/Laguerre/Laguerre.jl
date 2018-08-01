@@ -285,7 +285,7 @@ end
 function Multiplication(f::Fun{LaguerreWeight{H,T}},S::Laguerre) where {H<:Laguerre,T}
     M=Multiplication(Fun(space(f).space,f.coefficients),S)
     rs=rangespace(M)
-    MultiplicationWrapper(f,SpaceOperator(M,S,LaguerreWeight(rs.α, rs)))
+    MultiplicationWrapper(f,SpaceOperator(M,S,LaguerreWeight(space(f).α, space(f).L, rs)))
 end
 
 
@@ -299,7 +299,7 @@ function integrate(f::Fun{LW}) where LW <: LaguerreWeight{LL} where LL <: Laguer
         if n == 0
             Fun(0)
         else
-            if isinteger(α) == false || α == 2
+            if !isinteger(α) || α == 2
                 if n == 1
                     f̃ = Fun(f, JacobiWeight(α, 0, Chebyshev(0.0 .. Inf)));
                     g = integrate(f̃);
