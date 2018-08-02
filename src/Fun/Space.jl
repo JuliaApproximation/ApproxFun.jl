@@ -373,8 +373,11 @@ for Typ in (:TransformPlan,:ITransformPlan)
         end
         $Typ(space,plan,::Type{Val{inplace}}) where {inplace} =
             $Typ{eltype(plan),typeof(space),inplace,typeof(plan)}(space,plan)
+        *(P::$Typ, x::AbstractArray) = P.plan*x
     end
 end
+
+
 
 for Typ in (:CanonicalTransformPlan,:ICanonicalTransformPlan)
     @eval begin
