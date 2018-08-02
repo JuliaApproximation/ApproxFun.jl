@@ -25,7 +25,7 @@ function evaluate(f::Fun{HeavisideSpace{T,R}},x::Real) where {T<:Real,R}
     p = domain(f).points
     c = f.coefficients
     for k=1:length(p)-1
-        if p[k] ≤ x ≤ p[k+1]
+        if p[k] ≤ x ≤ p[k+1]
             return c[k]
         end
     end
@@ -37,7 +37,7 @@ function evaluate(f::Fun{SplineSpace{1,T,R}},x::Real) where {T<:Real,R}
     p = domain(f).points
     c = f.coefficients
     for k=1:length(p)-1
-        if p[k] ≤ x ≤ p[k+1]
+        if p[k] ≤ x ≤ p[k+1]
             return (x-p[k])*c[k+1]/(p[k+1]-p[k]) + (p[k+1]-x)*c[k]/(p[k+1]-p[k])
         end
     end
