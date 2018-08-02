@@ -25,7 +25,7 @@ function evaluate(f::Fun{HeavisideSpace{T,R}},x::Real) where {T<:Real,R}
     p = domain(f).points
     c = f.coefficients
     for k=1:length(p)-1
-        if p[k] ≤ x ≤ p[k+1]
+        if p[k] ≤ x ≤ p[k+1]
             return c[k]
         end
     end
@@ -37,7 +37,7 @@ function evaluate(f::Fun{SplineSpace{1,T,R}},x::Real) where {T<:Real,R}
     p = domain(f).points
     c = f.coefficients
     for k=1:length(p)-1
-        if p[k] ≤ x ≤ p[k+1]
+        if p[k] ≤ x ≤ p[k+1]
             return (x-p[k])*c[k+1]/(p[k+1]-p[k]) + (p[k+1]-x)*c[k]/(p[k+1]-p[k])
         end
     end
@@ -73,6 +73,21 @@ bandinds(::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},DD,RR}}) where {HS
 getindex(C::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},DD,RR}},k::Integer,j::Integer) where {HS<:HeavisideSpace,CC<:PolynomialSpace,DD<:UnivariateDomain,RR<:Real,kk} =
     k ≤ dimension(domainspace(C)) && j==k? one(eltype(C)) : zero(eltype(C))
 
+
+bandinds(D::ConcreteDerivative{HS}) where {HS<:HeavisideSpace}=-1,0
+
+rangespace(D::ConcreteDerivative{HS}) where {HS<:HeavisideSpace}=DiracSpace(domain(D).points)
+
+function getindex(D::ConcreteDerivative{HS},k::Integer,j::Integer) where HS<:HeavisideSpace
+    n=ncomponents(domain(D))
+    if k≤n && j==k
+        one(eltype(D))
+    elseif j≤n && j==k-1
+        -one(eltype(D))
+    else
+        zero(eltype(D))
+    end
+end
 
 Base.sum(f::Fun{HS}) where {HS<:HeavisideSpace} = dotu(f.coefficients,diff(space(f).domain.points))
 function Base.sum(f::Fun{SplineSpace{1,T,R}}) where {T,R}
