@@ -73,20 +73,6 @@ bandinds(::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},DD,RR}}) where {HS
 getindex(C::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},DD,RR}},k::Integer,j::Integer) where {HS<:HeavisideSpace,CC<:PolynomialSpace,DD<:UnivariateDomain,RR<:Real,kk} =
     k ≤ dimension(domainspace(C)) && j==k? one(eltype(C)) : zero(eltype(C))
 
-bandinds(D::ConcreteDerivative{HS}) where {HS<:HeavisideSpace}=-1,0
-
-rangespace(D::ConcreteDerivative{HS}) where {HS<:HeavisideSpace}=DiracSpace(domain(D).points)
-
-function getindex(D::ConcreteDerivative{HS},k::Integer,j::Integer) where HS<:HeavisideSpace
-    n=ncomponents(domain(D))
-    if k≤n && j==k
-        one(eltype(D))
-    elseif j≤n && j==k-1
-        -one(eltype(D))
-    else
-        zero(eltype(D))
-    end
-end
 
 Base.sum(f::Fun{HS}) where {HS<:HeavisideSpace} = dotu(f.coefficients,diff(space(f).domain.points))
 function Base.sum(f::Fun{SplineSpace{1,T,R}}) where {T,R}
