@@ -112,7 +112,24 @@ function differentiate(f::Fun{<:HeavisideSpace})
     return diff
 end
 
+#Derivative Operator for HeavisideSpace
+function Derivative(H::HeavisideSpace)
+    ConcreteDerivative(H)
+end
 
+bandinds(D::ConcreteDerivative{H}) where {H<:HeavisideSpace} = (-1,0)
+rangespace(D::ConcreteDerivative{H}) where {H<:HeavisideSpace} = domain(D).points[end]==Inf?DiracSpace(domain(D).points[1:end-1]):DiracSpace(domain(D).points)
+
+function getindex(D::ConcreteDerivative{H,T},k::Integer,j::Integer) where {H<:HeavisideSpace,T}
+    if k==j
+        one(T)
+    elseif k==j+1
+        -one(T)
+    else
+        zero(T)
+    end
+end
+    
 differentiate(f::Fun{SplineSpace{1,T,R}}) where {T,R} =
     Fun(HeavisideSpace(space(f).domain),
         diff(pad(f.coefficients,dimension(space(f))))./diff(space(f).domain.points))
