@@ -128,8 +128,8 @@ function getindex(D::ConcreteDerivative{H,T},k::Integer,j::Integer) where {H<:He
     else
         zero(T)
     end
-end    
-
+end
+    
 differentiate(f::Fun{SplineSpace{1,T,R}}) where {T,R} =
     Fun(HeavisideSpace(space(f).domain),
         diff(pad(f.coefficients,dimension(space(f))))./diff(space(f).domain.points))
