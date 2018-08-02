@@ -73,7 +73,6 @@ bandinds(::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},DD,RR}}) where {HS
 getindex(C::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},DD,RR}},k::Integer,j::Integer) where {HS<:HeavisideSpace,CC<:PolynomialSpace,DD<:UnivariateDomain,RR<:Real,kk} =
     k ≤ dimension(domainspace(C)) && j==k? one(eltype(C)) : zero(eltype(C))
 
-
 bandinds(D::ConcreteDerivative{HS}) where {HS<:HeavisideSpace}=-1,0
 
 rangespace(D::ConcreteDerivative{HS}) where {HS<:HeavisideSpace}=DiracSpace(domain(D).points)
