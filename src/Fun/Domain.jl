@@ -14,7 +14,7 @@ const BivariateDomain{T} = Domain{Vec{2,T}} where {T<:Number}
 
 
 eltype(::Domain{T}) where {T} = T
-eltype(::Type{Domain{T}}) where {T} = T
+eltype(::Type{<:Domain{T}}) where {T} = T
 Base.isreal(::Domain{T}) where {T<:Real} = true
 Base.isreal(::Domain{T}) where {T} = false
 
