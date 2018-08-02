@@ -73,6 +73,21 @@ bandinds(::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},DD,RR}}) where {HS
 getindex(C::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},DD,RR}},k::Integer,j::Integer) where {HS<:HeavisideSpace,CC<:PolynomialSpace,DD<:UnivariateDomain,RR<:Real,kk} =
     k ≤ dimension(domainspace(C)) && j==k? one(eltype(C)) : zero(eltype(C))
 
+bandinds(D::ConcreteDerivative{HS}) where {HS<:HeavisideSpace}=-1,0
+
+rangespace(D::ConcreteDerivative{HS}) where {HS<:HeavisideSpace}=DiracSpace(domain(D).points)
+
+function getindex(D::ConcreteDerivative{HS},k::Integer,j::Integer) where HS<:HeavisideSpace
+    n=ncomponents(domain(D))
+    if k≤n && j==k
+        one(eltype(D))
+    elseif j≤n && j==k-1
+        -one(eltype(D))
+    else
+        zero(eltype(D))
+    end
+end
+
 Base.sum(f::Fun{HS}) where {HS<:HeavisideSpace} = dotu(f.coefficients,diff(space(f).domain.points))
 function Base.sum(f::Fun{SplineSpace{1,T,R}}) where {T,R}
     vals=pad(f.coefficients,dimension(space(f)))
@@ -101,18 +116,6 @@ function Derivative(H::HeavisideSpace)
     ConcreteDerivative(H)
 end
 
-bandinds(D::ConcreteDerivative{H}) where {H<:HeavisideSpace} = (-1,0)
-rangespace(D::ConcreteDerivative{H}) where {H<:HeavisideSpace} = domain(D).points[end]==Inf?DiracSpace(domain(D).points[1:end-1]):DiracSpace(domain(D).points)
-
-function getindex(D::ConcreteDerivative{H,T},k::Integer,j::Integer) where {H<:HeavisideSpace,T}
-    if k==j
-        one(T)
-    elseif k==j+1
-        -one(T)
-    else
-        zero(T)
-    end
-end
     
 differentiate(f::Fun{SplineSpace{1,T,R}}) where {T,R} =
     Fun(HeavisideSpace(space(f).domain),
