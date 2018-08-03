@@ -49,7 +49,7 @@ hasconstblocks(A::Operator) = hasconstblocks(domainspace(A)) && hasconstblocks(r
 
 macro functional(FF)
     quote
-        Base.size(A::$FF,k::Integer) = k==1?1:∞
+        Base.size(A::$FF,k::Integer) = k==1 ? 1 : dimension(domainspace(A))
         ApproxFun.rangespace(F::$FF) = ConstantSpace(eltype(F))
         ApproxFun.isafunctional(::$FF) = true
         ApproxFun.blockbandinds(A::$FF) = 0,hastrivialblocks(domainspace(A))?bandinds(A,2):∞
