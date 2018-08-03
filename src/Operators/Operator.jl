@@ -771,7 +771,7 @@ end
 function arraytype(V::SubOperator)
     P = parent(V)
     isbanded(P) && return BandedMatrix
-    isbandedblockbanded(P) && return BandedBlockBandedMatrix
+    # isbandedblockbanded(P) && return BandedBlockBandedMatrix
     isinf(size(P,1)) && israggedbelow(P) && return RaggedMatrix
     return Matrix
 end
