@@ -756,8 +756,8 @@ end
 arraytype(::Operator) = Matrix
 function arraytype(V::SubOperator{T,B,Tuple{KR,JR}}) where {T, B, KR <: Union{BlockRange, Block}, JR <: Union{BlockRange, Block}}
     P = parent(V)
-    isbandedblockbanded(V) && return BandedBlockBandedMatrix
-    isblockbanded(V) && return BlockBandedMatrix
+    isbandedblockbanded(P) && return BandedBlockBandedMatrix
+    isblockbanded(P) && return BlockBandedMatrix
     return PseudoBlockMatrix
 end
 
@@ -771,6 +771,7 @@ end
 function arraytype(V::SubOperator)
     P = parent(V)
     isbanded(P) && return BandedMatrix
+    isbandedblockbanded(P) && return BandedBlockBandedMatrix
     isinf(size(P,1)) && israggedbelow(P) && return RaggedMatrix
     return Matrix
 end
