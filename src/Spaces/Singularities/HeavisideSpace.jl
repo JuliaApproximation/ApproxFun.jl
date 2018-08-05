@@ -112,6 +112,13 @@ function differentiate(f::Fun{<:HeavisideSpace})
     return diff
 end
 
+#Derivative Operator for HeavisideSpace
+function Derivative(H::HeavisideSpace, k::Int)
+    @assert k == 1
+    ConcreteDerivative(H)
+end
+
+
 
 differentiate(f::Fun{SplineSpace{1,T,R}}) where {T,R} =
     Fun(HeavisideSpace(space(f).domain),

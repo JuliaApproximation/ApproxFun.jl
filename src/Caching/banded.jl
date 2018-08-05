@@ -11,15 +11,14 @@ end
 
 
 function resizedata!(B::CachedOperator{T,<:BandedMatrix{T}},n::Integer,::Colon) where T<:Number
-    if n > size(B,1)
-        throw(ArgumentError("Cannot resize beyound size of operator"))
-    end
+    N,M = size(B)
+    n = min(n, N)
 
     if n > B.datasize[1]
-        pad!(B.data,2n,:)
+        pad!(B.data,min(N,2n),:)
 
         kr=B.datasize[1]+1:n
-        jr=max(B.datasize[1]+1-B.data.l,1):n+B.data.u
+        jr=max(B.datasize[1]+1-B.data.l,1):min(n+B.data.u,M)
         BLAS.axpy!(1.0,view(B.op,kr,jr),view(B.data,kr,jr))
 
         B.datasize = (n,n+B.data.u)
@@ -96,10 +95,12 @@ end
 
 function resizedata!(QR::QROperator{<:CachedOperator{T,<:BandedMatrix{T},
                                        MM,DS,RS,BI}},
-::Colon,col) where {T<:BlasFloat,MM,DS,RS,BI}
+                     ::Colon,col) where {T<:BlasFloat,MM,DS,RS,BI}
     if col ≤ QR.ncols
         return QR
     end
+
+    col = min(col, size(QR,2))
 
     MO=QR.R
     W=QR.H

@@ -308,4 +308,26 @@ using ApproxFun, Compat.Test
         Cf=C*f
         @test Cf(0.1) ≈ f(0.1)
     end
+
+
+    @testset "Derivative operator for HeavisideSpace" begin
+        H=ApproxFun.HeavisideSpace([1,2,3])
+        D=Derivative(H)
+        @test domain(D)==ApproxFun.PiecewiseSegment([1,2,3])
+        @test D[1,1]==1
+        @test D[1,2]==0
+        @test D[2,2]==1
+
+        H=ApproxFun.HeavisideSpace([1,2,3,Inf])
+        D=Derivative(H)
+        @test domain(D)==ApproxFun.PiecewiseSegment([1,2,3,Inf])
+        @test D[1,1]==1
+        @test D[2,2]==1
+        @test D[3,3]==1
+        @test D[1,2]==0
+        @test D[2,1]==-1
+
+        S = ApproxFun.HeavisideSpace([-1.0,0.0,1.0])
+        @test Derivative(S) === Derivative(S,1)
+    end
 end
