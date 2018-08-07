@@ -101,7 +101,7 @@ macro calculus_operator(Op)
 end
 
 choosedomainspace(M::CalculusOperator{UnsetSpace},sp::Space) =
-    iswrapper(M)?choosedomainspace(M.op,sp):sp  # we assume the space itself will work
+    iswrapper(M) ? choosedomainspace(M.op,sp) : sp  # we assume the space itself will work
 
 
 

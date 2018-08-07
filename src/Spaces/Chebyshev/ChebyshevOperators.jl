@@ -17,7 +17,7 @@ Evaluation(S::Chebyshev,x::Bool,o::Integer) =
     ConcreteEvaluation(S,x,o)
 
 Evaluation(S::Chebyshev,x::Number,o::Integer) =
-    o==0?ConcreteEvaluation(S,x,o):EvaluationWrapper(S,x,o,Evaluation(x)*Derivative(S,o))
+    o==0 ? ConcreteEvaluation(S,x,o) : EvaluationWrapper(S,x,o,Evaluation(x)*Derivative(S,o))
 
 function evaluatechebyshev(n::Integer,x::T) where T<:Number
     if n == 1

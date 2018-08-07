@@ -41,9 +41,9 @@ end
 
 # used for ProductFun
 transform(sp::WeightSpace,vals::AbstractVector,plan::WeightSpacePlan) =
-    transform(sp.space,vals./(sp==plan.space?plan.weights:weight.(sp,plan.points)),plan.plan)
+    transform(sp.space,vals./(sp==plan.space ? plan.weights : weight.(sp,plan.points)),plan.plan)
 itransform(sp::WeightSpace,cfs::AbstractVector,plan::WeightSpacePlan) =
-    itransform(sp.space,cfs,plan.plan).*(sp==plan.space?plan.weights:weight.(sp,plan.points))
+    itransform(sp.space,cfs,plan.plan).*(sp==plan.space ? plan.weights : weight.(sp,plan.points))
 
 
 

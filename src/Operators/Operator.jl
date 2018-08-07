@@ -52,7 +52,7 @@ macro functional(FF)
         Base.size(A::$FF,k::Integer) = k==1 ? 1 : dimension(domainspace(A))
         ApproxFun.rangespace(F::$FF) = ConstantSpace(eltype(F))
         ApproxFun.isafunctional(::$FF) = true
-        ApproxFun.blockbandinds(A::$FF) = 0,hastrivialblocks(domainspace(A))?bandinds(A,2):∞
+        ApproxFun.blockbandinds(A::$FF) = 0,hastrivialblocks(domainspace(A)) ? bandinds(A,2) : ∞
         function ApproxFun.defaultgetindex(f::$FF,k::Integer,j::Integer)
             @assert k==1
             f[j]::eltype(f)
@@ -170,7 +170,7 @@ subblockbandwidth(K::Operator,k::Integer) = k==1 ? -subblockbandinds(K,k) : subb
 
 
 bandwidth(A::Operator) = bandwidth(A,1) + bandwidth(A,2) + 1
-bandwidth(A::Operator,k::Integer) = k==1?-bandinds(A,1):bandinds(A,2)
+bandwidth(A::Operator,k::Integer) = k==1 ? -bandinds(A,1) : bandinds(A,2)
 bandwidths(A::Operator) = (bandwidth(A,1),bandwidth(A,2))
 # we are always banded by the size
 bandinds(A::Operator) = (1-size(A,1),size(A,2)-1)
@@ -186,7 +186,7 @@ bandrange(b::Operator) = UnitRange(bandinds(b)...)
 # which we represent by a factorial, so that
 # the gcd with any number < 10 is the number
 Base.stride(A::Operator) =
-    isdiag(A)?factorial(10):1
+    isdiag(A) ? factorial(10) : 1
 
 Base.isdiag(A::Operator) = bandinds(A)==(0,0)
 
@@ -625,10 +625,10 @@ Base.eye(S::Space) = IdentityOperator(S)
 Base.eye(S::Domain) = eye(Space(S))
 
 convert(A::Type{Operator{T}},f::Fun) where {T} =
-    norm(f.coefficients)==0?zero(A):convert(A,Multiplication(f))
+    norm(f.coefficients)==0 ? zero(A) : convert(A,Multiplication(f))
 
 convert(A::Type{Operator},f::Fun) =
-    norm(f.coefficients)==0?ZeroOperator():Multiplication(f)
+    norm(f.coefficients)==0 ? ZeroOperator() : Multiplication(f)
 
 
 

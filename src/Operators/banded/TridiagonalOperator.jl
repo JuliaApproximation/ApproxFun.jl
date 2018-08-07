@@ -39,7 +39,7 @@ end
 DiagIteratorOperator(it) = DiagIteratorOperator{typeof(it),eltype(it)}(it)
 
 getindex(D::DiagIteratorOperator,k::Integer,j::Integer) =
-    k==j? D.iterator[k] : zero(eltype(D))
+    k==j ? D.iterator[k] : zero(eltype(D))
 
 domainspace(D::DiagIteratorOperator) = ℓ⁰
 rangespace(D::DiagIteratorOperator) = ℓ⁰

@@ -158,10 +158,10 @@ isbandedblockbanded(P::Union{PlusOperator,TimesOperator}) = all(isbandedblockban
 
 
 blockbandinds(P::PlusOperator,k::Int) =
-    mapreduce(op->blockbandinds(op,k),k==1?min:max,P.ops)
+    mapreduce(op->blockbandinds(op,k),k==1 ? min : max,P.ops)
 blockbandinds(P::PlusOperator) = blockbandinds(P,1),blockbandinds(P,2)
 subblockbandinds(K::PlusOperator,k::Integer) =
-    mapreduce(v->subblockbandinds(v,k),k==1?min:max,K.ops)
+    mapreduce(v->subblockbandinds(v,k),k==1 ? min : max,K.ops)
 
 blockbandinds(P::TimesOperator,k::Int) = mapreduce(op->blockbandinds(op,k),+,P.ops)
 subblockbandinds(P::TimesOperator,k::Int) = mapreduce(op->subblockbandinds(op,k),+,P.ops)

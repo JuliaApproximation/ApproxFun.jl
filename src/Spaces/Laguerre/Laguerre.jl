@@ -222,7 +222,7 @@ end
 function conversion_rule(A::LaguerreWeight,B::LaguerreWeight)
     if isapproxinteger(A.α-B.α) && A.L == B.L
         ct=conversion_type(A.space,B.space)
-        ct==NoSpace()?NoSpace():LaguerreWeight(max(A.α,B.α),A.L,ct)
+        ct==NoSpace() ? NoSpace() : LaguerreWeight(max(A.α,B.α),A.L,ct)
     else
         NoSpace()
     end
