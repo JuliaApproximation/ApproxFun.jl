@@ -341,4 +341,16 @@ using ApproxFun, Compat.Test
         S = ApproxFun.PointSpace([1.0,2.0])
         @test ApproxFun.blockbandinds(FiniteOperator([1 2; 3 4],S,S)) == (0,0)
     end
+    
+    #SumSpace Conversion
+    @testset "SumSpace Conversion" begin
+        H = HeavisideSpace([-1.0,0.0,1.0])
+        C = ContinuousSpace(PiecewiseSegment([-1.0,0,1]))
+        S = H + C
+        P = Ultraspherical(1,-1.0..0.0) ∪ Ultraspherical(1,0.0..1.0)
+        @test Conversion(S,P)[1,1]==1.0
+        @test Conversion(S,P)[1,2]==0.5
+        @test rangespace(Conversion(S,P))==Ultraspherical(1,-1.0..0.0) ∪ Ultraspherical(1,0.0..1.0)
+        @test domainspace(Conversion(S,P))==ApproxFun.SumSpace(HeavisideSpace([-1.0,0.0,1.0]),ContinuousSpace(PiecewiseSegment([-1.0,0,1])))
+    end
 end
