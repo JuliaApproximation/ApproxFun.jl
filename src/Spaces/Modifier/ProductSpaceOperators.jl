@@ -144,8 +144,18 @@ for TYP in (:SumSpace,:PiecewiseSpace)
     end
 end
 
-function Conversion(S1::SumSpace, S2::Space)
-    error("Implement")
+function Conversion(a::SumSpace, b::Space)
+    @assert length(a.spaces)!=Inf
+    for n=1:length(a.spaces)
+        if ApproxFun.hasconversion(a.spaces[n],b)!==true
+            error("Implement Conversion from " * string(typeof(a.spaces[n])) * " to " * string(typeof(b)))
+        end
+    end
+    m=zeros(Operator{Float64},1,length(a.spaces))
+    for n=1:length(a.spaces)
+        m[1,n]=Conversion(a.spaces[n],b)
+    end
+    return ConversionWrapper(InterlaceOperator(m, a, b))
 end
 
 
