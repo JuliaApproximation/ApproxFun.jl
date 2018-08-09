@@ -344,7 +344,7 @@ using ApproxFun, Compat.Test
     
     #SumSpace Conversion
     @testset "SumSpace Conversion" begin
-        H = HeavisideSpace([-1.0,0.0,1.0])
+        H = ApproxFun.HeavisideSpace([-1.0,0.0,1.0])
         C = ContinuousSpace(PiecewiseSegment([-1.0,0,1]))
         S = H + C
         P = Ultraspherical(1,-1.0..0.0) ∪ Ultraspherical(1,0.0..1.0)
