@@ -59,10 +59,11 @@ import BlockBandedMatrices: blockbandwidth, blockbandwidths, blockcolstop, block
 const BlockRange1 = BlockRange{1,Tuple{UnitRange{Int}}}
 
 import Base: view
-
 import StaticArrays: SVector
-
 import AbstractFFTs: Plan
+
+import FastTransforms: ChebyshevTransformPlan, IChebyshevTransformPlan, plan_chebyshevtransform,
+                        plan_chebyshevtransform!, plan_ichebyshevtransform, plan_ichebyshevtransform!
 
 if VERSION < v"0.7-"
     using Base.FFTW
