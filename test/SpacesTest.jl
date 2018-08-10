@@ -348,6 +348,8 @@ using ApproxFun, Compat.Test
         C = ApproxFun.ContinuousSpace(ApproxFun.PiecewiseSegment([-1.0,0,1]))
         S = H + C
         P = Ultraspherical(1,-1.0..0.0) ∪ Ultraspherical(1,0.0..1.0)
+        f = Fun(S, randn(rand(1:100)))
+        @test f(0.1) ≈ Fun(f, P)(0.1)
         @test Conversion(S,P)[1,1]==1.0
         @test Conversion(S,P)[1,2]==0.5
         @test rangespace(Conversion(S,P))==Ultraspherical(1,-1.0..0.0) ∪ Ultraspherical(1,0.0..1.0)
