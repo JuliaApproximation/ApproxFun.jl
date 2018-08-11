@@ -100,7 +100,7 @@ canonicalspace(S::CosDirichlet)=CosSpace(domain(S))
 Conversion(a::CosSpace,b::CosDirichlet) = ConcreteConversion(a,b)
 bandinds(::ConcreteConversion{CD,CS}) where {CS<:CosSpace,CD<:CosDirichlet}=0,1
 getindex(C::ConcreteConversion{CD,CS},k::Integer,j::Integer) where {CS<:CosSpace,CD<:CosDirichlet} =
-    (k==j||j==k+1)?one(eltype(C)):zero(eltype(C))
+    (k==j||j==k+1) ? one(eltype(C)) : zero(eltype(C))
 
 
 conversion_rule(b::CosDirichlet,a::CosSpace)=b

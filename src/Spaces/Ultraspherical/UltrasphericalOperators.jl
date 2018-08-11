@@ -207,12 +207,12 @@ bandinds(C::ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR}}) wher
 bandinds(C::ConcreteConversion{Ultraspherical{Int,DD,RR},Ultraspherical{Int,DD,RR}}) where {DD,RR} = 0,2
 
 bandinds(C::ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{LT,DD,RR}}) where {LT,DD,RR} =
-    0,order(rangespace(C))==1?2:∞
+    0,order(rangespace(C))==1 ? 2 : ∞
 bandinds(C::ConcreteConversion{Ultraspherical{LT,DD,RR},Chebyshev{DD,RR}}) where {LT,DD,RR} =
-    0,order(domainspace(C))==1?2:∞
+    0,order(domainspace(C))==1 ? 2 : ∞
 
 bandinds(C::ConcreteConversion{Ultraspherical{LT1,DD,RR},Ultraspherical{LT2,DD,RR}}) where {LT1,LT2,DD,RR} =
-    0,order(domainspace(C))+1==order(rangespace(C))?2:∞
+    0,order(domainspace(C))+1==order(rangespace(C)) ? 2 : ∞
 
 Base.stride(C::ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR}}) where {DD,RR} = 2
 Base.stride(C::ConcreteConversion{Ultraspherical{LT1,DD,RR},Ultraspherical{LT2,DD,RR}}) where {LT1,LT2,DD,RR} = 2
@@ -230,7 +230,7 @@ conversion_rule(a::Chebyshev,b::Ultraspherical{Int}) =
 
 conversion_rule(a::Ultraspherical{LT},b::Ultraspherical{LT}) where {LT} =
     if domainscompatible(a,b) && isapproxinteger(order(a)-order(b))
-        order(a) < order(b)?a:b
+        order(a) < order(b) ? a : b
     else
         NoSpace()
     end

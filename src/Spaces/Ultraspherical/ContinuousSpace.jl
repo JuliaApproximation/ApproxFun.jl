@@ -111,7 +111,7 @@ function points(f::Fun{CS}) where {CS<:ContinuousSpace}
     d=domain(f)
     K=ncomponents(d)
 
-    m=isperiodic(d)?max(K,n+2K-1):n+K
+    m=isperiodic(d) ? max(K,n+2K-1) : n+K
     points(f.space,m)
 end
 

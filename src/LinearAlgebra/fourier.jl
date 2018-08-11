@@ -71,7 +71,7 @@ function laurentdiff(v::AbstractVector{T}) where T<:Number
     w[1] = zero(T)
     n=length(v)
 
-    for k=1:(isodd(n)?n÷2:n÷2-1)
+    for k=1:(isodd(n) ? n÷2 : n÷2-1)
         @inbounds w[2k] = -k*v[2k]
         @inbounds w[2k+1] = k*v[2k+1]
     end

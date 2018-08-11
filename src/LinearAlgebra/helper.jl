@@ -518,7 +518,7 @@ Base.isless(x::Infinity{Bool}, y::Number) = x.angle && y ≠ -∞
 Base.isless(x::Block{1}, y::Infinity{Bool}) = isless(Int(x), y)
 Base.isless(x::Infinity{Bool}, y::Block{1}) = isless(x, Int(y))
 
--(y::Infinity{B}) where {B<:Integer} = sign(y)==1?Infinity(one(B)):Infinity(zero(B))
+-(y::Infinity{B}) where {B<:Integer} = sign(y)==1 ? Infinity(one(B)) : Infinity(zero(B))
 
 function +(x::Infinity{B}, y::Infinity{B}) where B
     if x.angle != y.angle
@@ -543,7 +543,7 @@ end
 
 for T in (:Dual,:Bool,:Integer,:AbstractFloat)
     @eval begin
-        *(a::$T,y::Infinity) = a>0?y:(-y)
+        *(a::$T,y::Infinity) = a>0 ? y : (-y)
         *(y::Infinity,a::$T) = a*y
     end
 end
@@ -555,11 +555,11 @@ for OP in (:fld,:cld,:div)
   @eval Base.$OP(y::Infinity,a::Number) = y*(1/sign(a))
 end
 
-Base.min(x::Infinity{B},y::Infinity{B}) where {B<:Integer} = sign(x)==-1?x:y
-Base.max(x::Infinity{B},::Infinity{B}) where {B<:Integer} = sign(x)==1?x:y
-Base.min(x::Real,y::Infinity{B}) where {B<:Integer} = sign(y)==1?x:y
+Base.min(x::Infinity{B},y::Infinity{B}) where {B<:Integer} = sign(x)==-1 ? x : y
+Base.max(x::Infinity{B},::Infinity{B}) where {B<:Integer} = sign(x)==1 ? x : y
+Base.min(x::Real,y::Infinity{B}) where {B<:Integer} = sign(y)==1 ? x : y
 Base.min(x::Infinity{B},y::Real) where {B<:Integer} = min(y,x)
-Base.max(x::Real,y::Infinity{B}) where {B<:Integer} = sign(y)==1?y:x
+Base.max(x::Real,y::Infinity{B}) where {B<:Integer} = sign(y)==1 ? y : x
 Base.max(x::Infinity{B},y::Real) where {B<:Integer} = max(y,x)
 
 for OP in (:<,:<=)
@@ -895,7 +895,7 @@ function getindex(it::CachedIterator,k)
     if mx > length(it) || mx < 1
         throw(BoundsError(it,k))
     end
-    resize!(it,isempty(k)?0:mx).storage[k]
+    resize!(it,isempty(k) ? 0 : mx).storage[k]
 end
 function Base.findfirst(f::Function,A::CachedIterator)
     k=1
@@ -1182,7 +1182,7 @@ function +(a::Flatten,b::Flatten)
 end
 
 
-Base.cumsum(r::Repeated) = r.x:r.x:(r.x>0?∞:-∞)
+Base.cumsum(r::Repeated) = r.x:r.x:(r.x>0 ? ∞ : -∞)
 Base.cumsum(r::Repeated{Bool}) = 1:∞
 Base.cumsum(r::ZeroRepeated) = r
 Base.cumsum(r::Iterator) = CumSumIterator(r)

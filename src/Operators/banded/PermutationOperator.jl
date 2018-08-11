@@ -59,4 +59,4 @@ bandinds(P::NegateEven) = (0,0)
 
 
 getindex(P::NegateEven{T},k::Integer,j::Integer) where {T} =
-    k==j ? (iseven(k)?-one(T):one(T)) : zero(T)
+    k==j ? (iseven(k) ? -one(T) : one(T)) : zero(T)

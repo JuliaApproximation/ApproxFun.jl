@@ -32,7 +32,7 @@ macro calculus_functional(Op)
 
 
         Base.convert(::Type{Operator{T}},Σ::$ConcOp) where {T} =
-            (T==eltype(Σ)?Σ:$ConcOp{typeof(Σ.domainspace),T}(Σ.domainspace))::Operator{T}
+            (T==eltype(Σ) ? Σ : $ConcOp{typeof(Σ.domainspace),T}(Σ.domainspace))::Operator{T}
 
         ApproxFun.domain(Σ::$ConcOp) = domain(Σ.domainspace)
         ApproxFun.domainspace(Σ::$ConcOp) = Σ.domainspace
@@ -45,7 +45,7 @@ macro calculus_functional(Op)
 
 
         Base.convert(::Type{Operator{T}},Σ::$WrappOp) where {T} =
-            (T==eltype(Σ)?Σ:$WrappOp(convert(Operator{T},Σ.op)))::Operator{T}
+            (T==eltype(Σ) ? Σ : $WrappOp(convert(Operator{T},Σ.op)))::Operator{T}
     end)
 end
 

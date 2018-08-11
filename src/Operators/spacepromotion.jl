@@ -81,9 +81,9 @@ promotedomainspace(P::Operator,sp::Space) = promotedomainspace(P,sp,domainspace(
 
 
 promoterangespace(P::Operator,sp::Space,cursp::Space) =
-    (sp==cursp)?P:Conversion(cursp,sp)*P
+    (sp==cursp) ? P : Conversion(cursp,sp)*P
 promotedomainspace(P::Operator,sp::Space,cursp::Space) =
-    (sp==cursp)?P:P*Conversion(sp,cursp)
+    (sp==cursp) ? P : P*Conversion(sp,cursp)
 
 
 
@@ -122,7 +122,7 @@ end
 
 function default_choosedomainspace(A::Operator,sp::Space)
     sp2=domainspace(A)
-    isambiguous(sp2)?sp:sp2
+    isambiguous(sp2) ? sp : sp2
 end
 
 choosedomainspace(A::Operator,sp::Space) = default_choosedomainspace(A,sp)

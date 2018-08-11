@@ -193,7 +193,7 @@ function rootsunit_coeffs(c::Vector{T}, htol::Float64,clplan::ClenshawPlan{S,T})
 
 
     # If recursive subdivision is used, then subdivide [-1,1] into [-1,splitPoint] and [splitPoint,1].
-    const splitPoint = -0.004849834917525
+    splitPoint = -0.004849834917525
 
     # Simplify the coefficients by chopping off the tail:
     nrmc=norm(c, 1)
