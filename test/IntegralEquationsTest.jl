@@ -1,4 +1,4 @@
-using ApproxFun, Test
+using ApproxFun, Random, Test
     import ApproxFun: testfunctional, testbandedbelowoperator, testbandedoperator
 
 
@@ -167,7 +167,7 @@ using ApproxFun, Test
 
     B=DefiniteLineIntegral(S)
 
-    srand(0)
+    Random.seed!(0)
     f=Fun(S,rand(20))
     @test B*f ≈ linesum(component(f,1)) + linesum(component(f,2)) + linesum(component(f,3))
 

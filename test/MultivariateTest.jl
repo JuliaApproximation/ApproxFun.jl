@@ -1,4 +1,4 @@
-using ApproxFun, Test
+using ApproxFun, LinearAlgebra, SpecialFunctions, Test
     import ApproxFun: testbandedblockbandedoperator, testraggedbelowoperator, factor, Block, cfstype
 
 @testset "Multivariate" begin

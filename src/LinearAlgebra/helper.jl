@@ -823,12 +823,15 @@ end
 eltype(::Type{CumSumIterator{S}}) where {S} = eltype(S)
 eltype(CC::CumSumIterator) = eltype(CC.iterator)
 
-iterate(it::CumSumIterator) = iterate(it.iterator)
-function iterate(it::CumSumIterator, state)
-    anx_st = iterate(it.iterator,state[2])
+function iterate(it::CumSumIterator)
+    x,st = iterate(it.iterator)
+    (x,(x,st))
+end
+function iterate(it::CumSumIterator, (n,st))
+    anx_st = iterate(it.iterator,st)
     anx_st == nothing && return nothing
     a,nx_st = anx_st
-    cs=state[1]+a
+    cs=n+a
     (cs,(cs,nx_st))
 end
 

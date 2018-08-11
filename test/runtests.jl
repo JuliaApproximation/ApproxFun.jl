@@ -126,6 +126,6 @@ end
 @time include("SpacesTest.jl")
 @time include("JacobiTest.jl")
 @time include("ETDRK4Test.jl")
-@time include("ExtrasTest.jl")
 @time include("MultivariateTest.jl")
 @time include("PDETest.jl")
+@time include("ExtrasTest.jl")

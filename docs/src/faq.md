@@ -87,7 +87,7 @@ julia> S = Chebyshev(0..1)^2;
 
 julia> n = 1000; m = 50;
 
-julia> srand(0); x = rand(n); y = rand(n);
+julia> Random.seed!(0); x = rand(n); y = rand(n);
 
 julia> v = exp.(x .* cos(y));  # values at the non-default grid
 

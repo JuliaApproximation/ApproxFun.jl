@@ -41,7 +41,7 @@ import SparseArrays: blockdiag
 import SpecialFunctions: sinpi, cospi, airy, besselh,
                     asinh, acosh,atanh, erfcx, dawson, erf, erfi,
                     sin, cos, sinh, cosh, airyai, airybi, airyaiprime, airybiprime,
-                    hankelh1, hankelh2, besselj, bessely, besseli, besselk,
+                    hankelh1, hankelh2, besselj, besselj0, bessely, besseli, besselk,
                     besselkx, hankelh1x, hankelh2x, exp2, exp10, log2, log10,
                     tan, tanh, csc, asin, acsc, sec, acos, asec,
                     cot, atan, acot, sinh, csch, asinh, acsch,

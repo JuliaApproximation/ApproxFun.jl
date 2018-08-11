@@ -32,10 +32,9 @@ dimensions(a::Tensorizer) = map(sum,a.blocks)
 Base.length(a::Tensorizer) = mapreduce(sum,*,a.blocks)
 
 # (blockrow,blockcol), (subrow,subcol), (rowshift,colshift), (numblockrows,numblockcols), (itemssofar, length)
-Base.start(a::Tensorizer{Tuple{AA,BB}}) where {AA,BB} = (1,1), (1,1), (0,0), (a.blocks[1][1],a.blocks[2][1]), (0,length(a))
+start(a::Tensorizer{Tuple{AA,BB}}) where {AA,BB} = (1,1), (1,1), (0,0), (a.blocks[1][1],a.blocks[2][1]), (0,length(a))
 
-function Base.next(a::Tensorizer{Tuple{AA,BB}},st) where {AA,BB}
-    (K,J), (k,j), (rsh,csh), (n,m), (i,tot) = st
+function next(a::Tensorizer{Tuple{AA,BB}}, ((K,J), (k,j), (rsh,csh), (n,m), (i,tot))) where {AA,BB}
     ret = k+rsh,j+csh
     if k==n && j==m  # end of block
         if J == 1 || K == length(a.blocks[1])   # end of new block
@@ -60,10 +59,14 @@ function Base.next(a::Tensorizer{Tuple{AA,BB}},st) where {AA,BB}
 end
 
 
-function Base.done(a::Tensorizer,st)
-    (K,J), (k,j), (rsh,csh), (n,m), (i,tot) = st
-    i ≥ tot
+done(a::Tensorizer, ((K,J), (k,j), (rsh,csh), (n,m), (i,tot))) = i ≥ tot
+
+iterate(a::Tensorizer) = next(a, start(a))
+function iterate(a::Tensorizer, st)
+    done(a,st) && return nothing
+    next(a, st)
 end
+
 
 cache(a::Tensorizer) = CachedIterator(a)
 

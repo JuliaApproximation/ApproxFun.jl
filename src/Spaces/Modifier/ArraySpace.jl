@@ -56,7 +56,7 @@ getindex(S::ArraySpace, kr::AbstractVector) = ArraySpace(components(S)[kr])
 stride(f::Fun{<:ArraySpace},k) = stride(space(f),k)
 
 getindex(f::ArraySpace,k...) = Space(component(f,k...))
-Base.next(f::Fun{<:ArraySpace},k)=f[k],k+1
+iterate(f::Fun{<:ArraySpace}) = iterate(components(f))
 
 
 Base.reshape(AS::ArraySpace,k...) = ArraySpace(reshape(AS.spaces,k...))

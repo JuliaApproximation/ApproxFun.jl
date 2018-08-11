@@ -42,14 +42,6 @@ dimension(::Space) = ∞  # We assume infinite-dimensional spaces
 # add indexing for all spaces, not just DirectSumSpace
 # mimicking scalar vs vector
 
-# TODO: 0.5 iterator
-start(s::Space) = false
-next(s::Space,st) = (s,true)
-done(s::Space,st) = st
-length(s::Space) = 1
-getindex(s::Space,::CartesianIndex{0}) = s
-getindex(s::Space,k) = k == 1 ? s : throw(BoundsError())
-endof(s::Space) = 1
 
 
 #supports broadcasting, overloaded for ArraySpace
