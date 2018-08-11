@@ -76,8 +76,6 @@ const BlockRange1 = BlockRange{1,Tuple{UnitRange{Int}}}
 import StaticArrays: SVector
 
 
-
-
 const Vec{d,T} = SVector{d,T}
 
 export pad!, pad, chop!, sample,

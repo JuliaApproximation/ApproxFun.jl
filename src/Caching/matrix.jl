@@ -87,7 +87,11 @@ end
 function mulpars(Ac::Adjoint{T,<:QROperatorQ{QROperator{RR,Matrix{T},T},T}},
                        B::AbstractVector{T},
                        tolerance,maxlength) where {RR,T<:BlasFloat}
+
     A = parent(Ac)
+
+    A_dim = size(A,1)
+
     if length(B) > A.QR.ncols
         # upper triangularize extra columns to prepare for \
         resizedata!(A.QR,:,length(B)+size(A.QR.H,1)+10)
@@ -115,7 +119,7 @@ function mulpars(Ac::Adjoint{T,<:QROperatorQ{QROperator{RR,Matrix{T},T},T}},
 
     k=1
     yp=y
-    while (k ≤ m+M || BLAS.nrm2(M,yp,1) > tolerance )
+    while (k ≤ min(m+M,A_dim) || BLAS.nrm2(M,yp,1) > tolerance )
         if k > maxlength
             @warn "Maximum length $maxlength reached."
             break
@@ -139,5 +143,5 @@ function mulpars(Ac::Adjoint{T,<:QROperatorQ{QROperator{RR,Matrix{T},T},T}},
         BLAS.axpy!(M,-2*dt,wp,1,yp,1)
         k+=1
     end
-    resize!(Y,k)  # chop off zeros
+    resize!(Y,min(k,A_dim))  # chop off zeros
 end

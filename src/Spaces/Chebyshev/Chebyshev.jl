@@ -232,7 +232,19 @@ differentiate(f::Fun{Chebyshev{D,R}}) where {D<:Segment,R} =
 
 ## Multivariate
 
+function squarepoints(::Type{T}, N) where T
+    pts=paduapoints(T,Int(cld(-3+sqrt(1+8N),2)))
+    n = size(pts,1)
+    ret=Array{Vec{2,T}}(n)
+    @inbounds for k=1:n
+        ret[k]=Vec{2,T}(pts[k,1],pts[k,2])
+    end
+    ret
+end
+
 function points(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},N) where {D,R}
+    T = real(prectype(D))
+    pts = squarepoints(T, N)
     if domain(S) == Segment()^2
         pts=paduapoints(real(prectype(D)),Int(cld(-3+sqrt(1+8N),2)))
         T=eltype(pts)

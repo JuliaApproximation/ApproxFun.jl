@@ -365,8 +365,11 @@ for Typ in (:TransformPlan,:ITransformPlan)
         end
         $Typ(space,plan,::Type{Val{inplace}}) where {inplace} =
             $Typ{eltype(plan),typeof(space),inplace,typeof(plan)}(space,plan)
+        # *(P::$Typ, x::AbstractArray) = P.plan*x
     end
 end
+
+
 
 for Typ in (:CanonicalTransformPlan,:ICanonicalTransformPlan)
     @eval begin
@@ -505,6 +508,7 @@ end
 space(x::Number) = ConstantSpace(typeof(x))
 space(f::AbstractArray{T}) where T<:Number = ArraySpace(ConstantSpace{T}(), size(f)...)
 
+setdomain(A::ConstantSpace{DD,R}, d) where {DD,R} = ConstantSpace{typeof(d),R}(d)
 
 
 # Range type is Nothing since function evaluation is not defined

@@ -144,6 +144,9 @@ for TYP in (:SumSpace,:PiecewiseSpace)
     end
 end
 
+function Conversion(S1::SumSpace, S2::Space)
+    error("Implement")
+end
 
 
 

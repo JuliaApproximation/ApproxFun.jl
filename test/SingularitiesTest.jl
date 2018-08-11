@@ -215,6 +215,39 @@ using ApproxFun, SpecialFunctions, Test
         @test_skip g/h ≈ f/a + Fun(1,2..3)
     end
 
+    @testset "DiracDelta integration and differentiation" begin
+        δ = DiracDelta()
+        h = integrate(δ)
+        @test domain(h) == ApproxFun.PiecewiseSegment([0,Inf])
+        @test h(-2) == 0
+        @test h(2) == 1
+
+        δ = 0.3DiracDelta(0.1) + 3DiracDelta(2.3)
+        h = integrate(δ)
+        @test domain(h) == ApproxFun.PiecewiseSegment([0.1,2.3,Inf])
+        @test h(-2) == 0
+        @test h(2) == 0.3
+        @test h(3) == 3.3
+
+        δ = (0.3+1im)DiracDelta(0.1) + 3DiracDelta(2.3)
+        h = integrate(δ)
+        @test domain(h) == ApproxFun.PiecewiseSegment([0.1,2.3,Inf])
+        @test h(-2) == 0
+        @test h(2) == 0.3+1im
+        @test h(3) == 3.3+1im
+    end
+
+    @testset "DiracDelta sampling" begin
+        δ = 0.3DiracDelta(0.1) + 3DiracDelta(2.3)
+        srand(0)
+        for _=1:10
+            @test sample(δ) ∈ [0.1, 2.3]
+        end
+        srand(0)
+        r = sample(δ, 10_000)
+        @test count(i -> i == 0.1, r)/length(r) ≈ 0.3/(3.3) atol=0.01
+    end
+
     @testset "Multiple roots" begin
         x=Fun(identity,-1..1)
         @test (1/x^2)(0.1) ≈ 100.
@@ -264,5 +297,27 @@ using ApproxFun, SpecialFunctions, Test
         C=Conversion(S1,S2)
         Cf=C*f
         @test Cf(0.1) ≈ f(0.1)
+    end
+
+
+    @testset "Derivative operator for HeavisideSpace" begin
+        H=ApproxFun.HeavisideSpace([1,2,3])
+        D=Derivative(H)
+        @test domain(D)==ApproxFun.PiecewiseSegment([1,2,3])
+        @test D[1,1]==1
+        @test D[1,2]==0
+        @test D[2,2]==1
+
+        H=ApproxFun.HeavisideSpace([1,2,3,Inf])
+        D=Derivative(H)
+        @test domain(D)==ApproxFun.PiecewiseSegment([1,2,3,Inf])
+        @test D[1,1]==1
+        @test D[2,2]==1
+        @test D[3,3]==1
+        @test D[1,2]==0
+        @test D[2,1]==-1
+
+        S = ApproxFun.HeavisideSpace([-1.0,0.0,1.0])
+        @test Derivative(S) === Derivative(S,1)
     end
 end

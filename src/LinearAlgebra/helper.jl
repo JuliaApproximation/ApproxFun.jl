@@ -1270,6 +1270,8 @@ dynamic(f::Function) = DFunction(f) # Assume f has to compile every time
 
 
 ## Chebyshev transform
+# Matrix inputs
+
 
 function FastTransforms.chebyshevtransform!(X::AbstractMatrix{T};kind::Integer=1) where T<:fftwNumber
     if kind == 1

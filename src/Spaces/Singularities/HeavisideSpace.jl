@@ -101,6 +101,24 @@ function Base.sum(f::Fun{SplineSpace{1,T,R}}) where {T,R}
     ret
 end
 
+#diffentiate HeavisideSpace
+function differentiate(f::Fun{<:HeavisideSpace})
+    dp=domain(f).points
+    cfs=f.coefficients
+    diff=0.0
+    for n=1:length(cfs)
+        diff=diff+cfs[n]*(DiracDelta(dp[n])-DiracDelta(dp[n+1]))
+    end
+    return diff
+end
+
+#Derivative Operator for HeavisideSpace
+function Derivative(H::HeavisideSpace, k::Int)
+    @assert k == 1
+    ConcreteDerivative(H)
+end
+
+
 
 differentiate(f::Fun{SplineSpace{1,T,R}}) where {T,R} =
     Fun(HeavisideSpace(space(f).domain),

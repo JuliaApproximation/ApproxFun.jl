@@ -161,7 +161,6 @@ using ApproxFun, Test
         @test (G-I)(exp(0.1im)) ≈ (G(exp(0.1im))-I)
     end
 
-
     @testset "Previoius segfault" begin
         x=Fun(identity,-1..1)
         f=x+sin(2x)*sqrt(1-x^2)
