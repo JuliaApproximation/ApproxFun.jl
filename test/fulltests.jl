@@ -1,4 +1,4 @@
-using ApproxFun, Test
+using ApproxFun, LinearAlgebra, SpecialFunctions, FastTransforms, Test
     import ApproxFun: testbandedoperator, testraggedbelowoperator, InterlaceOperator, testspace,
                         testbandedbelowoperator, testbandedblockbandedoperator, testfunctional, factor
 ## This includes extra tests that are too time consuming for Travis
@@ -296,8 +296,6 @@ end
 end
 
 include("FullPDETest.jl")
-
-
 println("Speed tests")
 include("SpeedTest.jl")
 include("SpeedODETest.jl")

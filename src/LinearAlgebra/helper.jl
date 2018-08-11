@@ -1267,3 +1267,49 @@ hasnumargs(f::DFunction, k) = hasnumargs(f.f, k)
 
 dynamic(f) = f
 dynamic(f::Function) = DFunction(f) # Assume f has to compile every time
+
+
+## Chebyshev transform
+
+function FastTransforms.chebyshevtransform!(X::AbstractMatrix{T};kind::Integer=1) where T<:fftwNumber
+    if kind == 1
+        if size(X) == (1,1)
+            X
+        else
+            X=r2r!(X,REDFT10)
+            X[:,1]/=2;X[1,:]/=2;
+            lmul!(1/(size(X,1)*size(X,2)),X)
+        end
+    elseif kind == 2
+        if size(X) == (1,1)
+            X
+        else
+            X=r2r!(X,REDFT00)
+            lmul!(1/((size(X,1)-1)*(size(X,2)-1)),X)
+            X[:,1]/=2;X[:,end]/=2
+            X[1,:]/=2;X[end,:]/=2
+            X
+        end
+    end
+end
+
+function FastTransforms.ichebyshevtransform!(X::AbstractMatrix{T};kind::Integer=1) where T<:fftwNumber
+    if kind == 1
+        if size(X) == (1,1)
+            X
+        else
+            X[1,:]*=2;X[:,1]*=2
+            X = r2r(X,REDFT01)
+            lmul!(1/4,X)
+        end
+    elseif kind == 2
+        if size(X) == (1,1)
+            X
+        else
+            X[1,:]*=2;X[end,:]*=2;X[:,1]*=2;X[:,end]*=2
+            X=chebyshevtransform!(X;kind=kind)
+            X[1,:]*=2;X[end,:]*=2;X[:,1]*=2;X[:,end]*=2
+            lmul!((size(X,1)-1)*(size(X,2)-1)/4,X)
+        end
+    end
+end
