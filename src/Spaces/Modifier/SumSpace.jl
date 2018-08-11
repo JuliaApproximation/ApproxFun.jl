@@ -25,28 +25,50 @@ dimensions(b::BlockInterlacer) = map(sum,b.blocks)
 dimension(b::BlockInterlacer,k) = sum(b.blocks[k])
 Base.length(b::BlockInterlacer) = mapreduce(sum,+,b.blocks)
 
+
 # the state is always (whichblock,curblock,cursubblock,curcoefficients)
-Base.start(it::BlockInterlacer) = (1,1,map(start,it.blocks),ntuple(zero,length(it.blocks)))
+# start(it::BlockInterlacer) = (1,1,map(start,it.blocks),ntuple(zero,length(it.blocks)))
 
-function Base.next(it::BlockInterlacer,st)
-    N,k,blkst,lngs = st
 
-    if N>length(it.blocks)
+
+# are all Ints, so finite dimensional
+function done(it::BlockInterlacer,st)
+    for k=1:length(it.blocks)
+        if st[end][k] < sum(it.blocks[k])
+            return false
+        end
+    end
+    return true
+end
+
+iterate(it::BlockInterlacer) =
+    iterate(it, (1,1,ntuple(_ -> tuple(), length(it.blocks)),
+            ntuple(zero,length(it.blocks))))
+
+function iterate(it::BlockInterlacer, (N,k,blkst,lngs))
+    done(it, (N,k,blkst,lngs)) && return nothing
+
+    if N > length(it.blocks)
         # increment to next block
-        blkst = map((blit,blst)->done(blit,blst) ? blst : next(blit,blst)[2],it.blocks,blkst)
-        return next(it,(1,1,blkst,lngs))
+        blkst = map(function(blit,blst)
+                xblst = iterate(blit, blst...)
+                xblst == nothing ? blst : (xblst[2],)
+            end,it.blocks,blkst)
+        return iterate(it,(1,1,blkst,lngs))
     end
 
-    if done(it.blocks[N],blkst[N])
+    Bnxtb = iterate(it.blocks[N],blkst[N]...)  # B is block size
+
+    if Bnxtb == nothing
         # increment to next N
-        return next(it,(N+1,1,blkst,lngs))
+        return iterate(it,(N+1,1,blkst,lngs))
     end
 
-    B,nxtb = next(it.blocks[N],blkst[N])  # B is block size
+    B,nxtb = Bnxtb
 
     if k > B
         #increment to next N
-        return next(it,(N+1,1,blkst,lngs))
+        return iterate(it,(N+1,1,blkst,lngs))
     end
 
 
@@ -55,15 +77,7 @@ function Base.next(it::BlockInterlacer,st)
 end
 
 
-# are all Ints, so finite dimensional
-function Base.done(it::BlockInterlacer,st)
-    for k=1:length(it.blocks)
-        if st[end][k] < sum(it.blocks[k])
-            return false
-        end
-    end
-    return true
-end
+
 
 
 

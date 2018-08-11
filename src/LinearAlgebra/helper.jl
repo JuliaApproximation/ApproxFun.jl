@@ -628,18 +628,19 @@ take(xs, n::Int) = Take(xs, n)
 eltype(::Type{Take{I}}) where {I} = eltype(I)
 length(t::Take) = t.n
 size(t::Take) = (length(t),)
-start(it::Take) = (it.n, start(it.xs))
-function next(it::Take, state)
-    n, xs_state = state
-    v, xs_state = next(it.xs, xs_state)
-    return v, (n - 1, xs_state)
+function iterate(it::Take)
+    it.n ≤ 0 && return nothing
+    x, st = iterate(it.xs)
+    (x, (it.n-1, st))
 end
-
-function done(it::Take, state)
+function iterate(it::Take, state)
     n, xs_state = state
-    return n <= 0 || done(it.xs, xs_state)
+    n ≤ 0 && return nothing
+    vxs_state = iterate(it.xs, xs_state)
+    vxs_state == nothing && return nothing
+    v,xs_state = vxs_state
+    return v, (n-1, xs_state)
 end
-
 
 function getindex(it::Take,k)
     !isempty(k) && maximum(k) > it.n && throw(BoundsError())
@@ -672,9 +673,8 @@ eltype(::AbstractRepeated{T}) where {T} = T
 
 step(::AbstractRepeated) = 0
 
-start(::AbstractRepeated) = nothing
-next(it::AbstractRepeated,state) = value(it),nothing
-done(::AbstractRepeated,state) = false
+iterate(it::AbstractRepeated) = value(it),nothing
+iterate(it::AbstractRepeated,state) = value(it),nothing
 
 length(::AbstractRepeated) = ∞
 
@@ -748,10 +748,11 @@ eltype(::AbstractCount{S}) where {S} = S
 
 step(it::Count) = it.step
 step(it::UnitCount) = 1
-
-start(it::AbstractCount) = it.start
-next(it::AbstractCount, state) = (state, state + step(it))
-done(it::AbstractCount, state) = false
+iterate(it::AbstractCount) = (it.start,it.start)
+function iterate(it::AbstractCount, state)
+    x = state + step(it)
+    (x,x)
+end
 
 length(it::AbstractCount) = ∞
 
@@ -822,13 +823,14 @@ end
 eltype(::Type{CumSumIterator{S}}) where {S} = eltype(S)
 eltype(CC::CumSumIterator) = eltype(CC.iterator)
 
-start(it::CumSumIterator) = (0,start(it.iterator))
-function next(it::CumSumIterator, state)
-    a,nx_st=next(it.iterator,state[2])
+iterate(it::CumSumIterator) = iterate(it.iterator)
+function iterate(it::CumSumIterator, state)
+    anx_st = iterate(it.iterator,state[2])
+    anx_st == nothing && return nothing
+    a,nx_st = anx_st
     cs=state[1]+a
     (cs,(cs,nx_st))
 end
-done(it::CumSumIterator, state) = done(it.iterator,state[2])
 
 length(it::CumSumIterator) = length(it.iterator)
 
@@ -849,16 +851,15 @@ columnrange(A,row::Integer) = max(1,row+bandinds(A,1)):row+bandinds(A,2)
 
 
 ## Store iterator
-mutable struct CachedIterator{T,IT,ST} <: Iterator
+mutable struct CachedIterator{T,IT} <: Iterator
     iterator::IT
     storage::Vector{T}
-    state::ST
+    state
     length::Int
-
-    CachedIterator{T,IT,ST}(it::IT) where {T,IT,ST} = new{T,IT,ST}(it,Vector{T}(),start(it),0)
 end
 
-CachedIterator(it) = CachedIterator{eltype(it),typeof(it),typeof(start(it))}(it)
+CachedIterator{T,IT}(it::IT, state) where {T,IT} = CachedIterator{T,IT}(it,T[],state,0)
+CachedIterator(it::IT) where IT = CachedIterator{eltype(it),IT}(it, ())
 
 function resize!(it::CachedIterator,n::Integer)
     m = it.length
@@ -867,13 +868,14 @@ function resize!(it::CachedIterator,n::Integer)
             resize!(it.storage,2n)
         end
 
-        for k = m+1:n
-            if done(it.iterator,it.state)
+        @inbounds for k = m+1:n
+            xst = iterate(it.iterator,it.state...)
+            if xst == nothing
                 it.length = k-1
                 return it
             end
-            val,it.state = next(it.iterator,it.state)
-            @inbounds it.storage[k] = val
+            it.storage[k] = xst[1]
+            it.state = (xst[2],)
         end
 
         it.length = n
@@ -883,18 +885,24 @@ end
 
 
 eltype(it::CachedIterator{T}) where {T} = T
-start(it::CachedIterator) = 1
-next(it::CachedIterator,st::Int) = (it[st],st+1)
-done(it::CachedIterator,st::Int) = st == it.length + 1 &&
-                                        done(it.iterator,it.state)
 
-function getindex(it::CachedIterator,k)
+iterate(it::CachedIterator) = iterate(it,1)
+function iterate(it::CachedIterator,st::Int)
+    if  st == it.length + 1 && iterate(it.iterator,it.state...) == nothing
+        nothing
+    else
+        (it[st],st+1)
+    end
+end
+
+function getindex(it::CachedIterator, k)
     mx = maximum(k)
     if mx > length(it) || mx < 1
         throw(BoundsError(it,k))
     end
     resize!(it,isempty(k) ? 0 : mx).storage[k]
 end
+
 function findfirst(f::Function,A::CachedIterator)
     k=1
     for c in A
@@ -956,21 +964,15 @@ flatten(itr) = Flatten(itr)
 eltype(f::Flatten) = mapreduce(eltype,promote_type,f.it)
 
 
-start(f::Flatten) = 1, map(start,f.it)
-
-function next(f::Flatten, state)
-    k, sts = state
-    if !done(f.it[k],sts[k])
-        a,nst = next(f.it[k],sts[k])
-        a, (k,(sts[1:k-1]...,nst,sts[k+1:end]...))
-    else
-        next(f,(k+1,sts))
+@propagate_inbounds function iterate(f::Flatten, state=())
+    if state !== ()
+        y = iterate(tail(state)...)
+        y !== nothing && return (y[1], (state[1], state[2], y[2]))
     end
+    x = (state === () ? iterate(f.it) : iterate(f.it, state[1]))
+    x === nothing && return nothing
+    iterate(f, (x[2], x[1]))
 end
-
-
-@inline done(f::Flatten, state) =
-    state[1] == length(f) && done(f.it[end],state[2][end])
 
 length(f::Flatten) = mapreduce(length,+,f.it)
 size(f::Flatten) = (length(f),)
@@ -1136,7 +1138,7 @@ for OP in (:+,:-)
         $OP(a::ZeroRepeated,b::Flatten) = $OP(b)
 
         $OP(a::AbstractCount,b::AbstractCount) =
-            Count($OP(start(a),start(b)),$OP(step(a),step(b)))
+            Count($OP(first(a),first(b)),$OP(step(a),step(b)))
         $OP(a::UnitCount,b::Number) = UnitCount($OP(a.start,b))
         $OP(a::Count,b::Number) = Count($OP(a.start,b),a.step)
 
@@ -1157,7 +1159,7 @@ for OP in (:+,:-)
 end
 
 broadcasted(::DefaultArrayStyle{1}, ::typeof(*),a::ZeroRepeated,b::ZeroRepeated) = a
-broadcasted(::DefaultArrayStyle{1}, ::typeof(*),a::Number,b::AbstractCount) = Count(start(b)*a,step(b)*a)
+broadcasted(::DefaultArrayStyle{1}, ::typeof(*),a::Number,b::AbstractCount) = Count(first(b)*a,step(b)*a)
 broadcasted(::DefaultArrayStyle{1}, ::typeof(*),b::AbstractCount,a::Number) = a*b
 
 
@@ -1166,7 +1168,7 @@ broadcasted(::DefaultArrayStyle{1}, ::typeof(*),b::AbstractCount,a::Number) = a*
 -(a::Number,b::UnitCount) = Count(a-b.start,-1)
 -(a::Number,b::Count) = Count(a-b.start,-b.step)
 
-*(a::Number,b::AbstractCount) = Count(a*start(b),a*step(b))
+*(a::Number,b::AbstractCount) = Count(a*first(b),a*step(b))
 *(a::AbstractCount,b::Number) = b*a
 
 function +(a::Flatten,b::Flatten)

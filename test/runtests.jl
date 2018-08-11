@@ -1,4 +1,4 @@
-using ApproxFun, Test
+using ApproxFun, LinearAlgebra, Test
     import ApproxFun: Infinity, ∞
 
 @testset "Helper" begin
@@ -54,7 +54,8 @@ using ApproxFun, Test
         @test Infinity(false)+Infinity(false) == Infinity(false)
         @test Infinity(true)+1 == Infinity(true)
         @test Infinity(false)+1 == Infinity(false)
-
+    end
+    @testset "Iterators" begin
         @test maximum(ApproxFun.repeated(1)) == 1
         @test minimum(1:∞) == 1
         @test minimum(ApproxFun.flatten(([2.0],1:ApproxFun.∞))) == 1
@@ -64,6 +65,8 @@ using ApproxFun, Test
 
         @test 2*(1:∞) == 2:2:∞
         @test 2+(1:∞) == 3:∞
+
+        @test collect(Base.Iterators.Take((1:∞),5)) == 1:5
 
         @test cumsum(ApproxFun.Flatten(([3],ApproxFun.repeated(2)))).it[2] ==
             ApproxFun.Count(5,2)

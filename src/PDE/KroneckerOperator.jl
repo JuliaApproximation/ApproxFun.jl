@@ -358,10 +358,7 @@ BandedBlockBandedMatrix(S::SubOperator) = default_BandedBlockBandedMatrix(S)
 
 
 const Trivial2DTensorizer = CachedIterator{Tuple{Int64,Int64},
-                                             TrivialTensorizer{2},
-                                             Tuple{Tuple{Int64,Int64},Tuple{Int64,Int64},
-                                                   Tuple{Int64,Int64},Tuple{Bool,Bool},
-                                                   Tuple{Int64,Infinity{Bool}}}}
+                                             TrivialTensorizer{2}}
 
 # This routine is an efficient version of KroneckerOperator for the case of
 # tensor product of trivial blocks
