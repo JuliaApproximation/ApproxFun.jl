@@ -6,7 +6,6 @@ export Hermite,GaussWeight
 `Hemite(L)` represents `H_k(sqrt(L) * x)` where `H_k` are Hermite polynomials.
 `Hermite()` is equivalent to `Hermite(1.0)`.
 """
-
 struct Hermite{T} <: PolynomialSpace{Line{false,Float64},Float64}
     L::T
 end
@@ -41,7 +40,7 @@ rangespace(D::ConcreteDerivative{H}) where {H<:Hermite} = domainspace(D)
 getindex(D::ConcreteDerivative{H},k::Integer,j::Integer) where {H<:Hermite} =
         j==k+D.order ? one(eltype(D))*2^D.order*pochhammer(k,D.order) : zero(eltype(D))
 
-function hermitep(r::Range,x::Number)
+function hermitep(r::AbstractRange,x::Number)
     n = r[end] + 1
 
     T = typeof(x)
@@ -73,13 +72,12 @@ end
 GaussWeight(H::Hermite) = GaussWeight(H,H.L)
 GaussWeight() = GaussWeight(Hermite())
 
-doc"""
+"""
 `GaussWeight(Hermite(L), L)` is a space spanned by `exp(-Lx²) * H_k(sqrt(L) * x)`
 where `H_k(x)`'s are Hermite polynomials.
 
 `GaussWeight()` is equivalent to `GaussWeight(Hermite(), 1.0)` by default.
 """
-
 Fun(::typeof(identity), sp::Hermite) = Fun(sp,[0.,0.5])
 Fun(::typeof(identity), sp::GaussWeight) = Fun(identity, sp.space)
 

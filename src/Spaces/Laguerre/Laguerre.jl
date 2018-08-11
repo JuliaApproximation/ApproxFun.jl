@@ -20,7 +20,7 @@ end
 
 Laguerre() = Laguerre(0)
 
-doc"""
+"""
 `Laguerre(α)` is a space spanned by generalized Laguerre polynomials `Lₙ(x)` 's
 on `(0, Inf)`, which satisfy the differential equations
 ```
@@ -28,7 +28,6 @@ on `(0, Inf)`, which satisfy the differential equations
 ```
 `Laguerre()` is equivalent to `Laguerre(0)` by default.
 """
-
 spacescompatible(A::Laguerre,B::Laguerre) = A.α ≈ B.α
 
 canonicaldomain(::Laguerre) = Ray()
