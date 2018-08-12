@@ -40,10 +40,10 @@ using ApproxFun, IntervalSets, SpecialFunctions, Random, Test
     end
 
     @testset "JacobiWeight Derivative" begin
-        S=JacobiWeight(-1.,-1.,Chebyshev(0..1))
+        S = JacobiWeight(-1.,-1.,Chebyshev(0..1))
 
         # Checks bug in Derivative(S)
-        @test typeof(ConstantSpace(Domain(0..1))) <: Space{ClosedInterval{Float64},Float64}
+        @test typeof(ConstantSpace(0..1)) <: Space{ClosedInterval{Int},Float64}
 
         D=Derivative(S)
         f=Fun(S,Fun(exp,0..1).coefficients)
@@ -60,11 +60,6 @@ using ApproxFun, IntervalSets, SpecialFunctions, Random, Test
         @test f(x) ≈ exp(x)*x^(-1)/2
         @test (D*f)(x) ≈ exp(x)*(x-1)/(2x^2)
     end
-
-
-    ## ODEs
-
-    ## f/g bugs
 
     @testset "Jacobi singularity" begin
         x = Fun(identity)

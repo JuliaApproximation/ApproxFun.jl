@@ -81,12 +81,8 @@ import Base: view
 
 import StaticArrays: StaticArray, SVector
 
-<<<<<<< HEAD
 import IntervalSets: (..)
 
-
-=======
->>>>>>> 0492575c44dad31e566938556f419a3e1ea04b5d
 const Vec{d,T} = SVector{d,T}
 
 export pad!, pad, chop!, sample,

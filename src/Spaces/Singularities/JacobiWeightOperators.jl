@@ -291,7 +291,7 @@ conversion_rule(A::JacobiWeight,B::Space{D}) where {D<:IntervalOrSegment} = conv
 
 
 # override defaultConversion instead of Conversion to avoid ambiguity errors
-function defaultConversion(A::JacobiWeight{JS1,DD},B::JacobiWeight{JS2,DD}) where {JS1,JS2,DD<:IntervalOrSegment}
+function defaultConversion(A::JacobiWeight{<:Any,<:IntervalOrSegment},B::JacobiWeight{<:Any,<:IntervalOrSegment})
     @assert isapproxinteger(A.β-B.β) && isapproxinteger(A.α-B.α)
 
     if isapprox(A.β,B.β) && isapprox(A.α,B.α)
@@ -320,12 +320,12 @@ function defaultConversion(A::JacobiWeight{JS1,DD},B::JacobiWeight{JS2,DD}) wher
     end
 end
 
-defaultConversion(A::Space{D,R},B::JacobiWeight{JS,D}) where {JS,D<:IntervalOrSegment,R<:Real}=ConversionWrapper(
-    SpaceOperator(
+defaultConversion(A::Space{<:IntervalOrSegment,<:Real},B::JacobiWeight{<:Any,<:IntervalOrSegment}) =
+    ConversionWrapper(SpaceOperator(
         Conversion(JacobiWeight(0,0,A),B),
         A,B))
-defaultConversion(A::JacobiWeight{JS,D},B::Space{D,R}) where {JS,D<:IntervalOrSegment,R<:Real}=ConversionWrapper(
-    SpaceOperator(
+defaultConversion(A::JacobiWeight{<:Any,<:IntervalOrSegment},B::Space{<:IntervalOrSegment,<:Real}) =
+    ConversionWrapper(SpaceOperator(
         Conversion(A,JacobiWeight(0,0,B)),
         A,B))
 
