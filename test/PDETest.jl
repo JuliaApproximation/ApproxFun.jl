@@ -1,4 +1,4 @@
-using ApproxFun, Test
+using ApproxFun, LinearAlgebra, Test
     import ApproxFun: testbandedblockbandedoperator, testblockbandedoperator, testraggedbelowoperator
 
 @testset "PDE" begin
