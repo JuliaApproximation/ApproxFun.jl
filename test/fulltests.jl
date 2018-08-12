@@ -1,4 +1,4 @@
-using ApproxFun, Compat.Test
+using ApproxFun, LinearAlgebra, SpecialFunctions, FastTransforms, Test
     import ApproxFun: testbandedoperator, testraggedbelowoperator, InterlaceOperator, testspace,
                         testbandedbelowoperator, testbandedblockbandedoperator, testfunctional, factor
 ## This includes extra tests that are too time consuming for Travis
@@ -19,12 +19,12 @@ include("runtests.jl")
 
     S=Chebyshev()
     @time for io in (
-            InterlaceOperator([Dirichlet(S);Derivative(Chebyshev());lneumann(S)]),
-            InterlaceOperator([Dirichlet(S);Derivative(Chebyshev())+Fun(cos);lneumann(S)]),
-            InterlaceOperator([Dirichlet(S);Derivative(Chebyshev())]),
-            InterlaceOperator([Dirichlet(S);Derivative(Chebyshev())+Fun(cos)]),
-            InterlaceOperator([Derivative(Chebyshev());Dirichlet(S)]),
-            InterlaceOperator([Derivative(Chebyshev())+Fun(cos);Dirichlet(S)]))
+            [Dirichlet(S);Derivative(Chebyshev());lneumann(S)],
+            [Dirichlet(S);Derivative(Chebyshev())+Fun(cos);lneumann(S)],
+            [Dirichlet(S);Derivative(Chebyshev())],
+            [Dirichlet(S);Derivative(Chebyshev())+Fun(cos)],
+            [Derivative(Chebyshev());Dirichlet(S)],
+            [Derivative(Chebyshev())+Fun(cos);Dirichlet(S)])
         testraggedbelowoperator(io)
     end
 
@@ -70,7 +70,7 @@ end
     c=[κ(0.);κ'(0.)]\[exp(0.),exp(0.)]
     u=(κ*c)[1]
 
-    @test u(1.0) ≈ e
+    @test u(1.0) ≈ ℯ
 
 
     d=Interval(-50.,5.)
@@ -232,7 +232,7 @@ end
 
     d=PeriodicInterval()^2
     f=ProductFun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
-    @test (f.'-f|>coefficients|>norm)< 1000eps()
+    @test (transpose(f)-f|>coefficients|>norm)< 1000eps()
 
     ## Functional*Fun
 
@@ -296,8 +296,6 @@ end
 end
 
 include("FullPDETest.jl")
-
-
 println("Speed tests")
 include("SpeedTest.jl")
 include("SpeedODETest.jl")

@@ -83,7 +83,7 @@ println("Fifth image done")
 
 d = Interval()^2                            # Defines a rectangle
 
-u = [dirichlet(d);lap(d)+100I]\ones(4)      # First four entries of rhs are
+u = [dirichlet(d);lap(d)+100I]\[[1.0,1.0,1.0,1.0]]      # First four entries of rhs are
                                             # boundary conditions
 surface(u,grid=false)                                     # contour plot
 

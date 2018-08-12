@@ -1,4 +1,4 @@
-using ApproxFun, Compat.Test, StaticArrays
+using ApproxFun, Test, StaticArrays
     import ApproxFun: testbandedbelowoperator, testbandedoperator, testspace, testtransforms, Vec,
                         maxspace, NoSpace, hasconversion, testfunctional
 
@@ -52,10 +52,10 @@ using ApproxFun, Compat.Test, StaticArrays
 
     x=Fun(identity)
     ri=0.5/(1-x)
-    @test ((1-x)/2.*Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) ≈ (1-.1)./2*exp(.1)
+    @test ((1-x)/2 .* Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) ≈ (1-.1)./2*exp(.1)
 
 
-    @test ((1-x)/2.*Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) ≈ (1-.1)./2*exp(.1)
+    @test ((1-x)/2 .* Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) ≈ (1-.1)./2*exp(.1)
 
 
     @test (ri*Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) ≈ .5/(1-.1)*exp(.1)
@@ -205,6 +205,47 @@ using ApproxFun, Compat.Test, StaticArrays
     @test sum(x+1) ≈ (1-im)/sqrt(2)*linesum(x+1)
 
 
+    ## Laguerre and Hermite
+
+    f=Fun(Laguerre(0.),[1,2,3])
+    @test f(0.1) ≈ 5.215
+
+
+    f = Fun(Laguerre(0.1),fill(1.0,100))
+    @test f(0.2) ≈ 8.840040924281498
+
+
+    @test (Derivative(Laguerre(0.1))*f)(0.2) ≈ -71.44556705957386
+    f = Fun(Laguerre(0.2),fill(1.0,100))
+    @test (Derivative(Laguerre(0.2))*f)(0.3) ≈ -137.05785783078218
+
+
+    @test (Conversion(Laguerre(0.2),Laguerre(1.2))*f)(0.1) ≈ f(0.1)
+    @test (Conversion(Laguerre(0.2),Laguerre(2.2))*f)(0.1) ≈ f(0.1)
+
+
+
+    f=Fun(LaguerreWeight(0.,Laguerre(0.1)),fill(1.0,100))
+    @test f'(0.2) ≈ -65.7322962859456
+
+
+    B=Evaluation(LaguerreWeight(0.,Laguerre(0.1)),false)
+    @test B*f ≈ 151.53223385808576
+
+
+    x=Fun(Laguerre(0.0))
+    S=WeightedLaguerre(0.0)
+    D=Derivative(S)
+    u=[ldirichlet();D^2-x]\[airyai(0.0);0.0]
+    @test u(1.0) ≈ airyai(1.0)
+
+    w = Fun(WeightedLaguerre(), [1.0])
+    @test sum(w) == 1
+    t = Fun(identity, space(w))
+    @test t(10.0) == 10.0
+    M = Multiplication(t^2+1, space(w))
+    (M \ w)(1.0) ≈ exp(-1)/2
+    #
 
     ## Test vector valued case
 

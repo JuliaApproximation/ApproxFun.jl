@@ -7,17 +7,17 @@ function bary(v::AbstractVector{Float64},pts::AbstractVector{Float64},x::Float64
   @assert n == length(pts)
 
 
-  retd = .5/(x-pts[1])
+  retd = 1/(2*(x-pts[1]))
   retn = v[1]*retd
 
   for i = 2:2:n-1
-    @inbounds cd = 1./(x-pts[i])
+    @inbounds cd = 1/(x-pts[i])
     retd -= cd
     @inbounds retn -= v[i]*cd
   end
 
   for i = 3:2:n-1
-    @inbounds cd = 1./(x-pts[i])
+    @inbounds cd = 1/(x-pts[i])
     retd += cd
     @inbounds retn += v[i]*cd
   end

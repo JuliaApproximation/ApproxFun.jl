@@ -1,25 +1,23 @@
 # This file is based on rowvector.jl in Julia. License is MIT: https://julialang.org/license
 # The motivation for this file is to allow RowVector which doesn't transpose the entries
 
-import Base: convert, similar, length, size, indices, IndexStyle,
+import Base: convert, similar, length, size, axes, IndexStyle,
             IndexLinear, @propagate_inbounds, getindex, setindex!,
-            broadcast, hcat, typed_hcat, A_mul_Bt, At_mul_Bt, At_mul_B,
-            A_mul_Bc, Ac_mul_Bc, Ac_mul_B, At_ldiv_B, map, parent
+            broadcast, hcat, typed_hcat, map, parent
 
-import Base.LinAlg: check_types, check_tail_indices, to_vec
+import LinearAlgebra: check_types, to_vec
 
 """
     RowVector(vector)
 
 A lazy-view wrapper of an `AbstractVector`, which turns a length-`n` vector into a `1×n`
 shaped row vector and represents the transpose of a vector (the elements are also transposed
-recursively). This type is usually constructed (and unwrapped) via the [`transpose`](@ref)
-function or `.'` operator (or related [`ctranspose`](@ref) or `'` operator).
+recursively).
 
 By convention, a vector can be multiplied by a matrix on its left (`A * v`) whereas a row
-vector can be multiplied by a matrix on its right (such that `v.' * A = (A.' * v).'`). It
+vector can be multiplied by a matrix on its right (such that `transpose(v) * A = transpose(transpose(A) * v)`). It
 differs from a `1×n`-sized matrix by the facts that its transpose returns a vector and the
-inner product `v1.' * v2` returns a scalar, but will otherwise behave similarly.
+inner product `transpose(v1) * v2` returns a scalar, but will otherwise behave similarly.
 """
 struct RowVector{T,V<:AbstractVector} <: AbstractMatrix{T}
     vec::V
@@ -59,8 +57,8 @@ parent(rowvec::RowVector) = rowvec.vec
 @inline length(rowvec::RowVector) =  length(rowvec.vec)
 @inline size(rowvec::RowVector) = (1, length(rowvec.vec))
 @inline size(rowvec::RowVector, d) = ifelse(d==2, length(rowvec.vec), 1)
-@inline indices(rowvec::RowVector) = (Base.OneTo(1), indices(rowvec.vec)[1])
-@inline indices(rowvec::RowVector, d) = ifelse(d == 2, indices(rowvec.vec)[1], Base.OneTo(1))
+@inline axes(rowvec::RowVector) = (Base.OneTo(1), axes(rowvec.vec)[1])
+@inline axes(rowvec::RowVector, d) = ifelse(d == 2, axes(rowvec.vec)[1], Base.OneTo(1))
 IndexStyle(::RowVector) = IndexLinear()
 IndexStyle(::Type{<:RowVector}) = IndexLinear()
 
@@ -71,13 +69,13 @@ IndexStyle(::Type{<:RowVector}) = IndexLinear()
 # Cartesian indexing is distorted by getindex
 # Furthermore, Cartesian indexes don't have to match shape, apparently!
 @inline function getindex(rowvec::RowVector, i::CartesianIndex)
-    @boundscheck if !(i.I[1] == 1 && i.I[2] ∈ indices(rowvec.vec)[1] && check_tail_indices(i.I...))
+    @boundscheck if !(i.I[1] == 1 && i.I[2] ∈ axes(rowvec.vec)[1] && check_tail_indices(i.I...))
         throw(BoundsError(rowvec, i.I))
     end
     @inbounds return rowvec.vec[i.I[2]]
 end
 @inline function setindex!(rowvec::RowVector, v, i::CartesianIndex)
-    @boundscheck if !(i.I[1] == 1 && i.I[2] ∈ indices(rowvec.vec)[1] && check_tail_indices(i.I...))
+    @boundscheck if !(i.I[1] == 1 && i.I[2] ∈ axes(rowvec.vec)[1] && check_tail_indices(i.I...))
         throw(BoundsError(rowvec, i.I))
     end
     @inbounds rowvec.vec[i.I[2]] = v
@@ -122,7 +120,7 @@ end
     end
     sum(@inbounds(rowvec[i]*vec[i]) for i = 1:length(vec))
 end
-@inline *(rowvec::RowVector, mat::AbstractMatrix) = RowVector(mat.' * rowvec.vec)
+@inline *(rowvec::RowVector, mat::AbstractMatrix) = RowVector(transpose(transpose()mat) * rowvec.vec)
 *(::RowVector, ::RowVector) = throw(DimensionMismatch("Cannot multiply two transposed vectors"))
 @inline *(vec::AbstractVector, rowvec::RowVector) = vec .* rowvec
 

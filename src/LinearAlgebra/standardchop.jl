@@ -58,7 +58,7 @@ function standardchoplength(coeffs, tol)
     #         vector ENVELOPE normalized to begin with the value 1.
 
     b = abs.(coeffs)
-    m = b[end]*ones(n)
+    m = b[end]*fill(1.0,n)
     for j = n-1:-1:1
         m[j] = max(b[j], m[j+1]);
     end
@@ -100,7 +100,7 @@ function standardchoplength(coeffs, tol)
         envelope[j2] = tol^(7/6)
     end
     cc = log10.(envelope[1:j2])
-    cc .+= linspace(0, (-1/3)*log10(tol), j2)
-    d = indmin(cc)
+    cc .+= range(0, stop=(-1/3)*log10(tol), length=j2)
+    d = argmin(cc)
     return max(d - 1, 1)
 end

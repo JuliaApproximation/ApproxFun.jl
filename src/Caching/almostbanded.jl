@@ -4,7 +4,7 @@ function CachedOperator(io::InterlaceOperator{T,1};padding::Bool=false) where T
     ds=domainspace(io)
     rs=rangespace(io)
 
-    ind=find(op->isinf(size(op,1)),io.ops)
+    ind=findall(op->isinf(size(op,1)), io.ops)
     if length(ind) ≠ 1  || !isbanded(io.ops[ind[1]])  # is almost banded
         return default_CachedOperator(io;padding=padding)
     end
@@ -97,8 +97,8 @@ function CachedOperator(io::InterlaceOperator{T,2};padding::Bool=false) where T
 
 
     # these are the bandwidths if we only had ∞-dimensional operators
-    d∞=find(isinf,collect(ddims))
-    r∞=find(isinf,collect(rdims))
+    d∞=findall(isinf,collect(ddims))
+    r∞=findall(isinf,collect(rdims))
     p=length(d∞)
 
     # we only support block size 1 for now
@@ -201,7 +201,7 @@ function resizedata!(co::CachedOperator{T,AlmostBandedMatrix{T},
 
     kr=co.datasize[1]+1:n
     jr=max(1,kr[1]-l):n+u
-    BLAS.axpy!(1.0,view(co.op.ops[ind],kr-r,jr),
+    BLAS.axpy!(1.0,view(co.op.ops[ind],kr .- r,jr),
                     view(co.data.bands,kr,jr))
 
     co.datasize=(n,n+u)
@@ -225,8 +225,8 @@ function resizedata!(co::CachedOperator{T,AlmostBandedMatrix{T},
     ddims=dimensions(di.iterator)
     rdims=dimensions(ri.iterator)
 
-    d∞=find(isinf,collect(ddims))
-    r∞=find(isinf,collect(rdims))
+    d∞=findall(isinf,collect(ddims))
+    r∞=findall(isinf,collect(rdims))
     p=length(d∞)
 
     (l,u)=bandwidths(co.data.bands)
@@ -251,7 +251,7 @@ function resizedata!(co::CachedOperator{T,AlmostBandedMatrix{T},
     jr=max(ncols+1,kr[1]-l):n+u
     io∞=InterlaceOperator(io.ops[r∞,d∞])
 
-    BLAS.axpy!(1.0,view(io∞,kr-r,jr-ncols),view(co.data.bands,kr,jr))
+    BLAS.axpy!(1.0,view(io∞,kr.-r,jr.-ncols),view(co.data.bands,kr,jr))
 
     co.datasize=(n,n+u)
     co
@@ -278,7 +278,7 @@ n::Integer,m::Integer) where {T<:Number,DS,RS,DI,RI,BI} = resizedata!(co,max(n,m
 
 function QROperator(R::CachedOperator{T,AlmostBandedMatrix{T}}) where T
     M = R.data.bands.l+1   # number of diag+subdiagonal bands
-    H = Matrix{T}(M,100)
+    H = Matrix{T}(undef,M,100)
     QROperator(R,H,0)
 end
 
@@ -290,7 +290,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,AlmostBandedMatrix{T},
         return QR
     end
 
-    MO=QR.R
+    MO=QR.R_cache
     W=QR.H
 
     R=MO.data.bands
@@ -317,7 +317,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,AlmostBandedMatrix{T},
             dind=R.u+1+k-j
             v=view(R.data,dind:dind+M-1,j)
             dt=dot(wp,v)
-            Base.axpy!(-2*dt,wp,v)
+            LinearAlgebra.axpy!(-2*dt,wp,v)
         end
 
         # scale banded/filled entries
@@ -330,7 +330,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,AlmostBandedMatrix{T},
                 @inbounds dt=muladd(conj(W[ℓ-k+1,k]),
                                     unsafe_getindex(MO.data.fill,ℓ,j),dt)
             end
-            Base.axpy!(-2*dt,wp2,v)
+            LinearAlgebra.axpy!(-2*dt,wp2,v)
         end
 
         # scale filled entries
@@ -338,7 +338,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,AlmostBandedMatrix{T},
         for j=1:size(F,2)
             v=view(F,k:k+M-1,j) # the k,jth entry of F
             dt=dot(wp,v)
-            Base.axpy!(-2*dt,wp,v)
+            LinearAlgebra.axpy!(-2*dt,wp,v)
         end
     end
     QR.ncols=col
@@ -356,7 +356,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,AlmostBandedMatrix{T},
         return QR
     end
 
-    MO=QR.R
+    MO=QR.R_cache
     W=QR.H
 
     R=MO.data.bands
@@ -389,14 +389,14 @@ function resizedata!(QR::QROperator{CachedOperator{T,AlmostBandedMatrix{T},
 
         for j=k:k+R.u
             v=r+sz*(R.u + (k-1)*st + (j-k)*(st-1))
-            dt=dot(M,wp,1,v,1)
+            dt = BandedMatrices.dot(M,wp,1,v,1)
             BLAS.axpy!(M,-2*dt,wp,1,v,1)
         end
 
         for j=k+R.u+1:k+R.u+M-1
             p=j-k-R.u
             v=r+sz*((j-1)*st)  # shift down each time
-            dt=dot(M-p,wp+p*sz,1,v,1)
+            dt = BandedMatrices.dot(M-p,wp+p*sz,1,v,1)
             for ℓ=k:k+p-1
                 @inbounds dt=muladd(conj(W[ℓ-k+1,k]),
                                     unsafe_getindex(MO.data.fill,ℓ,j),dt)
@@ -408,7 +408,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,AlmostBandedMatrix{T},
         fst=stride(F,2)
         for j=1:size(F,2)
             v=fp+fst*(j-1)*sz   # the k,jth entry of F
-            dt=dot(M,wp,1,v,1)
+            dt = BandedMatrices.dot(M,wp,1,v,1)
             BLAS.axpy!(M,-2*dt,wp,1,v,1)
         end
     end
@@ -420,14 +420,14 @@ end
 ## back substitution
 # loop to avoid ambiguity with AbstractTRiangular
 for ArrTyp in (:AbstractVector, :AbstractMatrix)
-    @eval function A_ldiv_B!(U::UpperTriangular{T, SubArray{T, 2, AlmostBandedMatrix{T}, Tuple{UnitRange{Int}, UnitRange{Int}}, false}},
+    @eval function ldiv!(U::UpperTriangular{T, SubArray{T, 2, AlmostBandedMatrix{T}, Tuple{UnitRange{Int}, UnitRange{Int}}, false}},
                        u::$ArrTyp{T}) where T
         n = size(u,1)
         n == size(U,1) || throw(DimensionMismatch())
 
         V = parent(U)
-        @assert parentindexes(V)[1][1] == 1
-        @assert parentindexes(V)[2][1] == 1
+        @assert parentindices(V)[1][1] == 1
+        @assert parentindices(V)[2][1] == 1
 
         B = parent(V)
 

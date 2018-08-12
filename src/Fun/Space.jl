@@ -8,8 +8,8 @@ export Space, domainspace, rangespace, maxspace,Space,conversion_type, transform
 # Space maps the Domain to the type R
 # For example, we have
 #   Chebyshev{Interval{Float64}} <: Space{Interval{Float64},Float64}
-#   Laurent{PeriodicInterval{Float64}} <: Space{PeriodicInterval{Float64},Complex128}
-#   Fourier{Circle{Complex128}} <: Space{Circle{Complex128},Float64}
+#   Laurent{PeriodicInterval{Float64}} <: Space{PeriodicInterval{Float64},ComplexF64}
+#   Fourier{Circle{ComplexF64}} <: Space{Circle{ComplexF64},Float64}
 # Note for now Space doesn't contain any information about the coefficients
 
 abstract type Space{D,R} end
@@ -25,8 +25,8 @@ const RealUnivariateSpace = RealSpace{D,R} where {D<:UnivariateDomain,R<:Real}
 
 
 
-Base.eltype(S::Space{T}) where {T} = error("Eltype has been changed to domaintype, rangetype or prectype")
-Base.eltype(::Type{Space{D,R}}) where {D,R} = error("Eltype has been changed to domaintype, rangetype or prectype")
+eltype(S::Space{T}) where {T} = error("Eltype has been changed to domaintype, rangetype or prectype")
+eltype(::Type{Space{D,R}}) where {D,R} = error("Eltype has been changed to domaintype, rangetype or prectype")
 
 domaintype(::Space{D,R}) where {D,R} = D
 domaintype(::Type{Space{D,R}}) where {D,R} = D
@@ -42,20 +42,12 @@ dimension(::Space) = ∞  # We assume infinite-dimensional spaces
 # add indexing for all spaces, not just DirectSumSpace
 # mimicking scalar vs vector
 
-# TODO: 0.5 iterator
-Base.start(s::Space) = false
-Base.next(s::Space,st) = (s,true)
-Base.done(s::Space,st) = st
-Base.length(s::Space) = 1
-Base.getindex(s::Space,::CartesianIndex{0}) = s
-getindex(s::Space,k) = k == 1 ? s : throw(BoundsError())
-Base.endof(s::Space) = 1
 
 
 #supports broadcasting, overloaded for ArraySpace
-Base.size(::Space) = ()
+size(::Space) = ()
 
-Base.transpose(sp::Space) = sp  # default no-op
+transpose(sp::Space) = sp  # default no-op
 
 
 # the default is all spaces have one-coefficient blocks
@@ -82,7 +74,7 @@ end
 #     # the domain is not compatible, but maybe we c
 #     # can drop the space depence.  For example,
 #     # CosSpace{Circle{Float64}} -> CosSpace
-#     eval(parse(string(S.name.module)*"."*string(S.name)))(d)
+#     eval(Meta.parse(string(S.name.module)*"."*string(S.name)))(d)
 # end
 
 setcanonicaldomain(s) = setdomain(s,canonicaldomain(s))
@@ -249,9 +241,9 @@ end
 # union combines two spaces
 # this is used primarily for addition of two funs
 # that may be incompatible
-Base.union(a::AmbiguousSpace,b::AmbiguousSpace)=b
-Base.union(a::AmbiguousSpace,b::Space)=b
-Base.union(a::Space,b::AmbiguousSpace)=a
+union(a::AmbiguousSpace,b::AmbiguousSpace)=b
+union(a::AmbiguousSpace,b::Space)=b
+union(a::Space,b::AmbiguousSpace)=a
 
 
 function union_by_union_rule(a::Space,b::Space)
@@ -269,7 +261,7 @@ function union_by_union_rule(a::Space,b::Space)
     union_rule(b,a)
 end
 
-function Base.union(a::Space,b::Space)
+function union(a::Space,b::Space)
     cr = union_by_union_rule(a,b)
     cr isa NoSpace || return cr
 
@@ -287,10 +279,10 @@ function Base.union(a::Space,b::Space)
     a ⊕ b
 end
 
-Base.union(a::Space) = a
+union(a::Space) = a
 
-Base.union(a::Space,b::Space,c::Space) = union(union(a,b),c)
-Base.union(a::Space,b::Space,c::Space,d::Space...) =
+union(a::Space,b::Space,c::Space) = union(union(a,b),c)
+union(a::Space,b::Space,c::Space,d::Space...) =
     union(union(a,b),c,d...)
 
 
@@ -325,9 +317,9 @@ function defaultcoefficients(f,a,b)
     if spacescompatible(a,b)
         f
     elseif hasconversion(a,b)
-        A_mul_B_coefficients(Conversion(a,b),f)
+        mul_coefficients(Conversion(a,b),f)
     elseif hasconversion(b,a)
-        A_ldiv_B_coefficients(Conversion(b,a),f)
+        ldiv_coefficients(Conversion(b,a),f)
     else
         csp=canonicalspace(a)
 
@@ -354,7 +346,7 @@ coefficients(f,a,b) = defaultcoefficients(f,a,b)
 ## rand
 # checkpoints is used to give a list of points to double check
 # the expansion
-Base.rand(d::Space,k...) = rand(domain(d),k...)
+rand(d::Space,k...) = rand(domain(d),k...)
 checkpoints(d::Space) = checkpoints(domain(d))
 
 
@@ -442,7 +434,7 @@ for OP in (:plan_transform,:plan_itransform,:plan_transform!,:plan_itransform!)
     # plan transform expects a vector
     # this passes an empty Float64 array
     @eval begin
-        $OP(S::Space,::Type{T},n::Integer) where {T} = $OP(S,Vector{T}(n))
+        $OP(S::Space,::Type{T},n::Integer) where {T} = $OP(S,Vector{T}(undef, n))
         $OP(S::Space,n::Integer) = $OP(S, Float64, n)
     end
 end
@@ -450,7 +442,7 @@ end
 ## sorting
 # we sort spaces lexigraphically by default
 
-for OP in (:<,:(<=),:>,:(>=),:(Base.isless))
+for OP in (:<,:(<=),:>,:(>=),:(isless))
     @eval $OP(a::Space,b::Space)=$OP(string(a),string(b))
 end
 
@@ -460,7 +452,7 @@ end
 struct ZeroSpace{DD,R} <: Space{DD,R}
     domain::DD
     ZeroSpace{DD,R}(d::DD) where {DD,R} = new(d)
-    ZeroSpace{DD,R}(d::AnyDomain) where {DD,R} = new(DD(d))
+    ZeroSpace{DD,R}(d::AnyDomain) where {DD,R} = new(convert(DD,d))
 end
 
 
@@ -482,18 +474,19 @@ end
 """
 `ConstantSpace` is the 1-dimensional scalar space.
 """
-
 struct ConstantSpace{DD,R} <: Space{DD,R}
     domain::DD
     ConstantSpace{DD,R}(d::DD) where {DD,R} = new(d)
-    ConstantSpace{DD,R}(d::AnyDomain) where {DD,R} = new(DD(d))
+    ConstantSpace{DD,R}(d::AnyDomain) where {DD,R} = new(convert(DD,d))
 end
 
 ConstantSpace(d::Domain) = ConstantSpace{typeof(d),real(prectype(d))}(d)
-ConstantSpace() = ConstantSpace(AnyDomain())
+ConstantSpace() = ConstantSpace{AnyDomain,Float64}(AnyDomain())
 ConstantSpace(::Type{N}) where {N<:Number} = ConstantSpace{AnyDomain,real(N)}(AnyDomain())
 
-convert(::Type{Space},z::Number) = ConstantSpace(Domain(z))  # Spaces
+convert(::Type{Space}, z::Number) = ConstantSpace(Domain(z))  # Spaces
+convert(::Type{ConstantSpace}, d::Domain) = ConstantSpace(d)
+Space(z::Number) = convert(Space, z)
 
 isconstspace(::ConstantSpace) = true
 
@@ -503,7 +496,7 @@ end
 
 # we override maxspace instead of maxspace_rule to avoid
 # domainscompatible check.
-for OP in (:maxspace,:(Base.union))
+for OP in (:maxspace,:(union))
     @eval begin
         $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace{AnyDomain}) = A
         $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace) = B
@@ -513,14 +506,15 @@ for OP in (:maxspace,:(Base.union))
 end
 
 space(x::Number) = ConstantSpace(typeof(x))
+space(f::AbstractArray{T}) where T<:Number = ArraySpace(ConstantSpace{T}(), size(f)...)
 
 setdomain(A::ConstantSpace{DD,R}, d) where {DD,R} = ConstantSpace{typeof(d),R}(d)
 
 
-# Range type is Void since function evaluation is not defined
-struct SequenceSpace <: Space{PositiveIntegers,Void} end
+# Range type is Nothing since function evaluation is not defined
+struct SequenceSpace <: Space{PositiveIntegers,Nothing} end
 
-doc"""
+"""
 `SequenceSpace` is the space of all sequences, i.e., infinite vectors.
 Also denoted ℓ⁰.
 """

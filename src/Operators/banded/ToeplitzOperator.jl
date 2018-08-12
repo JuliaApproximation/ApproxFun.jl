@@ -44,7 +44,7 @@ function toeplitz_getindex(negative::AbstractVector{T},nonnegative::AbstractVect
 end
 
 function toeplitz_getindex(cfs::AbstractVector{T},k::Integer,j::Integer) where T
-    if k==j
+    if k==j && !isempty(cfs)
         2cfs[1]
     elseif 0<k-j≤length(cfs)-1
         cfs[k-j+1]
@@ -55,10 +55,10 @@ function toeplitz_getindex(cfs::AbstractVector{T},k::Integer,j::Integer) where T
     end
 end
 
-function convert(::Type{BandedMatrix},S::SubOperator{T,ToeplitzOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}}) where T
+function BandedMatrix(S::SubOperator{T,ToeplitzOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}}) where T
     ret = BandedMatrix(Zeros, S)
 
-    kr,jr=parentindexes(S)
+    kr,jr=parentindices(S)
 
     neg=parent(S).negative
     pos=parent(S).nonnegative
@@ -119,10 +119,10 @@ getindex(T::HankelOperator,k::Integer,j::Integer) =
     hankel_getindex(T.coefficients,k,j)
 
 
-function convert(::Type{BandedMatrix},S::SubOperator{T,HankelOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}}) where T
+function BandedMatrix(S::SubOperator{T,HankelOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}}) where T
     ret=BandedMatrix(Zeros, S)
 
-    kr,jr=parentindexes(S)
+    kr,jr=parentindices(S)
     cfs=parent(S).coefficients
 
     hankel_axpy!(1.0,cfs,kr,jr,ret)

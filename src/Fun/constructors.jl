@@ -14,10 +14,10 @@ valsdomain_type_promote(::Type{T},::Type{V}) where {T,V}=promote_type(T,V),promo
 
 
 
-function choosefuneltype(ftype,Td)
+function choosefuncfstype(ftype,Td)
     if !( ftype<: Number || ( ((ftype <: AbstractArray) || (ftype <: Vec)) &&
                               (eltype(ftype) <: Number) ) )
-        warn("Function outputs type $(ftype), which is not a Number")
+        @warn "Function outputs type $(ftype), which is not a Number"
     end
 
     Tprom = ftype
@@ -26,10 +26,10 @@ function choosefuneltype(ftype,Td)
         Tprom,Tpromd=valsdomain_type_promote(ftype,Td)
 
         if ftype != Int && Tprom != ftype
-                warn("Promoting function output type from $(ftype) to $(Tprom)")
+                @warn "Promoting function output type from $(ftype) to $(Tprom)"
         end
         if Tpromd != Td
-                warn("Space domain number type $(Td) is not compatible with coefficient type $(Tprom)")
+                @warn "Space domain number type $(Td) is not compatible with coefficient type $(Tprom)"
                 #TODO should construct a new Space that contains a domain where the numbers have been promoted
                 #and call constructor with this Space.
         end
@@ -56,7 +56,7 @@ function default_Fun(f,d::Space{ReComp},n::Integer,::Type{Val{false}}) where ReC
     end
 
     # we need 3 eltype calls for the case Interval(Point([1.,1.]))
-    Tprom=choosefuneltype(typeof(f1),prectype(domain(d)))
+    Tprom=choosefuncfstype(typeof(f1),prectype(domain(d)))
     default_Fun(Tprom,f,d,pts,Val{false})
 end
 
@@ -68,7 +68,7 @@ function default_Fun(f,d::Space{ReComp},n::Integer,::Type{Val{true}}) where ReCo
     end
 
     # we need 3 eltype calls for the case Interval(Point([1.,1.]))
-    Tprom=choosefuneltype(typeof(f1),prectype(domain(d)))
+    Tprom=choosefuncfstype(typeof(f1),prectype(domain(d)))
     default_Fun(Tprom,f,d,pts,Val{true})
 end
 
@@ -138,7 +138,7 @@ function default_Fun(f, d::Space)
         end
     end
 
-    warn("Maximum number of coefficients "*string(2^20+1)*" reached in constructing Fun.")
+    @warn "Maximum number of coefficients "*string(2^20+1)*" reached in constructing Fun."
 
     Fun(f,d,2^21)
 end
@@ -147,15 +147,12 @@ Fun(f::Type, d::Space) = error("Not implemented")
 
 
 # special case constructors
-## TODO: remove zeros
-Base.zero(S::Space) = zeros(S)
-Base.zero(::Type{T},S::Space) where {T<:Number} = zeros(T,S)
-Base.zeros(::Type{T},S::Space) where {T<:Number} = Fun(S,zeros(T,1))
-Base.zeros(S::Space) = Fun(S,zeros(1))
+zeros(S::Space) = Fun(S,zeros(1))
+zeros(::Type{T}, S::Space) where {T<:Number} = Fun(S,zeros(T,1))
 
 # catch all
-Base.ones(S::Space) = Fun(x->1.0,S)
-Base.ones(::Type{T},S::Space) where {T<:Number} = Fun(x->one(T),S)
+ones(S::Space) = Fun(x->1.0,S)
+ones(::Type{T}, S::Space) where {T<:Number} = Fun(x->one(T),S)
 
 function Fun(::typeof(identity), d::Domain)
     cd=canonicaldomain(d)

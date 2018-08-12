@@ -48,7 +48,7 @@ end
 
 ## dot for AbstractVector{Number} * AbstractVector{Fun}
 
-function Base.dot(c::AbstractVector{T},f::AbstractVector{F}) where {T<:Union{Number,Fun,MultivariateFun},F<:Union{Fun,MultivariateFun}}
+function dot(c::AbstractVector{T},f::AbstractVector{F}) where {T<:Union{Number,Fun,MultivariateFun},F<:Union{Fun,MultivariateFun}}
     @assert length(c)==length(f)
     ret = conj(first(c))*first(f)
     for k = 2:length(c)

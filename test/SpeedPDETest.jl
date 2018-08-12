@@ -1,4 +1,4 @@
-using ApproxFun, Compat.Test
+using ApproxFun, Test
     import ApproxFun: Block, BlockBandedMatrix
 
 ## PDEs
@@ -9,10 +9,10 @@ S = JacobiWeight(1.,1.,Jacobi(1.,1.))^2
 
 f = Fun((x,y)->sin(π*x)*sin(π*y),S)
 
-QR=qrfact(Δ)
+QR=qr(Δ)
     ApproxFun.resizedata!(QR,:,400)
     \(QR,f; tolerance=1E-10)
-QR=qrfact(Δ)
+QR=qr(Δ)
     @time Δ[Block.(1:40), Block.(1:40)]
     @time ApproxFun.resizedata!(QR,:,400)
     @time \(QR,f; tolerance=1E-10)
@@ -25,11 +25,11 @@ A=[Dirichlet(d); Laplacian(d)]
 f=Fun((x,y)->real(exp(x+im*y)),∂(d))
 
 
-QR=qrfact(A)
+QR=qr(A)
     ApproxFun.resizedata!(QR,:,150)
     \(QR,[f; 0.];tolerance=1E-10)
 
-QR=qrfact(A)
+QR=qr(A)
     @time ApproxFun.resizedata!(QR,:,150)
     @time u=\(QR,[f; 0.];tolerance=1E-10)
 

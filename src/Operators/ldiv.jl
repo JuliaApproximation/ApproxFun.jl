@@ -9,13 +9,13 @@ for TYP in (:Fun,:StridedVector,:AbstractVector,:Any)
             \(A,b;kwds...)
         else
             Fun(domainspace(A),
-                A_ldiv_B_coefficients(A,coefficients(b,rangespace(A));kwds...))
+                ldiv_coefficients(A,coefficients(b,rangespace(A));kwds...))
         end
     end
 end
 
-doc"""
-    \(A::Operator,b;tolerance=tol,maxlength=n)
+"""
+    \\(A::Operator,b;tolerance=tol,maxlength=n)
 
 solves a linear equation, usually differential equation, where `A` is an operator
 or array of operators and `b` is a `Fun` or array of funs.  The result `u`
@@ -24,25 +24,25 @@ will approximately satisfy `A*u = b`.
 \(::Operator,_)
 
 # Solve each column separately
-function \(A::Operator,B::AbstractMatrix;kwds...)
+function \(A::Operator, B::AbstractMatrix; kwds...)
     ds=domainspace(A)
     if isambiguous(ds)
         return choosespaces(A,B[:,1])\B
     end
 
     ret=Matrix{VFun{typeof(ds),
-               promote_type(eltype(A),mapreduce(eltype,promote_type,B))}}(1,size(B,2))
+               promote_type(eltype(A),mapreduce(cfstype,promote_type,B))}}(undef,1,size(B,2))
 
     QR = factorize(A) # reuse computation
     for j=1:size(B,2)
-        ret[:,j]=\(QR,B[:,j];kwds...)
+        ret[1,j] = \(QR,B[:,j];kwds...)
     end
     Fun(ret)
 end
 
 \(A::Operator,B::MatrixFun;kwds...) = \(A,Array(B);kwds...)
 
-A_ldiv_B_coefficients(A::Operator,b;kwds...) = A_ldiv_B_coefficients(qrfact(A),b;kwds...)
+ldiv_coefficients(A::Operator,b;kwds...) = ldiv_coefficients(qr(A),b;kwds...)
 
 \(A::Operator,B::Operator) = TimesOperator(inv(A),B)
 
@@ -57,5 +57,5 @@ for TYP in (:Vector,:Matrix)
             \(interlace(A),b;kwds...)
     end
 end
-A_ldiv_B_coefficients(A::AbstractArray{OO},b;kwds...) where {OO<:Operator} =
-    A_ldiv_B_coefficients(interlace(A),b;kwds...)
+ldiv_coefficients(A::AbstractArray{OO},b;kwds...) where {OO<:Operator} =
+    ldiv_coefficients(interlace(A),b;kwds...)

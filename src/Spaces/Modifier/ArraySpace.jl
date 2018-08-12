@@ -1,4 +1,4 @@
-doc"""
+"""
     ArraySpace(s::Space,dims...)
 
 is used to represent array-valued expansions in a space `s`.  The
@@ -10,7 +10,6 @@ f = Fun(x->[exp(x),sin(x)],-1..1)
 space(f) == ArraySpace(Chebyshev(),2)
 ```
 """
-# TODO: support general vector types
 struct ArraySpace{S,n,DD,RR} <: DirectSumSpace{NTuple{n,S},DD,Array{RR,n}}
      spaces::Array{S,n}
 end
@@ -26,35 +25,38 @@ ArraySpace(S::Space,n::Integer) = ArraySpace(S,(n,))
 ArraySpace(S::Space,n,m) = ArraySpace(fill(S,(n,m)))
 ArraySpace(d::Domain,n...) = ArraySpace(Space(d),n...)
 
-convert(::Type{Space},sp::AbstractArray{<:Space}) = ArraySpace(sp)
-convert(::Type{Array},sp::ArraySpace) = sp.spaces
-convert(::Type{Vector},sp::VectorSpace) = sp.spaces
-convert(::Type{Matrix},sp::MatrixSpace) = sp.spaces
+Space(sp::AbstractArray{<:Space}) = ArraySpace(sp)
+convert(::Type{Array}, sp::ArraySpace) = sp.spaces
+convert(::Type{Vector}, sp::VectorSpace) = sp.spaces
+convert(::Type{Matrix}, sp::MatrixSpace) = sp.spaces
+Array(sp::ArraySpace) = sp.spaces
+Vector(sp::VectorSpace) = sp.spaces
+Matrix(sp::MatrixSpace) = sp.spaces
 
 
 BlockInterlacer(sp::ArraySpace) = BlockInterlacer(blocklengths.(tuple(sp.spaces...)))
 interlacer(sp::ArraySpace) = BlockInterlacer(sp)
 
-for OP in (:(Base.length),:(Base.start),:(Base.endof),:(Base.size))
+for OP in (:length,:endof,:size)
     @eval begin
         $OP(S::ArraySpace) = $OP(components(S))
-        $OP(f::Fun{SS}) where {SS<:ArraySpace} = $OP(space(f))
+        $OP(f::Fun{<:ArraySpace}) = $OP(space(f))
     end
 end
 
-for OP in (:(getindex),:(Base.next),:(Base.done),:(Base.stride),:(Base.size))
+for OP in (:getindex,:iterate,:stride,:size)
     @eval $OP(S::ArraySpace,k) = $OP(components(S),k)
 end
 
-getindex(S::ArraySpace,kr::AbstractVector) = ArraySpace(components(S)[kr])
+iterate(S::ArraySpace) = iterate(components(S))
+getindex(S::ArraySpace, kr::AbstractVector) = ArraySpace(components(S)[kr])
 
 #support tuple set
-for OP in (:(Base.done),:(Base.stride))
-    @eval $OP(f::Fun{<:ArraySpace},k) = $OP(space(f),k)
-end
+
+stride(f::Fun{<:ArraySpace},k) = stride(space(f),k)
 
 getindex(f::ArraySpace,k...) = Space(component(f,k...))
-Base.next(f::Fun{<:ArraySpace},k)=f[k],k+1
+iterate(f::Fun{<:ArraySpace}) = iterate(components(f))
 
 
 Base.reshape(AS::ArraySpace,k...) = ArraySpace(reshape(AS.spaces,k...))
@@ -108,7 +110,7 @@ Base.vec(AS::ArraySpace) = ArraySpace(vec(AS.spaces))
 Base.vec(f::Fun{ArraySpace{S,n,DD,RR}}) where {S,n,DD,RR} =
     [f[j] for j=1:length(f.space)]
 
-Base.repmat(A::ArraySpace,n,m) = ArraySpace(repmat(A.spaces,n,m))
+repeat(A::ArraySpace,n,m) = ArraySpace(repeat(A.spaces,n,m))
 
 component(A::MatrixSpace,k::Integer,j::Integer) = A.spaces[k,j]
 
@@ -125,7 +127,7 @@ Base.getindex(f::Fun{DSS},kj::CartesianIndex{2}) where {DSS<:ArraySpace} = f[kj[
 function Fun(A::AbstractArray{Fun{VectorSpace{S,DD,RR},V,VV},2}) where {S,V,VV,DD,RR}
     @assert size(A,1)==1
 
-    M=Matrix{Fun{S,V,VV}}(length(space(A[1])),size(A,2))
+    M = Matrix{Fun{S,V,VV}}(undef, length(space(A[1])),size(A,2))
     for k=1:size(A,2)
         M[:,k]=vec(A[k])
     end
@@ -195,7 +197,7 @@ Base.diff(f::Fun{AS,T},n...) where {AS<:ArraySpace,T} = Fun(diff(Array(f),n...))
 
 ## conversion
 
-function coefficients(f::AbstractVector,a::VectorSpace,b::VectorSpace)
+function coefficients(f::AbstractVector, a::VectorSpace, b::VectorSpace)
     if size(a) ≠ size(b)
         throw(DimensionMismatch("dimensions must match"))
     end
@@ -206,7 +208,7 @@ end
 coefficients(Q::AbstractVector{F},rs::VectorSpace) where {F<:Fun} =
     interlace(map(coefficients,Q,rs),rs)
 
-
+coefficients(Q::AbstractVector, rs::VectorSpace) = coefficients(Fun.(Q), rs)
 
 
 Fun(f::AbstractVector{FF},d::VectorSpace) where {FF<:Fun} = Fun(d,coefficients(f,d))
@@ -228,12 +230,12 @@ function Fun(M::AbstractMatrix{<:Number},sp::MatrixSpace)
     Fun(map((f,s)->Fun(f,s),M,sp.spaces))
 end
 
-Fun(M::UniformScaling,sp::MatrixSpace) = Fun(M.λ*eye(size(sp)...),sp)
+Fun(M::UniformScaling,sp::MatrixSpace) = Fun(M.λ*Matrix(I,size(sp)...),sp)
 
 
 
-Base.ones(::Type{T},A::ArraySpace) where {T<:Number} = Fun(ones.(T,spaces(A)))
-Base.ones(A::ArraySpace) = Fun(ones.(spaces(A)))
+ones(::Type{T},A::ArraySpace) where {T<:Number} = Fun(ones.(T,spaces(A)))
+ones(A::ArraySpace) = Fun(ones.(spaces(A)))
 
 
 ## EuclideanSpace
@@ -249,3 +251,41 @@ EuclideanSpace(n::Integer) = ArraySpace(ConstantSpace(Float64),n)
 npieces(f::Fun{<:ArraySpace}) = npieces(f[1])
 piece(f::Fun{<:ArraySpace}, k) = Fun(piece.(Array(f),k))
 pieces(f::Fun{<:ArraySpace}) = [piece(f,k) for k=1:npieces(f)]
+
+
+
+## TODO: This is a hack to get tests working
+
+function coefficients(f::AbstractVector,sp::ArraySpace{<:ConstantSpace{AnyDomain}},ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R}
+    @assert length(ts.spaces) == 2
+
+    if ts.spaces[1] isa ArraySpace
+        coefficients(f, sp, ts.spaces[1])
+    elseif ts.spaces[2] isa ArraySpace
+        coefficients(f, sp, ts.spaces[2])
+    else
+        error("Cannot convert coefficients from $sp to $ts")
+    end
+end
+
+
+
+ArraySpace(sp::TensorSpace{Tuple{S1,S2}}) where {S1<:Space{D,R},S2} where {D,R<:AbstractArray} =
+    ArraySpace(map(a -> a ⊗ sp.spaces[2], sp.spaces[1]))
+
+ArraySpace(sp::TensorSpace{Tuple{S1,S2}},k...) where {S1,S2<:Space{D,R}} where {D,R<:AbstractArray} =
+    ArraySpace(map(a -> sp.spaces[1] ⊗ a, sp.spaces[2]))
+
+function coefficients(f::AbstractVector, a::VectorSpace, b::TensorSpace{Tuple{S1,S2},<:BivariateDomain}) where {S1<:Space{D,R},S2} where {D,R<:AbstractArray}
+    if size(a) ≠ size(b)
+        throw(DimensionMismatch("dimensions must match"))
+    end
+    interlace(map(coefficients,Fun(a,f),b),ArraySpace(b))
+end
+
+function coefficients(f::AbstractVector, a::VectorSpace, b::TensorSpace{Tuple{S1,S2},<:BivariateDomain}) where {S1,S2<:Space{D,R}} where {D,R<:AbstractArray}
+    if size(a) ≠ size(b)
+        throw(DimensionMismatch("dimensions must match"))
+    end
+    interlace(map(coefficients,Fun(a,f),b),b)
+end

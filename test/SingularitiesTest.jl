@@ -1,4 +1,4 @@
-using ApproxFun, Compat.Test
+using ApproxFun, SpecialFunctions, Test
 
 @testset "Singularities" begin
     @testset "sqrt" begin
@@ -22,8 +22,7 @@ using ApproxFun, Compat.Test
 
         @test (x/u)(.1) ≈ tan(π*.1/2)
 
-
-        f=Fun(x->exp(-x^2),Line(0.,0.,-.5,-.5),400)
+        f = Fun(x->exp(-x^2),Line(0.,0.,-.5,-.5),400)
         @test sum(f) ≈ sqrt(π)
 
         f=Fun(x->exp(x)/sqrt(1-x.^2),JacobiWeight(-.5,-.5))
@@ -87,7 +86,6 @@ using ApproxFun, Compat.Test
         @test g(.123) ≈ csc(10*.123)
     end
 
-
     @testset "Ray and Line" begin
         @test Inf in Ray()   # this was a bug
 
@@ -139,7 +137,6 @@ using ApproxFun, Compat.Test
         @test ≈((D^2*f)(.2),-0.9752522555114987;atol=1000000eps())
     end
 
-
     @testset "LogWeight" begin
         x=Fun(identity,-1..1)
         f=exp(x+1)-1
@@ -162,11 +159,6 @@ using ApproxFun, Compat.Test
         @test (p-p(0.))(0.5) ≈ -log(1-0.5)
     end
 
-
-
-
-
-
     @testset "Complex domains sqrt" begin
         a=1+10*im;b=2-6*im
         d=Curve(Fun(x->1+a*x+b*x^2))
@@ -181,7 +173,6 @@ using ApproxFun, Compat.Test
         ζ=Fun(identity,a)
         f=Fun(exp,a)*sqrt(abs((ζ-1)*(ζ-im)))
     end
-
 
     @testset "DiracDelta and PointSpace" begin
         a,b=DiracDelta(0.),DiracDelta(1.)
@@ -256,7 +247,6 @@ using ApproxFun, Compat.Test
         r = sample(δ, 10_000)
         @test count(i -> i == 0.1, r)/length(r) ≈ 0.3/(3.3) atol=0.01
     end
-
 
     @testset "Multiple roots" begin
         x=Fun(identity,-1..1)

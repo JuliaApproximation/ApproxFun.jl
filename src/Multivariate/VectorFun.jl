@@ -1,28 +1,28 @@
-const ArrayFun = Fun{S} where {S<:Space{D,R}} where {D,R<:AbstractArray}
-const MatrixFun = Fun{S} where {S<:Space{D,R}} where {D,R<:AbstractMatrix}
-const VectorFun = Fun{S} where {S<:Space{D,R}} where {D,R<:AbstractVector}
-const ScalarFun = Fun{S} where {S<:Space{D,R}} where {D,R<:Number}
 
 
-convert(::Type{Array},f::ArrayFun) = reshape(vec(f),size(space(f))...)
 
-Base.map(f,A::ArrayFun) = Base.collect_similar(A, Base.Generator(f,A))
+convert(::Type{Array}, f::ArrayFun) = reshape(vec(f), size(space(f))...)
+Array(f::ArrayFun) = convert(Array, f)
+Vector(f::VectorFun) = Array(f)
+Matrix(f::MatrixFun) = Array(f)
 
-Base.similar(a::VectorFun, S::Type) = Array{S,1}(size(a,1))
-Base.similar(a::MatrixFun, S::Type) = Array{S,2}(size(a,1), size(a,2))
+map(f,A::ArrayFun) = Base.collect_similar(A, Base.Generator(f,A))
+
+similar(a::VectorFun, S::Type) = Array{S,1}(undef, size(a,1))
+similar(a::MatrixFun, S::Type) = Array{S,2}(undef, size(a,1), size(a,2))
 
 
-Base.getindex(f::MatrixFun,
-               k::Union{Integer,Range,Colon},
-               j::Union{Integer,Range,Colon}) =
+getindex(f::MatrixFun,
+               k::Union{Integer,AbstractRange,Colon},
+               j::Union{Integer,AbstractRange,Colon}) =
     Fun(Array(f)[k,j])
 
 
 const FunTypes = Union{Fun,Number}
 const ScalarFunTypes = Union{ScalarFun,Number}
-function Base.vcat(vin::FunTypes...)
+function vcat(vin::FunTypes...)
     #  remove tuple spaces
-    v=Vector{Fun}(0)
+    v=Vector{Fun}(undef,0)
     for f in vin
         if rangetype(space(f)) <: AbstractVector
             append!(v,vec(f))
@@ -37,19 +37,19 @@ function Base.vcat(vin::FunTypes...)
 end
 
 
-function Base.hcat(v::ScalarFunTypes...)
+function hcat(v::ScalarFunTypes...)
     ff = vcat(v...)  # A vectorized version
-    ff.'
+    transpose(ff)
 end
 
-Base.hvcat(rows::Tuple{Vararg{Int}},v::FunTypes...) = Fun(hvnocat(rows,v...))
+hvcat(rows::Tuple{Vararg{Int}},v::FunTypes...) = Fun(hvnocat(rows,v...))
 
 
-function Base.hcat(v::VectorFun...)
+function hcat(v::VectorFun...)
     N = length(v[1])
     M = length(v)
 
-    V = Array{Fun}(N,M)
+    V = Array{Fun}(undef, N,M)
     for J=1:M
         V[:,J] = vec(v[J])
     end
@@ -72,14 +72,14 @@ end
 
 Fun(v::AbstractArray{NN}) where {NN<:Number} =
     Fun(v,Space(fill(ConstantSpace(NN),size(v))))
-Fun(v::AbstractArray{Any}) = Fun(Fun.(collect(v)) :: AbstractArray{<:Fun})
+Fun(v::AbstractArray) = Fun(Fun.(Array(v)) :: AbstractArray{<:Fun})
 
-Fun(f::ArrayFun,d::Space{D,R}) where {D,R<:AbstractArray} = space(f)==d ? f : Fun(d,coefficients(f,d))
-Fun(f::ArrayFun,d::Space) = Fun(f,Space(fill(d,size(space(f)))))
+Fun(f::ArrayFun, d::Space{D,R}) where {D,R<:AbstractArray} = space(f)==d ? f : Fun(d,coefficients(f,d))
+Fun(f::ArrayFun, d::Space) = Fun(f,Space(fill(d,size(space(f)))))
 
 Fun(M::AbstractMatrix{<:Number},sp::Space) = Fun([Fun(M[:,k],sp) for k=1:size(M,2)])
 
-for OP in (:(Base.transpose),)
+for OP in (:(transpose),)
     @eval begin
         $OP(f::ArrayFun) = Fun($OP(Array(f)))
         $OP(sp::Space{D,R}) where {D,R<:AbstractArray} = Space($OP(Array(sp)))
@@ -88,18 +88,18 @@ end
 
 ## calculus
 
-for op in (:differentiate,:integrate,:(Base.cumsum),:(Base.real),:(Base.imag),:(Base.conj))
+for op in (:differentiate,:integrate,:(cumsum),:(real),:(imag),:(conj))
     @eval $op(f::ArrayFun) = Fun(map($op,f))
 end
 
 # TODO: use QR
-function Base.det(f::MatrixFun)
+function det(f::MatrixFun)
     @assert size(space(f))==(2,2)
     m=Array(f)
     m[1,1]*m[2,2]-m[1,2]*m[2,1]
 end
 
-function Base.inv(V::MatrixFun)
+function inv(V::MatrixFun)
     n,m = size(space(V))
     if n ≠ m
         throw(DimensionMismatch("space $(space(V)) is not square"))
@@ -108,7 +108,7 @@ function Base.inv(V::MatrixFun)
     # TODO: This assumes other columns have same spaces
     M=Multiplication(V,Space(space(V).spaces[:,1]))
     # convert I to the rangespace of M
-    M\Fun(eye(m),repmat(rangespace(M),1,m))
+    M\Fun(Matrix(I,m,m), repeat(rangespace(M),1,m))
 end
 
 ## Algebra
@@ -138,7 +138,7 @@ end
 # use standard +, -
 *(A::ArrayFun,f::ArrayFun) = Fun(Array(A)*Array(f))
 
-norm(A::VectorFun,p::Number) = norm(norm.(Array(A)),p)
+norm(A::VectorFun, p::Real) = norm(norm.(Array(A)),p)
 
 
 
@@ -200,33 +200,3 @@ end
 #TODO: fix for complex
 evaluate(A::AbstractArray{T},x::Number) where {T<:Fun} =
     typeof(first(A)(x))[Akj(x) for Akj in A]
-
-
-
-## Algebra
-#
-# ## scalar fun times vector
-# #TODO: This is probably more efficient than the current implementation, but it
-# # is too hacky to keep for now
-#
-#  for op in (:*,:(Base.Ac_mul_B),:(Base.At_mul_B))
-#      @eval begin
-#          function ($op)(A::Array{T,2}, p::AbstractVector{Fun{D,V,VT}}) where {T<:Number,V<:Number,D,VT}
-#              cfs=$op(A,coefficientmatrix(p).')
-#              ret = Vector{VFun{D,promote_type(T,V)}}(size(cfs,1))
-#              for i = 1:size(cfs,1)
-#                  ret[i] = chop!(Fun(first(p).space,cfs[i,:]),eps())
-#              end
-#              ret
-#          end
-#
-#          function ($op)(p::AbstractVector{Fun{D,T,VT}},A::Array{T,2}) where {T<:Number,D,VT}
-#              cfs=$op(A,coefficientmatrix(p).')
-#              ret = Vector{VFun{D,T}}(size(cfs,1))
-#              for i = 1:size(cfs,1)
-#                  ret[i] = chop!(Fun(first(p).space,cfs[i,:]),eps())
-#              end
-#              ret
-#          end
-#      end
-#  end

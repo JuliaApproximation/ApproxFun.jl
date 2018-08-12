@@ -38,7 +38,7 @@ end
 function interlacewithzeros(cfs::AbstractVector,k,it)
     n = length(cfs)
 
-    ret = Array{eltype(cfs)}(0)
+    ret = Array{eltype(cfs)}(undef, 0)
     n == 0 && return ret
 
     for (K,j) in it

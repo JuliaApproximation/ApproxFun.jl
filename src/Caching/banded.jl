@@ -1,7 +1,7 @@
 function CachedOperator(::Type{BandedMatrix},op::Operator;padding::Bool=false)
     l,u=bandwidths(op)
     padding && (u+=l)
-    data = BandedMatrix{eltype(op)}(uninitialized, (0,0), (l,u))
+    data = BandedMatrix{eltype(op)}(undef, (0,0), (l,u))
     CachedOperator(op,data,size(data),domainspace(op),rangespace(op),(-l,u),padding)
 end
 
@@ -35,7 +35,7 @@ resizedata!(B::CachedOperator{T,<:BandedMatrix{T}},n::Integer,m::Integer) where 
 
 function QROperator(R::CachedOperator{T,<:BandedMatrix{T}}) where T
     M = R.data.l+1   # number of diag+subdiagonal bands
-    H = Array{T}(M,100)
+    H = Array{T}(undef,M,100)
     QROperator(R,H,0)
 end
 
@@ -47,7 +47,7 @@ function resizedata!(QR::QROperator{<:CachedOperator{T,<:BandedMatrix{T},
         return QR
     end
 
-    MO=QR.R
+    MO=QR.R_cache
     W=QR.H
 
     R=MO.data
@@ -72,7 +72,7 @@ function resizedata!(QR::QROperator{<:CachedOperator{T,<:BandedMatrix{T},
             dind=R.u+1+k-j
             v=view(R.data,dind:dind+M-1,j)
             dt=dot(wp,v)
-            Base.axpy!(-2*dt,wp,v)
+            LinearAlgebra.axpy!(-2*dt,wp,v)
         end
 
         # scale banded/filled entries
@@ -81,7 +81,7 @@ function resizedata!(QR::QROperator{<:CachedOperator{T,<:BandedMatrix{T},
             v=view(R.data,1:M-p,j)  # shift down each time
             wp2=view(wp,p+1:M)
             dt=dot(wp2,v)
-            Base.axpy!(-2*dt,wp2,v)
+            LinearAlgebra.axpy!(-2*dt,wp2,v)
         end
     end
     QR.ncols=col
@@ -102,7 +102,7 @@ function resizedata!(QR::QROperator{<:CachedOperator{T,<:BandedMatrix{T},
 
     col = min(col, size(QR,2))
 
-    MO=QR.R
+    MO=QR.R_cache
     W=QR.H
 
     R=MO.data
@@ -132,14 +132,14 @@ function resizedata!(QR::QROperator{<:CachedOperator{T,<:BandedMatrix{T},
 
         for j=k:k+R.u
             v=r+sz*(R.u + (k-1)*st + (j-k)*(st-1))
-            dt=dot(M,wp,1,v,1)
+            dt = BandedMatrices.dot(M,wp,1,v,1)
             BLAS.axpy!(M,-2*dt,wp,1,v,1)
         end
 
         for j=k+R.u+1:k+R.u+M-1
             p=j-k-R.u
             v=r+sz*((j-1)*st)  # shift down each time
-            dt=dot(M-p,wp+p*sz,1,v,1)
+            dt = BandedMatrices.dot(M-p,wp+p*sz,1,v,1)
             BLAS.axpy!(M-p,-2*dt,wp+p*sz,1,v,1)
         end
     end
@@ -151,14 +151,14 @@ end
 ## back substitution
 # loop to avoid ambiguity with AbstractTRiangular
 for ArrTyp in (:AbstractVector, :AbstractMatrix)
-    @eval function A_ldiv_B!(U::UpperTriangular{T, <:SubArray{T, 2, <:BandedMatrix{T}, Tuple{UnitRange{Int}, UnitRange{Int}}, false}},
+    @eval function ldiv!(U::UpperTriangular{T, <:SubArray{T, 2, <:BandedMatrix{T}, Tuple{UnitRange{Int}, UnitRange{Int}}, false}},
                              u::$ArrTyp{T}) where T
         n = size(u,1)
         n == size(U,1) || throw(DimensionMismatch())
 
         V = parent(U)
-        @assert first(parentindexes(V)[1]) == 1
-        @assert first(parentindexes(V)[2]) == 1
+        @assert first(parentindices(V)[1]) == 1
+        @assert first(parentindices(V)[2]) == 1
 
         A = parent(V)
 

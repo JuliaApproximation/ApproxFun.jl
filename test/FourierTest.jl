@@ -1,7 +1,7 @@
-using ApproxFun, Compat.Test, BlockArrays, BlockBandedMatrices
+using ApproxFun, Test, BlockArrays, BlockBandedMatrices, SpecialFunctions
     import ApproxFun: testspace, testtransforms, testmultiplication,
                       testbandedoperator, testcalculus, Block
-
+    import SpecialFunctions: factorial
 
 
 
@@ -36,8 +36,8 @@ using ApproxFun, Compat.Test, BlockArrays, BlockBandedMatrices
     f=Fun(exp,Taylor(Circle()))
     @test f(exp(0.1im)) ≈ exp(exp(0.1im))
     @test f(1.0) ≈ exp(1.0)
-    g=Fun(z->1./(z-.1),Hardy{false}(Circle()))
-    @test (f(1.)+g(1.)) ≈ (exp(1.) + 1./(1-.1))
+    g=Fun(z->1/(z-0.1),Hardy{false}(Circle()))
+    @test (f(1.)+g(1.)) ≈ (exp(1.) + 1/(1-.1))
 
 
     ## Periodic
@@ -313,17 +313,17 @@ using ApproxFun, Compat.Test, BlockArrays, BlockBandedMatrices
         z = similar(x)
         P = ApproxFun.plan_transform(S, x)
         P! = ApproxFun.plan_transform!(S, x)
-        A_mul_B!(y, P, x)
+        mul!(y, P, x)
         @test x ≈ [1.,2,3,4,5]
-        A_mul_B!(z, P!, x)
+        mul!(z, P!, x)
         @test x ≈ [1.,2,3,4,5]
         @test y ≈ z ≈ P*x ≈ P!*copy(x)
 
         P = ApproxFun.plan_itransform(S, x)
         P! = ApproxFun.plan_itransform!(S, x)
-        A_mul_B!(y, P, x)
+        mul!(y, P, x)
         @test x ≈ [1.,2,3,4,5]
-        A_mul_B!(z, P!, x)
+        mul!(z, P!, x)
         @test x ≈ [1.,2,3,4,5]
         @test y ≈ z ≈ P*x ≈ P!*copy(x)
     end

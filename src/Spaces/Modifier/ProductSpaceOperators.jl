@@ -55,8 +55,8 @@ end
 continuity(d::UnionDomain,k) = continuity(Space(d),k)
 continuity(d) = continuity(d,0)
 
-Base.blkdiag(A::PlusOperator) = mapreduce(blkdiag,+,A.ops)
-Base.blkdiag(A::TimesOperator) = mapreduce(blkdiag,.*,A.ops)
+blockdiag(A::PlusOperator) = mapreduce(blockdiag, +, A.ops)
+blockdiag(A::TimesOperator) = mapreduce(blockdiag, .*, A.ops)
 
 # TODO: general wrappers
 
@@ -144,6 +144,9 @@ for TYP in (:SumSpace,:PiecewiseSpace)
     end
 end
 
+function Conversion(S1::SumSpace, S2::Space)
+    error("Implement")
+end
 
 
 
@@ -226,7 +229,7 @@ choosedomainspace(M::CalculusOperator{UnsetSpace},sp::SumSpace)=mapreduce(s->cho
 function Multiplication(f::Fun{MatrixSpace{S,DD,RR}},sp::VectorSpace{S2,DD2,RR2}) where {S,DD,RR,S2,DD2,RR2}
     @assert size(space(f),2)==length(sp)
     m=Array(f)
-    MultiplicationWrapper(f,interlace(Operator{promote_type(eltype(f),prectype(sp))}[Multiplication(m[k,j],sp[j]) for k=1:size(m,1),j=1:size(m,2)]))
+    MultiplicationWrapper(f,interlace(Operator{promote_type(cfstype(f),prectype(sp))}[Multiplication(m[k,j],sp[j]) for k=1:size(m,1),j=1:size(m,2)]))
 end
 
 
@@ -279,7 +282,7 @@ DefiniteLineIntegral(sp::PiecewiseSpace) =
 
 Base.getindex(d::TensorSpace{Tuple{PWS1,PWS2}},i::Integer,j::Integer) where {PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace} =
     d[1][i]⊗d[2][j]
-Base.getindex(d::TensorSpace{Tuple{PWS1,PWS2}},i::Range,j::Range) where {PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace} =
+Base.getindex(d::TensorSpace{Tuple{PWS1,PWS2}},i::AbstractRange,j::AbstractRange) where {PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace} =
     PiecewiseSpace(d[1][i])⊗PiecewiseSpace(d[2][j])
 
 ## ProductFun

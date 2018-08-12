@@ -17,7 +17,7 @@ end
 function abs(f::Fun)
     d=domain(f)
 
-    pts = iszero(f) ? eltype(f)[] : roots(f)
+    pts = iszero(f) ? cfstype(f)[] : roots(f)
 
     if isempty(pts)
         # This makes sure Laurent returns real type
@@ -53,7 +53,7 @@ for op in (:(max),:(min))
         function $op(f::Fun{S,T1},g::Fun{V,T2}) where {S<:RealUnivariateSpace,V<:RealUnivariateSpace,T1<:Real,T2<:Real}
             h=f-g
             d=domain(h)
-            pts=iszero(h)?eltype(h)[]:roots(h)
+            pts=iszero(h) ? cfstype(h)[] : roots(h)
             splitmap(x->$op(f(x),g(x)),d,pts)
         end
         $op(f::Fun{S,T},g::Real) where {S<:RealUnivariateSpace,T<:Real} = $op(f,Fun(g,domain(f)))
@@ -61,7 +61,7 @@ for op in (:(max),:(min))
     end
 end
 
-Base.isfinite(f::Fun) = isfinite(maximum(abs,f)) && isfinite(minabs(f))
+isfinite(f::Fun) = isfinite(maximum(abs,f)) && isfinite(minabs(f))
 
 # division by fun
 
@@ -75,7 +75,7 @@ function /(c::Fun,f::Fun)
     end
 
     r=roots(f)
-    tol=10eps(promote_type(eltype(c),eltype(f)))
+    tol=10eps(promote_type(cfstype(c),cfstype(f)))
     if length(r)==0 || norm(c.(r))<tol
         \(Multiplication(f,space(c)),c;tolerance=tol)
     else
@@ -85,9 +85,9 @@ end
 
 function /(c::Number,f::Fun)
     r=roots(f)
-    tol=10eps(promote_type(typeof(c),eltype(f)))
+    tol=10eps(promote_type(typeof(c),cfstype(f)))
     @assert length(r)==0
-    \(Multiplication(f,space(f)),c*ones(space(f));tolerance=tol)
+    \(Multiplication(f,space(f)),c*one(space(f));tolerance=tol)
 end
 
 # project to interval if we are not on the interview
@@ -104,7 +104,7 @@ function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:Segment,RR}
     fc = setcanonicaldomain(f)
     d=domain(f)
     # if domain f is small then the pts get projected in
-    tol = 200eps(promote_type(typeof(c),eltype(f)))*norm(f.coefficients,1)
+    tol = 200eps(promote_type(typeof(c),cfstype(f)))*norm(f.coefficients,1)
 
     # we prune out roots at the boundary first
     if ncoefficients(f)==1
@@ -160,7 +160,7 @@ end
 
 ^(f::Fun{<:PolynomialSpace},k::Integer) = intpow(f,k)
 function ^(f::Fun{<:PolynomialSpace}, k::Real)
-    T = eltype(f)
+    T = cfstype(f)
     RT = real(T)
     # Need to think what to do if this is ever not the case..
     sp = space(f)
@@ -284,9 +284,9 @@ atan(f::Fun)=cumsum(f'/(1+f^2))+atan(first(f))
 # this is used to find a point in which to impose a boundary
 # condition in calculating secial functions
 function specialfunctionnormalizationpoint(op,growth,f)
-    g=chop(growth(f),eps(eltype(f)))
-    xmin = isempty(g.coefficients) ? first(domain(g)) : indmin(g)
-    xmax = isempty(g.coefficients) ? last(domain(g)) : indmax(g)
+    g=chop(growth(f),eps(cfstype(f)))
+    xmin = isempty(g.coefficients) ? first(domain(g)) : argmin(g)
+    xmax = isempty(g.coefficients) ? last(domain(g)) : argmax(g)
     opfxmin,opfxmax = op(f(xmin)),op(f(xmax))
     opmax = maximum(abs,(opfxmin,opfxmax))
     if abs(opfxmin) == opmax xmax,opfxmax = xmin,opfxmin end
@@ -304,7 +304,7 @@ for (op,ODE,RHS,growth) in ((:(exp),"D-f'","0",:(real)),
                             (:(atanh),"(1-f^2)*D","f'",:(real)),
                             (:(erfcx),"D-2f*f'","-2f'/sqrt(π)",:(real)),
                             (:(dawson),"D+2f*f'","f'",:(real)))
-    L,R = parse(ODE),parse(RHS)
+    L,R = Meta.parse(ODE),Meta.parse(RHS)
     @eval begin
         # depice before doing op
         $op(f::Fun{PW}) where {PW<:Union{PiecewiseSpace,ContinuousSpace}} =
@@ -374,7 +374,7 @@ function exp(f::Fun{JW}) where JW<:JacobiWeight
         D=Derivative(s)
         B=Evaluation(s,xmax)
 
-        \([B,D-f'],Any[opfxmax/opmax,0.];tolerance=eps(eltype(f)))*opmax
+        \([B,D-f'],Any[opfxmax/opmax,0.];tolerance=eps(cfstype(f)))*opmax
     end
 end
 
@@ -409,14 +409,14 @@ for (op,ODE,RHS,growth) in ((:(erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
                             (:(airybi),"f'*D^2-f''*D-f*f'^3","0",:(imag)),
                             (:(airyaiprime),"f'*D^2-f''*D-f*f'^3","airyai(f)*f'^3",:(imag)),
                             (:(airybiprime),"f'*D^2-f''*D-f*f'^3","airybi(f)*f'^3",:(imag)))
-    L,R = parse(ODE),parse(RHS)
+    L,R = Meta.parse(ODE),Meta.parse(RHS)
     @eval begin
         function $op(fin::Fun{S,T}) where {S,T}
             f=setcanonicaldomain(fin)
 
             g=chop($growth(f),eps(T))
-            xmin = isempty(g.coefficients) ? first(domain(g)) : indmin(g)
-            xmax = isempty(g.coefficients) ? last(domain(g)) : indmax(g)
+            xmin = isempty(g.coefficients) ? first(domain(g)) : argmin(g)
+            xmax = isempty(g.coefficients) ? last(domain(g)) : argmax(g)
             opfxmin,opfxmax = $op(f(xmin)),$op(f(xmax))
             opmax = maximum(abs,(opfxmin,opfxmax))
             while opmax≤10eps(T) || abs(f(xmin)-f(xmax))≤10eps(T)
@@ -447,14 +447,14 @@ for (op,ODE,RHS,growth) in ((:(hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^
                             (:(besselkx),"f^2*f'*D^2+((-2f^2+f)*f'^2-f^2*f'')*D-(f+ν^2)*f'^3","0",:(real)),
                             (:(hankelh1x),"f^2*f'*D^2+((2im*f^2+f)*f'^2-f^2*f'')*D+(im*f-ν^2)*f'^3","0",:(imag)),
                             (:(hankelh2x),"f^2*f'*D^2+((-2im*f^2+f)*f'^2-f^2*f'')*D+(-im*f-ν^2)*f'^3","0",:(imag)))
-    L,R = parse(ODE),parse(RHS)
+    L,R = Meta.parse(ODE),Meta.parse(RHS)
     @eval begin
         function $op(ν,fin::Fun{S,T}) where {S<:Union{Ultraspherical,Chebyshev},T}
             f=setcanonicaldomain(fin)
 
             g=chop($growth(f),eps(T))
-            xmin = isempty(g.coefficients) ? first(domain(g)) : indmin(g)
-            xmax = isempty(g.coefficients) ? last(domain(g)) : indmax(g)
+            xmin = isempty(g.coefficients) ? first(domain(g)) : argmin(g)
+            xmax = isempty(g.coefficients) ? last(domain(g)) : argmax(g)
             opfxmin,opfxmax = $op(ν,f(xmin)),$op(ν,f(xmax))
             opmax = maximum(abs,(opfxmin,opfxmax))
             while opmax≤10eps(T) || abs(f(xmin)-f(xmax))≤10eps(T)
@@ -529,7 +529,7 @@ besselh(ν,k::Integer,f::Fun) = k == 1 ? hankelh1(ν,f) : k == 2 ? hankelh2(ν,f
 
 for jy in ("j","y"), ν in (0,1)
     bjy = Symbol(string("bessel",jy))
-    bjynu = parse(string("SpecialFunctions.bessel",jy,ν))
+    bjynu = Meta.parse(string("SpecialFunctions.bessel",jy,ν))
     @eval begin
         $bjynu(f::Fun) = $bjy($ν,f)
     end
@@ -657,7 +657,7 @@ function jumplocations(f::Fun{S}) where{S<:PiecewiseSpace}
     end
 
     dtol=10eps(eltype(d))
-    ftol=10eps(eltype(f))
+    ftol=10eps(cfstype(f))
 
     dc = components(d)
     fc = components(f)
@@ -683,17 +683,17 @@ expγ_asy(x) = (exp(x)*(4-x)-4-3x-x^2)/x^3
 
 # TODO: General types
 
-expα_taylor(x::Union{Float64,Complex128}) = @evalpoly(x,1/6,1/6,3/40,1/45,5/1008,1/1120,7/51840,1/56700,1/492800,1/4790016,11/566092800,1/605404800,13/100590336000,1/106748928000,1/1580833013760,1/25009272288000,17/7155594141696000,1/7508956815360000)
-expβ_taylor(x::Union{Float64,Complex128}) = @evalpoly(x,1/6,1/12,1/40,1/180,1/1008,1/6720,1/51840,1/453600,1/4435200,1/47900160,1/566092800,1/7264857600,1/100590336000,1/1494484992000,1/23712495206400,1/400148356608000,1/7155594141696000,1/135161222676480000)
-expγ_taylor(x::Union{Float64,Complex128}) = @evalpoly(x,1/6,0/1,-1/120,-1/360,-1/1680,-1/10080,-1/72576,-1/604800,-1/5702400,-1/59875200,-1/691891200,-1/8717829120,-1/118879488000,-1/1743565824000,-1/27360571392000,-1/457312407552000,-1/8109673360588800)
+expα_taylor(x::Union{Float64,ComplexF64}) = @evalpoly(x,1/6,1/6,3/40,1/45,5/1008,1/1120,7/51840,1/56700,1/492800,1/4790016,11/566092800,1/605404800,13/100590336000,1/106748928000,1/1580833013760,1/25009272288000,17/7155594141696000,1/7508956815360000)
+expβ_taylor(x::Union{Float64,ComplexF64}) = @evalpoly(x,1/6,1/12,1/40,1/180,1/1008,1/6720,1/51840,1/453600,1/4435200,1/47900160,1/566092800,1/7264857600,1/100590336000,1/1494484992000,1/23712495206400,1/400148356608000,1/7155594141696000,1/135161222676480000)
+expγ_taylor(x::Union{Float64,ComplexF64}) = @evalpoly(x,1/6,0/1,-1/120,-1/360,-1/1680,-1/10080,-1/72576,-1/604800,-1/5702400,-1/59875200,-1/691891200,-1/8717829120,-1/118879488000,-1/1743565824000,-1/27360571392000,-1/457312407552000,-1/8109673360588800)
 
 expα(x::Float64) = abs(x) < 17/16 ? expα_taylor(x) : expα_asy(x)
 expβ(x::Float64) = abs(x) < 19/16 ? expβ_taylor(x) : expβ_asy(x)
 expγ(x::Float64) = abs(x) < 15/16 ? expγ_taylor(x) : expγ_asy(x)
 
-expα(x::Complex128) = abs2(x) < (17/16)^2 ? expα_taylor(x) : expα_asy(x)
-expβ(x::Complex128) = abs2(x) < (19/16)^2 ? expβ_taylor(x) : expβ_asy(x)
-expγ(x::Complex128) = abs2(x) < (15/16)^2 ? expγ_taylor(x) : expγ_asy(x)
+expα(x::ComplexF64) = abs2(x) < (17/16)^2 ? expα_taylor(x) : expα_asy(x)
+expβ(x::ComplexF64) = abs2(x) < (19/16)^2 ? expβ_taylor(x) : expβ_asy(x)
+expγ(x::ComplexF64) = abs2(x) < (15/16)^2 ? expγ_taylor(x) : expγ_asy(x)
 
 expα(x) = expα_asy(x)
 expβ(x) = expβ_asy(x)
@@ -756,9 +756,9 @@ end
 
 for OP in (:<,:(Base.isless),:(<=),:>,:(>=))
     @eval begin
-        $OP(a::Fun{CS},b::Fun{CS}) where {CS<:ConstantSpace} = $OP(Number(a),Number(b))
-        $OP(a::Fun{CS},b::Number) where {CS<:ConstantSpace} = $OP(Number(a),b)
-        $OP(a::Number,b::Fun{CS}) where {CS<:ConstantSpace} = $OP(a,Number(b))
+        $OP(a::Fun{CS},b::Fun{CS}) where {CS<:ConstantSpace} = $OP(convert(Number,a),Number(b))
+        $OP(a::Fun{CS},b::Number) where {CS<:ConstantSpace} = $OP(convert(Number,a),b)
+        $OP(a::Number,b::Fun{CS}) where {CS<:ConstantSpace} = $OP(a,convert(Number,b))
     end
 end
 

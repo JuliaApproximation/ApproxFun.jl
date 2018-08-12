@@ -20,7 +20,7 @@ end
 
 Laguerre() = Laguerre(0)
 
-doc"""
+"""
 `Laguerre(α)` is a space spanned by generalized Laguerre polynomials `Lₙ(x)` 's
 on `(0, Inf)`, which satisfy the differential equations
 ```
@@ -28,21 +28,20 @@ on `(0, Inf)`, which satisfy the differential equations
 ```
 `Laguerre()` is equivalent to `Laguerre(0)` by default.
 """
-
 spacescompatible(A::Laguerre,B::Laguerre) = A.α ≈ B.α
 
 canonicaldomain(::Laguerre) = Ray()
 domain(::Laguerre) = Ray()
 tocanonical(::Laguerre,x) = x
 
-@inline laguerrerecα(::Type{T},α,k) where {T} = T(2k+α-1)
-@inline laguerrerecβ(::Type{T},_,k) where {T} = T(-k)
-@inline laguerrerecγ(::Type{T},α,k) where {T} = T(-(k-1+α))
+@inline laguerrerecα(::Type{T},α,k) where {T} = convert(T,2k+α-1)
+@inline laguerrerecβ(::Type{T},_,k) where {T} = convert(T,-k)
+@inline laguerrerecγ(::Type{T},α,k) where {T} = convert(T,-(k-1+α))
 
 
-@inline laguerrerecA(::Type{T},_,k) where {T} = T(-1/(k+1))
-@inline laguerrerecB(::Type{T},α,k) where {T} = T((2k+α+1)/(k+1))
-@inline laguerrerecC(::Type{T},α,k) where {T} = T((k+α)/(k+1))
+@inline laguerrerecA(::Type{T},_,k) where {T} = convert(T,-1/(k+1))
+@inline laguerrerecB(::Type{T},α,k) where {T} = convert(T,(2k+α+1)/(k+1))
+@inline laguerrerecC(::Type{T},α,k) where {T} = convert(T,(k+α)/(k+1))
 
 for (REC,JREC) in ((:recα,:laguerrerecα),(:recβ,:laguerrerecβ),(:recγ,:laguerrerecγ),
                    (:recA,:laguerrerecA),(:recB,:laguerrerecB),(:recC,:laguerrerecC))
@@ -52,7 +51,7 @@ end
 
 
 
-function laguerrel(::Type{T},r::Range,α,x) where T
+function laguerrel(::Type{T},r::AbstractRange,α,x) where T
     if isempty(r)
         T[]
     else
@@ -60,7 +59,7 @@ function laguerrel(::Type{T},r::Range,α,x) where T
         if n<=2
             v=T[1,1.0-x+α]
         else
-            v=Vector{T}(n)  # x may be complex
+            v=Vector{T}(undef,n)  # x may be complex
             v[1]=1
             v[2]=1.0-x+α
 
@@ -68,29 +67,29 @@ function laguerrel(::Type{T},r::Range,α,x) where T
                 v[k+1]=((x-laguerrerecα(T,α,k))*v[k] - laguerrerecγ(T,α,k)*v[k-1])/laguerrerecβ(T,α,k)
             end
         end
-        v[r+1]
+        v[r.+1]
     end
 end
 
-laguerrel(r::Range,α,x) = laguerrel(promote_type(typeof(α),typeof(x)),r,α,x)
+laguerrel(r::AbstractRange,α,x) = laguerrel(promote_type(typeof(α),typeof(x)),r,α,x)
 
 laguerrel(::Type{T},n::Integer,α,v) where {T} = laguerrel(T,n:n,α,v)[1]
 laguerrel(n::Integer,α,v) = laguerrel(n:n,α,v)[1]
-laguerrel(::Type{T},n::Range,α,v::AbstractVector) where {T} = transpose(hcat(map(x->laguerrel(T,n,α,x),v)...))
-laguerrel(n::Range,α,v::AbstractVector) = transpose(hcat(map(x->laguerrel(n,α,x),v)...))
+laguerrel(::Type{T},n::AbstractRange,α,v::AbstractVector) where {T} = transpose(hcat(map(x->laguerrel(T,n,α,x),v)...))
+laguerrel(n::AbstractRange,α,v::AbstractVector) = transpose(hcat(map(x->laguerrel(n,α,x),v)...))
 laguerrel(::Type{T},n::Integer,α,v::AbstractVector) where {T} = map(x->laguerrel(T,n,α,x),v)
 laguerrel(n::Integer,α,v::AbstractVector) = map(x->laguerrel(n,α,x),v)
 laguerrel(::Type{T},n::Integer,S::Laguerre,v::AbstractVector) where {T} = laguerrel(T,n,S.a,S.b,v)
-laguerrel(::Type{T},n::Range,S::Laguerre,v::AbstractVector) where {T} = laguerrel(T,n,S.a,S.b,v)
+laguerrel(::Type{T},n::AbstractRange,S::Laguerre,v::AbstractVector) where {T} = laguerrel(T,n,S.a,S.b,v)
 laguerrel(::Type{T},n,S::Laguerre,v::AbstractVector) where {T} = laguerrel(T,n,S.a,S.b,v)
 laguerrel(::Type{T},n::Integer,S::Laguerre,v) where {T} = laguerrel(T,n,S.a,S.b,v)
-laguerrel(::Type{T},n::Range,S::Laguerre,v) where {T} = laguerrel(T,n,S.a,S.b,v)
+laguerrel(::Type{T},n::AbstractRange,S::Laguerre,v) where {T} = laguerrel(T,n,S.a,S.b,v)
 laguerrel(::Type{T},n,S::Laguerre,v) where {T} = laguerrel(T,n,S.a,S.b,v)
 laguerrel(n::Integer,S::Laguerre,v::AbstractVector) = laguerrel(n,S.a,S.b,v)
-laguerrel(n::Range,S::Laguerre,v::AbstractVector) = laguerrel(n,S.a,S.b,v)
+laguerrel(n::AbstractRange,S::Laguerre,v::AbstractVector) = laguerrel(n,S.a,S.b,v)
 laguerrel(n,S::Laguerre,v::AbstractVector) = laguerrel(n,S.a,S.b,v)
 laguerrel(n::Integer,S::Laguerre,v) = laguerrel(n,S.a,S.b,v)
-laguerrel(n::Range,S::Laguerre,v) = laguerrel(n,S.a,S.b,v)
+laguerrel(n::AbstractRange,S::Laguerre,v) = laguerrel(n,S.a,S.b,v)
 laguerrel(n,S::Laguerre,v) = laguerrel(n,S.a,S.b,v)
 
 
@@ -222,7 +221,7 @@ end
 function conversion_rule(A::LaguerreWeight,B::LaguerreWeight)
     if isapproxinteger(A.α-B.α) && A.L == B.L
         ct=conversion_type(A.space,B.space)
-        ct==NoSpace()?NoSpace():LaguerreWeight(max(A.α,B.α),A.L,ct)
+        ct==NoSpace() ? NoSpace() : LaguerreWeight(max(A.α,B.α),A.L,ct)
     else
         NoSpace()
     end

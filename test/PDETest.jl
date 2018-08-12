@@ -1,4 +1,4 @@
-using ApproxFun, Compat.Test
+using ApproxFun, Test
     import ApproxFun: testbandedblockbandedoperator, testblockbandedoperator, testraggedbelowoperator
 
 @testset "PDE" begin
@@ -13,19 +13,19 @@ using ApproxFun, Compat.Test
         f = -2π^2*u
 
 
-        QR=qrfact(Δ)
+        QR=qr(Δ)
         ApproxFun.resizedata!(QR,:,1000)
         @time v=QR\f
         @test norm((u-v).coefficients)<100eps()
 
 
-        QR=qrfact(Δ)
-        ApproxFun.resizedata!(QR.R,:,100)
-        ApproxFun.resizedata!(QR.R,:,1000)
+        QR=qr(Δ)
+        ApproxFun.resizedata!(QR.R_cache,:,100)
+        ApproxFun.resizedata!(QR.R_cache,:,1000)
         @time v=QR\f
         @test norm((u-v).coefficients)<100eps()
 
-        QR=qrfact(Δ)
+        QR=qr(Δ)
         @time v=QR\f
         @test norm((u-v).coefficients)<100eps()
     end
@@ -53,15 +53,15 @@ using ApproxFun, Compat.Test
     end
 
     @testset "Bilaplacian" begin
-        dx=dy=Interval()
-        d=dx*dy
-        Dx=Derivative(dx);Dy=Derivative(dy)
-        L=Dx^4⊗I + 2*Dx^2⊗Dy^2 + I⊗Dy^4
+        dx = dy = Interval()
+        d = dx*dy
+        Dx = Derivative(dx); Dy = Derivative(dy)
+        L = Dx^4⊗I + 2*Dx^2⊗Dy^2 + I⊗Dy^4
 
         testbandedblockbandedoperator(L)
 
         B = Dirichlet(dx) ⊗ eye(dy)
-        testraggedbelowoperator(Dirichlet(dx) ⊗ eye(dy))
+        testraggedbelowoperator(B)
 
         A=[Dirichlet(dx) ⊗ eye(dy);
                 eye(dx)  ⊗ Dirichlet(dy);
@@ -74,9 +74,6 @@ using ApproxFun, Compat.Test
         @time u=\(A,[[1,1],[1,1],[0,0],[0,0],0];tolerance=1E-5)
         @test u(0.1,0.2) ≈ 1.0
     end
-
-
-
 
     @testset "Periodic x Interval" begin
         d=PeriodicInterval()*Interval()
@@ -98,12 +95,11 @@ using ApproxFun, Compat.Test
         @test u(.1,.2) ≈ real(cos(.1+.2im))
     end
 
-
     @testset "Schrodinger" begin
         dx=Interval(0.,1.); dt=Interval(0.0,0.001)
         C=Conversion(Chebyshev(dx)*Ultraspherical(1,dt),Ultraspherical(2,dx)*Ultraspherical(1,dt))
         testbandedblockbandedoperator(C)
-        testbandedblockbandedoperator(Operator{Complex128}(C))
+        testbandedblockbandedoperator(Operator{ComplexF64}(C))
 
 
         d=dx*dt
@@ -114,7 +110,7 @@ using ApproxFun, Compat.Test
         Dt=Derivative(d,[0,1]);Dx=Derivative(d,[1,0])
 
         ϵ=1.
-        u0=Fun(x->exp(-100*(x-.5)^2)*exp(-1./(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
+        u0=Fun(x->exp(-100*(x-.5)^2)*exp(-1/(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
         L=ϵ*Dt+(.5im*ϵ^2*Dx^2)
         testbandedblockbandedoperator(L)
 

@@ -20,7 +20,7 @@ using this package, in Jupyter notebooks and Julia scripts.
 Take your two favourite functions on an interval and create approximations to them as simply as:
 
 ```julia
-using ApproxFun
+using LinearAlgebra, SpecialFunctions, Plots, ApproxFun
 x = Fun(identity,0..10)
 f = sin(x^2)
 g = cos(x)

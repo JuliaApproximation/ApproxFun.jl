@@ -162,10 +162,10 @@ to specify explicitly that the domain space for `B` is `Chebyshev()`.
 
 Behind the scenes, `A\b` where `A` is an `Operator` is implemented via
 an adaptive QR factorization.  That is, it is equivalent to
-`qrfact(A)\b`.  (There is a subtly here in space inferring: `A\b` can use
-    both `A` and `b` to determine the domain space, while `qrfact(A)` only
+`qr(A)\b`.  (There is a subtly here in space inferring: `A\b` can use
+    both `A` and `b` to determine the domain space, while `qr(A)` only
     sees the operator `A`.)
-      Note that `qrfact` adaptively caches a partial QR Factorization
+      Note that `qr` adaptively caches a partial QR Factorization
 as it is applied to different right-hand sides, so the same operator can be
 inverted much more efficiently in subsequent problems.
 
@@ -184,7 +184,7 @@ A = [Dirichlet(d);Δ]              # Δ is an alias for Laplacian()
 Using a QR Factorization
 reduces the cost of subsequent calls substantially:
 ```julia
-QR = qrfact(A)
+QR = qr(A)
 @time QR \ [zeros(∂(d));f]   # 4s
 g = exp.(-10(x+0.2)^2-20(y-0.1)^2)
 @time QR \ [zeros(∂(d));g]  # 0.09s

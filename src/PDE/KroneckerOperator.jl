@@ -158,10 +158,10 @@ isbandedblockbanded(P::Union{PlusOperator,TimesOperator}) = all(isbandedblockban
 
 
 blockbandinds(P::PlusOperator,k::Int) =
-    mapreduce(op->blockbandinds(op,k),k==1?min:max,P.ops)
+    mapreduce(op->blockbandinds(op,k),k==1 ? min : max,P.ops)
 blockbandinds(P::PlusOperator) = blockbandinds(P,1),blockbandinds(P,2)
 subblockbandinds(K::PlusOperator,k::Integer) =
-    mapreduce(v->subblockbandinds(v,k),k==1?min:max,K.ops)
+    mapreduce(v->subblockbandinds(v,k),k==1 ? min : max,K.ops)
 
 blockbandinds(P::TimesOperator,k::Int) = mapreduce(op->blockbandinds(op,k),+,P.ops)
 subblockbandinds(P::TimesOperator,k::Int) = mapreduce(op->subblockbandinds(op,k),+,P.ops)
@@ -269,8 +269,8 @@ end
 
 
 Base.transpose(S::SpaceOperator) =
-    SpaceOperator(transpose(S.op),domainspace(S).',rangespace(S).')
-Base.transpose(S::ConstantTimesOperator) = sp.c*S.op.'
+    SpaceOperator(transpose(S.op), transpose(domainspace(S)), transpose(rangespace(S)))
+Base.transpose(S::ConstantTimesOperator) = sp.c*transpose(S.op)
 
 
 
@@ -319,7 +319,7 @@ function blocklengthrange(rt, kr)
 end
 
 function bandedblockbanded_convert!(ret, S::SubOperator, KO, rt, dt)
-    pinds = parentindexes(S)
+    pinds = parentindices(S)
     kr,jr = pinds
 
     kr1,jr1 = reindex(S,pinds,(1,1))
@@ -333,7 +333,7 @@ function bandedblockbanded_convert!(ret, S::SubOperator, KO, rt, dt)
         jshft = (J==Block(1) ? jr1 : blockstart(dt,J+Jshft)) - 1
         for K=blockcolrange(ret,J)
             Bs = view(ret,K,J)
-            Bspinds = parentindexes(Bs)
+            Bspinds = parentindices(Bs)
             kshft = (K==Block(1) ? kr1 : blockstart(rt,K+Kshft)) - 1
             for ξ=1:size(Bs,2),κ=colrange(Bs,ξ)
                 Bs[κ,ξ] = S[reindex(Bs,Bspinds,(κ,ξ))...]
@@ -354,23 +354,19 @@ function default_BandedBlockBandedMatrix(S)
     bandedblockbanded_convert!(ret, S, parent(S), rt, dt)
 end
 
-convert(::Type{BandedBlockBandedMatrix}, S::SubOperator) = default_BandedBlockBandedMatrix(S)
+BandedBlockBandedMatrix(S::SubOperator) = default_BandedBlockBandedMatrix(S)
 
 
 const Trivial2DTensorizer = CachedIterator{Tuple{Int64,Int64},
-                                             TrivialTensorizer{2},
-                                             Tuple{Tuple{Int64,Int64},Tuple{Int64,Int64},
-                                                   Tuple{Int64,Int64},Tuple{Bool,Bool},
-                                                   Tuple{Int64,Infinity{Bool}}}}
+                                             TrivialTensorizer{2}}
 
 # This routine is an efficient version of KroneckerOperator for the case of
 # tensor product of trivial blocks
 
-function convert(::Type{BandedBlockBandedMatrix},
-                      S::SubOperator{T,KroneckerOperator{SS,V,DS,RS,
+function BandedBlockBandedMatrix(S::SubOperator{T,KroneckerOperator{SS,V,DS,RS,
                                      Trivial2DTensorizer,Trivial2DTensorizer,T},
                                      Tuple{BlockRange1,BlockRange1}}) where {SS,V,DS,RS,T}
-    KR,JR = parentindexes(S)
+    KR,JR = parentindices(S)
     KR_i, JR_i = Int.(KR), Int.(JR)
 
     KO=parent(S)
@@ -436,9 +432,9 @@ Evaluation(sp::TensorSpace,x::Tuple) = Evaluation(sp,Vec(x...))
 
 
 # it's faster to build the operators to the last b
-function A_mul_B_coefficients(A::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}}, b) where {T,KKO<:KroneckerOperator}
+function mul_coefficients(A::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}}, b) where {T,KKO<:KroneckerOperator}
     P = parent(A)
-    kr,jr = parentindexes(A)
+    kr,jr = parentindices(A)
     dt,rt = domaintensorizer(P),rangetensorizer(P)
     KR,JR = Block(1):block(rt,kr[end]),Block(1):block(dt,jr[end])
     M = P[KR,JR]

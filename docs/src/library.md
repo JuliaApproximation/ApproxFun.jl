@@ -190,7 +190,7 @@ ApproxFun.values
 ```
 
 ```@docs
-Base.stride(::Fun)
+stride(::Fun)
 ```
 
 
@@ -229,11 +229,11 @@ rangespace
 ```
 
 ```@docs
-Base.getindex(::Operator,::,::)
+getindex(::Operator,::,::)
 ```
 
 ```@docs
-Base.getindex(::Operator,::Fun)
+getindex(::Operator,::Fun)
 ```
 
 
@@ -242,7 +242,7 @@ Base.getindex(::Operator,::Fun)
 ```
 
 ```@docs
-qrfact(::Operator)
+qr(::Operator)
 ```
 
 ```@docs

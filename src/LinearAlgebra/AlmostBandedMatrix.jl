@@ -32,7 +32,7 @@ for MAT in (:AlmostBandedMatrix, :AbstractMatrix, :AbstractArray)
 end
 
 
-Base.size(A::AlmostBandedMatrix) = size(A.bands)
+size(A::AlmostBandedMatrix) = size(A.bands)
 Base.IndexStyle(::Type{ABM}) where {ABM<:AlmostBandedMatrix} =
     IndexCartesian()
 
@@ -46,7 +46,7 @@ function getindex(B::AlmostBandedMatrix,k::Integer,j::Integer)
 end
 
 # can only change the bands, not the fill
-function Base.setindex!(B::AlmostBandedMatrix,v,k::Integer,j::Integer)
+function setindex!(B::AlmostBandedMatrix,v,k::Integer,j::Integer)
         B.bands[k,j] = v
 end
 

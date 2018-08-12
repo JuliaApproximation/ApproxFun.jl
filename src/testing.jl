@@ -1,7 +1,7 @@
 ## Testing
 # These routines are for the unit tests
 
-using Compat.Test
+using Test
 
 ## Supports @test_approx_eq
 
@@ -44,7 +44,7 @@ function testcalculus(S::Space;haslineintegral=true,hasintegral=true)
         @test norm(Derivative()*f-f') < 100eps()
         if hasintegral
             @test norm(differentiate(integrate(f))-f) < 100eps()
-            @test norm(differentiate(cumsum(f))-f) < 100eps()
+            @test norm(differentiate(cumsum(f))-f) < 200eps()
             @test norm(first(cumsum(f))) < 100eps()
         end
     end
@@ -93,7 +93,7 @@ function backend_testfunctional(A)
     @test isa(A[1,1:10],Vector)
     @test isa(A[1:1,1:10],AbstractMatrix)
     @test B ≈ A[1,1:10]
-    @test B.' ≈ A[1:1,1:10]
+    @test transpose(B) ≈ A[1:1,1:10]
     @test B[3:10] ≈ A[3:10]
     @test B ≈ [A[k] for k=1:10]
 
@@ -110,13 +110,13 @@ function testfunctional(A::Operator{T}) where T<:Real
     backend_testfunctional(A)
     backend_testfunctional(Operator{Float64}(A))
     backend_testfunctional(Operator{Float32}(A))
-    backend_testfunctional(Operator{Complex128}(A))
+    backend_testfunctional(Operator{ComplexF64}(A))
 end
 
 function testfunctional(A::Operator{T}) where T<:Complex
     backend_testfunctional(A)
-    backend_testfunctional(Operator{Complex64}(A))
-    backend_testfunctional(Operator{Complex128}(A))
+    backend_testfunctional(Operator{ComplexF32}(A))
+    backend_testfunctional(Operator{ComplexF64}(A))
 end
 
 function backend_testinfoperator(A)
@@ -159,15 +159,15 @@ end
 # Check that the tests pass after conversion as well
 function testinfoperator(A::Operator{T}) where T<:Real
     backend_testinfoperator(A)
-    backend_testinfoperator(Operator{Float64}(A))
-    backend_testinfoperator(Operator{Float32}(A))
-    backend_testinfoperator(Operator{Complex128}(A))
+    backend_testinfoperator(convert(Operator{Float64}, A))
+    backend_testinfoperator(convert(Operator{Float32}, A))
+    backend_testinfoperator(convert(Operator{ComplexF64}, A))
 end
 
 function testinfoperator(A::Operator{T}) where T<:Complex
     backend_testinfoperator(A)
-    backend_testinfoperator(Operator{Complex64}(A))
-    backend_testinfoperator(Operator{Complex128}(A))
+    backend_testinfoperator(convert(Operator{ComplexF32}, A))
+    backend_testinfoperator(convert(Operator{ComplexF64}, A))
 end
 
 function testraggedbelowoperator(A)

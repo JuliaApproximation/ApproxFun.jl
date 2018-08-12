@@ -1,7 +1,7 @@
 
 
 for TYP in (:ReverseOrientation,:Reverse)
-    WRAP = parse(string(TYP)*"Wrapper")
+    WRAP = Meta.parse(string(TYP)*"Wrapper")
     @eval begin
         abstract type $TYP{T} <: Operator{T} end
 

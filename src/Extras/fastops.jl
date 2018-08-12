@@ -8,7 +8,7 @@
 # default copy is to loop through
 # override this for most operators.
 function default_BandedMatrix(S::Operator)
-    Y=BandedMatrix{eltype(S)}(uninitialized, size(S), bandwidths(S))
+    Y=BandedMatrix{eltype(S)}(undef, size(S), bandwidths(S))
 
     for j=1:size(S,2),k=colrange(Y,j)
         @inbounds inbands_setindex!(Y,S[k,j],k,j)
@@ -21,8 +21,8 @@ end
 # default copy is to loop through
 # override this for most operators.
 function default_RaggedMatrix(S::Operator)
-    data=Array{eltype(S)}(0)
-    cols=Array{Int}(size(S,2)+1)
+    data=Array{eltype(S)}(undef, 0)
+    cols=Array{Int}(undef, size(S,2)+1)
     cols[1]=1
     for j=1:size(S,2)
         cs=colstop(S,j)
@@ -56,12 +56,12 @@ end
 
 
 diagindshift(S,kr,jr) = first(kr)-first(jr)
-diagindshift(S::SubOperator) = diagindshift(S,parentindexes(S)[1],parentindexes(S)[2])
+diagindshift(S::SubOperator) = diagindshift(S,parentindices(S)[1],parentindices(S)[2])
 
 
 #TODO: Remove
 diagindrow(S,kr,jr) = bandwidth(S,2)+first(jr)-first(kr)+1
-diagindrow(S::SubOperator) = diagindrow(S,parentindexes(S)[1],parentindexes(S)[2])
+diagindrow(S::SubOperator) = diagindrow(S,parentindices(S)[1],parentindices(S)[2])
 
 
 
@@ -69,12 +69,11 @@ diagindrow(S::SubOperator) = diagindrow(S,parentindexes(S)[1],parentindexes(S)[2
 # Conversions
 #####
 
-function convert(::Type{BandedMatrix},
-               S::SubOperator{T,ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR},T},
+function BandedMatrix(S::SubOperator{T,ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR},T},
                               Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,DD,RR}
     # we can assume order is 1
-    ret = BandedMatrix{eltype(S)}(uninitialized, size(S), bandwidths(S))
-    kr,jr = parentindexes(S)
+    ret = BandedMatrix{eltype(S)}(undef, size(S), bandwidths(S))
+    kr,jr = parentindices(S)
     dg = diagindshift(S)
 
     @assert -bandwidth(ret,1) ≤ dg ≤ bandwidth(ret,2)-2
@@ -91,13 +90,13 @@ function convert(::Type{BandedMatrix},
     ret
 end
 
-function convert(::Type{BandedMatrix},V::SubOperator{T,ConcreteConversion{Ultraspherical{LT,DD,RR},Ultraspherical{LT,DD,RR},T},
+function BandedMatrix(V::SubOperator{T,ConcreteConversion{Ultraspherical{LT,DD,RR},Ultraspherical{LT,DD,RR},T},
                                                                   Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,LT,DD,RR}
 
     n,m = size(V)
     V_l, V_u = bandwidths(V)
-    ret = BandedMatrix{eltype(V)}(uninitialized, (n,m), (V_l,V_u))
-    kr,jr = parentindexes(V)
+    ret = BandedMatrix{eltype(V)}(undef, (n,m), (V_l,V_u))
+    kr,jr = parentindices(V)
     dg = diagindshift(V)
 
 
@@ -122,18 +121,18 @@ end
 
 
 
-function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Chebyshev{DD,RR},K,T},
+function BandedMatrix(S::SubOperator{T,ConcreteDerivative{Chebyshev{DD,RR},K,T},
                                                      Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,K,DD,RR}
 
     n,m = size(S)
-    ret = BandedMatrix{eltype(S)}(uninitialized, (n,m), bandwidths(S))
-    kr,jr = parentindexes(S)
+    ret = BandedMatrix{eltype(S)}(undef, (n,m), bandwidths(S))
+    kr,jr = parentindices(S)
     dg = diagindshift(S)
 
     D = parent(S)
     k = D.order
     d = domain(D)
-    C=T(pochhammer(one(T),k-1)/2*(4/(d.b-d.a))^k)
+    C=convert(T,pochhammer(one(T),k-1)/2*(4/(d.b-d.a))^k)
 
     # need to drop columns
 
@@ -146,11 +145,11 @@ function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Chebys
 end
 
 
-function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Ultraspherical{LT,DD,RR},K,T},
+function BandedMatrix(S::SubOperator{T,ConcreteDerivative{Ultraspherical{LT,DD,RR},K,T},
                                                   Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,K,DD,RR,LT}
     n,m = size(S)
-    ret = BandedMatrix{eltype(S)}(uninitialized, (n,m), bandwidths(S))
-    kr,jr = parentindexes(S)
+    ret = BandedMatrix{eltype(S)}(undef, (n,m), bandwidths(S))
+    kr,jr = parentindices(S)
     dg = diagindshift(S)
 
     D = parent(S)
@@ -158,7 +157,7 @@ function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Ultras
     λ = order(domainspace(D))
     d = domain(D)
 
-    C = T(pochhammer(one(T)*λ,k)*(4/(d.b-d.a))^k)
+    C = convert(T,pochhammer(one(T)*λ,k)*(4/(d.b-d.a))^k)
     ret[band(dg+k)] = C
 
     ret

@@ -1,4 +1,4 @@
-using ApproxFun, Compat.Test
+using ApproxFun, Test
     import ApproxFun: Block
 
 
@@ -11,10 +11,10 @@ using ApproxFun, Compat.Test
 
     @test ApproxFun.RaggedMatrix(B) === B
     @test ApproxFun.RaggedMatrix{Float64}(B) === B
-    @test full(ApproxFun.RaggedMatrix{Complex128}(B)) == Matrix{Complex128}(full(B))
+    @test full(ApproxFun.RaggedMatrix{ComplexF64}(B)) == Matrix{ComplexF64}(full(B))
 
     B = ApproxFun.brand(10,10,2,3)
-    @test full(B) == full(ApproxFun.RaggedMatrix(B))
+    @test Matrix(B) == Matrix(ApproxFun.RaggedMatrix(B))
     @test ApproxFun.RaggedMatrix(B) == ApproxFun.RaggedMatrix{Float64}(B)
-    @test ApproxFun.RaggedMatrix(ApproxFun.BandedMatrix{Complex128}(B)) == ApproxFun.RaggedMatrix{Complex128}(B)
+    @test ApproxFun.RaggedMatrix(ApproxFun.BandedMatrix{ComplexF64}(B)) == ApproxFun.RaggedMatrix{ComplexF64}(B)
 end

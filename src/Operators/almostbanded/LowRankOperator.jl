@@ -45,7 +45,7 @@ convert(::Type{Operator{T}},L::LowRankOperator{S}) where {S,T} =
 
 
 datasize(L::LowRankOperator,k) =
-    k==1?mapreduce(ncoefficients,max,L.U):mapreduce(bandwidth,max,L.V)
+    k==1 ? mapreduce(ncoefficients,max,L.U) : mapreduce(bandwidth,max,L.V)
 datasize(L::LowRankOperator) = datasize(L,1),datasize(L,2)
 bandinds(L::LowRankOperator) = 1-datasize(L,1),datasize(L,2)-1
 
@@ -66,7 +66,7 @@ end
 
 
 
-Base.rank(L::LowRankOperator) = length(L.U)
+rank(L::LowRankOperator) = length(L.U)
 
 
 -(L::LowRankOperator) = LowRankOperator(-L.U,L.V)
@@ -74,7 +74,7 @@ Base.rank(L::LowRankOperator) = length(L.U)
 *(L::LowRankOperator,f::Fun) = sum(map((u,v)->u*(v*f),L.U,L.V))
 
 
-*(A::LowRankOperator,B::LowRankOperator) = LowRankOperator((A.V*B.U.').'*A.U,B.V)
+*(A::LowRankOperator,B::LowRankOperator) = LowRankOperator(transpose(A.V*B.transpose(U))*A.U,B.V)
 # avoid ambiguituy
 for TYP in (:TimesOperator,:PlusOperator,:Conversion,:Operator)
     @eval *(L::LowRankOperator,B::$TYP) = LowRankOperator(L.U,map(v->v*B,L.V))
