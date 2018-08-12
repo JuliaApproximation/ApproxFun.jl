@@ -56,7 +56,7 @@ getindex(S::ArraySpace, kr::AbstractVector) = ArraySpace(components(S)[kr])
 stride(f::Fun{<:ArraySpace},k) = stride(space(f),k)
 
 getindex(f::ArraySpace,k...) = Space(component(f,k...))
-Base.next(f::Fun{<:ArraySpace},k)=f[k],k+1
+iterate(f::Fun{<:ArraySpace}) = iterate(components(f))
 
 
 Base.reshape(AS::ArraySpace,k...) = ArraySpace(reshape(AS.spaces,k...))
@@ -266,4 +266,26 @@ function coefficients(f::AbstractVector,sp::ArraySpace{<:ConstantSpace{AnyDomain
     else
         error("Cannot convert coefficients from $sp to $ts")
     end
+end
+
+
+
+ArraySpace(sp::TensorSpace{Tuple{S1,S2}}) where {S1<:Space{D,R},S2} where {D,R<:AbstractArray} =
+    ArraySpace(map(a -> a ⊗ sp.spaces[2], sp.spaces[1]))
+
+ArraySpace(sp::TensorSpace{Tuple{S1,S2}},k...) where {S1,S2<:Space{D,R}} where {D,R<:AbstractArray} =
+    ArraySpace(map(a -> sp.spaces[1] ⊗ a, sp.spaces[2]))
+
+function coefficients(f::AbstractVector, a::VectorSpace, b::TensorSpace{Tuple{S1,S2},<:BivariateDomain}) where {S1<:Space{D,R},S2} where {D,R<:AbstractArray}
+    if size(a) ≠ size(b)
+        throw(DimensionMismatch("dimensions must match"))
+    end
+    interlace(map(coefficients,Fun(a,f),b),ArraySpace(b))
+end
+
+function coefficients(f::AbstractVector, a::VectorSpace, b::TensorSpace{Tuple{S1,S2},<:BivariateDomain}) where {S1,S2<:Space{D,R}} where {D,R<:AbstractArray}
+    if size(a) ≠ size(b)
+        throw(DimensionMismatch("dimensions must match"))
+    end
+    interlace(map(coefficients,Fun(a,f),b),ArraySpace(b))
 end

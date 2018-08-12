@@ -1,4 +1,4 @@
-using ApproxFun, Test
+using ApproxFun, LinearAlgebra, SpecialFunctions, FastTransforms, Test
     import ApproxFun: testbandedoperator, testraggedbelowoperator, InterlaceOperator, testspace,
                         testbandedbelowoperator, testbandedblockbandedoperator, testfunctional, factor
 ## This includes extra tests that are too time consuming for Travis
@@ -318,8 +318,6 @@ f=Fun((x,y)->[exp(x*cos(y)) cos(x*sin(y)); 2 1],ChebyshevInterval()^2)
 end
 
 include("FullPDETest.jl")
-
-
 println("Speed tests")
 include("SpeedTest.jl")
 include("SpeedODETest.jl")

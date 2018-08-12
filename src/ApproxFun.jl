@@ -25,7 +25,7 @@ import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, 
                 zeros, zero, one, promote_rule, repeat, length, resize!, isinf,
                 getproperty, findfirst, unsafe_getindex, fld, cld, div, real, imag,
                 @_inline_meta, eachindex, lastindex, keys,
-                Array, Vector, Matrix, view, ones, float
+                Array, Vector, Matrix, view, ones, float, @propagate_inbounds
 
 import Base.Broadcast: BroadcastStyle, Broadcasted, AbstractArrayStyle, broadcastable,
                         DefaultArrayStyle, broadcasted
@@ -45,7 +45,7 @@ import SparseArrays: blockdiag
 import SpecialFunctions: sinpi, cospi, airy, besselh,
                     asinh, acosh,atanh, erfcx, dawson, erf, erfi,
                     sin, cos, sinh, cosh, airyai, airybi, airyaiprime, airybiprime,
-                    hankelh1, hankelh2, besselj, bessely, besseli, besselk,
+                    hankelh1, hankelh2, besselj, besselj0, bessely, besseli, besselk,
                     besselkx, hankelh1x, hankelh2x, exp2, exp10, log2, log10,
                     tan, tanh, csc, asin, acsc, sec, acos, asec,
                     cot, atan, acot, sinh, csch, asinh, acsch,
@@ -81,9 +81,12 @@ import Base: view
 
 import StaticArrays: StaticArray, SVector
 
+<<<<<<< HEAD
 import IntervalSets: (..)
 
 
+=======
+>>>>>>> 0492575c44dad31e566938556f419a3e1ea04b5d
 const Vec{d,T} = SVector{d,T}
 
 export pad!, pad, chop!, sample,

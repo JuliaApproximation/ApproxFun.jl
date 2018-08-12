@@ -7,14 +7,25 @@ export samplecdf,normalizedcumsum!
 
 bisectioninv(f::Fun{S,T},x::Real;opts...) where {S,T} = first(bisectioninv(f,[x];opts...))
 
+# gives a generalization of midpoint for when `a` or `b` is infinite
+function genmidpoint(a::T,b::T) where T
+    if isinf(a) && isinf(b)
+        zero(T)
+    elseif isinf(a)
+        b - 100
+    elseif isinf(b)
+        a + 100
+    else
+        (a+b)/2
+    end
+end
 
 function bisectioninv(f::Fun{S,T},x::Float64;numits::Int=47) where {S,T}
     d=domain(f)
     a = minimum(d);b = maximum(d)
 
-
     for k=1:numits  #TODO: decide 47
-        m=0.5*(a+b)
+        m= genmidpoint(a,b)
         val = f(m)
 
             (val<= x) ? (a = m) : (b = m)

@@ -189,6 +189,7 @@ julia> norm(f.coefficients[2:2:end] - b.coefficients)
 0.0
 ```
 More complicated examples may interlace the coefficients using a different strategy.
+Note that it is difficult to represent the first component of function $f$ by a Chebyshev series because the derivatives of $f$ at its boundaries blow up, whereas the derivative of a polynomial is a polynomial.
 
 Note that `Fourier` and `Laurent` are currently implemented as `SumSpace`, but this
 may change in the future.

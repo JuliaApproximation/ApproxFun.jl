@@ -20,6 +20,14 @@ end
 
 Laguerre() = Laguerre(0)
 
+"""
+`Laguerre(α)` is a space spanned by generalized Laguerre polynomials `Lₙ(x)` 's
+on `(0, Inf)`, which satisfy the differential equations
+```
+    xy' + (α + 1 -y) + ny = 0
+```
+`Laguerre()` is equivalent to `Laguerre(0)` by default.
+"""
 spacescompatible(A::Laguerre,B::Laguerre) = A.α ≈ B.α
 
 canonicaldomain(::Laguerre) = Ray()
@@ -138,16 +146,36 @@ function Conversion(A::Laguerre,B::Laguerre)
 end
 
 
-# x^α*exp(-L*x)
+"""
+    LaguerreWeight(α, L, space)
+
+weights `space` by `x^α * exp(-L*x)`.
+"""
 struct LaguerreWeight{S,T} <: WeightSpace{S,Ray{false,Float64},Float64}
     α::T
     L::T
     space::S
 end
 
+
+"""
+    LaguerreWeight(α, space)
+
+weights `space` by `x^α * exp(-x)`.
+"""
 LaguerreWeight(α, space::Space) = LaguerreWeight(α, one(α),space)
 
+"""
+    WeightedLaguerre(α)
+
+is the weighted generalized Laguerre space x^α*exp(-x)*L_k^(α)(x).
+"""
 WeightedLaguerre(α) = LaguerreWeight(α, Laguerre(α))
+"""
+    WeightedLaguerre()
+
+is the weighted Laguerre space exp(-x)*L_k(x).
+"""
 WeightedLaguerre() = WeightedLaguerre(0)
 
 @inline laguerreweight(α,L,x) = isinf(x) ? zero(x) : x^α * exp(-L*x)
@@ -258,5 +286,55 @@ end
 function Multiplication(f::Fun{LaguerreWeight{H,T}},S::Laguerre) where {H<:Laguerre,T}
     M=Multiplication(Fun(space(f).space,f.coefficients),S)
     rs=rangespace(M)
-    MultiplicationWrapper(f,SpaceOperator(M,S,LaguerreWeight(rs.α, rs)))
+    MultiplicationWrapper(f,SpaceOperator(M,S,LaguerreWeight(space(f).α, space(f).L, rs)))
+end
+
+
+## Integration
+function integrate(f::Fun{LW}) where LW <: LaguerreWeight{LL} where LL <: Laguerre
+    α = space(f).α;
+    n = length(f.coefficients);
+    if space(f).space.α != α
+        throw(ArgumentError("`integrate` is applicable if only LaguerreWeight parameter and Laguerre parameter are equal."))
+    else
+        if n == 0
+            Fun(0)
+        else
+            if !isinteger(α) || α == 2
+                if n == 1
+                    f̃ = Fun(f, JacobiWeight(α, 0, Chebyshev(0.0 .. Inf)));
+                    g = integrate(f̃);
+                    g = g - last(g)
+                else
+                    if f.coefficients[1] == 0
+                        Fun(WeightedLaguerre(α + 1), f.coefficients[2:end] ./ (1:n-1))
+                    else
+                        f₀ = Fun(WeightedLaguerre(α), [f.coefficients[1]]);
+                        f₀ = Fun(f₀, JacobiWeight(α, 0, Chebyshev(0.0 .. Inf)));
+                        g₀ = integrate(f₀);
+                        g₀ = g₀ - last(g₀);
+                        g = Fun(WeightedLaguerre(α + 1), f.coefficients[2:end] ./ (1:n-1));
+                        g₀ + g
+                    end
+                end
+            else
+                if n == 1
+                    f̃ = Fun(f, Chebyshev(0.0 .. Inf));
+                    g = integrate(f̃);
+                    g = g - last(g)
+                else
+                    if f.coefficients[1] == 0
+                        Fun(WeightedLaguerre(α + 1), f.coefficients[2:end] ./ (1:n-1))
+                    else
+                        f₀ = Fun(WeightedLaguerre(α), [f.coefficients[1]]);
+                        f₀ = Fun(f₀, Chebyshev(0.0 .. Inf));
+                        g₀ = integrate(f₀);
+                        g₀ = g₀ - last(g₀);
+                        g = Fun(WeightedLaguerre(α + 1), f.coefficients[2:end] ./ (1:n-1));
+                        g₀ + g
+                    end
+                end
+            end
+        end
+    end
 end

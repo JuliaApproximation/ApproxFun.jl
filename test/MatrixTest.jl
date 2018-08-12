@@ -14,7 +14,7 @@ using ApproxFun, Test
     @test full(ApproxFun.RaggedMatrix{ComplexF64}(B)) == Matrix{ComplexF64}(full(B))
 
     B = ApproxFun.brand(10,10,2,3)
-    @test full(B) == full(ApproxFun.RaggedMatrix(B))
+    @test Matrix(B) == Matrix(ApproxFun.RaggedMatrix(B))
     @test ApproxFun.RaggedMatrix(B) == ApproxFun.RaggedMatrix{Float64}(B)
     @test ApproxFun.RaggedMatrix(ApproxFun.BandedMatrix{ComplexF64}(B)) == ApproxFun.RaggedMatrix{ComplexF64}(B)
 end

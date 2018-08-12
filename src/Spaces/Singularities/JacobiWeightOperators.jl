@@ -111,6 +111,9 @@ function integrate(f::Fun{JacobiWeight{SS,DD,RR,TT}}) where {SS,DD<:IntervalOrSe
     elseif S.α ≈ 0
         D = Derivative(JacobiWeight(S.β+1, S.α, S.space))
         D\f   # this happens to pick out a smooth solution
+    elseif isapproxinteger(S.β) || isapproxinteger(S.α)
+        D = Derivative(JacobiWeight(S.β+1, S.α+1, S.space))
+        D\f   # this happens to pick out a smooth solution
     else
         s=sum(f)
         if abs(s)<1E-14

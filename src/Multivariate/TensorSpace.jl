@@ -32,10 +32,9 @@ dimensions(a::Tensorizer) = map(sum,a.blocks)
 Base.length(a::Tensorizer) = mapreduce(sum,*,a.blocks)
 
 # (blockrow,blockcol), (subrow,subcol), (rowshift,colshift), (numblockrows,numblockcols), (itemssofar, length)
-Base.start(a::Tensorizer{Tuple{AA,BB}}) where {AA,BB} = (1,1), (1,1), (0,0), (a.blocks[1][1],a.blocks[2][1]), (0,length(a))
+start(a::Tensorizer{Tuple{AA,BB}}) where {AA,BB} = (1,1), (1,1), (0,0), (a.blocks[1][1],a.blocks[2][1]), (0,length(a))
 
-function Base.next(a::Tensorizer{Tuple{AA,BB}},st) where {AA,BB}
-    (K,J), (k,j), (rsh,csh), (n,m), (i,tot) = st
+function next(a::Tensorizer{Tuple{AA,BB}}, ((K,J), (k,j), (rsh,csh), (n,m), (i,tot))) where {AA,BB}
     ret = k+rsh,j+csh
     if k==n && j==m  # end of block
         if J == 1 || K == length(a.blocks[1])   # end of new block
@@ -60,10 +59,14 @@ function Base.next(a::Tensorizer{Tuple{AA,BB}},st) where {AA,BB}
 end
 
 
-function Base.done(a::Tensorizer,st)
-    (K,J), (k,j), (rsh,csh), (n,m), (i,tot) = st
-    i ≥ tot
+done(a::Tensorizer, ((K,J), (k,j), (rsh,csh), (n,m), (i,tot))) = i ≥ tot
+
+iterate(a::Tensorizer) = next(a, start(a))
+function iterate(a::Tensorizer, st)
+    done(a,st) && return nothing
+    next(a, st)
 end
+
 
 cache(a::Tensorizer) = CachedIterator(a)
 
@@ -345,6 +348,20 @@ getindex(sp::TensorSpace{Tuple{S1,S2}},k::Integer) where {S1<:Space{D,R},S2} whe
 
 getindex(sp::TensorSpace{Tuple{S1,S2}},k::Integer) where {S1,S2<:Space{D,R}} where {D,R<:AbstractArray} =
     sp.spaces[1] ⊗ sp.spaces[2][k]
+
+
+length(sp::TensorSpace{Tuple{S1,S2}}) where {S1<:Space{D,R},S2} where {D,R<:AbstractArray} =
+    length(sp.spaces[1])
+
+length(sp::TensorSpace{Tuple{S1,S2}}) where {S1,S2<:Space{D,R}} where {D,R<:AbstractArray} =
+    length(sp.spaces[2])
+
+
+iterate(sp::TensorSpace{Tuple{S1,S2}},k...) where {S1<:Space{D,R},S2} where {D,R<:AbstractArray} =
+    iterate(components(sp),k...)
+
+iterate(sp::TensorSpace{Tuple{S1,S2}},k...) where {S1,S2<:Space{D,R}} where {D,R<:AbstractArray} =
+    iterate(components(sp),k...)
 
 
 # every column is in the same space for a TensorSpace
@@ -648,8 +665,8 @@ isconvertible(sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:Bivariat
      (domain(ts)[2] == Point(0.0) && isconvertible(sp,ts.spaces[1])))
 
 
-coefficients(f::AbstractVector,sp::ConstantSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R} =
-    f[1]*ones(ts).coefficients
+# coefficients(f::AbstractVector,sp::ConstantSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R} =
+#     f[1]*ones(ts).coefficients
 
 #
 # function coefficients(f::AbstractVector,sp::Space{Segment{Vec{2,TT}}},ts::TensorSpace{Tuple{S,V},D,R}) where {S,V<:ConstantSpace,D<:BivariateDomain,R,TT} where {T<:Number}

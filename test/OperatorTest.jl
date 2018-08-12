@@ -1,4 +1,4 @@
-using ApproxFun, BlockBandedMatrices,  Test
+using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
     import ApproxFun: Multiplication,InterlaceOperator, Block, ∞
     import ApproxFun: testfunctional, testbandedoperator, testraggedbelowoperator, testinfoperator, testblockbandedoperator
 
@@ -22,7 +22,7 @@ using ApproxFun, BlockBandedMatrices,  Test
         C=Conversion(Ultraspherical(1),Ultraspherical(2))
         testbandedoperator(C)
 
-        @test full(C[1:5,1:5])  ≈   [1.0 0.0 -0.3333333333333333 0.0  0.0
+        @test Matrix(C[1:5,1:5])  ≈   [1.0 0.0 -0.3333333333333333 0.0  0.0
                                               0.0 0.5  0.0               -0.25 0.0
                                               0.0 0.0  0.3333333333333333 0.0 -0.2
                                               0.0 0.0  0.0                0.25 0.0
@@ -65,7 +65,7 @@ using ApproxFun, BlockBandedMatrices,  Test
 
         @time testbandedoperator(C)
 
-        @test full(C[1:5,1:5])  ≈  [4.0 5.0 6.0 0.0  0.0
+        @test Matrix(C[1:5,1:5])  ≈  [4.0 5.0 6.0 0.0  0.0
                                              1.0 4.0 5.0 6.0 0.0
                                              2.0 1.0 4.0 5.0 6.0
                                              3.0 2.0 1.0 4.0 5.0
@@ -185,12 +185,12 @@ using ApproxFun, BlockBandedMatrices,  Test
         testbandedoperator(B-A)
         testbandedoperator(A-C)
 
-        @test norm((A-B)[1:10,1:10]|>full) < eps()
-        @test norm((B-A)[1:10,1:10]|>full) < eps()
-        @test norm((A-C)[1:10,1:10]|>full) < eps()
-        @test norm((C-A)[1:10,1:10]|>full) < eps()
-        @test norm((C-B)[1:10,1:10]|>full) < eps()
-        @test norm((B-C)[1:10,1:10]|>full) < eps()
+        @test norm((A-B)[1:10,1:10]|>Matrix) < eps()
+        @test norm((B-A)[1:10,1:10]|>Matrix) < eps()
+        @test norm((A-C)[1:10,1:10]|>Matrix) < eps()
+        @test norm((C-A)[1:10,1:10]|>Matrix) < eps()
+        @test norm((C-B)[1:10,1:10]|>Matrix) < eps()
+        @test norm((B-C)[1:10,1:10]|>Matrix) < eps()
     end
 
     @testset "Cached" begin

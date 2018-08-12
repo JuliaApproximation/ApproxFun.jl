@@ -175,7 +175,7 @@ inverted much more efficiently in subsequent problems.
 Partial differential operators are also supported.  Here's an example
 of solving the Poisson equation with zero boundary conditions:
 ```julia
-d = (-1..1)^2
+d = Domain(-1..1)^2
 x,y = Fun(d)
 f = exp.(-10(x+0.3)^2-20(y-0.2)^2)  # use broadcasting as exp(f) not implemented in 2D
 A = [Dirichlet(d);Δ]              # Δ is an alias for Laplacian()

@@ -1,4 +1,4 @@
-using ApproxFun, Test
+using ApproxFun, LinearAlgebra, Test
     import ApproxFun: testspace
 
 @testset "Chebyshev" begin

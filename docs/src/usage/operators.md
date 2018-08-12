@@ -134,6 +134,56 @@ julia> B*Fun(exp) ≈ Fun([exp(-1),exp(1)])
 true
 ```
 
+## Multiplication
+
+A `Multiplication` operator sends a `Fun` to a `Fun` in the corresponding space by multiplying a given function. The `Multiplication` operators are presented in matrix form in `ApproxFun`.
+
+```jldoctest
+julia> x = Fun();
+
+julia> M = Multiplication(1 + 2x + x^2, Chebyshev())
+ConcreteMultiplication:Chebyshev(【-1.0,1.0】)→Chebyshev(【-1.0,1.0】)
+ 1.5  1.0   0.25
+ 2.0  1.75  1.0   0.25
+ 0.5  1.0   1.5   1.0   0.25
+      0.25  1.0   1.5   1.0   0.25
+            0.25  1.0   1.5   1.0   0.25
+                  0.25  1.0   1.5   1.0   0.25
+                        0.25  1.0   1.5   1.0   ⋱
+                              0.25  1.0   1.5   ⋱
+                                    0.25  1.0   ⋱
+                                          0.25  ⋱
+                                                ⋱
+
+julia> (M * x).coefficients == ((1 + 2x + x^2) * x).coefficients == M[1:4,1:2] * x.coefficients
+true
+```
+
+It is possible for domain space and range space to be different under `Mulitplication`.
+
+```jldoctest
+julia> c = Fun(θ -> cos(θ), CosSpace());
+
+julia> Multiplication(c, SinSpace())
+ConcreteMultiplication:SinSpace(【0.0,6.283185307179586❫)→SinSpace(【0.0,6.283185307179586❫)
+ 8.9743e-17   0.5
+ 0.5          8.9743e-17   0.5
+              0.5          8.9743e-17   0.5
+                           0.5          8.9743e-17   0.5
+                                        0.5          8.9743e-17   ⋱
+                                                     0.5          ⋱
+                                                                  ⋱
+```
+
+If a function is given by the expansion
+$$ f(\theta) = \sum_{n=1}^{\infty}  {f}_{n} * sin(n\theta) $$
+
+Then the matrix above can be easily derived from
+$$ cos(\theta) * f(\theta) = cos(\theta) \cdot (\sum_{n=1}^{\infty}  {f}_{n} \cdot sin(n\theta) $$
+$$ = \sum_{n=1}^{\infty}  {f}_{n} \cdot cos(\theta) \cdot sin(n\theta) $$
+$$ = \sum_{n=1}^{\infty}  {f}_{n} \cdot 0.5 \cdot ((sin(n-1)\theta) + (sin(n+1)\theta) $$
+$$ = \sum_{n=1}^{\infty}  0.5 \cdot ({f}_{n-1} + {f}_{n+1}) \cdot sin(n\theta) $$.
+
 ## Algebraic manipulation of operators
 
 Operators can be algebraically manipulated, provided that the domain and
@@ -286,7 +336,7 @@ ConcreteMultiplication:ConstantSpace→Chebyshev(【-1.0,1.0】)
  1.10368e-8
   ⋮         
 
-julia> M*Q
+julia> M*Σ
 TimesOperator:Chebyshev(【-1.0,1.0】)→Chebyshev(【-1.0,1.0】)
  2.53213     0.0  -0.844044     0.0  …  0.0  -0.0401926    0.0  ⋯
  2.26064     0.0  -0.753545     0.0     0.0  -0.0358831    0.0  ⋱
@@ -355,4 +405,4 @@ DocTestSetup = nothing
 
 The concatenation functions `vcat`, `hcat` and `hvcat` are overriden for
 operators to represent the resulting combined operator, now with
-a `rangespace` or `domainspace` that is an `ArraySpace`. 
+a `rangespace` or `domainspace` that is an `ArraySpace`.

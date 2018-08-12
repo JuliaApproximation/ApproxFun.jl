@@ -208,16 +208,16 @@ transform(::Space,::Vector)
 
 Transform coefficients back to values.  Defaults to using `canonicalspace` as in `transform`.
 """
-itransform(::Space,::AbstractVector)
+itransform(::Space, ::AbstractVector)
 
 
 """
-    evaluate(sp::Space,coefficients::AbstractVector,x)
+    evaluate(coefficients::AbstractVector, sp::Space, x)
 
 Evaluates the expansion at a point `x`.
 If `x` is in the domain, then this should return zero.
 """
-evaluate(::Space,::AbstractVector,_)
+evaluate(::AbstractVector, ::Space, _)
 
 
 

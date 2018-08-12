@@ -52,7 +52,7 @@ hasconstblocks(A::Operator) = hasconstblocks(domainspace(A)) && hasconstblocks(r
 
 macro functional(FF)
     quote
-        Base.size(A::$FF,k::Integer) = k==1 ? 1 : ∞
+        Base.size(A::$FF,k::Integer) = k==1 ? 1 : dimension(domainspace(A))
         ApproxFun.rangespace(F::$FF) = ConstantSpace(eltype(F))
         ApproxFun.isafunctional(::$FF) = true
         ApproxFun.blockbandinds(A::$FF) = 0,hastrivialblocks(domainspace(A)) ? bandinds(A,2) : ∞
@@ -756,8 +756,8 @@ convert(::Type{AA}, B::Operator) where AA<:AbstractArray = AA(B)
 arraytype(::Operator) = Matrix
 function arraytype(V::SubOperator{T,B,Tuple{KR,JR}}) where {T, B, KR <: Union{BlockRange, Block}, JR <: Union{BlockRange, Block}}
     P = parent(V)
-    isbandedblockbanded(V) && return BandedBlockBandedMatrix
-    isblockbanded(V) && return BlockBandedMatrix
+    isbandedblockbanded(P) && return BandedBlockBandedMatrix
+    isblockbanded(P) && return BlockBandedMatrix
     return PseudoBlockMatrix
 end
 
@@ -771,6 +771,7 @@ end
 function arraytype(V::SubOperator)
     P = parent(V)
     isbanded(P) && return BandedMatrix
+    # isbandedblockbanded(P) && return BandedBlockBandedMatrix
     isinf(size(P,1)) && israggedbelow(P) && return RaggedMatrix
     return Matrix
 end
