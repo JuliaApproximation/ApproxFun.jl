@@ -287,5 +287,5 @@ function coefficients(f::AbstractVector, a::VectorSpace, b::TensorSpace{Tuple{S1
     if size(a) ≠ size(b)
         throw(DimensionMismatch("dimensions must match"))
     end
-    interlace(map(coefficients,Fun(a,f),b),b)
+    interlace(map(coefficients,Fun(a,f),b),ArraySpace(b))
 end

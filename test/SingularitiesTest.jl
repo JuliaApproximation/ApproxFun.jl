@@ -1,4 +1,4 @@
-using ApproxFun, SpecialFunctions, Test
+using ApproxFun, SpecialFunctions, Random, Test
 
 @testset "Singularities" begin
     @testset "sqrt" begin
@@ -239,11 +239,11 @@ using ApproxFun, SpecialFunctions, Test
 
     @testset "DiracDelta sampling" begin
         δ = 0.3DiracDelta(0.1) + 3DiracDelta(2.3)
-        srand(0)
+        Random.seed!(0)
         for _=1:10
             @test sample(δ) ∈ [0.1, 2.3]
         end
-        srand(0)
+        Random.seed!(0)
         r = sample(δ, 10_000)
         @test count(i -> i == 0.1, r)/length(r) ≈ 0.3/(3.3) atol=0.01
     end
