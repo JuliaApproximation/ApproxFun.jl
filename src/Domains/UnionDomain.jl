@@ -9,6 +9,7 @@ convert(::Type{IT},::AnyDomain) where {IT<:UnionDomain} = UnionDomain(tuple())
 
 
 #support tuple set
+components(d::AbstractVector) = d
 components(d::UnionDomain) = elements(d)
 component(d::UnionDomain,k) = components(d)[k]
 ncomponents(d::UnionDomain) = length(elements(d))

@@ -1,4 +1,4 @@
-using ApproxFun, IntervalSets, SpecialFunctions, Random, Test
+using ApproxFun, IntervalSets, SpecialFunctions, LinearAlgebra, Random, Test
 
 
 @testset "Singularities" begin
@@ -83,54 +83,57 @@ using ApproxFun, IntervalSets, SpecialFunctions, Random, Test
     end
 
     @testset "Ray and Line" begin
-        @test Inf in Ray()   # this was a bug
+        @testset "Ray" begin
+            @test Inf in Ray()   # this was a bug
+            @test Space(0..Inf) == Chebyshev(Ray())
+            f=Fun(x->exp(-x),0..Inf)
+            @test f(0.1) ≈ exp(-0.1)
+            @test f'(.1) ≈ -f(.1)
 
-        f=Fun(x->exp(-x),0..Inf)
-        @test f'(.1) ≈ -f(.1)
+            x=Fun(identity,Ray())
+            f=exp(-x)
+            u=integrate(f)
+            @test (u(1.)-u(0)-1) ≈ -f(1)
 
-        x=Fun(identity,Ray())
-        f=exp(-x)
-        u=integrate(f)
-        @test (u(1.)-u(0)-1) ≈ -f(1)
+            x=Fun(identity,Ray())
+            f=x^(-0.123)*exp(-x)
+            @test integrate(f)'(1.) ≈ f(1.)
 
-        x=Fun(identity,Ray())
-        f=x^(-0.123)*exp(-x)
-        @test integrate(f)'(1.) ≈ f(1.)
+            @test ≈(sum(Fun(sech,0..Inf)),sum(Fun(sech,0..40));atol=1000000eps())
+            @test Line() ∪ Ray() == Line()
+            @test Line() ∩ Ray() == Ray()
+            Space(Ray())
+            f=Fun(sech,Line())
+            Fun(f,Ray())(2.0) ≈ sech(2.0)
+            Fun(f,Ray(0.,π))(-2.0) ≈ sech(-2.0)
+            Fun(sech,Ray(0.,π))(-2.0) ≈ sech(-2.0)
+        end
 
-        @test ≈(sum(Fun(sech,0..Inf)),sum(Fun(sech,0..40));atol=1000000eps())
+        @testset "Ei (Exp Integral)" begin
+            y=Fun(Ray())
+            q=integrate(exp(-y)/y)
+            @test (q-last(q))(2.) ≈ (-0.04890051070806113)
 
-        f=Fun(sech,Line())
-        Fun(f,Ray())(2.0) ≈ sech(2.0)
-        Fun(f,Ray(0.,π))(-2.0) ≈ sech(-2.0)
-        Fun(sech,Ray(0.,π))(-2.0) ≈ sech(-2.0)
+            ## Line
+            f=Fun(x->exp(-x^2),Line())
 
+            @test f'(0.1) ≈ -2*0.1exp(-0.1^2)
+            @test (Derivative()*f)(0.1) ≈ -2*0.1exp(-0.1^2)
+        end
 
-        #Ei (Exp Integral)
+        @testset "PeriodicLine" begin
+            d=PeriodicLine()
+            D=Derivative(d)
 
-        y=Fun(Ray())
-        q=integrate(exp(-y)/y)
-        @test (q-last(q))(2.) ≈ (-0.04890051070806113)
+            f = Fun(x->sech(x-0.1),d,200)
+            @test f(1.) ≈ sech(1-0.1)
 
-        ## Line
-        f=Fun(x->exp(-x^2),Line())
+            f=Fun(x->sech(x-0.1),d)
+            @test f(1.) ≈ sech(1-0.1)
 
-        @test f'(0.1) ≈ -2*0.1exp(-0.1^2)
-        @test (Derivative()*f)(0.1) ≈ -2*0.1exp(-0.1^2)
-
-        ## PeriodicLine
-
-        d=PeriodicLine()
-        D=Derivative(d)
-
-        f = Fun(x->sech(x-0.1),d,200)
-        @test f(1.) ≈ sech(1-0.1)
-
-
-        f=Fun(x->sech(x-0.1),d)
-        @test f(1.) ≈ sech(1-0.1)
-
-        @test ≈((D*f)(.2),-0.0991717226583897;atol=100000eps())
-        @test ≈((D^2*f)(.2),-0.9752522555114987;atol=1000000eps())
+            @test ≈((D*f)(.2),-0.0991717226583897;atol=100000eps())
+            @test ≈((D^2*f)(.2),-0.9752522555114987;atol=1000000eps())
+        end
     end
 
     @testset "LogWeight" begin

@@ -61,9 +61,11 @@ intersect(a::Domain, b::Domain) = a==b ? a : EmptyDomain()
 ## Interval Domains
 
 abstract type SegmentDomain{T} <: UnivariateDomain{T} end
-const IntervalOrSegment{T} = Union{AbstractInterval{T}, SegmentDomain{T}}
+abstract type AbstractSegment{T} <: SegmentDomain{T} end
+const IntervalOrSegment{T} = Union{AbstractInterval{T}, AbstractSegment{T}}
+const IntervalOrSegmentDomain{T} = Union{AbstractInterval{T}, SegmentDomain{T}}
 
-canonicaldomain(d::Domains.AbstractInterval) = ChebyshevInterval{real(prectype(d))}()
+canonicaldomain(d::AbstractInterval) = ChebyshevInterval{real(prectype(d))}()
 canonicaldomain(d::SegmentDomain) = Segment{real(prectype(d))}()
 
 isapprox(a::Domain,b::Domain) = a==b
@@ -73,13 +75,13 @@ domainscompatible(a::Domain,b::Domain) = isambiguous(a) || isambiguous(b) ||
 
 ##TODO: Should fromcanonical be fromcanonical!?
 
-points(d::IntervalOrSegment{T},n::Integer; kind::Int=1) where {T} =
+points(d::IntervalOrSegmentDomain{T},n::Integer; kind::Int=1) where {T} =
     fromcanonical.(Ref(d), chebyshevpoints(float(real(eltype(T))), n; kind=kind))  # eltype to handle point
-bary(v::AbstractVector{Float64},d::IntervalOrSegment,x::Float64) = bary(v,tocanonical(d,x))
+bary(v::AbstractVector{Float64},d::IntervalOrSegmentDomain,x::Float64) = bary(v,tocanonical(d,x))
 
 #TODO consider moving these
-first(d::IntervalOrSegment{T}) where {T} = fromcanonical(d,-one(T))
-last(d::IntervalOrSegment{T}) where {T} = fromcanonical(d,one(T))
+first(d::IntervalOrSegmentDomain{T}) where {T} = fromcanonical(d,-one(T))
+last(d::IntervalOrSegmentDomain{T}) where {T} = fromcanonical(d,one(T))
 
 indomain(x,::AnyDomain) = true
 function indomain(x,d::SegmentDomain)
@@ -193,10 +195,10 @@ domain(::Number) = AnyDomain()
 ## rand
 
 
-rand(d::IntervalOrSegment,k...) = fromcanonical.(Ref(d),2rand(k...)-1)
+rand(d::IntervalOrSegmentDomain,k...) = fromcanonical.(Ref(d),2rand(k...)-1)
 rand(d::PeriodicDomain,k...) = fromcanonical.(Ref(d),2π*rand(k...)-π)
 
-checkpoints(d::IntervalOrSegment) = fromcanonical.(Ref(d),[-0.823972,0.01,0.3273484])
+checkpoints(d::IntervalOrSegmentDomain) = fromcanonical.(Ref(d),[-0.823972,0.01,0.3273484])
 checkpoints(d::PeriodicDomain) = fromcanonical.(Ref(d),[1.223972,3.14,5.83273484])
 
 ## boundary

@@ -21,8 +21,17 @@ Chebyshev() = Chebyshev(ChebyshevInterval())
 Chebyshev(d) = Chebyshev(Domain(d))
 
 
-Space(d::Segment) = Chebyshev(d)
-Space(d::Domains.AbstractInterval) = Chebyshev(d)
+Space(d::SegmentDomain) = Chebyshev(d)
+function Space(d::AbstractInterval)
+    a,b = endpoints(d)
+    if isinf(norm(a)) && isinf(norm(b))
+        Chebyshev(Line(d))
+    elseif isinf(norm(a)) || isinf(norm(b))
+        Chebyshev(Ray(d))
+    else
+        Chebyshev(d)
+    end
+end
 
 
 setdomain(S::Chebyshev,d::Domain) = Chebyshev(d)

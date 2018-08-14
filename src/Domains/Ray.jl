@@ -42,8 +42,8 @@ Ray() = Ray{false}()
 
 ##deal with vector
 
-function convert(::Type{Ray},d::ClosedInterval)
-    a,b=d.left,d.right
+function convert(::Type{Ray}, d::AbstractInterval)
+    a,b = endpoints(d)
     @assert abs(a)==Inf || abs(b)==Inf
 
     if abs(b)==Inf
@@ -52,6 +52,7 @@ function convert(::Type{Ray},d::ClosedInterval)
         Ray(b,angle(a),false)
     end
 end
+Ray(d::AbstractInterval) = convert(Ray, d)
 
 
 isambiguous(d::Ray)=isnan(d.center)
