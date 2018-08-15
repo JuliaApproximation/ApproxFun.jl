@@ -46,19 +46,19 @@ Chebyshev(【-1.0,-0.9000000000000002】)⨄Chebyshev(【-0.9000000000000002,-0.
 The default space is `Chebyshev`, which can represent non-periodic functions on intervals.  Each `Space` type has a default domain: for `Chebyshev` this is `-1..1`, for Fourier and Laurent this is `-π..π`.  Thus the following
 are synonyms:
 ```julia
-Fun(exp,Chebyshev(Interval(-1,1)))
-Fun(exp,Chebyshev(Interval()))
-Fun(exp,Chebyshev(-1..1))
-Fun(exp,Chebyshev())
-Fun(exp,-1..1)
-Fun(exp,Interval())
-Fun(exp,Interval(-1,1))
+Fun(exp, Chebyshev(Interval(-1,1)))
+Fun(exp, Chebyshev(Interval()))
+Fun(exp, Chebyshev(-1..1))
+Fun(exp, Chebyshev())
+Fun(exp, -1..1)
+Fun(exp, Interval())
+Fun(exp, Interval(-1,1))
 Fun(exp)
 ```
 If a function is not specified, then it is taken to be `identity`.  Thus we have the
 following synonyms:
 ```julia
-x = Fun(identity,-1..1)
+x = Fun(identity, -1..1)
 x = Fun(-1..1)
 x = Fun(identity)
 x = Fun()
@@ -70,12 +70,12 @@ x = Fun()
 It is sometimes necessary to specify coefficients explicitly.  This is possible
 via specifying the space followed by a vector of coefficients:
 ```jldoctest
-julia> f = Fun(Taylor(),[1,2,3]);  # represents 1 + 2z + 3z^2
+julia> f = Fun(Taylor(), [1,2,3]);  # represents 1 + 2z + 3z^2
 
 julia> f(0.1)
 1.23
 
-julia> 1+2*0.1+3*0.1^2
+julia> 1 + 2*0.1 + 3*0.1^2
 1.23
 ```
 

@@ -32,7 +32,7 @@ A `Fun` is only one possible way to represent a bivariate function.  This mirror
 Another format for representing bivariate functions in ApproxFun is a `ProductFun`:  for example, the previous function could also be represented by
 
 ```julia
-f=ProductFun((x,y)->exp(-x^2-y^2),Interval()^2)
+f = ProductFun((x,y)->exp(-x^2-y^2),Interval()^2)
 ```
 
 A `ProductFun` also has two fields: `f.coefficients` and `f.space`, where `f.space` must be an `AbstractProductSpace`.   Here, `f.coefficients` is a `Vector{Fun{S,T}}` that represents a list of functions in `x`, where
@@ -40,10 +40,6 @@ A `ProductFun` also has two fields: `f.coefficients` and `f.space`, where `f.spa
 ```julia
 space(f.coefficients[k]) == columnspace(f.space,k)
 ```
-
-
-
-
 
 ## LowRankFun
 
