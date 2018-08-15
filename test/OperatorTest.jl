@@ -249,7 +249,7 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
         SS = S|(2:5)
         @test ApproxFun.block(SS,3) == Block(4)
 
-        for C in (ApproxFun.eye(S)[3:end,:], ApproxFun.eye(S)[3:end,1:end])
+        for C in (Operator(I,S)[3:end,:], Operator(I,S)[3:end,1:end])
             @test ApproxFun.domaindimension(domainspace(C)) == 1
             @test union(S,domainspace(C)) == S
 

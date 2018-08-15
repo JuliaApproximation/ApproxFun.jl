@@ -146,7 +146,7 @@ end
 
 
 
-# We need to support A+1 in addition to A+I primarily for matrix case: A+eye(2)
+# We need to support A+1 in addition to A+I primarily for matrix case: A+Matrix(I,2,2)
 for OP in (:+,:-)
     @eval begin
         $OP(c::Union{UniformScaling,Number},A::Operator) =

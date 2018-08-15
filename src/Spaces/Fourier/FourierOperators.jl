@@ -68,7 +68,7 @@ conversion_type(A::Fourier{DD,R1},B::Fourier{DD,R2}) where {DD<:Circle,R1,R2} = 
 hasconversion(A::Fourier{DD,R1},B::Fourier{DD,R2}) where {DD,R1,R2} = domain(A) == reverse(domain(B))
 function Conversion(A::Fourier{DD,R1},B::Fourier{DD,R2}) where {DD,R1,R2}
     if A==B
-        ConversionWrapper(eye(A))
+        ConversionWrapper(Operator(I,A))
     else
         @assert domain(A) == reverse(domain(B))
         ConcreteConversion(A,B)
@@ -353,12 +353,12 @@ Reverse(S::Fourier{D}) where {D} = ReverseWrapper(NegateEven(S,S))
 for TYP in (:Fourier,:Laurent,:CosSpace,:SinSpace,:Taylor)
     @eval begin
         function Dirichlet(S::TensorSpace{Tuple{$TYP{PeriodicInterval{T},R},PS}},k) where {PS,T,R}
-            op = [eye(S.spaces[1])⊗Evaluation(S.spaces[2],first,k);
+            op = [Operator(I,S.spaces[1])⊗Evaluation(S.spaces[2],first,k);
                             ReverseOrientation(S.spaces[1])⊗Evaluation(S.spaces[2],last,k) ]
             DirichletWrapper(SpaceOperator(op,S,PiecewiseSpace(rangespace(op).spaces)),k)
         end
         function Dirichlet(S::TensorSpace{Tuple{PS,$TYP{PeriodicInterval{T},R}}},k) where {PS,T,R}
-            op = [Evaluation(S.spaces[1],first,k)⊗eye(S.spaces[2]);
+            op = [Evaluation(S.spaces[1],first,k)⊗Operator(I,S.spaces[2]);
                             Evaluation(S.spaces[1],last,k)⊗ReverseOrientation(S[2]) ]
             DirichletWrapper(SpaceOperator(op,S,PiecewiseSpace(rangespace(op).spaces)),k)
         end

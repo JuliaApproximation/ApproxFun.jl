@@ -200,10 +200,10 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
     x,y = components(x),components(y)
 
     g = [real(exp(x[1]-1im));0.0y[2];real(exp(x[3]+1im));real(exp(-1+1im*y[4]))]
-    B = [ eye(dx)⊗ldirichlet(dy);
-         ldirichlet(dx)⊗eye(dy);
-         eye(dx)⊗rdirichlet(dy);
-         rneumann(dx)⊗eye(dy)    ]
+    B = [ Operator(I,dx)⊗ldirichlet(dy);
+         ldirichlet(dx)⊗Operator(I,dy);
+         Operator(I,dx)⊗rdirichlet(dy);
+         rneumann(dx)⊗Operator(I,dy)    ]
 
 
     @test Fun(g[1],rangespace(B)[1])(-0.1,-1.0) ≈ g[1](-0.1,-1.0)

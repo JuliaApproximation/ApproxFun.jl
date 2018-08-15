@@ -30,6 +30,7 @@ broadcastable(A::Operator) = A
 ## We assume operators are T->T
 rangespace(A::Operator) = error("Override rangespace for $(typeof(A))")
 domainspace(A::Operator) = error("Override domainspace for $(typeof(A))")
+spaces(A::Operator) = (rangespace(A), domainspace(A)) # order is consistent with size(::Matrix)
 domain(A::Operator) = domain(domainspace(A))
 
 
@@ -620,8 +621,10 @@ zero(::Type{Operator{T}}) where {T<:Number} = ZeroOperator(T)
 zero(::Type{O}) where {O<:Operator} = ZeroOperator(eltype(O))
 
 
-eye(S::Space) = IdentityOperator(S)
-eye(S::Domain) = eye(Space(S))
+
+Operator(L::UniformScaling, s::Space) = ConstantOperator(L, s)
+Operator(L::UniformScaling{Bool}, s::Space) = L.λ ? IdentityOperator(s) : ZeroOperator(s)
+Operator(L::UniformScaling, d::Domain) = Operator(L, Space(d))
 
 Operator{T}(f::Fun) where {T} =
     norm(f.coefficients)==0 ? zero(Operator{T}) : convert(Operator{T}, Multiplication(f))

@@ -101,7 +101,7 @@ Conversion(a::SubSpace{S,IT,DD,RR},b::S) where {S<:Space,IT,DD,RR} =
 
 function Conversion(a::S,b::SubSpace{S,IT,DD,RR}) where {S<:Space,IT<:UnitCount{Int},DD,RR}
     @assert first(b.indexes) == 1
-    ConversionWrapper(SpaceOperator(eye(a),a,b))
+    ConversionWrapper(SpaceOperator(Operator(I,a),a,b))
 end
 
 bandinds(C::ConcreteConversion{SubSpace{S,UnitCount{Int},DD,RR},S}) where {S,DD,RR} =

@@ -243,7 +243,7 @@ function Conversion(L::Jacobi,M::Jacobi)
         dm=domain(M)
         D=typeof(dm)
         if isapprox(M.a,L.a) && isapprox(M.b,L.b)
-            ConversionWrapper(eye(L))
+            ConversionWrapper(Operator(I,L))
         elseif (isapprox(M.b,L.b+1) && isapprox(M.a,L.a)) || (isapprox(M.b,L.b) && isapprox(M.a,L.a+1))
             ConcreteConversion(L,M)
         elseif M.b > L.b+1

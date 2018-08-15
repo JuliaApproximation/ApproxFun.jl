@@ -4,7 +4,7 @@ struct DualFun{F,T}
     f::F
     J::T
 end
-DualFun(f::Fun) = DualFun(f,eye(space(f)))
+DualFun(f::Fun) = DualFun(f,Operator(I,space(f)))
 
 
 domain(df::DualFun) = domain(df.f)

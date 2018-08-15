@@ -80,8 +80,6 @@ end
 
 convert(::Type{Matrix}, A::RaggedMatrix) = Matrix{eltype(A)}(A)
 
-Base.full(A::RaggedMatrix) = convert(Matrix,A)
-
 function convert(::Type{RaggedMatrix{T}}, B::BandedMatrix) where T
     l = bandwidth(B,1)
     ret = RaggedMatrix(Zeros{T}(size(B)), Int[colstop(B,j) for j=1:size(B,2)])
