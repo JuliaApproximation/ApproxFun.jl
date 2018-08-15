@@ -1,4 +1,4 @@
-using Documenter, ApproxFun
+using Documenter, ApproxFun, BandedMatrices, LinearAlgebra
 
 makedocs(modules=[ApproxFun],
 			doctest = false,
