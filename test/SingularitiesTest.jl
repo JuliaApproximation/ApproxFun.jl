@@ -301,6 +301,10 @@ using ApproxFun, SpecialFunctions, Random, Test
 
 
     @testset "Derivative operator for HeavisideSpace" begin
+        H = HeavisideSpace([-1.0,0.0,1.0])
+        @test Fun(H, [1.0])(1.0) == 0.0
+        @test Fun(H, [0.0,1.0])(1.0) == 1.0
+
         H=ApproxFun.HeavisideSpace([1,2,3])
         D=Derivative(H)
         @test domain(D)==ApproxFun.PiecewiseSegment([1,2,3])

@@ -24,7 +24,7 @@ canonicalspace(sp::HeavisideSpace) = PiecewiseSpace(map(Chebyshev,components(dom
 function evaluate(f::Fun{HeavisideSpace{T,R}},x::Real) where {T<:Real,R}
     p = domain(f).points
     c = f.coefficients
-    for k=1:length(p)-1
+    for k=1:length(c)
         if p[k] ≤ x ≤ p[k+1]
             return c[k]
         end
@@ -77,7 +77,7 @@ getindex(C::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},DD,RR}},k::Intege
 bandinds(D::ConcreteDerivative{H}) where {H<:HeavisideSpace} = (0,1)
 rangespace(D::ConcreteDerivative{H}) where {H<:HeavisideSpace} = DiracSpace(domain(D).points[2:end-1])
 
-function getindex(D::ConcreteDerivative{H,T},k::Integer,j::Integer) where {H<:HeavisideSpace,T}
+function getindex(D::ConcreteDerivative{H,<:Any,T},k::Integer,j::Integer) where {H<:HeavisideSpace,T}
     if k==j
         -one(T)
     elseif j==k+1
