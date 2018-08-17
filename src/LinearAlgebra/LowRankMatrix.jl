@@ -32,23 +32,6 @@ function balance!(U::Matrix{T},V::Matrix{T},m::Int,n::Int,r::Int) where T
     U,V
 end
 
-function refactorsvd!(U::Matrix{S},Σ::Vector{T},V::Matrix{S}) where {S,T}
-    conj!(V)
-    σmax = Σ[1]
-    r=max(1,count(s->s>10σmax*eps(T),Σ))
-    m,n = size(U,1),size(V,1)
-    for k=1:r
-        σk = sqrt(Σ[k])
-        for i=1:m
-            @inbounds U[i,k] *= σk
-        end
-        for j=1:n
-            @inbounds V[j,k] *= σk
-        end
-    end
-    r
-end
-
 # constructors
 
 function pad!(L::LowRankMatrix,n::Integer,::Colon)
