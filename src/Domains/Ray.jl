@@ -109,3 +109,10 @@ invfromcanonicalD(d::Ray,x) = conj(cisangle(d))*ray_invfromcanonicalD(d.orientat
 arclength(d::Ray) = Inf
 
 ==(d::Ray{a},m::Ray{a}) where {a} = d.center == m.center
+
+
+function mappoint(a::Ray, b::Ray, x::Number)
+    d = x - a.center;
+    k = d/exp(angle(d)*im);
+    y = k * exp(angle(b)*im)
+end

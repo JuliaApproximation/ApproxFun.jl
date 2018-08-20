@@ -14,8 +14,9 @@ export Laguerre, LaguerreWeight, WeightedLaguerre
 # p_{n+1} = (A_n x + B_n)p_n - C_n p_{n-1}
 #####
 
-struct Laguerre{T} <: PolynomialSpace{Ray{false,Float64},Float64}
+struct Laguerre{T<:Real,D<:Ray} <: PolynomialSpace{D,T}
     α::T
+    domain::D
 end
 
 Laguerre() = Laguerre(0)
