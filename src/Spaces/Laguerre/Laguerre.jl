@@ -32,9 +32,9 @@ on `(0, Inf)`, which satisfy the differential equations
 spacescompatible(A::Laguerre,B::Laguerre) = A.α ≈ B.α
 
 canonicaldomain(::Laguerre) = Ray()
-domain(f::Laguerre) = f.domain
-tocanonical(f::Laguerre,x) = mappoint(f.domain,Ray(),x)
-fromcanonical(f::Laguerre,x) = mappoint(Ray(),f.domain,x)
+domain(d::Laguerre) = domain(d)
+tocanonical(d::Laguerre,x) = mappoint(domain(d),Ray(),x)
+fromcanonical(d::Laguerre,x) = mappoint(Ray(),domain(d),x)
 
 Laguerre(α) = Laguerre(α,Ray())
 
