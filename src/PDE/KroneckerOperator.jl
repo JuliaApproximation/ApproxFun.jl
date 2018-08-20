@@ -281,11 +281,11 @@ function Derivative(S::TensorSpace{SV,DD},order::Vector{Int}) where {SV,DD<:Biva
     @assert length(order)==2
     if order[1]==0
         Dy=Derivative(S.spaces[2],order[2])
-        K=eye(S.spaces[1])⊗Dy
+        K=Operator(I,S.spaces[1])⊗Dy
         T=eltype(Dy)
     elseif order[2]==0
         Dx=Derivative(S.spaces[1],order[1])
-        K=Dx⊗eye(S.spaces[2])
+        K=Dx⊗Operator(I,S.spaces[2])
         T=eltype(Dx)
     else
         Dx=Derivative(S.spaces[1],order[1])

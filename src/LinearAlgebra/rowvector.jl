@@ -5,8 +5,6 @@ import Base: convert, similar, length, size, axes, IndexStyle,
             IndexLinear, @propagate_inbounds, getindex, setindex!,
             broadcast, hcat, typed_hcat, map, parent
 
-import LinearAlgebra: check_types, to_vec
-
 """
     RowVector(vector)
 

@@ -13,7 +13,7 @@ import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC
                 r2r!, r2r,  plan_fft, plan_ifft, plan_ifft!, plan_fft!
 
 
-import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, !=, eltype, iterate, start, next, done,
+import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, !=, eltype, iterate,
                 >=, /, ^, \, ∪, transpose, size, reindex, tail, broadcast, broadcast!, copyto!, copy, to_index, (:),
                 similar, map, vcat, hcat, hvcat, show, summary, stride, sum, cumsum, sign, imag, conj, inv,
                 complex, reverse, exp, sqrt, abs, abs2, sign, issubset, values, in, first, last, rand, intersect, setdiff,
@@ -21,8 +21,8 @@ import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, 
                 minimum, maximum, extrema, argmax, argmin, findmax, findmin, isfinite,
                 zeros, zero, one, promote_rule, repeat, length, resize!, isinf,
                 getproperty, findfirst, unsafe_getindex, fld, cld, div, real, imag,
-                @_inline_meta, eachindex, lastindex, keys,
-                Array, Vector, Matrix, view, ones, @propagate_inbounds
+                @_inline_meta, eachindex, lastindex, keys, isreal, 
+                Array, Vector, Matrix, view, ones, @propagate_inbounds, print_array
 
 import Base.Broadcast: BroadcastStyle, Broadcasted, AbstractArrayStyle, broadcastable,
                         DefaultArrayStyle, broadcasted
@@ -30,7 +30,7 @@ import Base.Broadcast: BroadcastStyle, Broadcasted, AbstractArrayStyle, broadcas
 
 import LinearAlgebra: BlasInt, BlasFloat, norm, ldiv!, mul!, det, eigvals, dot, cross,
                         qr, qr!, isdiag, rank, issymmetric, ishermitian, Tridiagonal,
-                        diagm, factorize, nullspace, adjoint, transpose, diagm_container, eye
+                        diagm, factorize, nullspace, adjoint, transpose, diagm_container
 
 import SparseArrays: blockdiag
 

@@ -289,6 +289,6 @@ conversion_type(A::Laurent{DD,RR},B::Laurent{DD,RR}) where {DD<:Circle,RR}=domai
 function Conversion(A::Laurent{DD,RR},B::Laurent{DD,RR}) where {DD,RR}
     @assert domain(A) == reverse(domain(B))
     ConversionWrapper(SpaceOperator(
-        InterlaceOperator(Diagonal([eye(1),PermutationOperator([2,1])]))
+        InterlaceOperator(Diagonal([Matrix(I,1,1),PermutationOperator([2,1])]))
     ,A,B))
 end

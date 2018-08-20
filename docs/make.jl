@@ -1,4 +1,4 @@
-using Documenter, ApproxFun
+using Documenter, ApproxFun, BandedMatrices, LinearAlgebra
 
 makedocs(modules=[ApproxFun],
 			doctest = false,
@@ -24,7 +24,7 @@ makedocs(modules=[ApproxFun],
 deploydocs(
     repo   = "github.com/JuliaApproximation/ApproxFun.jl.git",
     latest = "development",
-    julia  = "0.6",
+    julia  = "0.7",
     osname = "linux",
     target = "build",
     deps   = nothing,

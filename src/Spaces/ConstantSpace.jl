@@ -128,10 +128,17 @@ function getindex(C::ConcreteConversion{CS,S,T},k::Integer,j::Integer) where {CS
     k ≤ ncoefficients(on) ? convert(T,on.coefficients[k]) : zero(T)
 end
 
+
 coefficients(f::AbstractVector,sp::ConstantSpace{Segment{Vec{2,TT}}},
              ts::TensorSpace{SV,DD}) where {TT,SV,DD<:BivariateDomain} =
     f[1]*ones(ts).coefficients
-coefficients(f::AbstractVector,sp::ConstantSpace,ts::Space) = f[1]*ones(ts).coefficients
+coefficients(f::AbstractVector,sp::ConstantSpace{<:Domain{<:Number}},
+             ts::TensorSpace{SV,DD}) where {TT,SV,DD<:BivariateDomain} =
+    f[1]*ones(ts).coefficients
+coefficients(f::AbstractVector, sp::ConstantSpace{<:Domain{<:Number}}, ts::Space) =
+    f[1]*ones(ts).coefficients
+coefficients(f::AbstractVector, sp::ConstantSpace, ts::Space) =
+    f[1]*ones(ts).coefficients
 
 
 ########

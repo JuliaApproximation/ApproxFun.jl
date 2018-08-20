@@ -1,4 +1,4 @@
-using ApproxFun, Test
+using ApproxFun, SpecialFunctions, LinearAlgebra, Test
     import ApproxFun: ChebyshevDirichlet, Ultraspherical, PiecewiseSegment, ContinuousSpace, space,
                         testspace, testbandedoperator, testraggedbelowoperator, testcalculus, testtransforms
 
@@ -333,5 +333,25 @@ using ApproxFun, Test
     @testset "blockbandinds for FiniteOperator of pointscompatibleace bug" begin
         S = ApproxFun.PointSpace([1.0,2.0])
         @test ApproxFun.blockbandinds(FiniteOperator([1 2; 3 4],S,S)) == (0,0)
+    end
+
+    #SumSpace Conversion
+    @testset "SumSpace Conversion" begin
+        H = ApproxFun.HeavisideSpace([-1.0,0.0,1.0])
+        C = ApproxFun.ContinuousSpace(ApproxFun.PiecewiseSegment([-1.0,0,1]))
+        S = H + C
+        P = Ultraspherical(1,-1.0..0.0) ∪ Ultraspherical(1,0.0..1.0)
+        f = Fun(S, randn(100))
+        @test f(0.1) ≈ Fun(f, P)(0.1)
+
+        @test Conversion(S,P)[1,1]==1.0
+        @test Conversion(S,P)[1,2]==0.5
+        @test rangespace(Conversion(S,P))==Ultraspherical(1,-1.0..0.0) ∪ Ultraspherical(1,0.0..1.0)
+        @test domainspace(Conversion(S,P))==ApproxFun.SumSpace(ApproxFun.HeavisideSpace([-1.0,0.0,1.0]),ApproxFun.ContinuousSpace(ApproxFun.PiecewiseSegment([-1.0,0,1])))
+
+        D = ApproxFun.DiracSpace([-1.0,0.0,1.0])
+        S2 = ApproxFun.SumSpace(D , P)
+        f = Fun(S, randn(100))
+        @test (Conversion(S,S2) * f)(0.1) ≈ f(0.1)
     end
 end

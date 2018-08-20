@@ -1,4 +1,4 @@
-using ApproxFun, Test
+using ApproxFun, LinearAlgebra, Test
     import ApproxFun: testbandedblockbandedoperator, testblockbandedoperator, testraggedbelowoperator
 
 @testset "PDE" begin
@@ -60,13 +60,13 @@ using ApproxFun, Test
 
         testbandedblockbandedoperator(L)
 
-        B = Dirichlet(dx) ⊗ eye(dy)
+        B = Dirichlet(dx) ⊗ Operator(I,dy)
         testraggedbelowoperator(B)
 
-        A=[Dirichlet(dx) ⊗ eye(dy);
-                eye(dx)  ⊗ Dirichlet(dy);
-                Neumann(dx) ⊗ eye(dy);
-                eye(dx) ⊗ Neumann(dy);
+        A=[Dirichlet(dx) ⊗ Operator(I,dy);
+                Operator(I,dx)  ⊗ Dirichlet(dy);
+                Neumann(dx) ⊗ Operator(I,dy);
+                Operator(I,dx) ⊗ Neumann(dy);
                  L]
 
         testraggedbelowoperator(A)

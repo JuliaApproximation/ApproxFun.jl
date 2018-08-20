@@ -141,7 +141,7 @@ maxspace_rule(A::Ultraspherical,B::Chebyshev) = A
 function Conversion(A::Ultraspherical,B::Ultraspherical)
     a=order(A); b=order(B)
     if b==a
-        ConversionWrapper(eye(A))
+        ConversionWrapper(Operator(I,A))
     elseif a<b≤a+1  || b<a≤b+1
         ConcreteConversion(A,B)
     elseif b ≠ 1
