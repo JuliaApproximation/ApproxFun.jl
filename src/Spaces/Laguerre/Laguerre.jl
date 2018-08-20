@@ -19,6 +19,7 @@ struct Laguerre{T<:Real,D<:Ray} <: PolynomialSpace{D,T}
     domain::D
 end
 
+Laguerre(α) = Laguerre(α,Ray())
 Laguerre() = Laguerre(0)
 
 """
@@ -36,7 +37,6 @@ domain(d::Laguerre) = domain(d)
 tocanonical(d::Laguerre,x) = mappoint(domain(d),Ray(),x)
 fromcanonical(d::Laguerre,x) = mappoint(Ray(),domain(d),x)
 
-Laguerre(α) = Laguerre(α,Ray())
 
 @inline laguerrerecα(::Type{T},α,k) where {T} = convert(T,2k+α-1)
 @inline laguerrerecβ(::Type{T},_,k) where {T} = convert(T,-k)
