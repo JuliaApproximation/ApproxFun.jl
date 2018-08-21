@@ -183,7 +183,7 @@ is the weighted Laguerre space exp(-x)*L_k(x).
 WeightedLaguerre() = WeightedLaguerre(0)
 
 
-@inline laguerreweight(α,L,x) = x.^α.*exp(-L*x)
+@inline laguerreweight(α,L,x) = isinf(x) ? zero(x) : x^α.*exp(-L*x)
 @inline weight(L::LaguerreWeight,x) = laguerreweight(L.α,L.L,x)
 
 
@@ -200,7 +200,7 @@ function Base.sum(f::Fun{LaguerreWeight{H,T}}) where {H<:Laguerre,T}
     f.coefficients[1]*gamma(1+space(f).α)
 end
 
-
+last(f::Fun{<:LaguerreWeight,T}) where T = zero(T)
 
 
 function Derivative(sp::LaguerreWeight,k)
