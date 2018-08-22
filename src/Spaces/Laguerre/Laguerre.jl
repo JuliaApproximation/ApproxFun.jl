@@ -34,6 +34,7 @@ spacescompatible(A::Laguerre,B::Laguerre) = A.α ≈ B.α
 
 canonicaldomain(::Laguerre) = Ray()
 domain(d::Laguerre) = d.domain
+setdomain(L::Laguerre, d::Domain) = Laguerre(L.α, d)
 tocanonical(d::Laguerre,x) = mappoint(domain(d),Ray(),x)
 fromcanonical(d::Laguerre,x) = mappoint(Ray(),domain(d),x)
 
@@ -183,9 +184,10 @@ is the weighted Laguerre space exp(-x)*L_k(x).
 WeightedLaguerre() = WeightedLaguerre(0)
 
 
-@inline laguerreweight(α,L,x) = isinf(x) ? zero(x) : x^α.*exp(-L*x)
-@inline weight(L::LaguerreWeight,x) = laguerreweight(L.α,L.L,x)
+@inline laguerreweight(α,L,x) =  0 ≤ x < Inf ? x^α*exp(-L*x) : zero(x)
+@inline weight(L::LaguerreWeight,x) = laguerreweight(L.α,L.L, mappoint(domain(L),Ray(),x))
 
+setdomain(L::LaguerreWeight, d::Domain) = LaguerreWeight(L.α, L.L, setdomain(L.space,d))
 
 Fun(::typeof(identity), sp::Laguerre) = Fun(sp,[sp.α+1,-1])
 Fun(::typeof(identity), sp::LaguerreWeight) = Fun(identity, sp.space)

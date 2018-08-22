@@ -180,7 +180,7 @@ domaindimension(f::Fun) = domaindimension(f.space)
 setdomain(f::Fun,d::Domain) = Fun(setdomain(space(f),d),f.coefficients)
 
 for op in (:tocanonical,:tocanonicalD,:fromcanonical,:fromcanonicalD,:invfromcanonicalD)
-    @eval $op(f::Fun,x...) = $op(domain(f),x...)
+    @eval $op(f::Fun,x...) = $op(space(f),x...)
 end
 
 for op in (:tocanonical,:tocanonicalD)

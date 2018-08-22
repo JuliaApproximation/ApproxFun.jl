@@ -111,8 +111,12 @@ arclength(d::Ray) = Inf
 ==(d::Ray{a},m::Ray{a}) where {a} = d.center == m.center
 
 
+mappoint(a::Ray{false}, b::Ray{false}, x::Number) =
+    x - a.center + b.center
+
+
 function mappoint(a::Ray, b::Ray, x::Number)
     d = x - a.center;
-    k = d/exp(angle(d)*im);
-    y = k * exp(angle(b)*im)
+    k = d * exp((angle(b)-angle(d))*im)
+    k + b.center
 end

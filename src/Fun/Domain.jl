@@ -92,7 +92,7 @@ last(d::IntervalDomain{T}) where {T} = fromcanonical(d,one(T))
 
 in(x,::AnyDomain) = true
 function in(x,d::IntervalDomain)
-    T=real(prectype(d))
+    T=float(real(prectype(d)))
     y=tocanonical(d,x)
     ry=real(y)
     iy=imag(y)
