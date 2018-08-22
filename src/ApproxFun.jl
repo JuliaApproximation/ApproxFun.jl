@@ -72,7 +72,7 @@ import FastTransforms: ChebyshevTransformPlan, IChebyshevTransformPlan, plan_che
 
 import FillArrays: AbstractFill
 
-import InfiniteArrays: Infinity, InfRanges
+import InfiniteArrays: Infinity, InfRanges, OneToInf
 
 # convenience for 1-d block ranges
 const BlockRange1 = BlockRange{1,Tuple{UnitRange{Int}}}

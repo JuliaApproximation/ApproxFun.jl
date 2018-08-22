@@ -18,21 +18,6 @@ using ApproxFun, LinearAlgebra, Test
     end
 
     @testset "Iterators" begin
-        @test maximum(ApproxFun.repeated(1)) == 1
-        @test minimum(1:∞) == 1
-        @test minimum(ApproxFun.flatten(([2.0],1:ApproxFun.∞))) == 1
-
-        cumsum(ApproxFun.repeated(true)) == 1:ApproxFun.∞
-        cumsum(ApproxFun.repeated(2)) == 2:2:ApproxFun.∞
-
-        @test 2*(1:∞) == 2:2:∞
-        @test 2+(1:∞) == 3:∞
-
-        @test collect(Base.Iterators.Take((1:∞),5)) == 1:5
-
-        @test cumsum(ApproxFun.Flatten(([3],ApproxFun.repeated(2)))).it[2] ==
-            ApproxFun.Count(5,2)
-
         @test cache(ApproxFun.BlockInterlacer((1:∞,[2],[2])))[1:6] ==
             [(1,1),(2,1),(2,2),(3,1),(3,2),(1,2)]
 

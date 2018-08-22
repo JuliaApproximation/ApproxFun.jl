@@ -34,11 +34,11 @@ function diagblockshift(a::AbstractFill{Int},b::AbstractFill{Int})
     0
 end
 
-diagblockshift(a::AbstractFill{Int},b::Flatten{Tuple{V1,<:AbstractFill{Int}}}) where {V1 <: AbstractVector{Int}} =
+diagblockshift(a::AbstractFill{Int},b::Vcat{Int,1,<:Tuple{V1,<:AbstractFill{Int}}}) where {V1 <: AbstractVector{Int}} =
     max(0,-diagblockshift(b,a))
 
 
-function diagblockshift(a::Flatten{Tuple{V1,<:AbstractFill{Int}}},b::AbstractFill{Int}) where V1 <: AbstractVector{Int}
+function diagblockshift(a::Vcat{Int,1,<:Tuple{V1,<:AbstractFill{Int}}},b::AbstractFill{Int}) where V1 <: AbstractVector{Int}
     @assert a.it[end].x == b.x
     isempty(a.it[1]) && return diagblockshift(a.it[2],b)
     a1, b1 = a[1],b[1]
@@ -50,8 +50,8 @@ function diagblockshift(a::Flatten{Tuple{V1,<:AbstractFill{Int}}},b::AbstractFil
     return 1+diagblockshift(flatten((a.it[1][2:end],a.it[2])),flatten(([b1-a1],b)))
 end
 
-function diagblockshift(a::Flatten{Tuple{V1,<:AbstractFill{Int}}},
-                        b::Flatten{Tuple{V2,<:AbstractFill{Int}}}) where {V1 <: AbstractVector{Int},V2 <: AbstractVector{Int}}
+function diagblockshift(a::Vcat{Int,1,<:Tuple{V1,<:AbstractFill{Int}}},
+                        b::Vcat{Int,1,<:Tuple{V2,<:AbstractFill{Int}}}) where {V1 <: AbstractVector{Int},V2 <: AbstractVector{Int}}
     isempty(a.it[1]) && return diagblockshift(a.it[2],b)
     isempty(b.it[1]) && return diagblockshift(a,b.it[2])
     a1, b1 = a[1],b[1]

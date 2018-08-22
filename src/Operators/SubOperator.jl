@@ -135,12 +135,11 @@ reindex(A::Operator, B::Tuple{BlockRange1,Any}, kj::Tuple{Any,Any}) =
 reindex(A::Operator, B::Tuple{BlockRange1}, kj::Tuple{Any}) =
     reindex(domainspace(A),B,kj)
 # Blocks are preserved under ranges
-for TYP in (:Block,:BlockRange1,:(AbstractVector{Block{1}}),:(InfRanges{Block{1}})),
-        VTYP in (:AbstractVector,)
+for TYP in (:Block,:BlockRange1,:(AbstractVector{Block{1}}))
     @eval begin
-        reindex(A::Operator, B::Tuple{$VTYP{Int},Any}, kj::Tuple{$TYP,Any}) =
+        reindex(A::Operator, B::Tuple{AbstractVector{Int},Any}, kj::Tuple{$TYP,Any}) =
             (reindex(rangespace(A), (B[1],), (kj[1],))[1], reindex(domainspace(A),tail(B), tail(kj))[1])
-        reindex(A::Operator, B::Tuple{$VTYP{Int}}, kj::Tuple{$TYP}) =
+        reindex(A::Operator, B::Tuple{AbstractVector{Int}}, kj::Tuple{$TYP}) =
             reindex(domainspace(A),B,kj)
     end
 end
