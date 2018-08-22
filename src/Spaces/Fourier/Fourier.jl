@@ -122,7 +122,7 @@ end
 
 ##TODO: fast routine
 
-function horner(c::AbstractVector,kr::AbstractRange{Int64},x)
+function horner(c::AbstractVector,kr::AbstractRange{Int},x)
     T = promote_type(eltype(c),eltype(x))
     if isempty(c)
         return zero(x)
@@ -136,7 +136,7 @@ function horner(c::AbstractVector,kr::AbstractRange{Int64},x)
     ret
 end
 
-function horner(c::AbstractVector,kr::AbstractRange{Int64},x::AbstractVector)
+function horner(c::AbstractVector,kr::AbstractRange{Int},x::AbstractVector)
     n,T = length(x),promote_type(eltype(c),eltype(x))
     if isempty(c)
         return zero(x)
@@ -155,7 +155,7 @@ end
 
 horner(c::AbstractVector,x) = horner(c,1:length(c),x)
 horner(c::AbstractVector,x::AbstractArray) = horner(c,1:length(c),x)
-horner(c::AbstractVector,kr::AbstractRange{Int64},x::AbstractArray) = reshape(horner(c,kr,vec(x)),size(x))
+horner(c::AbstractVector,kr::AbstractRange{Int},x::AbstractArray) = reshape(horner(c,kr,vec(x)),size(x))
 
 ## Cos and Sin space
 

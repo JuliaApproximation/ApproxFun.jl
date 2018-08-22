@@ -39,14 +39,14 @@ isconstspace(_) = false
 isafunctional(A::Operator) = size(A,1)==1 && isconstspace(rangespace(A))
 
 
-isboolvec(A) = isa(A,Repeated{Bool}) || isa(A,AbstractVector{Bool})
+isboolvec(A) = isa(A,AbstractFill{Bool}) || isa(A,AbstractVector{Bool})
 # block lengths of a space are 1
 hastrivialblocks(A::Space) = isboolvec(blocklengths(A))
 hastrivialblocks(A::Operator) = hastrivialblocks(domainspace(A)) &&
                                 hastrivialblocks(rangespace(A))
 
 # blocklengths are constant lengths
-hasconstblocks(A::Space) = isa(blocklengths(A),Repeated)
+hasconstblocks(A::Space) = isa(blocklengths(A),AbstractFill)
 hasconstblocks(A::Operator) = hasconstblocks(domainspace(A)) && hasconstblocks(rangespace(A)) &&
                                 blocklengths(domainspace(A)).x == blocklengths(rangespace(A)).x
 

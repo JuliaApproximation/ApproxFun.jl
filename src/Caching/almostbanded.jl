@@ -103,12 +103,12 @@ function CachedOperator(io::InterlaceOperator{T,2};padding::Bool=false) where T
 
     # we only support block size 1 for now
     for k in d∞
-        if blocklengths(ds[k]) ≠ Repeated(true)
+        if blocklengths(ds[k]) ≠ Fill(true,∞)
             return default_CachedOperator(io;padding=padding)
         end
     end
     for k in r∞
-        if blocklengths(rs[k]) ≠ Repeated(true)
+        if blocklengths(rs[k]) ≠ Fill(true,∞)
             return default_CachedOperator(io;padding=padding)
         end
     end

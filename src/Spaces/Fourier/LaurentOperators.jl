@@ -160,7 +160,7 @@ function getindex(D::ConcreteIntegral{Taylor{DD,RR}},k::Integer,j::Integer) wher
 end
 
 
-function Integral(S::SubSpace{Hardy{false,DD,RR},UnitCount{Int64},DD,RR},k::Integer) where {DD<:Circle,RR}
+function Integral(S::SubSpace{Hardy{false,DD,RR},OneToInf{Int},DD,RR},k::Integer) where {DD<:Circle,RR}
     if first(S.indexes) == k+1
         ConcreteIntegral(S,k)
     else
@@ -170,13 +170,13 @@ function Integral(S::SubSpace{Hardy{false,DD,RR},UnitCount{Int64},DD,RR},k::Inte
     end
 end
 
-bandinds(D::ConcreteIntegral{SubSpace{Hardy{false,DD,RR},UnitCount{Int64},DD,RR}}) where {DD<:Circle,RR} =
+bandinds(D::ConcreteIntegral{SubSpace{Hardy{false,DD,RR},OneToInf{Int},DD,RR}}) where {DD<:Circle,RR} =
     (0,0)
 
-rangespace(D::ConcreteIntegral{SubSpace{Hardy{false,DD,RR},UnitCount{Int64},DD,RR}}) where {DD<:Circle,RR} =
+rangespace(D::ConcreteIntegral{SubSpace{Hardy{false,DD,RR},OneToInf{Int},DD,RR}}) where {DD<:Circle,RR} =
     D.space.space
 
-function getindex(D::ConcreteIntegral{SubSpace{Hardy{false,DD,RR},UnitCount{Int64},DD,RR},OT,TT},
+function getindex(D::ConcreteIntegral{SubSpace{Hardy{false,DD,RR},OneToInf{Int},DD,RR},OT,TT},
                  k::Integer,j::Integer) where {RR,OT,TT,DD<:Circle}
     d=domain(D)
     m=D.order
@@ -214,12 +214,12 @@ end
 
 
 
-bandinds(D::ConcreteIntegral{SubSpace{Taylor{DD,RR},UnitCount{Int64},DD,RR}}) where {RR,DD<:PeriodicInterval} =
+bandinds(D::ConcreteIntegral{SubSpace{Taylor{DD,RR},OneToInf{Int},DD,RR}}) where {RR,DD<:PeriodicInterval} =
     (0,0)
-rangespace(D::ConcreteIntegral{SubSpace{Taylor{DD,RR},UnitCount{Int64},DD,RR}}) where {RR,DD<:PeriodicInterval} =
+rangespace(D::ConcreteIntegral{SubSpace{Taylor{DD,RR},OneToInf{Int},DD,RR}}) where {RR,DD<:PeriodicInterval} =
     D.space
 
-function getindex(D::ConcreteIntegral{SubSpace{Taylor{DD,RR},UnitCount{Int64},DD,RR}},
+function getindex(D::ConcreteIntegral{SubSpace{Taylor{DD,RR},OneToInf{Int},DD,RR}},
                  k::Integer,j::Integer) where {RR,DD<:PeriodicInterval}
     d=domain(D)
     m=D.order

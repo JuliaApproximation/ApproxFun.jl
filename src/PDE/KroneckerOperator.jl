@@ -130,7 +130,7 @@ function subblockbandinds(K::KroneckerOperator)
         dt = domaintensorizer(K).iterator
         rt = rangetensorizer(K).iterator
         # assume block size is repeated and square
-        @assert all(b->isa(b,Repeated),dt.blocks)
+        @assert all(b->isa(b,AbstractFill),dt.blocks)
         @assert rt.blocks == dt.blocks
 
 
@@ -357,7 +357,7 @@ end
 BandedBlockBandedMatrix(S::SubOperator) = default_BandedBlockBandedMatrix(S)
 
 
-const Trivial2DTensorizer = CachedIterator{Tuple{Int64,Int64},
+const Trivial2DTensorizer = CachedIterator{Tuple{Int,Int},
                                              TrivialTensorizer{2}}
 
 # This routine is an efficient version of KroneckerOperator for the case of

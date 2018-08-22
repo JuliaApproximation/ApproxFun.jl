@@ -4,7 +4,7 @@ module ApproxFun
     using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers,
             BlockArrays, BandedMatrices, BlockBandedMatrices, IntervalSets,
             SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions,
-            LinearAlgebra, LowRankApprox, SparseArrays, InfiniteArrays #, Arpack
+            LinearAlgebra, LowRankApprox, SparseArrays, FillArrays, InfiniteArrays #, Arpack
     import StaticArrays, ToeplitzMatrices, Calculus
 
 
@@ -70,7 +70,9 @@ import BlockBandedMatrices: blockbandwidth, blockbandwidths, blockcolstop, block
 import FastTransforms: ChebyshevTransformPlan, IChebyshevTransformPlan, plan_chebyshevtransform,
                         plan_chebyshevtransform!, plan_ichebyshevtransform, plan_ichebyshevtransform!
 
-import InfiniteArrays: Infinity
+import FillArrays: AbstractFill
+
+import InfiniteArrays: Infinity, InfRanges
 
 # convenience for 1-d block ranges
 const BlockRange1 = BlockRange{1,Tuple{UnitRange{Int}}}

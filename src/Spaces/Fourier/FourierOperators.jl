@@ -168,17 +168,17 @@ function getindex(D::ConcreteIntegral{CS,OT,T},k::Integer,j::Integer) where {CS<
     end
 end
 
-function Integral(S::SubSpace{CS,UnitCount{Int64},DD},k::Integer) where {CS<:CosSpace,DD<:PeriodicInterval}
+function Integral(S::SubSpace{CS,OneToInf{Int},DD},k::Integer) where {CS<:CosSpace,DD<:PeriodicInterval}
     @assert first(S.indexes)==2
     ConcreteIntegral(S,k)
 end
 
-bandinds(D::ConcreteIntegral{SubSpace{CS,UnitCount{Int64},DD,RR}}) where {CS<:CosSpace,DD<:PeriodicInterval,RR} =
+bandinds(D::ConcreteIntegral{SubSpace{CS,OneToInf{Int},DD,RR}}) where {CS<:CosSpace,DD<:PeriodicInterval,RR} =
     (0,0)
-rangespace(D::ConcreteIntegral{SubSpace{CS,UnitCount{Int64},DD,RR}}) where {CS<:CosSpace,DD<:PeriodicInterval,RR} =
+rangespace(D::ConcreteIntegral{SubSpace{CS,OneToInf{Int},DD,RR}}) where {CS<:CosSpace,DD<:PeriodicInterval,RR} =
     iseven(D.order) ? D.space : SinSpace(domain(D))
 
-function getindex(D::ConcreteIntegral{SubSpace{CS,UnitCount{Int64},DD,RR}},
+function getindex(D::ConcreteIntegral{SubSpace{CS,OneToInf{Int},DD,RR}},
                   k::Integer,j::Integer) where {CS<:CosSpace,DD<:PeriodicInterval,RR}
     d=domain(D)
     m=D.order

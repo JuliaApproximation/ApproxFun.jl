@@ -13,12 +13,10 @@ SubSpace(sp::SubSpace,kr) = SubSpace(sp.space,reindex(sp,sp.indexes,to_indexes(k
 domain(DS::SubSpace) = domain(DS.space)
 dimension(sp::SubSpace) = length(sp.indexes)
 
-
-|(sp::Space,kr::UnitCount) = first(kr)==1 ? sp : SubSpace(sp,kr)
-|(sp::Space,kr::Union{AbstractCount,AbstractRange}) = SubSpace(sp,kr)
+|(sp::Space,kr::AbstractRange) = SubSpace(sp,kr)
 
 
-function |(f::Fun,kr::UnitCount)
+function |(f::Fun,kr::OneToInf)
     @assert dimension(space(f)) == ∞
     Fun(space(f)|kr,f.coefficients[kr[1]:end])
 end
@@ -38,7 +36,7 @@ function blocklengths(sp::SubSpace{DS,UnitRange{Int}}) where DS
         M-blockstart(sp.space,B2)+1]
 end
 
-function blocklengths(sp::SubSpace{DS,UnitCount{Int}}) where DS
+function blocklengths(sp::SubSpace{DS,OneToInf{Int}}) where DS
     N = first(sp.indexes)
     B1=block(sp.space,N)
 
@@ -60,11 +58,7 @@ reindex(sp::SubSpace, br::Tuple{BlockRange1}, ks::Tuple{Any}) = (blockstart(sp.s
 # blocks stay the same with unit range indices
 reindex(sp::SubSpace, br::Tuple{AbstractVector{Int}}, ks::Tuple{Block{1}}) =
     reindex(sp, br, (blockrange(sp,first(ks)),))
-reindex(sp::SubSpace, br::Tuple{AbstractCount{Int}}, ks::Tuple{Block{1}}) =
-    reindex(sp, br, (blockrange(sp,first(ks)),))
 reindex(sp::SubSpace, br::Tuple{AbstractVector{Int}}, ks::Tuple{BlockRange1}) =
-    reindex(sp, br, (blockrange(sp,first(ks)),))
-reindex(sp::SubSpace, br::Tuple{AbstractCount{Int}}, ks::Tuple{BlockRange1}) =
     reindex(sp, br, (blockrange(sp,first(ks)),))
 
 
@@ -99,12 +93,12 @@ setdomain(DS::SubSpace,d::Domain) = SubSpace(setdomain(DS.space,d),DS.indexes)
 Conversion(a::SubSpace{S,IT,DD,RR},b::S) where {S<:Space,IT,DD,RR} =
     ConcreteConversion(a,b)
 
-function Conversion(a::S,b::SubSpace{S,IT,DD,RR}) where {S<:Space,IT<:UnitCount{Int},DD,RR}
+function Conversion(a::S,b::SubSpace{S,IT,DD,RR}) where {S<:Space,IT<:OneToInf{Int},DD,RR}
     @assert first(b.indexes) == 1
     ConversionWrapper(SpaceOperator(Operator(I,a),a,b))
 end
 
-bandinds(C::ConcreteConversion{SubSpace{S,UnitCount{Int},DD,RR},S}) where {S,DD,RR} =
+bandinds(C::ConcreteConversion{SubSpace{S,OneToInf{Int},DD,RR},S}) where {S,DD,RR} =
     1-first(domainspace(C).indexes),0
 
 getindex(C::ConcreteConversion{SubSpace{S,IT,DD,RR},S},

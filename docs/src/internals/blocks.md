@@ -17,5 +17,5 @@ block has length 1, then 2, and so on.
 For trivial blocks, this will return `ApproxFun.repeated(true)`.  For
 `Chebyshev(0..1) ∪ Chebyshev(2..3)` it returns `ApproxFun.repeated(2)`.
 For `Chebyshev() ⊗ Chebyshev()` it returns `1:∞`, which is equivalent to
-`ApproxFun.UnitCount(1)`.  (Note that the `Base` iterators have been recreated in
+`InfiniteArrays.OneToInf()`.  (Note that the `Base` iterators have been recreated in
 ApproxFun to add missing features.)
