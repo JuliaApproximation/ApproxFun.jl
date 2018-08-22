@@ -410,7 +410,7 @@ for TYP in (:Matrix, :BandedMatrix, :RaggedMatrix)
 
         # find optimal truncations for each operator
         # by finding the non-zero entries
-        krlin = Matrix{Union{Int,Infinity{Bool}}}(undef,length(P.ops),2)
+        krlin = Matrix{Union{Int,Infinity}}(undef,length(P.ops),2)
 
         krlin[1,1],krlin[1,2]=kr[1],kr[end]
         for m=1:length(P.ops)-1
@@ -465,7 +465,7 @@ for TYP in (:BlockBandedMatrix, :BandedBlockBandedMatrix)
 
         # find optimal truncations for each operator
         # by finding the non-zero entries
-        KRlin = Matrix{Union{Block,Infinity{Bool}}}(undef,length(P.ops),2)
+        KRlin = Matrix{Union{Block,Infinity}}(undef,length(P.ops),2)
 
         KRlin[1,1],KRlin[1,2] = first(KR),last(KR)
         for m=1:length(P.ops)-1

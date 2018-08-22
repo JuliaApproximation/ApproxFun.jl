@@ -477,8 +477,8 @@ slnorm(m::AbstractMatrix,::Colon,j::Integer) = slnorm(m,1:size(m,1),j)
 
 
 
-Base.isless(x::Block{1}, y::Infinity{Bool}) = isless(Int(x), y)
-Base.isless(x::Infinity{Bool}, y::Block{1}) = isless(x, Int(y))
+Base.isless(x::Block{1}, y::Infinity) = isless(Int(x), y)
+Base.isless(x::Infinity, y::Block{1}) = isless(x, Int(y))
 
 
 abstract type Iterator end
@@ -630,7 +630,7 @@ function repeated(x)
     end
     Repeated(x)
 end
-repeated(x,::Infinity{Bool}) = repeated(x)
+repeated(x,::Infinity) = repeated(x)
 repeated(x,m::Integer) = take(repeated(x),m)
 
 
@@ -690,19 +690,19 @@ last(it::Count{S}) where {S<:Real} =
     it.step > 0 ? ∞ : (it.step < 0 ? -∞ : error("zero step not supported"))
 
 
-function (:)(a::Real,b::Infinity{Bool})
+function (:)(a::Real,b::Infinity)
     if b.angle
         throw(ArgumentError("Cannot create $a:-∞"))
     end
     countfrom(a)
 end
-function (:)(a::Infinity{Bool},st::AbstractFloat,b::Infinity{Bool})
+function (:)(a::Infinity,st::AbstractFloat,b::Infinity)
     if a ≠ b
         throw(ArgumentError("Cannot create $a:$st:$b"))
     end
     [a]
 end
-function (:)(a::Real,st::Real,b::Infinity{Bool})
+function (:)(a::Real,st::Real,b::Infinity)
     if st == 0
         throw(ArgumentError("step cannot be zero"))
     elseif b.angle == st > 0
@@ -889,7 +889,7 @@ end
 length(f::Flatten) = mapreduce(length,+,f.it)
 size(f::Flatten) = (length(f),)
 keys(f::Flatten) = 1:length(f)
-Base.OneTo(::Infinity{Bool}) = 1:∞
+Base.OneTo(::Infinity) = 1:∞
 
 eachindex(f::Flatten) = 1:length(f)
 
@@ -1129,7 +1129,7 @@ function cumsum(f::Flatten)
 end
 
 
-function pad(v,::Infinity{Bool})
+function pad(v,::Infinity)
     if isinf(length(v))
         v
     else
@@ -1137,7 +1137,7 @@ function pad(v,::Infinity{Bool})
     end
 end
 
-function pad(v::AbstractArray,::Infinity{Bool})
+function pad(v::AbstractArray,::Infinity)
     if isinf(length(v))
         v
     else

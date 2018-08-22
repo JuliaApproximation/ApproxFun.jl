@@ -164,7 +164,7 @@ end
 
 
 blockstart(it,K)::Int = K==1 ? 1 : sum(blocklengths(it)[1:K-1])+1
-blockstop(it,::Infinity{Bool}) = ∞
+blockstop(it,::Infinity) = ∞
 blockstop(it,K)::Int = sum(blocklengths(it)[1:K])
 
 blockstart(it,K::Block) = blockstart(it,K.n[1])
@@ -597,7 +597,7 @@ end
 
 for OP in (:block,:blockstart,:blockstop)
     @eval begin
-        $OP(s::TensorSpace, ::Infinity{Bool}) = ∞
+        $OP(s::TensorSpace, ::Infinity) = ∞
         $OP(s::TensorSpace, M::Block) = $OP(tensorizer(s),M)
         $OP(s::TensorSpace, M) = $OP(tensorizer(s),M)
     end
