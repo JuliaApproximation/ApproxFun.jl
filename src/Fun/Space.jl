@@ -291,7 +291,7 @@ hasconversion(a,b) = maxspace(a,b) == b
 
 
 # tests whether a coefficients can be converted to b
-isconvertible(a,b) = hasconversion(a,b)
+isconvertible(a,b) = a == b || hasconversion(a,b)
 
 ## Conversion routines
 #       coefficients(v::AbstractVector,a,b)

@@ -329,13 +329,11 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
         @test o(0.5) == 1
     end
 
-
     @testset "blockbandinds for FiniteOperator of pointscompatibleace bug" begin
         S = ApproxFun.PointSpace([1.0,2.0])
         @test ApproxFun.blockbandinds(FiniteOperator([1 2; 3 4],S,S)) == (0,0)
     end
 
-    #SumSpace Conversion
     @testset "SumSpace Conversion" begin
         H = ApproxFun.HeavisideSpace([-1.0,0.0,1.0])
         C = ApproxFun.ContinuousSpace(ApproxFun.PiecewiseSegment([-1.0,0,1]))
@@ -353,5 +351,22 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
         S2 = ApproxFun.SumSpace(D , P)
         f = Fun(S, randn(100))
         @test (Conversion(S,S2) * f)(0.1) ≈ f(0.1)
+    end
+
+    @testset "Mix Fourier-Chebyshev (#602)" begin
+        s = Chebyshev(-π..π)
+        a = Fun(t-> 1+sin(cos(2t)), s)
+        L = Derivative() + a
+        f = Fun(t->exp(sin(10t)), s)
+        B = periodic(s,0)
+        uChebyshev = [B;L] \ [0.;f]
+
+        s = Fourier(-π..π)
+        a = Fun(t-> 1+sin(cos(2t)), s)
+        L = Derivative() + a
+        f = Fun(t->exp(sin(10t)), s)
+        uFourier = L\f
+
+        @test norm(uFourier-uChebyshev) ≤ 100eps()
     end
 end

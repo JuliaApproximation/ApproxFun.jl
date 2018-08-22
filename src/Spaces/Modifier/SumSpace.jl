@@ -270,7 +270,7 @@ function union_rule(B::ConstantSpace,A::SumSpace)
     end
 end
 
-function union_rule(A::SumSpace,B::Space)
+function union_rule(A::SumSpace, B::Space)
     if !domainscompatible(A,B)
         NoSpace()
     else
@@ -282,6 +282,9 @@ function union_rule(A::SumSpace,B::Space)
         SumSpace(A,B)
     end
 end
+
+union_rule(A::SumSpace{<:Any,<:PeriodicInterval}, B::Space{<:IntervalDomain}) =
+    union(Space(Interval(domain(A))), B)
 
 
 ## components
