@@ -33,7 +33,7 @@ on `(0, Inf)`, which satisfy the differential equations
 spacescompatible(A::Laguerre,B::Laguerre) = A.α ≈ B.α
 
 canonicaldomain(::Laguerre) = Ray()
-domain(d::Laguerre) = domain(d)
+domain(d::Laguerre) = d.domain
 tocanonical(d::Laguerre,x) = mappoint(domain(d),Ray(),x)
 fromcanonical(d::Laguerre,x) = mappoint(Ray(),domain(d),x)
 
