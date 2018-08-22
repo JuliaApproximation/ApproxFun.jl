@@ -9,7 +9,7 @@ export Ray
 # angle is (false==0) and π (true==1)
 # or ranges from (-1,1].  We use 1 as 1==true.
 #orientation true means oriented out
-doc"""
+"""
     Ray{a}(c,o)
 
 represents a ray at angle `a` starting at `c`, with orientation out to
@@ -30,7 +30,7 @@ Ray{a}(c,o) where {a} = Ray{a,typeof(c)}(c,o)
 Ray{a}(c::Number) where {a} = Ray{a,typeof(c)}(c)
 Ray{a}() where {a} = Ray{a,Float64}()
 
-Base.angle(d::Ray{a}) where {a} = a*π
+angle(d::Ray{a}) where {a} = a*π
 
 # ensure the angle is always in (-1,1]
 Ray(c,a,o) = Ray{a==0 ? false : (abs(a)≈(1.0π) ? true : mod(a/π-1,-2)+1),typeof(c)}(c,o)
@@ -42,7 +42,7 @@ Ray() = Ray{false}()
 
 ##deal with vector
 
-function convert(::Type{Ray},d::ClosedInterval)
+function Ray(d::ClosedInterval)
     a,b=d.left,d.right
     @assert abs(a)==Inf || abs(b)==Inf
 
@@ -109,3 +109,14 @@ invfromcanonicalD(d::Ray,x) = conj(cisangle(d))*ray_invfromcanonicalD(d.orientat
 arclength(d::Ray) = Inf
 
 ==(d::Ray{a},m::Ray{a}) where {a} = d.center == m.center
+
+
+mappoint(a::Ray{false}, b::Ray{false}, x::Number) =
+    x - a.center + b.center
+
+
+function mappoint(a::Ray, b::Ray, x::Number)
+    d = x - a.center;
+    k = d * exp((angle(b)-angle(d))*im)
+    k + b.center
+end

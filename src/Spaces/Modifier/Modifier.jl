@@ -38,7 +38,7 @@ end
 function interlacewithzeros(cfs::AbstractVector,k,it)
     n = length(cfs)
 
-    ret = Array{eltype(cfs)}(0)
+    ret = Array{eltype(cfs)}(undef, 0)
     n == 0 && return ret
 
     for (K,j) in it
@@ -81,7 +81,7 @@ function sumspacecoefficients(cfsin::AbstractVector,A::Space,B::PiecewiseSpace)
     defaultcoefficients(cfsin,A,B)
 end
 
-for TYP in (:SumSpace,:PiecewiseSpace), ATYP in (:ConstantSpace,:Space)
+for TYP in (:SumSpace,:PiecewiseSpace), ATYP in (:ConstantSpace,:(ConstantSpace{<:Domain{<:Number}}),:Space)
     @eval coefficients(cfsin::AbstractVector,A::$ATYP,B::$TYP) = sumspacecoefficients(cfsin,A,B)
 end
 

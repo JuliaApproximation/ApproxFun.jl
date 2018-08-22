@@ -1,4 +1,4 @@
-using ApproxFun, Compat.Test
+using ApproxFun, LinearAlgebra, Test
     import ApproxFun: testspace
 
 @testset "Chebyshev" begin
@@ -24,6 +24,8 @@ using ApproxFun, Compat.Test
     @test ef == -(-ef)
     @test ef == (ef-1) + 1
 
+    @test ef / 3 == (3 \ ef)
+
 
     cf = Fun(cos)
 
@@ -33,15 +35,13 @@ using ApproxFun, Compat.Test
     @test ef(.5) ≈ exp(.5)
     @test ecf(.123456) ≈ cos(.123456).*exp(.123456)
 
-    r=2.*rand(100) .- 1
+    r=2 .* rand(100) .- 1
 
     @test maximum(abs,ef.(r)-exp.(r))<200eps()
     @test maximum(abs,ecf.(r).-cos.(r).*exp.(r))<200eps()
 
 
     @test norm((ecf-cf.*ef).coefficients)<200eps()
-
-
 
     @test maximum(abs,(eocf-cf./ef).coefficients)<1000eps()
 
@@ -120,7 +120,7 @@ using ApproxFun, Compat.Test
     ## ALiasing
 
     f=Fun(x->cos(50acos(x)))
-    @test norm(f.coefficients-eye(ncoefficients(f))[:,51])<100eps()
+    @test norm(f.coefficients-Matrix(I,ncoefficients(f),ncoefficients(f))[:,51])<100eps()
 
 
     ## Int values
@@ -167,14 +167,20 @@ using ApproxFun, Compat.Test
 
     # Bug from Trogdon
 
-    δ = .03 # should be less than 0.03
+    let δ = .03 # should be less than 0.03
+      @test 0.0 ∈ Domain(1-8*sqrt(δ)..1+8*sqrt(δ))
+    @test 0.00001 ∈ Domain(1-8*sqrt(δ)..1+8*sqrt(δ))
 
-    @test 0. ∈ Domain(1-8.*sqrt(δ)..1+8.*sqrt(δ))
-    @test 0.00001 ∈ Domain(1-8.*sqrt(δ)..1+8.*sqrt(δ))
+    ϕfun = Fun(x -> 1/sqrt(2*pi*δ)*exp(-abs2.(x-1)/(2*δ)), 1-8sqrt(δ)..1+8sqrt(δ))
+      ϕfun(0.00001) ≈ 1/sqrt(2*pi*δ)*exp(-abs2.(0.00001-1)/(2*δ))
 
-    ϕfun = Fun(x -> 1/sqrt(2*pi*δ)*exp(-abs2.(x-1)/(2*δ)), 1-8.*sqrt(δ)..1+8.*sqrt(δ))
-    ϕfun(0.00001) ≈ 1/sqrt(2*pi*δ)*exp(-abs2.(0.00001-1)/(2*δ))
+      iϕfun = 1-cumsum(ϕfun)
+     @test iϕfun(0.00001) ≈ 1
+  end
 
-    iϕfun = 1-cumsum(ϕfun)
-    @test iϕfun(0.00001) ≈ 1
+  @test ncoefficients(Fun(x->sin(400*pi*x),-1..1)) ≤ 1400
+
+  let w = Fun(x -> 1e5/(x*x+1), 283.72074879785936 .. 335.0101119042838)
+      @test w(domain(w).a) ≈ 1e5/(domain(w).a^2+1)
+  end
 end

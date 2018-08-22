@@ -1,5 +1,5 @@
-using ApproxFun, Compat.Test
-    import ApproxFun: testbandedblockbandedoperator, testraggedbelowoperator, factor, Block
+using ApproxFun, LinearAlgebra, SpecialFunctions, Test
+    import ApproxFun: testbandedblockbandedoperator, testraggedbelowoperator, factor, Block, cfstype
 
 @testset "Multivariate" begin
     @testset "Square" begin
@@ -13,7 +13,7 @@ using ApproxFun, Compat.Test
         end
 
         @time for k=0:5,j=0:5
-            ff=(x,y)->cos(k*acos(x/2))*cos(j*acos(y/2))
+            ff = (x,y)->cos(k*acos(x/2))*cos(j*acos(y/2))
             f=Fun(ff,Interval(-2,2)^2)
             @test f(0.1,0.2) ≈ ff(0.1,0.2)
         end
@@ -67,10 +67,10 @@ using ApproxFun, Compat.Test
 
         # test "fast" grid evaluation of LowRankFun
         f = LowRankFun((x,y) -> exp(x) * cos(y)); n = 1000
-        x = linspace(-1, 1, n); y = linspace(-1, 1, n)
-        X = ones(n) * linspace(-1, 1, n)'; Y = linspace(-1, 1, n) * ones(1, n)
+        x = range(-1, stop=1, length=n); y = range(-1, stop=1, length=n)
+        X = x * fill(1.0,1,n); Y = fill(1.0, n) * y'
         @time v1 = f.(X, Y);
-        @time v2 = f.(collect(x), collect(y)');
+        @time v2 = f.(x, y');
         @test v1 ≈ v2
     end
 
@@ -116,7 +116,7 @@ using ApproxFun, Compat.Test
 
     @testset "Multivariate calculus" begin
         ## Sum
-        ff=(x,y)->(x-y)^2*exp(-x^2/2.-y^2/2)
+        ff = (x,y) -> (x-y)^2*exp(-x^2/2-y^2/2)
         f=Fun(ff,Domain(-4..4)^2)
         @test f(0.1,0.2) ≈ ff(0.1,0.2)
 
@@ -200,10 +200,10 @@ using ApproxFun, Compat.Test
     x,y = components(x),components(y)
 
     g = [real(exp(x[1]-1im));0.0y[2];real(exp(x[3]+1im));real(exp(-1+1im*y[4]))]
-    B = [ eye(dx)⊗ldirichlet(dy);
-         ldirichlet(dx)⊗eye(dy);
-         eye(dx)⊗rdirichlet(dy);
-         rneumann(dx)⊗eye(dy)    ]
+    B = [ Operator(I,dx)⊗ldirichlet(dy);
+         ldirichlet(dx)⊗Operator(I,dy);
+         Operator(I,dx)⊗rdirichlet(dy);
+         rneumann(dx)⊗Operator(I,dy)    ]
 
 
     @test Fun(g[1],rangespace(B)[1])(-0.1,-1.0) ≈ g[1](-0.1,-1.0)
@@ -212,9 +212,9 @@ using ApproxFun, Compat.Test
 
     A = [B; Laplacian()]
 
-    @test eltype([g;0.0]) == Float64
+    @test cfstype([g;0.0]) == Float64
     g2 = Fun([g;0.0],rangespace(A))
-    @test eltype(g2) == Float64
+    @test cfstype(g2) == Float64
 
 
     @test g2[1](-0.1,-1.0) ≈ g[1](-0.1,-1.0)
@@ -286,8 +286,8 @@ using ApproxFun, Compat.Test
     a = Fun(0..1) + Fun(2..3)
     f = a ⊗ a
     @test f(0.1,0.2) ≈ 0.1*0.2
-    @test f(1.1,0.2) == 0
-    @test f(2.1,0.2) == 2.1*0.2
+    @test f(1.1,0.2) ≈ 0
+    @test f(2.1,0.2) ≈ 2.1*0.2
 
     @test component(space(f),1,1) == Chebyshev(0..1)^2
     @test component(space(f),1,2) == Chebyshev(0..1)*Chebyshev(2..3)

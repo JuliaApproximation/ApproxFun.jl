@@ -14,26 +14,39 @@ export Laguerre, LaguerreWeight, WeightedLaguerre
 # p_{n+1} = (A_n x + B_n)p_n - C_n p_{n-1}
 #####
 
-struct Laguerre{T} <: PolynomialSpace{Ray{false,Float64},Float64}
+struct Laguerre{T<:Real,D<:Ray} <: PolynomialSpace{D,T}
     α::T
+    domain::D
 end
 
+Laguerre(α) = Laguerre(α,Ray())
 Laguerre() = Laguerre(0)
 
+"""
+`Laguerre(α)` is a space spanned by generalized Laguerre polynomials `Lₙ(x)` 's
+on `(0, Inf)`, which satisfy the differential equations
+```
+    xy' + (α + 1 -y) + ny = 0
+```
+`Laguerre()` is equivalent to `Laguerre(0)` by default.
+"""
 spacescompatible(A::Laguerre,B::Laguerre) = A.α ≈ B.α
 
 canonicaldomain(::Laguerre) = Ray()
-domain(::Laguerre) = Ray()
-tocanonical(::Laguerre,x) = x
-
-@inline laguerrerecα(::Type{T},α,k) where {T} = T(2k+α-1)
-@inline laguerrerecβ(::Type{T},_,k) where {T} = T(-k)
-@inline laguerrerecγ(::Type{T},α,k) where {T} = T(-(k-1+α))
+domain(d::Laguerre) = d.domain
+setdomain(L::Laguerre, d::Domain) = Laguerre(L.α, d)
+tocanonical(d::Laguerre,x) = mappoint(domain(d),Ray(),x)
+fromcanonical(d::Laguerre,x) = mappoint(Ray(),domain(d),x)
 
 
-@inline laguerrerecA(::Type{T},_,k) where {T} = T(-1/(k+1))
-@inline laguerrerecB(::Type{T},α,k) where {T} = T((2k+α+1)/(k+1))
-@inline laguerrerecC(::Type{T},α,k) where {T} = T((k+α)/(k+1))
+@inline laguerrerecα(::Type{T},α,k) where {T} = convert(T,2k+α-1)
+@inline laguerrerecβ(::Type{T},_,k) where {T} = convert(T,-k)
+@inline laguerrerecγ(::Type{T},α,k) where {T} = convert(T,-(k-1+α))
+
+
+@inline laguerrerecA(::Type{T},_,k) where {T} = convert(T,-1/(k+1))
+@inline laguerrerecB(::Type{T},α,k) where {T} = convert(T,(2k+α+1)/(k+1))
+@inline laguerrerecC(::Type{T},α,k) where {T} = convert(T,(k+α)/(k+1))
 
 for (REC,JREC) in ((:recα,:laguerrerecα),(:recβ,:laguerrerecβ),(:recγ,:laguerrerecγ),
                    (:recA,:laguerrerecA),(:recB,:laguerrerecB),(:recC,:laguerrerecC))
@@ -41,11 +54,9 @@ for (REC,JREC) in ((:recα,:laguerrerecα),(:recβ,:laguerrerecβ),(:recγ,:lagu
 end
 
 
-Fun(::typeof(identity), L::Laguerre) = Fun(L,[1+L.α,-1.0])
 
 
-
-function laguerrel(::Type{T},r::Range,α,x) where T
+function laguerrel(::Type{T},r::AbstractRange,α,x) where T
     if isempty(r)
         T[]
     else
@@ -53,7 +64,7 @@ function laguerrel(::Type{T},r::Range,α,x) where T
         if n<=2
             v=T[1,1.0-x+α]
         else
-            v=Vector{T}(n)  # x may be complex
+            v=Vector{T}(undef,n)  # x may be complex
             v[1]=1
             v[2]=1.0-x+α
 
@@ -61,29 +72,29 @@ function laguerrel(::Type{T},r::Range,α,x) where T
                 v[k+1]=((x-laguerrerecα(T,α,k))*v[k] - laguerrerecγ(T,α,k)*v[k-1])/laguerrerecβ(T,α,k)
             end
         end
-        v[r+1]
+        v[r.+1]
     end
 end
 
-laguerrel(r::Range,α,x) = laguerrel(promote_type(typeof(α),typeof(x)),r,α,x)
+laguerrel(r::AbstractRange,α,x) = laguerrel(promote_type(typeof(α),typeof(x)),r,α,x)
 
 laguerrel(::Type{T},n::Integer,α,v) where {T} = laguerrel(T,n:n,α,v)[1]
 laguerrel(n::Integer,α,v) = laguerrel(n:n,α,v)[1]
-laguerrel(::Type{T},n::Range,α,v::AbstractVector) where {T} = transpose(hcat(map(x->laguerrel(T,n,α,x),v)...))
-laguerrel(n::Range,α,v::AbstractVector) = transpose(hcat(map(x->laguerrel(n,α,x),v)...))
+laguerrel(::Type{T},n::AbstractRange,α,v::AbstractVector) where {T} = transpose(hcat(map(x->laguerrel(T,n,α,x),v)...))
+laguerrel(n::AbstractRange,α,v::AbstractVector) = transpose(hcat(map(x->laguerrel(n,α,x),v)...))
 laguerrel(::Type{T},n::Integer,α,v::AbstractVector) where {T} = map(x->laguerrel(T,n,α,x),v)
 laguerrel(n::Integer,α,v::AbstractVector) = map(x->laguerrel(n,α,x),v)
 laguerrel(::Type{T},n::Integer,S::Laguerre,v::AbstractVector) where {T} = laguerrel(T,n,S.a,S.b,v)
-laguerrel(::Type{T},n::Range,S::Laguerre,v::AbstractVector) where {T} = laguerrel(T,n,S.a,S.b,v)
+laguerrel(::Type{T},n::AbstractRange,S::Laguerre,v::AbstractVector) where {T} = laguerrel(T,n,S.a,S.b,v)
 laguerrel(::Type{T},n,S::Laguerre,v::AbstractVector) where {T} = laguerrel(T,n,S.a,S.b,v)
 laguerrel(::Type{T},n::Integer,S::Laguerre,v) where {T} = laguerrel(T,n,S.a,S.b,v)
-laguerrel(::Type{T},n::Range,S::Laguerre,v) where {T} = laguerrel(T,n,S.a,S.b,v)
+laguerrel(::Type{T},n::AbstractRange,S::Laguerre,v) where {T} = laguerrel(T,n,S.a,S.b,v)
 laguerrel(::Type{T},n,S::Laguerre,v) where {T} = laguerrel(T,n,S.a,S.b,v)
 laguerrel(n::Integer,S::Laguerre,v::AbstractVector) = laguerrel(n,S.a,S.b,v)
-laguerrel(n::Range,S::Laguerre,v::AbstractVector) = laguerrel(n,S.a,S.b,v)
+laguerrel(n::AbstractRange,S::Laguerre,v::AbstractVector) = laguerrel(n,S.a,S.b,v)
 laguerrel(n,S::Laguerre,v::AbstractVector) = laguerrel(n,S.a,S.b,v)
 laguerrel(n::Integer,S::Laguerre,v) = laguerrel(n,S.a,S.b,v)
-laguerrel(n::Range,S::Laguerre,v) = laguerrel(n,S.a,S.b,v)
+laguerrel(n::AbstractRange,S::Laguerre,v) = laguerrel(n,S.a,S.b,v)
 laguerrel(n,S::Laguerre,v) = laguerrel(n,S.a,S.b,v)
 
 
@@ -140,23 +151,59 @@ function Conversion(A::Laguerre,B::Laguerre)
 end
 
 
-# x^α*exp(-L*x)
+"""
+    LaguerreWeight(α, L, space)
+
+weights `space` by `x^α * exp(-L*x)`.
+"""
 struct LaguerreWeight{S,T} <: WeightSpace{S,Ray{false,Float64},Float64}
     α::T
     L::T
     space::S
 end
 
-LaguerreWeight(α,space::Space) = LaguerreWeight(α,1.0,space)
 
-WeightedLaguerre(α) = LaguerreWeight(α,Laguerre(α))
+"""
+    LaguerreWeight(α, space)
 
-@inline laguerreweight(α,L,x) = x.^α.*exp(-L*x)
-@inline weight(L::LaguerreWeight,x) = laguerreweight(L.α,L.L,x)
+weights `space` by `x^α * exp(-x)`.
+"""
+LaguerreWeight(α, space::Space) = LaguerreWeight(α, one(α),space)
+
+"""
+    WeightedLaguerre(α)
+
+is the weighted generalized Laguerre space x^α*exp(-x)*L_k^(α)(x).
+"""
+WeightedLaguerre(α) = LaguerreWeight(α, Laguerre(α))
+"""
+    WeightedLaguerre()
+
+is the weighted Laguerre space exp(-x)*L_k(x).
+"""
+WeightedLaguerre() = WeightedLaguerre(0)
+
+
+@inline laguerreweight(α,L,x) =  0 ≤ x < Inf ? x^α*exp(-L*x) : zero(x)
+@inline weight(L::LaguerreWeight,x) = laguerreweight(L.α,L.L, mappoint(domain(L),Ray(),x))
+
+setdomain(L::LaguerreWeight, d::Domain) = LaguerreWeight(L.α, L.L, setdomain(L.space,d))
+
+Fun(::typeof(identity), sp::Laguerre) = Fun(sp,[sp.α+1,-1])
+Fun(::typeof(identity), sp::LaguerreWeight) = Fun(identity, sp.space)
 
 
 spacescompatible(a::LaguerreWeight,b::LaguerreWeight) =
     spacescompatible(a.space,b.space) && isapprox(a.α,b.α) && isapprox(a.L,b.L)
+
+function Base.sum(f::Fun{LaguerreWeight{H,T}}) where {H<:Laguerre,T}
+    @assert space(f).L == 1  # only implemented with matching weight
+    @assert space(f).α == space(f).space.α  # only implemented with matching weight
+    f.coefficients[1]*gamma(1+space(f).α)
+end
+
+last(f::Fun{<:LaguerreWeight,T}) where T = zero(T)
+
 
 function Derivative(sp::LaguerreWeight,k)
     @assert sp.α == 0
@@ -180,7 +227,7 @@ end
 function conversion_rule(A::LaguerreWeight,B::LaguerreWeight)
     if isapproxinteger(A.α-B.α) && A.L == B.L
         ct=conversion_type(A.space,B.space)
-        ct==NoSpace()?NoSpace():LaguerreWeight(max(A.α,B.α),A.L,ct)
+        ct==NoSpace() ? NoSpace() : LaguerreWeight(max(A.α,B.α),A.L,ct)
     else
         NoSpace()
     end
@@ -230,3 +277,68 @@ Conversion(A::LaguerreWeight,B::Space{D,RR}) where {D<:Ray,RR<:Real} = Conversio
     SpaceOperator(
         Conversion(A,LaguerreWeight(0,0,B)),
         A,B))
+
+
+## Combine later
+
+function Multiplication(f::Fun{H},S::LaguerreWeight{H}) where H<:Laguerre
+    M=Multiplication(f,S.space)
+    rs=rangespace(M)
+    MultiplicationWrapper(f,SpaceOperator(M,S,LaguerreWeight(rs.α, rs)))
+end
+
+function Multiplication(f::Fun{LaguerreWeight{H,T}},S::Laguerre) where {H<:Laguerre,T}
+    M=Multiplication(Fun(space(f).space,f.coefficients),S)
+    rs=rangespace(M)
+    MultiplicationWrapper(f,SpaceOperator(M,S,LaguerreWeight(space(f).α, space(f).L, rs)))
+end
+
+
+## Integration
+function integrate(f::Fun{LW}) where LW <: LaguerreWeight{LL} where LL <: Laguerre
+    α = space(f).α;
+    n = length(f.coefficients);
+    if space(f).space.α != α
+        throw(ArgumentError("`integrate` is applicable if only LaguerreWeight parameter and Laguerre parameter are equal."))
+    else
+        if n == 0
+            Fun(0)
+        else
+            if !isinteger(α) || α == 2
+                if n == 1
+                    f̃ = Fun(f, JacobiWeight(α, 0, Chebyshev(0.0 .. Inf)));
+                    g = integrate(f̃);
+                    g = g - last(g)
+                else
+                    if f.coefficients[1] == 0
+                        Fun(WeightedLaguerre(α + 1), f.coefficients[2:end] ./ (1:n-1))
+                    else
+                        f₀ = Fun(WeightedLaguerre(α), [f.coefficients[1]]);
+                        f₀ = Fun(f₀, JacobiWeight(α, 0, Chebyshev(0.0 .. Inf)));
+                        g₀ = integrate(f₀);
+                        g₀ = g₀ - last(g₀);
+                        g = Fun(WeightedLaguerre(α + 1), f.coefficients[2:end] ./ (1:n-1));
+                        g₀ + g
+                    end
+                end
+            else
+                if n == 1
+                    f̃ = Fun(f, Chebyshev(0.0 .. Inf));
+                    g = integrate(f̃);
+                    g = g - last(g)
+                else
+                    if f.coefficients[1] == 0
+                        Fun(WeightedLaguerre(α + 1), f.coefficients[2:end] ./ (1:n-1))
+                    else
+                        f₀ = Fun(WeightedLaguerre(α), [f.coefficients[1]]);
+                        f₀ = Fun(f₀, Chebyshev(0.0 .. Inf));
+                        g₀ = integrate(f₀);
+                        g₀ = g₀ - last(g₀);
+                        g = Fun(WeightedLaguerre(α + 1), f.coefficients[2:end] ./ (1:n-1));
+                        g₀ + g
+                    end
+                end
+            end
+        end
+    end
+end

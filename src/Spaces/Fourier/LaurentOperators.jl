@@ -16,18 +16,18 @@ Multiplication(f::Fun{Taylor{DD,RR}},sp::Taylor{DD,RR}) where {DD,RR} =
 
 ## Evaluation
 
-getindex(T::ConcreteEvaluation{Taylor{DD,RR},Complex{Float64},Int,Complex{Float64}},cols::Range) where {DD,RR} =
+getindex(T::ConcreteEvaluation{Taylor{DD,RR},Complex{Float64},Int,Complex{Float64}},cols::AbstractRange) where {DD,RR} =
     mappoint(domain(T),Circle(),T.x).^(cols-1)
 
 
 ## Multiplication
 
-Multiplication(f::Fun{Laurent{DD,RR}},sp::Laurent{DD,RR}) where {DD,RR} = ConcreteMultiplication(eltype(f),f,sp)
+Multiplication(f::Fun{Laurent{DD,RR}},sp::Laurent{DD,RR}) where {DD,RR} = ConcreteMultiplication(cfstype(f),f,sp)
 
 function laurent_getindex(negative::AbstractVector{T},nonnegative::AbstractVector{T},k::Integer,j::Integer) where T
     # switch to double-infinite indices
-    k=iseven(k)?-k÷2:(k-1)÷2
-    j=iseven(j)?-j÷2:(j-1)÷2
+    k=iseven(k) ? -k÷2 : (k-1)÷2
+    j=iseven(j) ? -j÷2 : (j-1)÷2
 
     if 0<k-j≤length(negative)
         negative[k-j]
@@ -73,18 +73,18 @@ Derivative(S::Laurent{DD,RR},k::Integer) where {DD<:Circle,RR} =
     DerivativeWrapper(InterlaceOperator(Diagonal([map(s->Derivative(s,k),S.spaces)...]),SumSpace),k)
 
 bandinds(D::ConcreteDerivative{Hardy{s,DD,RR}}) where {s,DD<:PeriodicInterval,RR}=(0,0)
-bandinds(D::ConcreteDerivative{Hardy{s,DD,RR}}) where {s,DD<:Circle,RR}=s?(0,D.order):(-D.order,0)
+bandinds(D::ConcreteDerivative{Hardy{s,DD,RR}}) where {s,DD<:Circle,RR}=s ? (0,D.order) : (-D.order,0)
 
 rangespace(D::ConcreteDerivative{S}) where {S<:Hardy}=D.space
 
 function taylor_derivative_getindex(d::PeriodicInterval,m,k::Integer,j::Integer)
     C=2/(d.b-d.a)*π*im
-    k==j?(C*(k-1))^m:zero(C)
+    k==j ? (C*(k-1))^m : zero(C)
 end
 
 function hardyfalse_derivative_getindex(d::PeriodicInterval,m,k::Integer,j::Integer)
     C=2/(d.b-d.a)*π*im
-    k==j?(-C*k)^m:zero(C)
+    k==j ? (-C*k)^m : zero(C)
 end
 
 
@@ -119,9 +119,9 @@ end
 
 
 getindex(D::ConcreteDerivative{Taylor{DD,RR},OT,T},k::Integer,j::Integer) where {DD,RR,OT,T}  =
-    T(taylor_derivative_getindex(domain(D),D.order,k,j))
+    convert(T,taylor_derivative_getindex(domain(D),D.order,k,j))
 getindex(D::ConcreteDerivative{Hardy{false,DD,RR},OT,T},k::Integer,j::Integer) where {DD,RR,OT,T} =
-    T(hardyfalse_derivative_getindex(domain(D),D.order,k,j))
+    convert(T,hardyfalse_derivative_getindex(domain(D),D.order,k,j))
 
 
 
@@ -146,7 +146,7 @@ function getindex(D::ConcreteIntegral{Taylor{DD,RR}},k::Integer,j::Integer) wher
     d=domain(D)
     m=D.order
     T=eltype(D)
-    C=T(d.radius^m)
+    C=convert(T,d.radius^m)
 
     if j==k-m
         D=k-m
@@ -181,7 +181,7 @@ function getindex(D::ConcreteIntegral{SubSpace{Hardy{false,DD,RR},UnitCount{Int6
     d=domain(D)
     m=D.order
 
-    C=TT((-d.radius)^m)
+    C=convert(TT,(-d.radius)^m)
 
     if k==j
         D=k
@@ -206,7 +206,7 @@ function getindex(D::ConcreteIntegral{Hardy{false,DD,RR}},k::Integer,j::Integer)
     T=eltype(D)
     C=2/(d.b-d.a)*π*im
     if k==j
-        T((-C*k)^(-m))
+        convert(T,(-C*k)^(-m))
     else
         zero(T)
     end
@@ -226,7 +226,7 @@ function getindex(D::ConcreteIntegral{SubSpace{Taylor{DD,RR},UnitCount{Int64},DD
     TT=eltype(D)
     C=2/(d.b-d.a)*π*im
     if k==j
-        TT((C*(k+n-1))^(-m))
+        convert(TT,(C*(k+n-1))^(-m))
     else
         zero(TT)
     end
@@ -246,31 +246,31 @@ for SP in (:Taylor,:(Hardy{false}),:Laurent)
 end
 
 getindex(Σ::ConcreteDefiniteIntegral{Taylor{D,R},T},k::Integer) where {T,D<:PeriodicInterval,R} =
-    k == 1? T(complexlength(domain(Σ))) : zero(T)
+    k == 1 ? convert(T,complexlength(domain(Σ))) : zero(T)
 
 getindex(Σ::ConcreteDefiniteIntegral{Hardy{false,D,R},T},k::Integer) where {T,D<:PeriodicInterval,R} =
     zero(T)
 
 getindex(Σ::ConcreteDefiniteIntegral{Laurent{D,R},T},k::Integer) where {T,D<:PeriodicInterval,R} =
-    k == 1? T(complexlength(domain(Σ))) : zero(T)
+    k == 1 ? convert(T,complexlength(domain(Σ))) : zero(T)
 
 getindex(Σ::ConcreteDefiniteIntegral{Taylor{D,R},T},k::Integer) where {T,D<:Circle,R} =
     zero(T)
 
 getindex(Σ::ConcreteDefiniteIntegral{Hardy{false,D,R},T},k::Integer) where {T,D<:Circle,R} =
-    k == 1? T(complexlength(domain(Σ))) :zero(T)
+    k == 1 ? convert(T,complexlength(domain(Σ))) : zero(T)
 
 getindex(Σ::ConcreteDefiniteIntegral{Laurent{D,R},T},k::Integer) where {T,D<:Circle,R} =
-    k == 2? T(complexlength(domain(Σ))) :zero(T)
+    k == 2 ? convert(T,complexlength(domain(Σ))) : zero(T)
 
 getindex(Σ::ConcreteDefiniteLineIntegral{Taylor{D,R},T},k::Integer) where {T,D,R} =
-    k == 1? T(arclength(domain(Σ))) : zero(T)
+    k == 1 ? convert(T,arclength(domain(Σ))) : zero(T)
 
 getindex(Σ::ConcreteDefiniteLineIntegral{Hardy{false,D,R},T},k::Integer) where {T,D,R} =
     zero(T)
 
 getindex(Σ::ConcreteDefiniteLineIntegral{Laurent{D,R},T},k::Integer) where {T,D,R} =
-    k == 1? T(arclength(domain(Σ))) : zero(T)
+    k == 1 ? convert(T,arclength(domain(Σ))) : zero(T)
 
 bandinds(Σ::ConcreteDefiniteIntegral{Taylor{D,R}}) where {D<:PeriodicInterval,R} = 0,0
 bandinds(Σ::ConcreteDefiniteIntegral{Hardy{false,D,R}}) where {D<:PeriodicInterval,R} = 0,0
@@ -285,10 +285,10 @@ bandinds(Σ::ConcreteDefiniteLineIntegral{Laurent{D,R}}) where {D,R} = 0,0
 
 ## reverse orientation
 
-conversion_type(A::Laurent{DD,RR},B::Laurent{DD,RR}) where {DD<:Circle,RR}=domain(A).orientation?A:B
+conversion_type(A::Laurent{DD,RR},B::Laurent{DD,RR}) where {DD<:Circle,RR}=domain(A).orientation ? A : B
 function Conversion(A::Laurent{DD,RR},B::Laurent{DD,RR}) where {DD,RR}
     @assert domain(A) == reverse(domain(B))
     ConversionWrapper(SpaceOperator(
-        InterlaceOperator(Diagonal([eye(1),PermutationOperator([2,1])]))
+        InterlaceOperator(Diagonal([Matrix(I,1,1),PermutationOperator([2,1])]))
     ,A,B))
 end

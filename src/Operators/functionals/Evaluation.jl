@@ -106,7 +106,7 @@ function convert(::Type{Operator{T}},E::EvaluationWrapper) where T
     if T == eltype(E)
         E
     else
-        EvaluationWrapper(E.space,E.x,E.order,Operator{T}(E.op))::Operator{T}
+        EvaluationWrapper(E.space,E.x,E.order,convert(Operator{T},E.op))::Operator{T}
     end
 end
 
@@ -192,40 +192,40 @@ promotedomainspace(E::Dirichlet,sp::Space) = Dirichlet(sp,E.order)
 
 
 
-doc"""
+"""
 `Evaluation(sp,x,k)` is the functional associated with evaluating the
 `k`-th derivative at a point `x` for the space `sp`.
 """
 Evaluation(sp::Space,x,k)
 
-doc"""
+"""
 `Evaluation(sp,x)` is the functional associated with evaluating
 at a point `x` for the space `sp`.
 """
 Evaluation(sp::Space,x)
 
 
-doc"""
+"""
 `Evaluation(x)` is the functional associated with evaluating
 at a point `x`.
 """
 Evaluation(x)
 
 
-doc"""
+"""
 `Dirichlet(sp,k)` is the operator associated with restricting the
 `k`-th derivative on the boundary for the space `sp`.
 """
 Dirichlet(sp::Space,k)
 
-doc"""
+"""
 `Dirichlet(sp)` is the operator associated with restricting the
  the boundary for the space `sp`.
 """
 Dirichlet(sp::Space)
 
 
-doc"""
+"""
 `Dirichlet()` is the operator associated with restricting on the
  the boundary.
 """
@@ -234,14 +234,14 @@ Dirichlet()
 
 
 
-doc"""
+"""
 `Neumann(sp)` is the operator associated with restricting the
 normal derivative on the boundary for the space `sp`.
 At the moment it is implemented as `Dirichlet(sp,1)`.
 """
 Neumann(sp::Space)
 
-doc"""
+"""
 `Neumann( is the operator associated with restricting the
 normal derivative on the boundary.
 """

@@ -14,9 +14,6 @@ for op in (:Derivative,:Integral)
     end
 end
 
-
-
-
 function Evaluation(d::AbstractVector{T},x...) where T<:IntervalDomain
     n=length(d)
     R=zeros(Operator{mapreduce(eltype,promote_type,d)},n,n)
@@ -28,21 +25,18 @@ function Evaluation(d::AbstractVector{T},x...) where T<:IntervalDomain
 end
 
 
-
 ## Construction
-
-function Base.diagm(d::AbstractVector{T}) where {T<:Operator}
-    D=zeros(Operator{mapreduce(eltype,promote_type,d)},length(d),length(d))
-    for k=1:length(d)
-        D[k,k]=d[k]
-    end
-    D
+function diagm_container(kv::Pair{<:Integer,<:AbstractVector{O}}...) where O<:Operator
+    T = mapreduce(x -> mapreduce(eltype,promote_type,x.second),
+                  promote_type, kv)
+    n = mapreduce(x -> length(x.second) + abs(x.first), max, kv)
+    zeros(Operator{T}, n, n)
 end
 
-##TODO: unify with other blkdiag
-function Base.blkdiag(d1::AbstractVector{T},d2::AbstractVector{T}) where T<:Operator
+##TODO: unify with other blockdiag
+function blockdiag(d1::AbstractVector{T},d2::AbstractVector{T}) where T<:Operator
   if isempty(d1)&&isempty(d2)
-    error("Empty blkdiag")
+    error("Empty blockdiag")
   end
   if isempty(d1)
     TT=mapreduce(eltype,promote_type,d2)
@@ -59,7 +53,7 @@ function Base.blkdiag(d1::AbstractVector{T},d2::AbstractVector{T}) where T<:Oper
   D
 end
 
-Base.blkdiag(a::Operator,b::Operator) = blkdiag(Operator{promote_type(eltype(a),eltype(b))}[a],
+blockdiag(a::Operator,b::Operator) = blockdiag(Operator{promote_type(eltype(a),eltype(b))}[a],
                                                 Operator{promote_type(eltype(a),eltype(b))}[b])
 
 ## broadcase

@@ -1,4 +1,4 @@
-using ApproxFun, Compat.Test
+using ApproxFun, Test
 
 @testset "Complex" begin
     ## Diff

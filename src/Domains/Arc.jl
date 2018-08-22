@@ -7,7 +7,7 @@ mobiusinv(a,b,c,d,z) = mobius(d,-b,-c,a,z)
 
 mobiusD(a,b,c,d,z) = (a*d-b*c)/(d+c*z)^2
 mobiusinvD(a,b,c,d,z) = mobiusD(d,-b,-c,a,z)
-doc"""
+"""
     Arc(c,r,(θ₁,θ₂))
 
 represents the arc centred at `c` with radius `r` from angle `θ₁` to `θ₂`.
@@ -16,7 +16,7 @@ struct Arc{T,V<:Real,TT} <: IntervalDomain{TT}
     center::T
     radius::V
     angles::Tuple{V,V}
-    Arc{T,V,TT}(c,r,a) where {T,V,TT} = new{T,V,TT}(T(c),V(r),Tuple{V,V}(a))
+    Arc{T,V,TT}(c,r,a) where {T,V,TT} = new{T,V,TT}(convert(T,c),convert(V,r),Tuple{V,V}(a))
 end
 
 
@@ -37,7 +37,7 @@ Arc(c::Tuple,r,t) = Arc(Vec(c...),r,t)
 Arc(c,r,t0,t1) = Arc(c,r,(t0,t1))
 
 
-Base.complex(a::Arc{V}) where {V<:Vec} = Arc(complex(a.center...),a.radius,a.angles)
+complex(a::Arc{V}) where {V<:Vec} = Arc(complex(a.center...),a.radius,a.angles)
 
 isambiguous(d::Arc) =
     isnan(d.center) && isnan(d.radius) && isnan(d.angles[1]) && isnan(d.angles[2])
@@ -46,7 +46,7 @@ convert(::Type{Arc{T,V}},::AnyDomain) where {T<:Number,V<:Real} =
 convert(::Type{IT},::AnyDomain) where {IT<:Arc} =
     Arc(NaN,NaN,(NaN,NaN))
 
-Base.reverse(a::Arc) = Arc(a.center,a.radius,reverse(a.angles))
+reverse(a::Arc) = Arc(a.center,a.radius,reverse(a.angles))
 
 arclength(d::Arc) = d.radius*(d.angles[2]-d.angles[1])
 
@@ -80,7 +80,7 @@ fromcanonicalD(a::Arc{V},x::Number) where {V<:Vec} =
 
 ## information
 
-Base.issubset(a::Arc,b::Arc) =
+issubset(a::Arc,b::Arc) =
     a.center==b.center && a.radius==b.radius &&
                     (b.angles[1]≤a.angles[1]≤a.angles[2]≤b.angles[2] ||
                             b.angles[1]≥a.angles[1]≥a.angles[2]≥b.angles[2])
@@ -90,7 +90,7 @@ Base.issubset(a::Arc,b::Arc) =
 
 *(c::Real,d::Arc) =
     Arc(c*d.center,c*d.radius,(sign(c)*d.angles[1],sign(c)*d.angles[2]))
-*(d::Arc,c::Real) = $op(c,d)
+*(d::Arc,c::Real) = *(c,d)
 
 for op in (:+,:-)
     @eval begin
@@ -101,7 +101,7 @@ end
 
 
 # allow exp(im*Segment(0,1)) for constructing arc
-function Base.exp(d::Segment{CMP}) where CMP<:Complex
+function exp(d::Segment{CMP}) where CMP<:Complex
     @assert isapprox(real(d.a),0) && isapprox(real(d.b),0)
     Arc(0,1,(imag(d.a),imag(d.b)))
 end

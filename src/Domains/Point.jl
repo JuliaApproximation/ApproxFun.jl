@@ -11,10 +11,11 @@ Point(::AnyDomain) = Point(NaN)
 convert(::Type{Point},::AnyDomain) = Point(NaN)
 convert(::Type{Point{T}},::AnyDomain) where T = Point{T}(NaN)
 
-convert(::Type{Number},d::Point) = d.x
-convert(::Type{N},d::Point) where N<:Number = N(d.x)
+convert(::Type{Number}, d::Point) = d.x
+convert(::Type{N}, d::Point) where N<:Number = N(d.x)
+Number(d::Point) = convert(Number, d.x)
 
-doc"""
+"""
     Point(x)
 
 represents a single point at `x`.
@@ -52,27 +53,27 @@ isambiguous(d::Point) = isnan(d.x)
 
 
 
-Base.norm(p::Point) = norm(p.x)
+norm(p::Point) = norm(p.x)
 
-Base.getindex(p::Point,k...) = p.x[k...]
-Base.first(p::Point) = p.x
-Base.last(p::Point) = p.x
+getindex(p::Point,k...) = p.x[k...]
+first(p::Point) = p.x
+last(p::Point) = p.x
 
-Base.in(x,d::Point) = isapprox(x,d.x)
+in(x,d::Point) = isapprox(x,d.x)
 
-Base.isnan(d::Point) = false
+isnan(d::Point) = false
 
-Base.issubset(a::Point,d::UnionDomain) = a.x in d
-Base.issubset(a::Point,b::Domain) = a.x in b
+issubset(a::Point,d::UnionDomain) = a.x in d
+issubset(a::Point,b::Domain) = a.x in b
 
-Base.intersect(a::Point,b::Point) = b.x in a ? b : EmptyDomain()
-Base.intersect(a::UnionDomain,b::Point) = b.x in a ? b : EmptyDomain()
-Base.intersect(a::Domain,b::Point) = b.x in a ? b : EmptyDomain()
-Base.intersect(b::Point,a::UnionDomain) = b.x in a ? b : EmptyDomain()
-Base.intersect(b::Point,a::Domain) = b.x in a ? b : EmptyDomain()
+intersect(a::Point,b::Point) = b.x in a ? b : EmptyDomain()
+intersect(a::UnionDomain,b::Point) = b.x in a ? b : EmptyDomain()
+intersect(a::Domain,b::Point) = b.x in a ? b : EmptyDomain()
+intersect(b::Point,a::UnionDomain) = b.x in a ? b : EmptyDomain()
+intersect(b::Point,a::Domain) = b.x in a ? b : EmptyDomain()
 
-Base.setdiff(a::Point,b::Point) = a==b ? EmptyDomain() : a
-Base.reverse(a::Point) = a
+setdiff(a::Point,b::Point) = a==b ? EmptyDomain() : a
+reverse(a::Point) = a
 
 
 canonicaldomain(a::Point) = Point(0.)

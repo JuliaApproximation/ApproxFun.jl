@@ -17,7 +17,7 @@ conversion_rule(a::ContinuousSpace,
                 b::PiecewiseSpace{CD,DD,RR}) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1,DDD,RRR}}},DD,RR<:Real} where {DDD,RRR} = a
 
 plan_transform(sp::ContinuousSpace,vals::AbstractVector) =
-    TransformPlan{eltype(vals),typeof(sp),false,Void}(sp,nothing)
+    TransformPlan{eltype(vals),typeof(sp),false,Nothing}(sp,nothing)
 
 function *(P::TransformPlan{T,SS,false},vals::AbstractVector{T}) where {T,SS<:ContinuousSpace}
     S = P.space
@@ -30,7 +30,7 @@ function *(P::TransformPlan{T,SS,false},vals::AbstractVector{T}) where {T,SS<:Co
     if k==0
         vals
     elseif isperiodic(d)
-        ret=Array{PT}(max(K,n-K))
+        ret=Array{PT}(undef, max(K,n-K))
         r=n-K*k
 
         for j=1:r
@@ -61,7 +61,7 @@ function *(P::TransformPlan{T,SS,false},vals::AbstractVector{T}) where {T,SS<:Co
 
         ret
     else
-        ret=Array{PT}(n-K+1)
+        ret=Array{PT}(undef, n-K+1)
         r=n-K*k
 
         for j=1:r
@@ -111,7 +111,7 @@ function points(f::Fun{CS}) where {CS<:ContinuousSpace}
     d=domain(f)
     K=ncomponents(d)
 
-    m=isperiodic(d)?max(K,n+2K-1):n+K
+    m=isperiodic(d) ? max(K,n+2K-1) : n+K
     points(f.space,m)
 end
 
@@ -281,13 +281,12 @@ k::Integer,j::Integer) where {CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR}
 end
 
 
-function convert(::Type{BlockBandedMatrix},
-                 S::SubOperator{T,ConcreteDirichlet{TensorSpace{Tuple{CD,CD},DD,RR},
+function BlockBandedMatrix(S::SubOperator{T,ConcreteDirichlet{TensorSpace{Tuple{CD,CD},DD,RR},
                                                     CSP,TT},
                                 Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR,CSP,TT}
     P=parent(S)
     ret=BlockBandedMatrix(Zeros, S)
-    kr,jr=parentindexes(S)
+    kr,jr=parentindices(S)
 
     K1=block(rangespace(P),kr[1])
     Kr1=blockstart(rangespace(P),K1)

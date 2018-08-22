@@ -1,6 +1,6 @@
-import Base.BLAS.@blasfunc
-import Base.LinAlg: chkstride1, BlasInt
-import Base.LinAlg.LAPACK.chklapackerror
+import LinearAlgebra.BLAS.@blasfunc
+import LinearAlgebra: chkstride1, BlasInt
+import LinearAlgebra.LAPACK.chklapackerror
 
 export QuotientSpace
 
@@ -26,9 +26,9 @@ struct QuotientSpace{S,O<:Operator,DD,T,RT} <: Space{DD,T}
         U = zeros(T, n, n)
         Σ = Diagonal(zeros(T, n))
         VT = zeros(T, n, n)
-        work = Vector{T}(max((3n+7)*n,68))
-        iwork = Vector{BlasInt}(8*n)
-        rwork = Vector{RT}((5*n+7)*n)
+        work = Vector{T}(undef,max((3n+7)*n,68))
+        iwork = Vector{BlasInt}(undef,8*n)
+        rwork = Vector{RT}(undef,(5*n+7)*n)
         info = Ref{BlasInt}()
         new{S,O,DD,T,RT}(space, bcs, A, x, b, U, Σ, VT, work, iwork, rwork, info)
     end
@@ -72,9 +72,9 @@ function getindex(C::ConcreteConversion{QuotientSpace{SP,O,DD,T,RT},SP}, i::Inte
             b[ii] = -B[ii,j]
         end
         in_place_gesdd!(A, U, Σ.diag, VT, work, iwork, rwork, info)
-        At_mul_B!(x, U, b)
-        A_mul_B!(b, pinv!(Σ), x)
-        At_mul_B!(x, VT, b)
+        mul!(x, transpose(U), b)
+        mul!(b, pinv!(Σ), x)
+        mul!(x, transpose(VT), b)
         x[i+n-j+1]
     else
         zero(T)
@@ -91,8 +91,8 @@ end
 
 for (gesdd, elty, relty) in ((:dgesdd_,:Float64,:Float64),
                       (:sgesdd_,:Float32,:Float32),
-                      (:zgesdd_,:Complex128,:Float64),
-                      (:cgesdd_,:Complex64,:Float32))
+                      (:zgesdd_,:ComplexF64,:Float64),
+                      (:cgesdd_,:ComplexF32,:Float32))
     @eval begin
         #    SUBROUTINE DGESDD( JOBZ, M, N, A, LDA, S, U, LDU, VT, LDVT, WORK,
         #                   LWORK, IWORK, INFO )
@@ -113,21 +113,25 @@ for (gesdd, elty, relty) in ((:dgesdd_,:Float64,:Float64),
             cmplx  = $elty != $relty
             for i = 1:2
                 if cmplx
-                    ccall((@blasfunc($gesdd), liblapack), Void,
-                          (Ptr{UInt8}, Ptr{BlasInt}, Ptr{BlasInt}, Ptr{$elty},
-                           Ptr{BlasInt}, Ptr{$relty}, Ptr{$elty}, Ptr{BlasInt},
-                           Ptr{$elty}, Ptr{BlasInt}, Ptr{$elty}, Ptr{BlasInt},
+                    ccall((@blasfunc($gesdd), liblapack), Nothing,
+                          (Ref{UInt8}, Ref{BlasInt}, Ref{BlasInt}, Ptr{$elty},
+                           Ref{BlasInt}, Ptr{$relty}, Ptr{$elty}, Ref{BlasInt},
+                           Ptr{$elty}, Ref{BlasInt}, Ptr{$elty}, Ref{BlasInt},
                            Ptr{$relty}, Ptr{BlasInt}, Ptr{BlasInt}),
-                          &job, &m, &n, A, &max(1,stride(A,2)), S, U, &max(1,stride(U,2)), VT, &max(1,stride(VT,2)),
-                          work, &lwork, rwork, iwork, info)
+                          job, m, n, A,
+                          max(1,stride(A,2)), S, U, max(1,stride(U,2)),
+                          VT, max(1,stride(VT,2)), work, lwork,
+                          rwork, iwork, info)
                 else
-                    ccall((@blasfunc($gesdd), liblapack), Void,
-                          (Ptr{UInt8}, Ptr{BlasInt}, Ptr{BlasInt}, Ptr{$elty},
-                           Ptr{BlasInt}, Ptr{$elty}, Ptr{$elty}, Ptr{BlasInt},
-                           Ptr{$elty}, Ptr{BlasInt}, Ptr{$elty}, Ptr{BlasInt},
+                    ccall((@blasfunc($gesdd), liblapack), Nothing,
+                          (Ref{UInt8}, Ref{BlasInt}, Ref{BlasInt}, Ptr{$elty},
+                           Ref{BlasInt}, Ptr{$elty}, Ptr{$elty}, Ref{BlasInt},
+                           Ptr{$elty}, Ref{BlasInt}, Ptr{$elty}, Ref{BlasInt},
                            Ptr{BlasInt}, Ptr{BlasInt}),
-                          &job, &m, &n, A, &max(1,stride(A,2)), S, U, &max(1,stride(U,2)), VT, &max(1,stride(VT,2)),
-                          work, &lwork, iwork, info)
+                          job, m, n, A,
+                          max(1,stride(A,2)), S, U, max(1,stride(U,2)),
+                          VT, max(1,stride(VT,2)), work, lwork,
+                          iwork, info)
                 end
                 chklapackerror(info[])
                 if i == 1

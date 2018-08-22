@@ -5,25 +5,25 @@
 
 export ProductFun
 
-struct ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,SS<:AbstractProductSpace,T}<:BivariateFun{T}
+struct ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,SS<:AbstractProductSpace,T} <: BivariateFun{T}
     coefficients::Vector{VFun{S,T}}     # coefficients are in x
     space::SS
 end
 
-ProductFun(cfs::Vector{VFun{S,T}},sp::AbstractProductSpace{Tuple{S,V},DD}) where {S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,DD<:BivariateDomain} =
+ProductFun(cfs::Vector{VFun{S,T}},sp::AbstractProductSpace{Tuple{S,V},DD}) where {S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,DD} =
     ProductFun{S,V,typeof(sp),T}(cfs,sp)
 ProductFun(cfs::Vector{VFun{S,T}},sp::AbstractProductSpace{Tuple{W,V},DD}) where {S<:UnivariateSpace,V<:UnivariateSpace,
-         W<:UnivariateSpace,T<:Number,DD<:BivariateDomain} =
+         W<:UnivariateSpace,T<:Number,DD} =
    ProductFun{W,V,typeof(sp),T}(VFun{W,T}[Fun(cfs[k],columnspace(sp,k)) for k=1:length(cfs)],sp)
 
 Base.size(f::ProductFun,k::Integer) =
-    k==1?mapreduce(ncoefficients,max,f.coefficients):length(f.coefficients)
+    k==1 ? mapreduce(ncoefficients,max,f.coefficients) : length(f.coefficients)
 Base.size(f::ProductFun) = (size(f,1),size(f,2))
 
 ## Construction in an AbstractProductSpace via a Matrix of coefficients
 
 function ProductFun(cfs::AbstractMatrix{T},sp::AbstractProductSpace{Tuple{S,V},DD};
-  tol::Real=100eps(T),chopping::Bool=false) where {S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,DD<:BivariateDomain}
+  tol::Real=100eps(T),chopping::Bool=false) where {S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,DD}
     if chopping
         ncfs,kend=norm(cfs,Inf),size(cfs,2)
         if kend > 1 while isempty(chop(cfs[:,kend],ncfs*tol)) kend-=1 end end
@@ -51,7 +51,7 @@ function ProductFun(f::Function,sp::AbstractProductSpace{Tuple{S,V}};tol=100eps(
             return ProductFun(X,sp;tol=tol)
         end
     end
-    warn("Maximum grid size of ("*string(5000)*","*string(5000)*") reached")
+    @warn "Maximum grid size of ("*string(5000)*","*string(5000)*") reached"
     ProductFun(f,sp,5000,5000;tol=tol,chopping=true)
 end
 
@@ -72,7 +72,7 @@ ProductFun(f::Function,dx::Space,dy::Space)=ProductFun(dynamic(f),TensorSpace(dx
 
 ## Domains promoted to Spaces
 
-ProductFun(f::Function,D::BivariateDomain,M::Integer,N::Integer) = ProductFun(dynamic(f),Space(D),M,N)
+ProductFun(f::Function,D::Domain,M::Integer,N::Integer) = ProductFun(dynamic(f),Space(D),M,N)
 ProductFun(f::Function,d::Domain) = ProductFun(dynamic(f),Space(d))
 ProductFun(f::Function,dx::UnivariateDomain,dy::UnivariateDomain) = ProductFun(dynamic(f),Space(dx),Space(dy))
 ProductFun(f::Function) = ProductFun(dynamic(f),Interval(),Interval())
@@ -84,11 +84,11 @@ ProductFun(f::Fun{S}) where {S<:AbstractProductSpace} = ProductFun(coefficientma
 
 ## Conversion to other ProductSpaces with the same coefficients
 
-ProductFun(f::ProductFun,sp::TensorSpace)=space(f)==sp?f:ProductFun(coefficients(f,sp),sp)
+ProductFun(f::ProductFun,sp::TensorSpace)=space(f)==sp ? f : ProductFun(coefficients(f,sp),sp)
 ProductFun(f::ProductFun{S,V,SS},sp::ProductDomain) where {S,V,SS<:TensorSpace}=ProductFun(f,Space(sp))
 
 function ProductFun(f::ProductFun,sp::AbstractProductSpace)
-    u=Array{VFun{typeof(columnspace(sp,1)),eltype(f)}}(length(f.coefficients))
+    u=Array{VFun{typeof(columnspace(sp,1)),cfstype(f)}}(length(f.coefficients))
 
     for k=1:length(f.coefficients)
         u[k]=Fun(f.coefficients[k],columnspace(sp,k))
@@ -149,7 +149,7 @@ end
 coefficients(f::ProductFun)=funlist2coefficients(f.coefficients)
 
 function coefficients(f::ProductFun,ox::Space,oy::Space)
-    T=eltype(f)
+    T=cfstype(f)
     m=size(f,1)
     B=Matrix{T}(m,length(f.coefficients))
     # convert in x direction
@@ -174,6 +174,7 @@ function coefficients(f::ProductFun,ox::Space,oy::Space)
 end
 
 (f::ProductFun)(x,y) = evaluate(f,x,y)
+(f::ProductFun)(x,y,z) = evaluate(f,x,y,z)
 
 coefficients(f::ProductFun,ox::TensorSpace) = coefficients(f,ox[1],ox[2])
 
@@ -201,13 +202,14 @@ function canonicalevaluate(f::ProductFun{S,V,SS,T},x::Number,::Colon) where {S,V
 end
 canonicalevaluate(f::ProductFun,x::Number,y::Number) = canonicalevaluate(f,x,:)(y)
 canonicalevaluate(f::ProductFun{S,V,SS},x::Colon,y::Number) where {S,V,SS<:TensorSpace} =
-    evaluate(f.',y,:)  # doesn't make sense For general product fon without specifying space
+    evaluate(transpose(f),y,:)  # doesn't make sense For general product fon without specifying space
 
 canonicalevaluate(f::ProductFun,xx::AbstractVector,yy::AbstractVector) =
-    hcat([evaluate(f,x,:)(yy) for x in xx]...).'
+    transpose(hcat([evaluate(f,x,:)(yy) for x in xx]...))
 
 
 evaluate(f::ProductFun,x,y) = canonicalevaluate(f,tocanonical(f,x,y)...)
+evaluate(f::ProductFun,x,y,z) = canonicalevaluate(f,tocanonical(f,x,y,z)...)
 
 # TensorSpace does not use map
 evaluate(f::ProductFun{S,V,SS,T},x::Number,::Colon) where {S<:UnivariateSpace,V<:UnivariateSpace,SS<:TensorSpace,T} =
@@ -228,7 +230,7 @@ function chop(f::ProductFun{S},es...) where S
     while kend > 1 && isempty(chop(f.coefficients[kend].coefficients,es...))
         kend-=1
     end
-    ret=VFun{S,eltype(f)}[Fun(space(f.coefficients[k]),chop(f.coefficients[k].coefficients,es...)) for k=1:max(kend,1)]
+    ret=VFun{S,cfstype(f)}[Fun(space(f.coefficients[k]),chop(f.coefficients[k].coefficients,es...)) for k=1:max(kend,1)]
 
     typeof(f)(ret,f.space)
 end
@@ -268,7 +270,7 @@ end
 -(f::ProductFun,g::ProductFun) = f+(-g)
 
 *(B::Fun,f::ProductFun) = ProductFun(map(c->B*c,f.coefficients),space(f))
-*(f::ProductFun,B::Fun) = (B*f.').'
+*(f::ProductFun,B::Fun) = transpose(B*transpose(f))
 
 
 LowRankFun(f::ProductFun{S,V,SS}) where {S,V,SS<:TensorSpace} = LowRankFun(f.coefficients,factor(space(f),2))
@@ -279,7 +281,7 @@ function differentiate(f::ProductFun{S,V,SS},j::Integer) where {S,V,SS<:TensorSp
         df=map(differentiate,f.coefficients)
         ProductFun(df,space(first(df)),factor(space(f),2))
     else
-        differentiate(f.',1).'
+        transpose(differentiate(transpose(f),1))
     end
 end
 
@@ -306,9 +308,9 @@ end
 
 #For complex bases
 Base.real(f::ProductFun{S,V,SS}) where {S,V,SS<:TensorSpace} =
-    real(ProductFun(real(u.coefficients),space(u)).').'-imag(ProductFun(imag(u.coefficients),space(u)).').'
+    transpose(real(transpose(ProductFun(real(u.coefficients),space(u)))))-transpose(imag(transpose(ProductFun(imag(u.coefficients),space(u)))))
 Base.imag(f::ProductFun{S,V,SS}) where {S,V,SS<:TensorSpace} =
-    real(ProductFun(imag(u.coefficients),space(u)).').'+imag(ProductFun(real(u.coefficients),space(u)).').'
+    transpose(real(transpose(ProductFun(imag(u.coefficients),space(u)))))+transpose(imag(transpose(ProductFun(real(u.coefficients),space(u)))))
 
 
 

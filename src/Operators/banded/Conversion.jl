@@ -44,8 +44,8 @@ function defaultConversion(a::Space,b::Space)
 end
 
 Conversion(a::Space,b::Space) = defaultConversion(a,b)
-Conversion(a::Space) = ConversionWrapper(eye(a))
-Conversion() = ConversionWrapper(eye(UnsetSpace()))
+Conversion(a::Space) = ConversionWrapper(Operator(I,a))
+Conversion() = ConversionWrapper(Operator(I,UnsetSpace()))
 
 
 ## Wrapper
@@ -81,6 +81,5 @@ function convert(::Type{Operator{T}},D::ConversionWrapper) where T
 end
 
 
-Base.eye(A::Operator) = Conversion(domainspace(A),rangespace(A))
 
-#promotedomainspace(P::Conversion,sp::Space)=ConversionWrapper(eye(sp))
+#promotedomainspace(P::Conversion,sp::Space)=ConversionWrapper(Operator(I, sp))

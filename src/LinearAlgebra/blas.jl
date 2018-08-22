@@ -1,5 +1,5 @@
-import Base.BLAS: @blasfunc, libblas
-import Base.LAPACK: liblapack
+import LinearAlgebra.BLAS: @blasfunc, libblas
+import LinearAlgebra.LAPACK: liblapack
 # Level 2
 ## mv
 ### gemv
@@ -8,8 +8,8 @@ gemv!(x...) = BLAS.gemv!(x...)
 
 for (fname, elty) in ((:dgemv_,:Float64),
                       (:sgemv_,:Float32),
-                      (:zgemv_,:Complex128),
-                      (:cgemv_,:Complex64))
+                      (:zgemv_,:ComplexF64),
+                      (:cgemv_,:ComplexF32))
     @eval begin
              #SUBROUTINE DGEMV(TRANS,M,N,ALPHA,A,LDA,X,INCX,BETA,Y,INCY)
              #*     .. Scalar Arguments ..
@@ -20,13 +20,13 @@ for (fname, elty) in ((:dgemv_,:Float64),
              #      DOUBLE PRECISION A(LDA,*),X(*),Y(*)
         function gemv!(trans::Char, m::Int, n::Int, alpha::($elty), A::Ptr{$elty}, stA::Int,
                         X::Ptr{$elty}, incX::Int, beta::($elty), Y::Ptr{$elty}, incY::Int)
-            ccall((@blasfunc($fname), libblas), Void,
-                (Ptr{UInt8}, Ptr{BlasInt}, Ptr{BlasInt}, Ptr{$elty},
-                 Ptr{$elty}, Ptr{BlasInt}, Ptr{$elty}, Ptr{BlasInt},
-                 Ptr{$elty}, Ptr{$elty}, Ptr{BlasInt}),
-                 &trans, &m, &n, &alpha,
-                 A, &stA, X, &incX,
-                 &beta, Y, &incY)
+            ccall((@blasfunc($fname), libblas), Nothing,
+                (Ref{UInt8}, Ref{BlasInt}, Ref{BlasInt}, Ref{$elty},
+                 Ptr{$elty}, Ref{BlasInt}, Ptr{$elty}, Ref{BlasInt},
+                 Ref{$elty}, Ptr{$elty}, Ref{BlasInt}),
+                 trans, m, n, alpha,
+                 A, stA, X, incX,
+                 beta, Y, incY)
             Y
         end
 
@@ -37,7 +37,7 @@ for (fname, elty) in ((:dgemv_,:Float64),
             elseif trans == 'C' && (length(X) != m || length(Y) != n)
                 throw(DimensionMismatch("A' has dimensions $n, $m, X has length $(length(X)) and Y has length $(length(Y))"))
             elseif trans == 'T' && (length(X) != m || length(Y) != n)
-                throw(DimensionMismatch("A.' has dimensions $n, $m, X has length $(length(X)) and Y has length $(length(Y))"))
+                throw(DimensionMismatch("transpose(A) has dimensions $n, $m, X has length $(length(X)) and Y has length $(length(Y))"))
             end
             gemv!(trans, m, n, alpha, pointer(A), max(1,stride(A,2)),
                     pointer(X), stride(X,1), beta, pointer(Y), stride(Y,1))
@@ -56,8 +56,8 @@ gemm!(x...) = BLAS.gemm!(x...)
 for (gemm, elty) in
         ((:dgemm_,:Float64),
          (:sgemm_,:Float32),
-         (:zgemm_,:Complex128),
-         (:cgemm_,:Complex64))
+         (:zgemm_,:ComplexF64),
+         (:cgemm_,:ComplexF32))
     @eval begin
              # SUBROUTINE DGEMM(TRANSA,TRANSB,M,N,K,ALPHA,A,LDA,B,LDB,BETA,C,LDC)
              # *     .. Scalar Arguments ..
@@ -69,15 +69,15 @@ for (gemm, elty) in
         function gemm!(transA::Char, transB::Char, m::Int, n::Int, k::Int, alpha::($elty),
                         A::Ptr{$elty}, stA::Int, B::Ptr{$elty}, stB::Int,
                         beta::($elty), C::Ptr{$elty},stC::Int)
-            ccall((@blasfunc($gemm), libblas), Void,
-                (Ptr{UInt8}, Ptr{UInt8}, Ptr{BlasInt}, Ptr{BlasInt},
-                 Ptr{BlasInt}, Ptr{$elty}, Ptr{$elty}, Ptr{BlasInt},
-                 Ptr{$elty}, Ptr{BlasInt}, Ptr{$elty}, Ptr{$elty},
-                 Ptr{BlasInt}),
-                 &transA, &transB, &m, &n,
-                 &k, &alpha, A, &stA,
-                 B, &stB, &beta, C,
-                 &stC)
+            ccall((@blasfunc($gemm), libblas), Nothing,
+                (Ref{UInt8}, Ref{UInt8}, Ref{BlasInt}, Ref{BlasInt},
+                 Ref{BlasInt}, Ref{$elty}, Ptr{$elty}, Ref{BlasInt},
+                 Ptr{$elty}, Ref{BlasInt}, Ref{$elty}, Ptr{$elty},
+                 Ref{BlasInt}),
+                 transA, transB, m, n,
+                 k, alpha, A, stA,
+                 B, stB, beta, C,
+                 stC)
             C
         end
 

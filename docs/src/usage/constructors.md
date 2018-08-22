@@ -46,19 +46,19 @@ Chebyshev(【-1.0,-0.9000000000000002】)⨄Chebyshev(【-0.9000000000000002,-0.
 The default space is `Chebyshev`, which can represent non-periodic functions on intervals.  Each `Space` type has a default domain: for `Chebyshev` this is `-1..1`, for Fourier and Laurent this is `-π..π`.  Thus the following
 are synonyms:
 ```julia
-Fun(exp,Chebyshev(Interval(-1,1)))
-Fun(exp,Chebyshev(Interval()))
-Fun(exp,Chebyshev(-1..1))
-Fun(exp,Chebyshev())
-Fun(exp,-1..1)
-Fun(exp,Interval())
-Fun(exp,Interval(-1,1))
+Fun(exp, Chebyshev(Interval(-1,1)))
+Fun(exp, Chebyshev(Interval()))
+Fun(exp, Chebyshev(-1..1))
+Fun(exp, Chebyshev())
+Fun(exp, -1..1)
+Fun(exp, Interval())
+Fun(exp, Interval(-1,1))
 Fun(exp)
 ```
 If a function is not specified, then it is taken to be `identity`.  Thus we have the
 following synonyms:
 ```julia
-x = Fun(identity,-1..1)
+x = Fun(identity, -1..1)
 x = Fun(-1..1)
 x = Fun(identity)
 x = Fun()
@@ -70,12 +70,12 @@ x = Fun()
 It is sometimes necessary to specify coefficients explicitly.  This is possible
 via specifying the space followed by a vector of coefficients:
 ```jldoctest
-julia> f = Fun(Taylor(),[1,2,3]);  # represents 1 + 2z + 3z^2
+julia> f = Fun(Taylor(), [1,2,3]);  # represents 1 + 2z + 3z^2
 
 julia> f(0.1)
 1.23
 
-julia> 1+2*0.1+3*0.1^2
+julia> 1 + 2*0.1 + 3*0.1^2
 1.23
 ```
 
@@ -104,7 +104,7 @@ The ApproxFun package for Julia implements all of the necessary operations for C
 
 Normally, you give it a function f and a domain d, and construct the Chebyshev interpolant by `fc = Fun(f, d)`. The ApproxFun package figures out the necessary number of Chebyshev points (i.e., the polynomial order) required to interpolate f to nearly machine precision, so that subsequent operations on fc can be viewed as "exact".
 
-However, in cases where the function to be interpolated is extremely expensive, and possibly even is evaluated by an external program, it is convenient to be able to decide on the desired Chebyshev order in advance, evaluate the function at those points "manually", and then construct the Chebyshev interpolant. However, this procedure isn't documented in the ApproxFun manual. In this notebook, we show how to do that for the example `f(x) = exp(2x)` on the domain `0..1`.
+However, in cases where the function to be interpolated is extremely expensive, and possibly even is evaluated by an external program, it is convenient to be able to decide on the desired Chebyshev order in advance, evaluate the function at those points "manually", and then construct the Chebyshev interpolant. An example showing how to do this is given in the [ApproxFun FAQ](../faq.md).
 
 
 ```@meta

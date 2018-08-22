@@ -35,7 +35,7 @@ julia> S = Chebyshev(1..2);
 
 julia> n = 50;
 
-julia> p = linspace(1,2,n);   # a non-default grid
+julia> p = range(1,stop=2,length=n);   # a non-default grid
 
 julia> v = exp.(p);           # values at the non-default grid
 
@@ -61,7 +61,7 @@ julia> S = Chebyshev(1..2);
 
 julia> n = 100; m = 50;
 
-julia> p = linspace(1,2,n);   # a non-default grid
+julia> p = range(1,stop=2,length=n);   # a non-default grid
 
 julia> v = exp.(p);           # values at the non-default grid
 
@@ -87,7 +87,7 @@ julia> S = Chebyshev(0..1)^2;
 
 julia> n = 1000; m = 50;
 
-julia> srand(0); x = rand(n); y = rand(n);
+julia> Random.seed!(0); x = rand(n); y = rand(n);
 
 julia> v = exp.(x .* cos(y));  # values at the non-default grid
 

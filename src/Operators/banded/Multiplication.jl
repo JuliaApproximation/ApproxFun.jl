@@ -14,7 +14,7 @@ function ConcreteMultiplication(::Type{V},f::Fun{D,T},sp::Space) where {V,D,T}
         error("Domain mismatch: cannot multiply function on $(domain(f)) to function on $(domain(sp))")
     end
     ConcreteMultiplication{D,typeof(sp),V}(
-        convert(Fun{D,V},chop(f,40*eps(eltype(f)))),sp)
+        convert(Fun{D,V},chop(f,40*eps(cfstype(f)))),sp)
 end
 
 
@@ -23,7 +23,7 @@ function ConcreteMultiplication(f::Fun{D,T},sp::Space) where {D,T}
         error("Domain mismatch: cannot multiply function on $(domain(f)) to function on $(domain(sp))")
     end
     V = promote_type(T,rangetype(sp))
-    ConcreteMultiplication{D,typeof(sp),V}(convert(Fun{D,V},chop(f,40*eps(eltype(f)))),sp)
+    ConcreteMultiplication{D,typeof(sp),V}(convert(Fun{D,V},chop(f,40*eps(cfstype(f)))),sp)
 end
 
 # We do this in two stages to support Modifier spaces
@@ -86,7 +86,7 @@ choosedomainspace(M::ConcreteMultiplication{D,UnsetSpace},::UnsetSpace) where {D
 choosedomainspace(M::ConcreteMultiplication{D,UnsetSpace},sp::Space) where {D} = sp
 
 
-Base.diagm(a::Fun) = Multiplication(a)
+diagm(a::Fun) = Multiplication(a)
 
 struct MultiplicationWrapper{D<:Space,S<:Space,O<:Operator,T} <: Multiplication{D,S,T}
     f::VFun{D,T}
@@ -157,13 +157,13 @@ transformtimes(f::Fun,g::Fun) = transformtimes(f,g,ncoefficients(f) + ncoefficie
 
 ## docs
 
-doc"""
+"""
 `Multiplication(f::Fun,sp::Space)` is the operator representing multiplication by
 `f` on functions in the space `sp`.
 """
 Multiplication(::Fun,::Space)
 
-doc"""
+"""
 `Multiplication(f::Fun)` is the operator representing multiplication by
 `f` on an unset space of functions.  Spaces will be inferred when applying or
 manipulating the operator.

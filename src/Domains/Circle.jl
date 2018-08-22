@@ -7,7 +7,7 @@ export Circle
 
 
 # T Must be in an Algebra
-doc"""
+"""
     Circle(c,r,o)
 
 represents the circle centred at `c` with radius `r` which is positively (`o=true`)
@@ -45,12 +45,12 @@ convert(::Type{IT},::AnyDomain) where {IT<:Circle} = Circle(NaN,NaN)
 
 function tocanonical(d::Circle{T},ζ) where T<:Number
     v=mappoint(d,Circle(),ζ)
-    atan2(imag(v)-0.0,real(v))  # -0.0 to get branch cut right
+    atan(imag(v)-0.0,real(v))  # -0.0 to get branch cut right
 end
 
 function tocanonical(d::Circle{T},ζ) where T<:Vec
     v=mappoint(d,Circle((0.0,0.0),1.0),ζ)
-    atan2(v[2]-0.0,v[1])  # -0.0 to get branch cut right
+    atan(v[2]-0.0,v[1])  # -0.0 to get branch cut right
 end
 
 
@@ -66,7 +66,7 @@ fromcanonicalD(d::Circle{T},θ::Number) where {T<:Vec} =
 	d.radius*(d.orientation ? 1 : -1)*Vec(-sin((d.orientation ? 1 : -1)*θ),cos((d.orientation ? 1 : -1)*θ))
 
 
-Base.in(z,d::Circle) = norm(z-d.center) ≈ d.radius
+in(z,d::Circle) = norm(z-d.center) ≈ d.radius
 
 arclength(d::Circle) = 2π*d.radius
 complexlength(d::Circle) = (d.orientation ? 1 : -1)*im*arclength(d)  #TODO: why?
@@ -84,14 +84,14 @@ mappoint(d1::Circle{T},d2::Circle{V},z) where {T<:Number,V<:Vec} =
 
 function mappoint(d1::Circle,d2::Circle,z)
    v=(z-d1.center)/d1.radius
-   d1.orientation != d2.orientation && (v=1./v)
+   d1.orientation != d2.orientation && (v=1/v)
    v*d2.radius+d2.center
 end
 
 
 
-Base.reverse(d::Circle) = Circle(d.center,d.radius,!d.orientation)
-Base.conj(d::Circle) = Circle(conj(d.center),d.radius,!d.orientation)
+reverse(d::Circle) = Circle(d.center,d.radius,!d.orientation)
+conj(d::Circle) = Circle(conj(d.center),d.radius,!d.orientation)
 
 
 for op in (:+,:-)
@@ -109,5 +109,5 @@ end
 
 /(c::Number,d::Circle) =
 	c==1 ? (d.center==0 ? Circle(d.center,1/d.radius,!d.orientation) :
-				Circle(1/d.center,abs(1/(d.center+d.radius)-1/(d.center)),!d.orientation)):
+				Circle(1/d.center,abs(1/(d.center+d.radius)-1/(d.center)),!d.orientation)) :
 				c*(1/d)

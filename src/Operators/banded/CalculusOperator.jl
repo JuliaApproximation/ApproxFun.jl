@@ -7,9 +7,9 @@ abstract type CalculusOperator{S,OT,T}<:Operator{T} end
 ## Note that all functions called in calculus_operator must be exported
 
 macro calculus_operator(Op)
-    ConcOp=parse("Concrete"*string(Op))
-    WrappOp=parse(string(Op)*"Wrapper")
-    DefaultOp=parse("Default"*string(Op))
+    ConcOp=Meta.parse("Concrete"*string(Op))
+    WrappOp=Meta.parse(string(Op)*"Wrapper")
+    DefaultOp=Meta.parse("Default"*string(Op))
     return esc(quote
         # The SSS, TTT are to work around #9312
         abstract type $Op{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT} end
@@ -101,7 +101,7 @@ macro calculus_operator(Op)
 end
 
 choosedomainspace(M::CalculusOperator{UnsetSpace},sp::Space) =
-    iswrapper(M)?choosedomainspace(M.op,sp):sp  # we assume the space itself will work
+    iswrapper(M) ? choosedomainspace(M.op,sp) : sp  # we assume the space itself will work
 
 
 
@@ -230,12 +230,12 @@ for TYP in (:Derivative,:Integral,:Laplacian)
 end
 
 
-doc"""
+"""
 `Derivative(sp::Space,k::Int)` represents the `k`-th derivative on `sp`.
 """
 Derivative(::Space,::Int)
 
-doc"""
+"""
 `Derivative(sp::Space,k::Vector{Int})` represents a partial derivative on a multivariate space.
 For example,
 ```julia
@@ -245,54 +245,54 @@ Dy = Derivative(Chebyshev()^2,[0,1]) # ∂/∂y
 """
 Derivative(::Space,::Vector{Int})
 
-doc"""
+"""
 `Derivative(sp::Space)` represents the first derivative `Derivative(sp,1)`.
 """
 Derivative(::Space)
 
-doc"""
+"""
 `Derivative(k)` represents the `k`-th derivative, acting on an unset space.
 Spaces will be inferred when applying or manipulating the operator.
 """
 Derivative(k)
 
-doc"""
+"""
 `Derivative()` represents the first derivative on an unset space.
 Spaces will be inferred when applying or manipulating the operator.
 """
 Derivative()
 
 
-doc"""
+"""
 `Integral(sp::Space,k::Int)` represents a `k`-th integral on `sp`.
 There is no guarantee on normalization.
 """
 Integral(::Space,::Int)
 
 
-doc"""
+"""
 `Integral(sp::Space)` represents the first integral `Integral(sp,1)`.
 """
 Integral(::Space)
 
-doc"""
+"""
 Integral(k)` represents the `k`-th integral, acting on an unset space.
 Spaces will be inferred when applying or manipulating the operator.
 """
 Integral(k)
 
-doc"""
+"""
 `Intergral()` represents the first integral on an unset space.
 Spaces will be inferred when applying or manipulating the operator.
 """
 Integral()
 
-doc"""
+"""
 `Laplacian(sp::Space)` represents the laplacian on space `sp`.
 """
 Laplacian(::Space)
 
-doc"""
+"""
 `Laplacian()` represents the laplacian on an unset space.
 Spaces will be inferred when applying or manipulating the operator.
 """

@@ -7,14 +7,25 @@ export samplecdf,normalizedcumsum!
 
 bisectioninv(f::Fun{S,T},x::Real;opts...) where {S,T} = first(bisectioninv(f,[x];opts...))
 
+# gives a generalization of midpoint for when `a` or `b` is infinite
+function genmidpoint(a::T,b::T) where T
+    if isinf(a) && isinf(b)
+        zero(T)
+    elseif isinf(a)
+        b - 100
+    elseif isinf(b)
+        a + 100
+    else
+        (a+b)/2
+    end
+end
 
 function bisectioninv(f::Fun{S,T},x::Float64;numits::Int=47) where {S,T}
     d=domain(f)
     a = first(d);b = last(d)
 
-
     for k=1:numits  #TODO: decide 47
-        m=.5*(a+b)
+        m= genmidpoint(a,b)
         val = f(m)
 
             (val<= x) ? (a = m) : (b = m)
@@ -45,8 +56,8 @@ chebbisectioninv(c::AbstractVector{Float64},xl::AbstractVector{Float64}) =
     (n=length(xl);chebbisectioninv(c,xl,ClenshawPlan(Float64,Chebyshev(),length(c),n)))
 function chebbisectioninv(c::AbstractVector{Float64},xl::AbstractVector{Float64},plan::ClenshawPlan{Chebyshev{D,R},Float64}) where {D<:Domain,R}
     n = length(xl)
-    a = -ones(n)
-    b = ones(n)
+    a = -fill(1.0,n)
+    b = fill(1.0,n)
 
 
     for k=1:47  #TODO: decide 47
@@ -68,8 +79,8 @@ function chebbisectioninv(c::AbstractMatrix{Float64},xl::AbstractVector{Float64}
     @assert size(c)[2] == length(xl)
 
     n = length(xl)
-    a = -ones(n)
-    b = ones(n)
+    a = -fill(1.0,n)
+    b = fill(1.0,n)
 
 
     for k=1:47  #TODO: decide 47
@@ -86,7 +97,7 @@ end
 for TYP in (:Vector,:Float64)
     @eval begin
         bisectioninv(cf::Fun{SP,Float64},x::$TYP;opts...) where {SP<:Chebyshev} =
-            fromcanonical.(space(cf),chebbisectioninv(coefficients(cf),x;opts...))
+            fromcanonical.(Ref(space(cf)),chebbisectioninv(coefficients(cf),x;opts...))
 #        bisectioninv{SP<:LineSpace}(cf::Fun{SP,Float64},x::$TYP;opts...)=fromcanonical(cf,chebbisectioninv(coefficients(cf),x;opts...))
     end
 end
@@ -118,12 +129,12 @@ function subtract_zeroatleft!(f::AbstractMatrix{Float64})
 end
 
 function multiply_oneatright!(f::AbstractVector{Float64})
-    val=0.
+    val=0.0
     for k=1:length(f)
-        val+=f[k]
+        val += f[k]
     end
 
-    val=1./val
+    val = 1/val
 
     for k=1:length(f)
         @inbounds f[k] *= val
@@ -135,12 +146,12 @@ end
 function multiply_oneatright!(f::AbstractMatrix{Float64})
 
     for j=1:size(f)[2]
-        val=0.
+        val=0.0
         for k=1:size(f)[1]
-            val+=f[k,j]
+            val += f[k,j]
         end
 
-        val=1./val
+        val = 1/val
 
         for k=1:size(f)[1]
             @inbounds f[k,j] *= val
@@ -192,7 +203,7 @@ function sample(f::LowRankFun{C,C,TensorSpace{Tuple{C,C},DD,RR},Float64},n::Inte
     AB=CB*fA
     chebnormalizedcumsum!(AB)
     rx=chebbisectioninv(AB,rand(n))
-  [fromcanonical(domain(f,1),rx) ry]
+    [fromcanonical.(Ref(domain(f,1)),rx) ry]
 end
 
 

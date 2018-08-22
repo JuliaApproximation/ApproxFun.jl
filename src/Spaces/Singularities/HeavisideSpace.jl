@@ -24,7 +24,7 @@ canonicalspace(sp::HeavisideSpace) = PiecewiseSpace(map(Chebyshev,components(dom
 function evaluate(f::Fun{HeavisideSpace{T,R}},x::Real) where {T<:Real,R}
     p = domain(f).points
     c = f.coefficients
-    for k=1:length(p)-1
+    for k=1:length(c)
         if p[k] ≤ x ≤ p[k+1]
             return c[k]
         end
@@ -71,21 +71,19 @@ bandinds(::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},DD,RR}}) where {HS
     0,0
 
 getindex(C::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},DD,RR}},k::Integer,j::Integer) where {HS<:HeavisideSpace,CC<:PolynomialSpace,DD<:UnivariateDomain,RR<:Real,kk} =
-    k ≤ dimension(domainspace(C)) && j==k? one(eltype(C)) : zero(eltype(C))
+    k ≤ dimension(domainspace(C)) && j==k ? one(eltype(C)) : zero(eltype(C))
 
 
-bandinds(D::ConcreteDerivative{HS}) where {HS<:HeavisideSpace}=-1,0
+bandinds(D::ConcreteDerivative{H}) where {H<:HeavisideSpace} = (0,1)
+rangespace(D::ConcreteDerivative{H}) where {H<:HeavisideSpace} = DiracSpace(domain(D).points[2:end-1])
 
-rangespace(D::ConcreteDerivative{HS}) where {HS<:HeavisideSpace}=DiracSpace(domain(D).points)
-
-function getindex(D::ConcreteDerivative{HS},k::Integer,j::Integer) where HS<:HeavisideSpace
-    n=ncomponents(domain(D))
-    if k≤n && j==k
-        one(eltype(D))
-    elseif j≤n && j==k-1
-        -one(eltype(D))
+function getindex(D::ConcreteDerivative{H,<:Any,T},k::Integer,j::Integer) where {H<:HeavisideSpace,T}
+    if k==j
+        -one(T)
+    elseif j==k+1
+        one(T)
     else
-        zero(eltype(D))
+        zero(T)
     end
 end
 
@@ -100,6 +98,24 @@ function Base.sum(f::Fun{SplineSpace{1,T,R}}) where {T,R}
     ret+=vals[end]*dfs[end]/2
     ret
 end
+
+#diffentiate HeavisideSpace
+function differentiate(f::Fun{<:HeavisideSpace})
+    dp=domain(f).points
+    cfs=f.coefficients
+    diff=0.0
+    for n=1:length(cfs)
+        diff=diff+cfs[n]*(DiracDelta(dp[n])-DiracDelta(dp[n+1]))
+    end
+    return diff
+end
+
+#Derivative Operator for HeavisideSpace
+function Derivative(H::HeavisideSpace, k::Int)
+    @assert k == 1
+    ConcreteDerivative(H)
+end
+
 
 
 differentiate(f::Fun{SplineSpace{1,T,R}}) where {T,R} =

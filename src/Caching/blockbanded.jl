@@ -70,7 +70,7 @@ diagblockshift(op::Operator) =
 function CachedOperator(::Type{BlockBandedMatrix},op::Operator;padding::Bool=false)
     l,u=blockbandwidths(op)
     padding && (u+=l+diagblockshift(op))
-    data=BlockBandedMatrix{eltype(op)}(uninitialized,
+    data=BlockBandedMatrix{eltype(op)}(undef,
                                         (Vector{Int}(), Vector{Int}()),
                                         (l,u))
     CachedOperator(op,data,(0,0),domainspace(op),rangespace(op),(-l,u),padding)
@@ -113,7 +113,7 @@ function resizedata!(B::CachedOperator{T,BlockBandedMatrix{T}},::Colon,col::Inte
 
         JR = datablocksize+1:J
         KR=blockcolstart(B.data,first(JR)):blockcolstop(B.data,last(JR))
-        copy!(view(B.data,KR,JR), view(B.op,KR,JR))
+        copyto!(view(B.data,KR,JR), view(B.op,KR,JR))
 
         B.datasize = (blockstop(rangespace(B),last(KR)),col)
     end
@@ -132,7 +132,7 @@ end
 # we use a RaggedMatrix to represent the growing lengths of the
 # householder reflections
 QROperator(R::CachedOperator{T,BlockBandedMatrix{T}}) where {T} =
-    QROperator(R,RaggedMatrix{T}(uninitialized, 0, Int[]),0)
+    QROperator(R,RaggedMatrix{T}(undef, 0, Int[]),0)
 
 
 # function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
@@ -142,7 +142,7 @@ QROperator(R::CachedOperator{T,BlockBandedMatrix{T}}) where {T} =
 #         return QR
 #     end
 #
-#     MO=QR.R
+#     MO=QR.R_cache
 #     W=QR.H
 #
 #     R=MO.data
@@ -177,7 +177,7 @@ QROperator(R::CachedOperator{T,BlockBandedMatrix{T}}) where {T} =
 #         for j=k:rowstop(R,k)
 #             v=view(R,k:cs,j)
 #             dt=dot(wp,v)
-#             Base.axpy!(-2*dt,wp,v)
+#             LinearAlgebra.axpy!(-2*dt,wp,v)
 #         end
 #
 #         # scale banded/filled entries
@@ -186,7 +186,7 @@ QROperator(R::CachedOperator{T,BlockBandedMatrix{T}}) where {T} =
 #             v=view(R,csrt:cs,j)  # shift down each time
 #             wp2=view(wp,csrt-k+1:cs-k+1)
 #             dt=dot(wp2,v)
-#             Base.axpy!(-2*dt,wp2,v)
+#             LinearAlgebra.axpy!(-2*dt,wp2,v)
 #         end
 #     end
 #     QR.ncols=col
@@ -197,12 +197,12 @@ QROperator(R::CachedOperator{T,BlockBandedMatrix{T}}) where {T} =
 resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
                                MM,DS,RS,BI}},
                      ::Colon, col::Int) where {T,MM,DS,RS,BI} =
-    resizedata!(QR, :, block(domainspace(QR.R),col))
+    resizedata!(QR, :, block(domainspace(QR.R_cache),col))
 
 function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
                                MM,DS,RS,BI}},
                      ::Colon, COL::Block) where {T<:BlasFloat,MM,DS,RS,BI}
-     MO = QR.R
+     MO = QR.R_cache
      W = QR.H
      R = MO.data
 
@@ -281,7 +281,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
          for ξ_2 = ξ:blocksize(bs, 2, J1)
              # we now apply I-2v*v' in place
              r_sh = r+sz*(shft + st*(ξ_2-ξ)) # the pointer the (j,ξ_2)-th entry
-             dt = dot(M, wp, 1, r_sh, 1)
+             dt = BandedMatrices.dot(M, wp, 1, r_sh, 1)
              BLAS.axpy!(M, -2*dt, wp, 1, r_sh ,1)
          end
 

@@ -6,7 +6,7 @@ for T in (:CosSpace,:SinSpace)
     @eval begin
         struct $T{D<:Domain,R} <: Space{D,R}
             domain::D
-            $T{D,R}(d::Domain) where {D,R} = new(D(d))
+            $T{D,R}(d::Domain) where {D,R} = new(convert(D,d))
             $T{D,R}(d::D) where{D,R} = new(d)
         end
         $T(d::Domain) = $T{typeof(d),real(prectype(d))}(d)
@@ -18,19 +18,19 @@ for T in (:CosSpace,:SinSpace)
     end
 end
 
-doc"""
+"""
 `CosSpace()` is the space spanned by `[1,cos θ,cos 2θ,...]`
 """
 CosSpace()
 
-doc"""
+"""
 `SinSpace()` is the space spanned by `[sin θ,sin 2θ,...]`
 """
 SinSpace()
 
 # s == true means analytic inside, taylor series
 # s == false means anlytic outside and decaying at infinity
-doc"""
+"""
 `Hardy{false}()` is the space spanned by `[1/z,1/z^2,...]`.
 `Hardy{true}()` is the space spanned by `[1,z,z^2,...]`.
 """
@@ -41,7 +41,7 @@ struct Hardy{s,D<:Domain,R} <: Space{D,R}
 end
 
 # The <: Domain is crucial for matching Basecall overrides
-doc"""
+"""
 `Taylor()` is the space spanned by `[1,z,z^2,...]`.
 This is a type alias for `Hardy{true}`.
 """
@@ -78,7 +78,7 @@ for (Typ,Plfft!,Plfft,Pltr!,Pltr) in ((:TransformPlan,:plan_fft!,:plan_fft,:plan
 
         $Pltr(sp::Hardy,x::AbstractVector{T}) where {T<:Complex} = $Typ(sp,$Pltr!(sp,x),Val{false})
         function $Pltr(sp::Hardy,x::AbstractVector{T}) where T
-            plan = $Pltr(sp,Array{Complex{T}}(length(x))) # we can reuse vector in itransform
+            plan = $Pltr(sp,Array{Complex{T}}(undef,length(x))) # we can reuse vector in itransform
             $Typ{T,typeof(sp),false,typeof(plan)}(sp,plan)
         end
 
@@ -89,13 +89,13 @@ end
 
 
 *(P::TransformPlan{T,Hardy{true,DD,RR},true},vals::AbstractVector{T}) where {T,DD,RR} =
-    scale!(one(T)/length(vals),P.plan*vals)
+    lmul!(one(T)/length(vals),P.plan*vals)
 *(P::ITransformPlan{T,Hardy{true,DD,RR},true},cfs::AbstractVector{T}) where {T,DD,RR} =
-    scale!(length(cfs),P.plan*cfs)
+    lmul!(length(cfs),P.plan*cfs)
 *(P::TransformPlan{T,Hardy{false,DD,RR},true},vals::AbstractVector{T}) where {T,DD,RR} =
-    scale!(one(T)/length(vals),reverse!(P.plan*vals))
+    lmul!(one(T)/length(vals),reverse!(P.plan*vals))
 *(P::ITransformPlan{T,Hardy{false,DD,RR},true},cfs::AbstractVector{T}) where {T,DD,RR} =
-    scale!(length(cfs),P.plan*reverse!(cfs))
+    lmul!(length(cfs),P.plan*reverse!(cfs))
 
 
 transform(sp::Hardy,vals::AbstractVector,plan) = plan*vals
@@ -122,7 +122,7 @@ end
 
 ##TODO: fast routine
 
-function horner(c::AbstractVector,kr::Range{Int64},x)
+function horner(c::AbstractVector,kr::AbstractRange{Int64},x)
     T = promote_type(eltype(c),eltype(x))
     if isempty(c)
         return zero(x)
@@ -136,7 +136,7 @@ function horner(c::AbstractVector,kr::Range{Int64},x)
     ret
 end
 
-function horner(c::AbstractVector,kr::Range{Int64},x::AbstractVector)
+function horner(c::AbstractVector,kr::AbstractRange{Int64},x::AbstractVector)
     n,T = length(x),promote_type(eltype(c),eltype(x))
     if isempty(c)
         return zero(x)
@@ -155,7 +155,7 @@ end
 
 horner(c::AbstractVector,x) = horner(c,1:length(c),x)
 horner(c::AbstractVector,x::AbstractArray) = horner(c,1:length(c),x)
-horner(c::AbstractVector,kr::Range{Int64},x::AbstractArray) = reshape(horner(c,kr,vec(x)),size(x))
+horner(c::AbstractVector,kr::AbstractRange{Int64},x::AbstractArray) = reshape(horner(c,kr,vec(x)),size(x))
 
 ## Cos and Sin space
 
@@ -173,7 +173,7 @@ function evaluate(f::AbstractVector,S::CosSpace,t)
     if t ∈ domain(S)
         clenshaw(Chebyshev(),f,cos(tocanonical(S,t)))
     else
-        zero(eltype(f))
+        zero(cfstype(f))
     end
 end
 
@@ -198,9 +198,9 @@ end
 
 
 *(P::TransformPlan{T,SinSpace{DD,RR},true},vals::AbstractVector{T}) where {T,DD,RR} =
-    scale!(one(T)/(length(vals)+1),P.plan*vals)
+    lmul!(one(T)/(length(vals)+1),P.plan*vals)
 *(P::ITransformPlan{T,SinSpace{DD,RR},true},cfs::AbstractVector{T}) where {T,DD,RR} =
-    scale!(one(T)/2,P.plan*cfs)
+    lmul!(one(T)/2,P.plan*cfs)
 
 
 transform(sp::SinSpace,vals::AbstractVector,plan) = plan*vals
@@ -211,7 +211,7 @@ evaluate(f::AbstractVector,S::SinSpace,t) = sineshaw(f,tocanonical(S,t))
 
 
 ## Laurent space
-doc"""
+"""
 `Laurent()` is the space spanned by the complex exponentials
 ```
     1,exp(-im*θ),exp(im*θ),exp(-2im*θ),…
@@ -240,17 +240,17 @@ plan_itransform(sp::Laurent{DD,RR},x::AbstractVector{T}) where {T<:Complex,DD,RR
     ITransformPlan(sp,plan_itransform!(sp,x),Val{false})
 
 function plan_transform(sp::Laurent{DD,RR},x::AbstractVector{T}) where {T,DD,RR}
-    plan = plan_transform(sp,Array{Complex{T}}(length(x))) # we can reuse vector in itransform
+    plan = plan_transform(sp,Array{Complex{T}}(undef, length(x))) # we can reuse vector in itransform
     TransformPlan{T,typeof(sp),false,typeof(plan)}(sp,plan)
 end
 function plan_itransform(sp::Laurent{DD,RR},x::AbstractVector{T}) where {T,DD,RR}
-    plan = plan_itransform(sp,Array{Complex{T}}(length(x))) # we can reuse vector in itransform
+    plan = plan_itransform(sp,Array{Complex{T}}(undef, length(x))) # we can reuse vector in itransform
     ITransformPlan{T,typeof(sp),false,typeof(plan)}(sp,plan)
 end
 
 function *(P::TransformPlan{T,Laurent{DD,RR},true},vals::AbstractVector{T}) where {T,DD,RR}
     n = length(vals)
-    vals = scale!(inv(T(n)),P.plan*vals)
+    vals = lmul!(inv(convert(T,n)),P.plan*vals)
     reverseeven!(interlace!(vals,1))
 end
 
@@ -258,14 +258,18 @@ function *(P::ITransformPlan{T,Laurent{DD,RR},true},cfs::AbstractVector{T}) wher
     n = length(cfs)
     reverseeven!(cfs)
     cfs[:]=[cfs[1:2:end];cfs[2:2:end]]  # TODO: deinterlace!
-    scale!(n,cfs)
+    lmul!(n,cfs)
     P.plan*cfs
 end
 
-*(P::TransformPlan{T,Laurent{DD,RR},false},vals::AbstractVector{T}) where {T<:Complex,DD,RR} = P.plan*copy(vals)
-*(P::TransformPlan{T,Laurent{DD,RR},false},vals::AbstractVector{T}) where {T,DD,RR} = P.plan*Vector{Complex{T}}(vals)
-*(P::ITransformPlan{T,Laurent{DD,RR},false},vals::AbstractVector{T}) where {T<:Complex,DD,RR} = P.plan*copy(vals)
-*(P::ITransformPlan{T,Laurent{DD,RR},false},vals::AbstractVector{T}) where {T,DD,RR} = P.plan*Vector{Complex{T}}(vals)
+*(P::TransformPlan{T,Laurent{DD,RR},false},vals::AbstractVector{T}) where {T<:Complex,DD,RR} =
+    P.plan*copy(vals)
+*(P::TransformPlan{T,Laurent{DD,RR},false},vals::AbstractVector{T}) where {T,DD,RR} =
+    P.plan*Vector{Complex{T}}(vals)
+*(P::ITransformPlan{T,Laurent{DD,RR},false},vals::AbstractVector{T}) where {T<:Complex,DD,RR} =
+    P.plan*copy(vals)
+*(P::ITransformPlan{T,Laurent{DD,RR},false},vals::AbstractVector{T}) where {T,DD,RR} =
+    P.plan*Vector{Complex{T}}(vals)
 
 
 
@@ -282,7 +286,7 @@ itransform(sp::Laurent{DD,RR},cfs::AbstractVector) where {DD,RR} = plan_itransfo
 
 function evaluate(f::AbstractVector,S::Laurent{DD,RR},z) where {DD,RR}
     z = mappoint(domain(S),Circle(),z)
-    invz = 1./z
+    invz = 1/z
     horner(f,1:2:length(f),z) + horner(f,2:2:length(f),invz).*invz
 end
 
@@ -290,7 +294,7 @@ end
 function Base.conj(f::Fun{Laurent{DD,RR}}) where {DD,RR}
     ncoefficients(f) == 0 && return f
 
-    cfs = Array{eltype(f)}(iseven(ncoefficients(f))?ncoefficients(f)+1:ncoefficients(f))
+    cfs = Array{cfstype(f)}(undef, iseven(ncoefficients(f)) ? ncoefficients(f)+1 : ncoefficients(f))
     cfs[1] = conj(f.coefficients[1])
     cfs[ncoefficients(f)] = 0
     for k=2:2:ncoefficients(f)-1
@@ -304,7 +308,7 @@ end
 
 ## Fourier space
 
-doc"""
+"""
 `Fourier()` is the space spanned by the trigonemtric polynomials
 ```
     1,sin(θ),cos(θ),sin(2θ),cos(2θ),…
@@ -318,8 +322,8 @@ Fourier(d::Domain) = Fourier{typeof(d),real(prectype(d))}(d)
 
 for Typ in (:Laurent,:Fourier)
     @eval begin
-        (::Type{$Typ})() = $Typ(PeriodicInterval())
-        (::Type{$Typ})(d) = $Typ(PeriodicDomain(d))
+        $Typ() = $Typ(PeriodicInterval())
+        $Typ(d) = $Typ(PeriodicDomain(d))
 
         hasfasttransform(::$Typ{D,R}) where {D,R} = true
     end
@@ -361,18 +365,20 @@ for (Typ,Pltr!,Pltr) in ((:TransformPlan,:plan_transform!,:plan_transform),
             error("transform for Fourier only implemented for fftwNumbers")
 
         *(P::$Typ{T,Fourier{DD,RR},false},vals::AbstractVector{T}) where {T,DD,RR} = P.plan*copy(vals)
+        *(P::$Typ{T,Fourier{DD,RR},false},vals::AbstractVector{<:Complex}) where {T,DD,RR} =
+                P.plan*real(vals) .+ im.*(P.plan*imag(vals))
     end
 end
 
-Base.A_mul_B!(cfs::AbstractVector{T}, P::TransformPlan{T,Fourier{DD,RR},true}, vals::AbstractVector{T}) where {T,DD,RR} =
-    P*copy!(cfs, vals)
+mul!(cfs::AbstractVector{T}, P::TransformPlan{T,Fourier{DD,RR},true}, vals::AbstractVector{T}) where {T,DD,RR} =
+    P*copyto!(cfs, vals)
 
-Base.A_mul_B!(cfs::AbstractVector{T}, P::TransformPlan{T,Fourier{DD,RR},false}, vals::AbstractVector{T}) where {T,DD,RR} =
-    P.plan*copy!(cfs, vals)
+mul!(cfs::AbstractVector{T}, P::TransformPlan{T,Fourier{DD,RR},false}, vals::AbstractVector{T}) where {T,DD,RR} =
+    P.plan*copyto!(cfs, vals)
 
 function *(P::TransformPlan{T,Fourier{DD,RR},true},vals::AbstractVector{T}) where {T,DD,RR}
     n = length(vals)
-    cfs = scale!(T(2)/n,P.plan*vals)
+    cfs = lmul!(convert(T,2)/n,P.plan*vals)
     cfs[1] /= 2
     if iseven(n)
         cfs[n÷2+1] /= 2
@@ -381,11 +387,11 @@ function *(P::TransformPlan{T,Fourier{DD,RR},true},vals::AbstractVector{T}) wher
     negateeven!(reverseeven!(interlace!(cfs,1)))
 end
 
-Base.A_mul_B!(vals::AbstractVector{T}, P::IFourierTransformPlan{T,Fourier{DD,RR}}, cfs::AbstractVector{T}) where {T,DD,RR} =
-    P*copy!(vals, cfs)
+mul!(vals::AbstractVector{T}, P::IFourierTransformPlan{T,Fourier{DD,RR}}, cfs::AbstractVector{T}) where {T,DD,RR} =
+    P*copyto!(vals, cfs)
 
-Base.A_mul_B!(vals::AbstractVector{T}, P::ITransformPlan{T,Fourier{DD,RR},false},cfs::AbstractVector{T}) where {T,DD,RR} =
-    A_mul_B!(vals, P.plan, cfs)
+mul!(vals::AbstractVector{T}, P::ITransformPlan{T,Fourier{DD,RR},false},cfs::AbstractVector{T}) where {T,DD,RR} =
+    mul!(vals, P.plan, cfs)
 
 function *(P::IFourierTransformPlan{T,Fourier{DD,RR}},cfs::AbstractVector{T}) where {T,DD,RR}
     n = length(cfs)
@@ -408,7 +414,7 @@ function *(P::IFourierTransformPlan{T,Fourier{DD,RR}},cfs::AbstractVector{T}) wh
         cfs[n÷2+1] *= 2
     end
     cfs[1] *= 2
-    P.plan*scale!(inv(T(2)),cfs)
+    P.plan*lmul!(inv(convert(T,2)),cfs)
 end
 
 
@@ -431,8 +437,8 @@ canonicalspace(S::Laurent{DD,RR}) where {DD<:PeriodicLine,RR} = S
 
 for sp in (:Fourier,:CosSpace,:Laurent,:Taylor)
     @eval begin
-        Base.ones(::Type{T},S::$sp{DD,RR}) where {T<:Number,DD,RR} = Fun(S,ones(T,1))
-        Base.ones(S::$sp{DD,RR}) where {DD,RR} = Fun(S,ones(1))
+        one(::Type{T},S::$sp{DD,RR}) where {T<:Number,DD,RR} = Fun(S,fill(one(T),1))
+        one(S::$sp{DD,RR}) where {DD,RR} = Fun(S,fill(1.0,1))
     end
 end
 
@@ -456,7 +462,7 @@ reverseorientation(f::Fun{Fourier{DD,RR}}) where {DD,RR} =
 function reverseorientation(f::Fun{Laurent{DD,RR}}) where {DD,RR}
     # exp(im*k*x) -> exp(-im*k*x), or equivalentaly z -> 1/z
     n=ncoefficients(f)
-    ret=Array{eltype(f)}(iseven(n)?n+1:n)  # since z -> 1/z we get one more coefficient
+    ret=Array{cfstype(f)}(undef, iseven(n) ? n+1 : n)  # since z -> 1/z we get one more coefficient
     ret[1]=f.coefficients[1]
     for k=2:2:length(ret)-1
         ret[k+1]=f.coefficients[k]

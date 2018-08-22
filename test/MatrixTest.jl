@@ -1,4 +1,4 @@
-using ApproxFun, Compat.Test
+using ApproxFun, Test
     import ApproxFun: Block
 
 
@@ -7,14 +7,14 @@ using ApproxFun, Compat.Test
     B=ApproxFun.rrand(Float64,maximum(cols),cols)
     cols=Int[rand(1:k+2) for k=1:size(B,1)]
     A=ApproxFun.rrand(Float64,maximum(cols),cols)
-    @test full(A)*full(B) ≈ full(A*B)
+    @test Matrix(A)*Matrix(B) ≈ Matrix(A*B)
 
     @test ApproxFun.RaggedMatrix(B) === B
     @test ApproxFun.RaggedMatrix{Float64}(B) === B
-    @test full(ApproxFun.RaggedMatrix{Complex128}(B)) == Matrix{Complex128}(full(B))
+    @test Matrix(ApproxFun.RaggedMatrix{ComplexF64}(B)) == Matrix{ComplexF64}(Matrix(B))
 
     B = ApproxFun.brand(10,10,2,3)
-    @test full(B) == full(ApproxFun.RaggedMatrix(B))
+    @test Matrix(B) == Matrix(ApproxFun.RaggedMatrix(B))
     @test ApproxFun.RaggedMatrix(B) == ApproxFun.RaggedMatrix{Float64}(B)
-    @test ApproxFun.RaggedMatrix(ApproxFun.BandedMatrix{Complex128}(B)) == ApproxFun.RaggedMatrix{Complex128}(B)
+    @test ApproxFun.RaggedMatrix(ApproxFun.BandedMatrix{ComplexF64}(B)) == ApproxFun.RaggedMatrix{ComplexF64}(B)
 end

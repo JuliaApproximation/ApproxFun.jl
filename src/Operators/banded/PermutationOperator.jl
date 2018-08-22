@@ -27,7 +27,7 @@ function getindex(P::PermutationOperator{T},k::Integer,j::Integer) where T
     if (k-1)÷n == (j-1)÷n  # diagonal blocks
         k=mod(k-1,n)+1
         j=mod(j-1,n)+1
-        T(P.perm[k]==j)
+        convert(T,P.perm[k]==j)
     else
         zero(T)
     end
@@ -46,7 +46,7 @@ end
 
 NegateEven{T}(ds::DS, rs::RS) where {DS<:Space,RS<:Space,T} =
     NegateEven{T,DS,RS}(ds, rs)
-NegateEven(ds, rs) = NegateEven{Int}(ds, rs)    
+NegateEven(ds, rs) = NegateEven{Int}(ds, rs)
 NegateEven() = NegateEven(ℓ⁰,ℓ⁰)
 
 domainspace(P::NegateEven) = P.domainspace
@@ -59,4 +59,4 @@ bandinds(P::NegateEven) = (0,0)
 
 
 getindex(P::NegateEven{T},k::Integer,j::Integer) where {T} =
-    k==j ? (iseven(k)?-one(T):one(T)) : zero(T)
+    k==j ? (iseven(k) ? -one(T) : one(T)) : zero(T)

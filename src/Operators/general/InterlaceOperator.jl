@@ -193,7 +193,7 @@ function convert(::Type{Operator{T}},S::InterlaceOperator) where T
     if T == eltype(S)
         S
     else
-        ops=Array{Operator{T}}(size(S.ops)...)
+        ops=Array{Operator{T}}(undef, size(S.ops)...)
         for j=1:size(S.ops,2),k=1:size(S.ops,1)
             ops[k,j]=S.ops[k,j]
         end
@@ -271,7 +271,7 @@ function getindex(op::InterlaceOperator{T},k::Integer) where T
 end
 
 
-findsub(cr,ν) = find(x->x[1]==ν,cr)
+findsub(cr,ν) = findall(x->x[1]==ν,cr)
 
 function getindex(L::InterlaceOperator{T},kr::UnitRange) where T
     ret=zeros(T,length(kr))
@@ -294,7 +294,7 @@ function getindex(L::InterlaceOperator{T},kr::UnitRange) where T
         if !isempty(ret_kr)
             sub_kr=cr[ret_kr[1]][2]:cr[ret_kr[end]][2]
 
-            Base.axpy!(1.0,L.ops[ν][sub_kr],view(ret,ret_kr))
+            LinearAlgebra.axpy!(1.0,L.ops[ν][sub_kr],view(ret,ret_kr))
         end
     end
     ret
@@ -327,10 +327,9 @@ end
 for TYP in (:BandedMatrix, :BlockBandedMatrix, :BandedBlockBandedMatrix, :RaggedMatrix,
                 :Matrix)
     @eval begin
-        function convert(::Type{$TYP},
-              S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI},
+        function $TYP(S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI},
                             Tuple{UnitRange{Int},UnitRange{Int}}}) where {SS,PS,DI,RI,BI,T}
-            kr,jr=parentindexes(S)
+            kr,jr=parentindices(S)
             L=parent(S)
 
             ret=$TYP(Zeros, S)
@@ -346,16 +345,15 @@ for TYP in (:BandedMatrix, :BlockBandedMatrix, :BandedBlockBandedMatrix, :Ragged
                 if !isempty(ret_kr)
                     sub_kr=cr[ret_kr[1]][2]:cr[ret_kr[end]][2]
 
-                    Base.axpy!(1.0,view(L.ops[ν],sub_kr,jr),view(ret,ret_kr,:))
+                    LinearAlgebra.axpy!(1.0,view(L.ops[ν],sub_kr,jr),view(ret,ret_kr,:))
                 end
             end
             ret
         end
 
-        function convert(::Type{$TYP},
-            S::SubOperator{T,InterlaceOperator{T,2,SS,PS,DI,RI,BI},
+        function $TYP(S::SubOperator{T,InterlaceOperator{T,2,SS,PS,DI,RI,BI},
                       Tuple{UnitRange{Int},UnitRange{Int}}}) where {SS,PS,DI,RI,BI,T}
-            kr,jr=parentindexes(S)
+            kr,jr=parentindices(S)
             L=parent(S)
 
             ret=$TYP(Zeros, S)
@@ -378,7 +376,7 @@ for TYP in (:BandedMatrix, :BlockBandedMatrix, :BandedBlockBandedMatrix, :Ragged
                     sub_kr=cr[ret_kr[1]][2]:cr[ret_kr[end]][2]
                     sub_jr=cd[ret_jr[1]][2]:cd[ret_jr[end]][2]
 
-                    Base.axpy!(1.0,view(L.ops[ν,μ],sub_kr,sub_jr),
+                    LinearAlgebra.axpy!(1.0,view(L.ops[ν,μ],sub_kr,sub_jr),
                                    view(ret,ret_kr,ret_jr))
                 end
             end
@@ -391,7 +389,7 @@ end
 ## Build block-by-block
 function blockbanded_interlace_convert!(S,ret)
     T = eltype(S)
-    KR,JR = parentindexes(S)
+    KR,JR = parentindices(S)
     l,u=blockbandwidths(S)::Tuple{Int,Int}
 
     M = map(op -> begin
@@ -421,8 +419,7 @@ function blockbanded_interlace_convert!(S,ret)
 end
 
 for d in (:1,:2)
-    @eval convert(::Type{BlockBandedMatrix},
-          S::SubOperator{T,InterlaceOperator{T,$d,SS,PS,DI,RI,BI},
+    @eval BlockBandedMatrix(S::SubOperator{T,InterlaceOperator{T,$d,SS,PS,DI,RI,BI},
                           Tuple{BlockRange1,BlockRange1}}) where {SS,PS,DI,RI,BI,T} =
     blockbanded_interlace_convert!(S, BlockBandedMatrix(Zeros, S))
 end
@@ -474,10 +471,10 @@ _hcat(A::OperatorTypes...) = InterlaceOperator(hnocat(A...))
 function _hvcat(rows::Tuple{Vararg{Int}},as::OperatorTypes...)
     # Based on Base
     nbr = length(rows)  # number of block rows
-    rs = Array{Any,1}(nbr)
+    rs = Array{Any,1}(undef, nbr)
     a = 1
     for i = 1:nbr
-        rs[i] = hcat(map(Operator,as[a:a-1+rows[i]])...)
+        rs[i] = hcat(map(op -> convert(Operator,op),as[a:a-1+rows[i]])...)
         a += rows[i]
     end
     vcat(rs...)
@@ -501,7 +498,8 @@ Base.hvcat(rows::Tuple{Vararg{Int}}, D::Union{Fun,Number,UniformScaling}, C::Uni
 
 ## Convert Matrix operator to operators
 
-convert(::Type{Operator},M::AbstractArray{OO}) where {OO<:Operator} = InterlaceOperator(M)
+Operator(M::AbstractArray{OO}) where {OO<:Operator} = InterlaceOperator(M)
+
 
 
 

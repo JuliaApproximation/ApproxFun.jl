@@ -1,7 +1,7 @@
 export Jacobi, Legendre, WeightedJacobi
 
 
-doc"""
+"""
 `Jacobi(b,a)` represents the space spanned by Jacobi polynomials `P_k^{(a,b)}`,
 which are orthogonal with respect to the weight `(1+x)^β*(1-x)^α`
 """
@@ -54,13 +54,13 @@ end
 # jacobirecA/B/C is from dlmf:
 # p_{n+1} = (A_n x + B_n)p_n - C_n p_{n-1}
 #####
-@inline function jacobirecA{T}(::Type{T},α,β,k)::T
-    k==0&&((α+β==0)||(α+β==-1))?(α+β)/2+one(T):(2k+α+β+one(T))*(2k+α+β+2one(T))/(2*(k+one(T))*(k+α+β+one(T)))
+@inline function jacobirecA(::Type{T},α,β,k)::T where T
+    k==0&&((α+β==0)||(α+β==-1)) ? (α+β)/2+one(T) : (2k+α+β+one(T))*(2k+α+β+2one(T))/(2*(k+one(T))*(k+α+β+one(T)))
 end
-@inline function jacobirecB{T}(::Type{T},α,β,k)::T
-    k==0&&((α+β==0)||(α+β==-1))?(α-β)*one(T)/2:(α-β)*(α+β)*(2k+α+β+one(T))/(2*(k+one(T))*(k+α+β+one(T))*(2one(T)*k+α+β))
+@inline function jacobirecB(::Type{T},α,β,k)::T where T
+    k==0&&((α+β==0)||(α+β==-1)) ? (α-β)*one(T)/2 : (α-β)*(α+β)*(2k+α+β+one(T))/(2*(k+one(T))*(k+α+β+one(T))*(2one(T)*k+α+β))
 end
-@inline function jacobirecC{T}(::Type{T},α,β,k)::T
+@inline function jacobirecC(::Type{T},α,β,k)::T where T
     (one(T)*k+α)*(one(T)*k+β)*(2k+α+β+2one(T))/((k+one(T))*(k+α+β+one(T))*(2one(T)*k+α+β))
 end
 #####
@@ -78,9 +78,9 @@ for (REC,JREC) in ((:recα,:jacobirecα),(:recβ,:jacobirecβ),(:recγ,:jacobire
 end
 
 
-function jacobip(::Type{T},r::Range,α,β,x::Number) where T
+function jacobip(::Type{T},r::AbstractRange,α,β,x::Number) where T
     if x==1 && α==0
-        ones(T,length(r))
+        fill(one(T), length(r))
     elseif x==-1 && β==0
         (-one(T)).^r
     elseif isempty(r)
@@ -90,7 +90,7 @@ function jacobip(::Type{T},r::Range,α,β,x::Number) where T
         if n<=2
             v=T[1,(α-β+(2+α+β)*x)/2]
         else
-            v=Vector{T}(n)  # x may be complex
+            v=Vector{T}(undef, n)  # x may be complex
             v[1]=1
             v[2]=(α-β+(2+α+β)*x)/2
 
@@ -98,12 +98,12 @@ function jacobip(::Type{T},r::Range,α,β,x::Number) where T
                 v[k+1]=(jacobirecA(T,α,β,k-1)*x+jacobirecB(T,α,β,k-1))*v[k] - jacobirecC(T,α,β,k-1)*v[k-1]
             end
         end
-        v[r+1]
+        v[r.+1]
     end
 end
 
 
-jacobip(r::Range,α,β,x::Number) = jacobip(promote_type(typeof(α),typeof(β),typeof(x)),r,α,β,x)
+jacobip(r::AbstractRange,α,β,x::Number) = jacobip(promote_type(typeof(α),typeof(β),typeof(x)),r,α,β,x)
 
 jacobip(::Type{T},n::Integer,α,β,v) where {T} = jacobip(T,n:n,α,β,v)[1]
 jacobip(n::Integer,α,β,v) = jacobip(n:n,α,β,v)[1]
@@ -119,9 +119,9 @@ include("JacobiOperators.jl")
 
 
 
-for op in (:(Base.ones),:(Base.zeros))
-    @eval ($op)(::Type{T},S::Jacobi) where {T<:Number}=Fun(S,($op)(T,1))
-    @eval ($op)(S::Jacobi)=Fun(S,($op)(1))
+for op in (:(one),:(Base.zeros))
+    @eval ($op)(::Type{T},S::Jacobi) where {T<:Number} = Fun(S,fill($op(T),1))
+    @eval ($op)(S::Jacobi) = Fun(S,fill($op(Float64),1))
 end
 
 function Fun(::typeof(identity), J::Jacobi)

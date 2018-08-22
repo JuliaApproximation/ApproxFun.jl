@@ -25,7 +25,7 @@ $$f(x) = \sum_{k=0}^\infty f_k T_k(x)$$
 where $T_k(x) = \cos k \,{\rm acos} x$, which are orthogonal polynomials
 with respect to the weight
 $$
-{1 \over \sqrt{1-x^2} \qquad\hbox{for}\qquad -1 \leq x \leq 1.
+{1 \over \sqrt{1-x^2}} \qquad\hbox{for}\qquad -1 \leq x \leq 1.
 $$
 Note that there is an intrinsic link between `Chebyshev` and `CosSpace`:  
 
@@ -164,6 +164,8 @@ $$
 where evaluation is defined by adding up each component. A simple example is the
 following, showing that the coefficients are stored by interlacing:
 ```jldoctest
+julia> x = Fun(identity,-1..1);
+
 julia> f = cos(x-0.1)*sqrt(1-x^2) + exp(x);
 
 julia> space(f) # isa SumSpace
@@ -187,6 +189,7 @@ julia> norm(f.coefficients[2:2:end] - b.coefficients)
 0.0
 ```
 More complicated examples may interlace the coefficients using a different strategy.
+Note that it is difficult to represent the first component of function $f$ by a Chebyshev series because the derivatives of $f$ at its boundaries blow up, whereas the derivative of a polynomial is a polynomial.
 
 Note that `Fourier` and `Laurent` are currently implemented as `SumSpace`, but this
 may change in the future.
@@ -226,6 +229,8 @@ More complicated examples may interlace the coefficients using a different strat
 where evaluation is defined in an array-wise manner. A simple example is the
 following:
 ```jldoctest
+julia> x = Fun(identity,-1..1);
+
 julia> f = [exp(x); sqrt(1-x^2)*cos(x-0.1)];
 
 julia> space(f)

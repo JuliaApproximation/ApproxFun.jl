@@ -55,8 +55,8 @@ end
 continuity(d::UnionDomain,k) = continuity(Space(d),k)
 continuity(d) = continuity(d,0)
 
-Base.blkdiag(A::PlusOperator) = mapreduce(blkdiag,+,A.ops)
-Base.blkdiag(A::TimesOperator) = mapreduce(blkdiag,.*,A.ops)
+blockdiag(A::PlusOperator) = mapreduce(blockdiag, +, A.ops)
+blockdiag(A::TimesOperator) = mapreduce(blockdiag, .*, A.ops)
 
 # TODO: general wrappers
 
@@ -103,7 +103,17 @@ for TYP in (:SumSpace,:PiecewiseSpace)
         T = promote_type(eltype(domain(S1)),eltype(domain(S2)))
 
         if any(s->!isinf(dimension(s)),v1) || any(s->!isinf(dimension(s)),v2)
-            error("Need to implement finite dimensional case")
+            @assert length(S1.spaces) == length(S2.spaces) == 2
+            if hasconversion(S1, S2.spaces[1])
+                ops = Operator{T}[Conversion(S1.spaces[1], S2.spaces[1]) Conversion(S1.spaces[2], S2.spaces[1]);
+                                ZeroOperator(T, S1.spaces[1], S2.spaces[2]) ZeroOperator(T, S1.spaces[2], S2.spaces[2])]
+            elseif hasconversion(S1, S2.spaces[2])
+                ops = Operator{T}[ZeroOperator(T, S1.spaces[1], S2.spaces[1]) ZeroOperator(T, S1.spaces[2], S2.spaces[1]);
+                                  Conversion(S1.spaces[1], S2.spaces[2]) Conversion(S1.spaces[2], S2.spaces[2])]
+            else
+                error("Not implemented")
+            end
+            ConversionWrapper(InterlaceOperator(ops, S1, S2))
         elseif sort1 == sort2
             # swaps sumspace order
             ConversionWrapper(PermutationOperator{T}(perm(v1,v2),S1,S2))
@@ -144,6 +154,26 @@ for TYP in (:SumSpace,:PiecewiseSpace)
     end
 end
 
+function hasconversion(a::SumSpace, b::Space)
+    for n=1:length(a.spaces)
+        if hasconversion(a.spaces[n],b) ≠ true
+            return false
+        end
+    end
+    return true
+end
+
+function Conversion(a::SumSpace, b::Space)
+    if !hasconversion(a, b)
+        throw(ArgumentError("Cannot convert $a to $b"))
+    end
+
+    m=zeros(Operator{promote_type(prectype(a), prectype(b))},1,length(a.spaces))
+    for n=1:length(a.spaces)
+        m[1,n]=Conversion(a.spaces[n],b)
+    end
+    return ConversionWrapper(InterlaceOperator(m, a, b, cache(interlacer(a)), cache(BlockInterlacer((repeated(1),))), (1-dimension(b),dimension(a)-1)))
+end
 
 
 
@@ -226,7 +256,7 @@ choosedomainspace(M::CalculusOperator{UnsetSpace},sp::SumSpace)=mapreduce(s->cho
 function Multiplication(f::Fun{MatrixSpace{S,DD,RR}},sp::VectorSpace{S2,DD2,RR2}) where {S,DD,RR,S2,DD2,RR2}
     @assert size(space(f),2)==length(sp)
     m=Array(f)
-    MultiplicationWrapper(f,interlace(Operator{promote_type(eltype(f),prectype(sp))}[Multiplication(m[k,j],sp[j]) for k=1:size(m,1),j=1:size(m,2)]))
+    MultiplicationWrapper(f,interlace(Operator{promote_type(cfstype(f),prectype(sp))}[Multiplication(m[k,j],sp[j]) for k=1:size(m,1),j=1:size(m,2)]))
 end
 
 
@@ -245,6 +275,8 @@ Multiplication(f::Fun{SumSpace{SV1,D,R1}},sp::SumSpace{SV2,D,R2}) where {SV1,SV2
     MultiplicationWrapper(f,mapreduce(g->Multiplication(g,sp),+,components(f)))
 Multiplication(f::Fun,sp::SumSpace) =
     MultiplicationWrapper(f,InterlaceOperator(Diagonal([map(s->Multiplication(f,s),components(sp))...]),SumSpace))
+
+Multiplication(f::Fun, sp::PiecewiseSpace) = MultiplicationWrapper(f, Multiplication(Fun(f,sp),sp))
 
 
 # we override coefficienttimes to split the multiplication down to components as union may combine spaes
@@ -277,7 +309,7 @@ DefiniteLineIntegral(sp::PiecewiseSpace) =
 
 Base.getindex(d::TensorSpace{Tuple{PWS1,PWS2}},i::Integer,j::Integer) where {PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace} =
     d[1][i]⊗d[2][j]
-Base.getindex(d::TensorSpace{Tuple{PWS1,PWS2}},i::Range,j::Range) where {PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace} =
+Base.getindex(d::TensorSpace{Tuple{PWS1,PWS2}},i::AbstractRange,j::AbstractRange) where {PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace} =
     PiecewiseSpace(d[1][i])⊗PiecewiseSpace(d[2][j])
 
 ## ProductFun

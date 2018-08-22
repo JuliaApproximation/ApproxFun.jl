@@ -1,4 +1,4 @@
-using ApproxFun, StaticArrays, Compat.Test
+using ApproxFun, StaticArrays, Test
 
 @testset "Clenshaw" begin
     test_function = Fun(sin, 50)

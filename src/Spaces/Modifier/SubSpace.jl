@@ -14,8 +14,8 @@ domain(DS::SubSpace) = domain(DS.space)
 dimension(sp::SubSpace) = length(sp.indexes)
 
 
-|(sp::Space,kr::UnitCount) = first(kr)==1?sp:SubSpace(sp,kr)
-|(sp::Space,kr::Union{AbstractCount,Range}) = SubSpace(sp,kr)
+|(sp::Space,kr::UnitCount) = first(kr)==1 ? sp : SubSpace(sp,kr)
+|(sp::Space,kr::Union{AbstractCount,AbstractRange}) = SubSpace(sp,kr)
 
 
 function |(f::Fun,kr::UnitCount)
@@ -101,7 +101,7 @@ Conversion(a::SubSpace{S,IT,DD,RR},b::S) where {S<:Space,IT,DD,RR} =
 
 function Conversion(a::S,b::SubSpace{S,IT,DD,RR}) where {S<:Space,IT<:UnitCount{Int},DD,RR}
     @assert first(b.indexes) == 1
-    ConversionWrapper(SpaceOperator(eye(a),a,b))
+    ConversionWrapper(SpaceOperator(Operator(I,a),a,b))
 end
 
 bandinds(C::ConcreteConversion{SubSpace{S,UnitCount{Int},DD,RR},S}) where {S,DD,RR} =
@@ -109,7 +109,7 @@ bandinds(C::ConcreteConversion{SubSpace{S,UnitCount{Int},DD,RR},S}) where {S,DD,
 
 getindex(C::ConcreteConversion{SubSpace{S,IT,DD,RR},S},
        k::Integer,j::Integer) where {S,IT,DD,RR} =
-    domainspace(C).indexes[j]==k?one(eltype(C)):zero(eltype(C))
+    domainspace(C).indexes[j]==k ? one(eltype(C)) : zero(eltype(C))
 
 
 # avoid ambiguity
@@ -119,7 +119,7 @@ for OP in (:first,:last)
 end
 getindex(E::ConcreteEvaluation{SubSpace{DS,IT,DD,RR}},k::Integer) where {IT,DS,DD,RR}=
     Evaluation(E.space.space,E.x,E.order)[E.space.indexes[k]]
-getindex(E::ConcreteEvaluation{SubSpace{DS,IT,DD,RR}},kr::Range) where {IT,DS,DD,RR} =
+getindex(E::ConcreteEvaluation{SubSpace{DS,IT,DD,RR}},kr::AbstractRange) where {IT,DS,DD,RR} =
     Evaluation(E.space.space,E.x,E.order)[E.space.indexes[kr]]
 
 
@@ -168,7 +168,7 @@ end
 function subspace_coefficients(v::AbstractVector,sp::Space,dropsp::SubSpace)
     n=length(v)
     if sp == dropsp.space
-        ret = Array{eltype(v)}(0)
+        ret = Array{eltype(v)}(undef, 0)
         for k in dropsp.indexes
             if k > n
                 return ret

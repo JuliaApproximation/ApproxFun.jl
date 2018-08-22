@@ -8,7 +8,7 @@ function ultradiff(v::AbstractVector{T}) where T<:Number
     if length(v)≤1
         w = zeros(T,1)
     else
-        w = Array{T}(length(v)-1)
+        w = Array{T}(undef, length(v)-1)
         for k=1:length(v)-1
             @inbounds w[k] = k*v[k+1]
         end
@@ -48,7 +48,7 @@ end
 # Convert from U -> T
 function ultraiconversion(v::AbstractVector{T}) where T<:Number
     n = length(v)
-    w = Array{T}(n)
+    w = Array{T}(undef, n)
 
     if n == 1
         w[1] = v[1]
@@ -73,7 +73,7 @@ end
 # Convert T -> U
 function ultraconversion(v::AbstractVector{T}) where T<:Number
     n = length(v)
-    w = Array{T}(n)
+    w = Array{T}(undef, n)
 
     if n == 1
         w[1] = v[1]

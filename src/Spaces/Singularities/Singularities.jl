@@ -27,12 +27,12 @@ end
 
 function plan_transform(S::WeightSpace,vals::AbstractVector)
     pts=points(S,length(vals))
-    WeightSpacePlan(S,plan_transform(S.space,vals),pts,weight.(S,pts))
+    WeightSpacePlan(S,plan_transform(S.space,vals),pts,weight.(Ref(S),pts))
 end
 
 function plan_itransform(S::WeightSpace,vals::AbstractVector)
     pts=points(S,length(vals))
-    IWeightSpacePlan(S,plan_itransform(S.space,vals),pts,weight.(S,pts))
+    IWeightSpacePlan(S,plan_itransform(S.space,vals),pts,weight.(Ref(S),pts))
 end
 
 *(P::WeightSpacePlan,vals::AbstractVector) = P.plan*(vals./P.weights)
@@ -41,16 +41,13 @@ end
 
 # used for ProductFun
 transform(sp::WeightSpace,vals::AbstractVector,plan::WeightSpacePlan) =
-    transform(sp.space,vals./(sp==plan.space?plan.weights:weight.(sp,plan.points)),plan.plan)
+    transform(sp.space,vals./(sp==plan.space ? plan.weights : weight.(sp,plan.points)),plan.plan)
 itransform(sp::WeightSpace,cfs::AbstractVector,plan::WeightSpacePlan) =
-    itransform(sp.space,cfs,plan.plan).*(sp==plan.space?plan.weights:weight.(sp,plan.points))
+    itransform(sp.space,cfs,plan.plan).*(sp==plan.space ? plan.weights : weight.(sp,plan.points))
 
 
 
-function evaluate(f::AbstractVector,S::WeightSpace,x)
-    fv=evaluate(f,S.space,x)
-    weight(S,x).*fv
-end
+evaluate(f::AbstractVector,S::WeightSpace,x) = weight(S,x)*evaluate(f,S.space,x)
 
 function evaluate(f::AbstractVector,S::WeightSpace,x...)
     fv=evaluate(f,S.space,x...)

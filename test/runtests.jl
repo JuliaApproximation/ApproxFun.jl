@@ -1,6 +1,4 @@
-versioninfo()
-
-using ApproxFun, Compat.Test
+using ApproxFun, LinearAlgebra, Test
     import ApproxFun: Infinity, ∞
 
 @testset "Helper" begin
@@ -19,7 +17,7 @@ using ApproxFun, Compat.Test
         @test ApproxFun.interlace(collect(1:5),collect(6:10)) == ApproxFun.interlace!(collect(1:10),1)
     end
 
-    @testset "∞" begin
+    @testset "Iterators" begin
         @test maximum(ApproxFun.repeated(1)) == 1
         @test minimum(1:∞) == 1
         @test minimum(ApproxFun.flatten(([2.0],1:ApproxFun.∞))) == 1
@@ -29,6 +27,8 @@ using ApproxFun, Compat.Test
 
         @test 2*(1:∞) == 2:2:∞
         @test 2+(1:∞) == 3:∞
+
+        @test collect(Base.Iterators.Take((1:∞),5)) == 1:5
 
         @test cumsum(ApproxFun.Flatten(([3],ApproxFun.repeated(2)))).it[2] ==
             ApproxFun.Count(5,2)
@@ -87,7 +87,9 @@ end
 @time include("IntegralEquationsTest.jl")
 @time include("SpacesTest.jl")
 @time include("JacobiTest.jl")
+@time include("LaguerreTest.jl")
+@time include("HermiteTest.jl")
 @time include("ETDRK4Test.jl")
-@time include("ExtrasTest.jl")
 @time include("MultivariateTest.jl")
 @time include("PDETest.jl")
+@time include("ExtrasTest.jl")

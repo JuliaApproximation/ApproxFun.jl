@@ -12,7 +12,6 @@ weights a space `s` by a Jacobi weight, which on `-1..1`
 is `(1+x)^β*(1-x)^α`.
 For other domains, the weight is inferred by mapping to `-1..1`.
 """
-#TODO: support general types for paramaters
 struct JacobiWeight{S,DD,RR,T<:Real} <: WeightSpace{S,DD,RR}
     β::T
     α::T
@@ -59,7 +58,7 @@ transformtimes(f::Fun{JW},g::Fun) where {JW<:JacobiWeight} =
 transformtimes(f::Fun,g::Fun{JW}) where {JW<:JacobiWeight} =
     Fun(g.space,coefficients(transformtimes(Fun(g.space.space,g.coefficients),f)))
 
-jacobiweight(β,α,x) = (1+x).^β.*(1-x).^α
+jacobiweight(β,α,x) = -1 ≤ x ≤ 1 ? (1+x)^β*(1-x)^α : zero(x)
 jacobiweight(β,α,d::Domain) = Fun(JacobiWeight(β,α,ConstantSpace(d)),[1.])
 jacobiweight(β,α) = jacobiweight(β,α,Interval())
 
@@ -67,8 +66,8 @@ weight(sp::JacobiWeight,x) = jacobiweight(sp.β,sp.α,tocanonical(sp,x))
 dimension(sp::JacobiWeight) = dimension(sp.space)
 
 
-Base.first(f::Fun{JW}) where {JW<:JacobiWeight} = space(f).β>0?zero(eltype(f)):f(first(domain(f)))
-Base.last(f::Fun{JW}) where {JW<:JacobiWeight} = space(f).α>0?zero(eltype(f)):f(last(domain(f)))
+Base.first(f::Fun{JW}) where {JW<:JacobiWeight} = space(f).β>0 ? zero(cfstype(f)) : f(first(domain(f)))
+Base.last(f::Fun{JW}) where {JW<:JacobiWeight} = space(f).α>0 ? zero(cfstype(f)) : f(last(domain(f)))
 
 setdomain(sp::JacobiWeight,d::Domain)=JacobiWeight(sp.β,sp.α,setdomain(sp.space,d))
 
@@ -113,7 +112,7 @@ coefficients(f::AbstractVector,S2::Space{DD,RR},sp::JacobiWeight{SJ,DD}) where {
 On other domains this is accomplished by mapping to the unit interval.
 """
 increase_jacobi_parameter(f) = Fun(f,JacobiWeight(f.space.β+1,f.space.α+1,space(f).space))
-increase_jacobi_parameter(s,f) = s==-1?Fun(f,JacobiWeight(f.space.β+1,f.space.α,space(f).space)):
+increase_jacobi_parameter(s,f) = s==-1 ? Fun(f,JacobiWeight(f.space.β+1,f.space.α,space(f).space)) :
                                        Fun(f,JacobiWeight(f.space.β,f.space.α+1,space(f).space))
 
 

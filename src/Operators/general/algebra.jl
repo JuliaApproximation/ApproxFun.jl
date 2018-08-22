@@ -1,6 +1,6 @@
 
 
-export PlusOperator, TimesOperator, A_mul_B_coefficients
+export PlusOperator, TimesOperator, mul_coefficients
 
 
 
@@ -27,7 +27,7 @@ bandinds(P::PlusOperator) = P.bandinds
 israggedbelow(P::PlusOperator) = isbandedbelow(P) || all(israggedbelow,P.ops)
 
 for (OP,mn) in ((:colstart,:min),(:colstop,:max),(:rowstart,:min),(:rowstop,:max))
-    defOP = parse("default_"*string(OP))
+    defOP = Meta.parse("default_"*string(OP))
     @eval function $OP(P::PlusOperator,k::Integer)
         if isbanded(P)
             $defOP(P,k)
@@ -108,12 +108,14 @@ end
 
 for TYP in (:RaggedMatrix,:Matrix,:BandedMatrix,
             :BlockBandedMatrix,:BandedBlockBandedMatrix)
-    @eval convert(::Type{$TYP},P::SubOperator{T,PP,NTuple{2,BlockRange1}}) where {T,PP<:PlusOperator} =
-        convert_axpy!($TYP,P)   # use axpy! to copy
-    @eval convert(::Type{$TYP},P::SubOperator{T,PP}) where {T,PP<:PlusOperator} =
-        convert_axpy!($TYP,P)   # use axpy! to copy
-    @eval convert(::Type{$TYP},P::SubOperator{T,PP,NTuple{2,UnitRange{Int}}}) where {T,PP<:PlusOperator} =
-        convert_axpy!($TYP,P)   # use axpy! to copy
+    @eval begin
+        $TYP(P::SubOperator{T,PP,NTuple{2,BlockRange1}}) where {T,PP<:PlusOperator} =
+            convert_axpy!($TYP,P)   # use axpy! to copy
+        $TYP(P::SubOperator{T,PP}) where {T,PP<:PlusOperator} =
+            convert_axpy!($TYP,P)   # use axpy! to copy
+        $TYP(P::SubOperator{T,PP,NTuple{2,UnitRange{Int}}}) where {T,PP<:PlusOperator} =
+            convert_axpy!($TYP,P)   # use axpy! to copy
+    end
 end
 
 function BLAS.axpy!(α,P::SubOperator{T,PP},A::AbstractMatrix) where {T,PP<:PlusOperator}
@@ -144,7 +146,7 @@ end
 
 
 
-# We need to support A+1 in addition to A+I primarily for matrix case: A+eye(2)
+# We need to support A+1 in addition to A+I primarily for matrix case: A+Matrix(I,2,2)
 for OP in (:+,:-)
     @eval begin
         $OP(c::Union{UniformScaling,Number},A::Operator) =
@@ -201,14 +203,11 @@ getindex(P::ConstantTimesOperator,k::Integer...) =
 for TYP in (:RaggedMatrix,:Matrix,:BandedMatrix,
             :BlockBandedMatrix,:BandedBlockBandedMatrix)
     @eval begin
-        convert(::Type{$TYP},
-                S::SubOperator{T,OP,NTuple{2,BlockRange1}}) where {T,OP<:ConstantTimesOperator} =
+        $TYP(S::SubOperator{T,OP,NTuple{2,BlockRange1}}) where {T,OP<:ConstantTimesOperator} =
             convert_axpy!($TYP, S)
-        convert(::Type{$TYP},
-                S::SubOperator{T,OP,NTuple{2,UnitRange{Int}}}) where {T,OP<:ConstantTimesOperator} =
+        $TYP(S::SubOperator{T,OP,NTuple{2,UnitRange{Int}}}) where {T,OP<:ConstantTimesOperator} =
             convert_axpy!($TYP, S)
-        convert(::Type{$TYP},
-                S::SubOperator{T,OP}) where {T,OP<:ConstantTimesOperator} =
+        $TYP(S::SubOperator{T,OP}) where {T,OP<:ConstantTimesOperator} =
             convert_axpy!($TYP, S)
     end
 end
@@ -299,7 +298,7 @@ end
 
 
 function promotetimes(opsin::Vector{B},dsp) where B<:Operator
-    ops=Vector{Operator{mapreduce(eltype,promote_type,opsin)}}(0)
+    ops=Vector{Operator{mapreduce(eltype,promote_type,opsin)}}(undef,0)
 
     for k=length(opsin):-1:1
         if !isa(opsin[k],Conversion)
@@ -343,7 +342,7 @@ israggedbelow(P::TimesOperator) = isbandedbelow(P) || all(israggedbelow,P.ops)
 Base.stride(P::TimesOperator) = mapreduce(stride,gcd,P.ops)
 
 for OP in (:rowstart,:rowstop)
-    defOP=parse("default_"*string(OP))
+    defOP=Meta.parse("default_"*string(OP))
     @eval function $OP(P::TimesOperator,k::Integer)
         if isbanded(P)
             return $defOP(P,k)
@@ -356,7 +355,7 @@ for OP in (:rowstart,:rowstop)
 end
 
 for OP in (:colstart,:colstop)
-    defOP=parse("default_"*string(OP))
+    defOP=Meta.parse("default_"*string(OP))
     @eval function $OP(P::TimesOperator, k::Integer)
         if isbanded(P)
             return $defOP(P, k)
@@ -380,22 +379,21 @@ function getindex(P::TimesOperator,k::AbstractVector)
 end
 
 for TYP in (:Matrix, :BandedMatrix, :RaggedMatrix)
-    @eval function convert(::Type{$TYP},
-                         V::SubOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,TO<:TimesOperator}
+    @eval function $TYP(V::SubOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,TO<:TimesOperator}
         P = parent(V)
 
         if isbanded(P)
             if $TYP ≠ BandedMatrix
-                return $TYP(convert(BandedMatrix, V))
+                return $TYP(BandedMatrix(V))
             end
         elseif isbandedblockbanded(P)
-            N = block(rangespace(P), last(parentindexes(V)[1]))
-            M = block(domainspace(P), last(parentindexes(V)[2]))
+            N = block(rangespace(P), last(parentindices(V)[1]))
+            M = block(domainspace(P), last(parentindices(V)[2]))
             B = P[Block(1):N, Block(1):M]
-            return $TYP(view(B, parentindexes(V)...), _colstops(V))
+            return $TYP(view(B, parentindices(V)...), _colstops(V))
         end
 
-        kr,jr = parentindexes(V)
+        kr,jr = parentindices(V)
 
         (isempty(kr) || isempty(jr)) && return $TYP(Zeros, V)
 
@@ -412,7 +410,7 @@ for TYP in (:Matrix, :BandedMatrix, :RaggedMatrix)
 
         # find optimal truncations for each operator
         # by finding the non-zero entries
-        krlin = Matrix{Union{Int,Infinity{Bool}}}(length(P.ops),2)
+        krlin = Matrix{Union{Int,Infinity{Bool}}}(undef,length(P.ops),2)
 
         krlin[1,1],krlin[1,2]=kr[1],kr[end]
         for m=1:length(P.ops)-1
@@ -440,9 +438,9 @@ for TYP in (:Matrix, :BandedMatrix, :RaggedMatrix)
 
         # The following returns a banded Matrix with all rows
         # for large k its upper triangular
-        BA=$TYP{T}(P.ops[end][krl[end,1]:krl[end,2],jr])
-        for m=(length(P.ops)-1):-1:1
-            BA=$TYP{T}(P.ops[m][krl[m,1]:krl[m,2],krl[m+1,1]:krl[m+1,2]])*BA
+        BA = convert($TYP{T}, P.ops[end][krl[end,1]:krl[end,2],jr])
+        for m = (length(P.ops)-1):-1:1
+            BA = convert($TYP{T}, P.ops[m][krl[m,1]:krl[m,2],krl[m+1,1]:krl[m+1,2]])*BA
         end
 
         $TYP{T}(BA)
@@ -450,10 +448,9 @@ for TYP in (:Matrix, :BandedMatrix, :RaggedMatrix)
 end
 
 for TYP in (:BlockBandedMatrix, :BandedBlockBandedMatrix)
-    @eval function convert(::Type{$TYP},
-                         V::SubOperator{T,TO,Tuple{BlockRange1,BlockRange1}}) where {T,TO<:TimesOperator}
+    @eval function $TYP(V::SubOperator{T,TO,Tuple{BlockRange1,BlockRange1}}) where {T,TO<:TimesOperator}
         P = parent(V)
-        KR,JR = parentindexes(V)
+        KR,JR = parentindices(V)
 
         @assert length(P.ops) ≥ 2
         if size(V,1)==0 || isempty(KR) || isempty(JR)
@@ -468,7 +465,7 @@ for TYP in (:BlockBandedMatrix, :BandedBlockBandedMatrix)
 
         # find optimal truncations for each operator
         # by finding the non-zero entries
-        KRlin = Matrix{Union{Block,Infinity{Bool}}}(length(P.ops),2)
+        KRlin = Matrix{Union{Block,Infinity{Bool}}}(undef,length(P.ops),2)
 
         KRlin[1,1],KRlin[1,2] = first(KR),last(KR)
         for m=1:length(P.ops)-1
@@ -496,12 +493,12 @@ for TYP in (:BlockBandedMatrix, :BandedBlockBandedMatrix)
 
         # The following returns a banded Matrix with all rows
         # for large k its upper triangular
-        BA = $TYP(view(P.ops[end],KRl[end,1]:KRl[end,2],JR))
+        BA = convert($TYP, view(P.ops[end],KRl[end,1]:KRl[end,2],JR))
         for m = (length(P.ops)-1):-1:1
-            BA = $TYP(view(P.ops[m],KRl[m,1]:KRl[m,2],KRl[m+1,1]:KRl[m+1,2]))*BA
+            BA = convert($TYP, view(P.ops[m],KRl[m,1]:KRl[m,2],KRl[m+1,1]:KRl[m+1,2]))*BA
         end
 
-        $TYP(BA)
+        convert($TYP, BA)
     end
 end
 
@@ -509,7 +506,7 @@ end
 ## Algebra: assume we promote
 
 
-for OP in (:(Base.ctranspose),:(Base.transpose))
+for OP in (:(adjoint),:(transpose))
     @eval $OP(A::TimesOperator)=TimesOperator(reverse!(map($OP,A.ops)))
 end
 
@@ -554,9 +551,11 @@ end
 *(A::Conversion,B::TimesOperator) = TimesOperator(A,B)
 *(A::TimesOperator,B::Conversion) = TimesOperator(A,B)
 *(A::Operator,B::Conversion) =
-    isconstop(A)?promoterangespace(convert(Number,A)*B,rangespace(A)):TimesOperator(A,B)
+    isconstop(A) ? promoterangespace(convert(Number,A)*B,rangespace(A)) : TimesOperator(A,B)
 *(A::Conversion,B::Operator) =
-    isconstop(B)?promotedomainspace(convert(Number,B)*A,domainspace(B)):TimesOperator(A,B)
+    isconstop(B) ? promotedomainspace(convert(Number,B)*A,domainspace(B)) : TimesOperator(A,B)
+
+^(A::Operator, p::Integer) = Base.power_by_squaring(A, p)
 
 
 +(A::Operator) = A
@@ -586,7 +585,7 @@ function *(c::Number,A::Operator)
         ConstantTimesOperator(c,A)
     end
 end
-*(A::Operator,c::Number) = A*(c*ones(domainspace(A)))
+*(A::Operator,c::Number) = A*(c*one(domainspace(A)))
 
 
 /(B::Operator,c::Number) = (1.0/c)*B
@@ -597,22 +596,22 @@ end
 
 
 ## Operations
-function A_mul_B_coefficients(A::Operator,b)
+function mul_coefficients(A::Operator,b)
     n=size(b,1)
-    ret = n>0 ? A_mul_B_coefficients(view(A,FiniteRange,1:n),b) : b
+    ret = n>0 ? mul_coefficients(view(A,FiniteRange,1:n),b) : b
 end
 
-function A_mul_B_coefficients(A::TimesOperator,b)
+function mul_coefficients(A::TimesOperator,b)
     ret = b
     for k=length(A.ops):-1:1
-        ret = A_mul_B_coefficients(A.ops[k],ret)
+        ret = mul_coefficients(A.ops[k],ret)
     end
 
     ret
 end
 
 
-function *(A::Operator,b)
+function *(A::Operator, b)
     ds = domainspace(A)
     rs = rangespace(A)
     if isambiguous(ds)
@@ -621,15 +620,15 @@ function *(A::Operator,b)
         error("Assign spaces to $A before multiplying.")
     else
         Fun(rs,
-            A_mul_B_coefficients(A,coefficients(b,ds)))
+            mul_coefficients(A,coefficients(b,ds)))
     end
 end
 
-A_mul_B_coefficients(A::PlusOperator,b::Fun) =
-    mapreduce(x->A_mul_B_coefficients(x,b),+,A.ops)
+mul_coefficients(A::PlusOperator,b::Fun) =
+    mapreduce(x->mul_coefficients(x,b),+,A.ops)
 
-*(A::Operator,b::AbstractMatrix{<:Fun}) = A*Fun(b)
-*(A::Vector{<:Operator},b::Fun) = map(a->a*b,convert(Array{Any,1},A))
+*(A::Operator, b::AbstractMatrix{<:Fun}) = A*Fun(b)
+*(A::Vector{<:Operator}, b::Fun) = map(a->a*b,convert(Array{Any,1},A))
 
 
 

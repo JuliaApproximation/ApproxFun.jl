@@ -22,19 +22,19 @@ in mathematics.  Consider the derivative operator on `CosSpace`:
 ```jldoctest
 julia> D = Derivative(CosSpace())
 ConcreteDerivative:CosSpace(【0.0,6.283185307179586❫)→SinSpace(【0.0,6.283185307179586❫)
- 0.0  -1.0
-       0.0  -2.0
-             0.0  -3.0
-                   0.0  -4.0
-                         0.0  -5.0
-                               0.0  -6.0
-                                     0.0  -7.0
-                                           0.0  -8.0
-                                                 0.0  -9.0
-                                                       0.0  ⋱
-                                                            ⋱
+ 0.0  -1.0    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋅
+  ⋅    0.0  -2.0    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋅
+  ⋅     ⋅    0.0  -3.0    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋅
+  ⋅     ⋅     ⋅    0.0  -4.0    ⋅     ⋅     ⋅     ⋅     ⋅   ⋅
+  ⋅     ⋅     ⋅     ⋅    0.0  -5.0    ⋅     ⋅     ⋅     ⋅   ⋅
+  ⋅     ⋅     ⋅     ⋅     ⋅    0.0  -6.0    ⋅     ⋅     ⋅   ⋅
+  ⋅     ⋅     ⋅     ⋅     ⋅     ⋅    0.0  -7.0    ⋅     ⋅   ⋅
+  ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅    0.0  -8.0    ⋅   ⋅
+  ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅    0.0  -9.0  ⋅
+  ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅    0.0  ⋱
+  ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋱
 
-julia> f = Fun(θ->cos(cos(θ)),CosSpace());
+julia> f = Fun(θ->cos(cos(θ)), CosSpace());
 
 julia> fp = D*f;
 
@@ -78,17 +78,17 @@ spaces:
 ```jldoctest
 julia> Derivative(Chebyshev())
 ConcreteDerivative:Chebyshev(【-1.0,1.0】)→Ultraspherical(1,【-1.0,1.0】)
- 0.0  1.0                                           
-      0.0  2.0                                      
-           0.0  3.0                                 
-                0.0  4.0                            
-                     0.0  5.0                       
-                          0.0  6.0                  
-                               0.0  7.0             
-                                    0.0  8.0        
-                                         0.0  9.0   
-                                              0.0  ⋱
-                                                   ⋱
+ ⋅  1.0   ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   ⋅
+ ⋅   ⋅   2.0   ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   ⋅
+ ⋅   ⋅    ⋅   3.0   ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   ⋅
+ ⋅   ⋅    ⋅    ⋅   4.0   ⋅    ⋅    ⋅    ⋅    ⋅   ⋅
+ ⋅   ⋅    ⋅    ⋅    ⋅   5.0   ⋅    ⋅    ⋅    ⋅   ⋅
+ ⋅   ⋅    ⋅    ⋅    ⋅    ⋅   6.0   ⋅    ⋅    ⋅   ⋅
+ ⋅   ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   7.0   ⋅    ⋅   ⋅
+ ⋅   ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   8.0   ⋅   ⋅
+ ⋅   ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   9.0  ⋅
+ ⋅   ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   ⋱
+ ⋅   ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   ⋱
 ```
 
 ## Functionals
@@ -134,6 +134,60 @@ julia> B*Fun(exp) ≈ Fun([exp(-1),exp(1)])
 true
 ```
 
+## Multiplication
+
+A `Multiplication` operator sends a `Fun` to a `Fun` in the corresponding space by multiplying a given function. The `Multiplication` operators are presented in matrix form in `ApproxFun`.
+
+```jldoctest
+julia> x = Fun();
+
+julia> M = Multiplication(1 + 2x + x^2, Chebyshev())
+ConcreteMultiplication:Chebyshev(【-1.0,1.0】)→Chebyshev(【-1.0,1.0】)
+ 1.5  1.0   0.25   ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅    ⋅
+ 2.0  1.75  1.0   0.25   ⋅     ⋅     ⋅     ⋅     ⋅     ⋅    ⋅
+ 0.5  1.0   1.5   1.0   0.25   ⋅     ⋅     ⋅     ⋅     ⋅    ⋅
+  ⋅   0.25  1.0   1.5   1.0   0.25   ⋅     ⋅     ⋅     ⋅    ⋅
+  ⋅    ⋅    0.25  1.0   1.5   1.0   0.25   ⋅     ⋅     ⋅    ⋅
+  ⋅    ⋅     ⋅    0.25  1.0   1.5   1.0   0.25   ⋅     ⋅    ⋅
+  ⋅    ⋅     ⋅     ⋅    0.25  1.0   1.5   1.0   0.25   ⋅    ⋅
+  ⋅    ⋅     ⋅     ⋅     ⋅    0.25  1.0   1.5   1.0   0.25  ⋅
+  ⋅    ⋅     ⋅     ⋅     ⋅     ⋅    0.25  1.0   1.5   1.0   ⋱
+  ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅    0.25  1.0   1.5   ⋱
+  ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋱     ⋱    ⋱
+
+julia> (M * x).coefficients == ((1 + 2x + x^2) * x).coefficients == M[1:4,1:2] * x.coefficients
+true
+```
+
+It is possible for domain space and range space to be different under `Mulitplication`.
+
+```jldoctest
+julia> c = Fun(θ -> cos(θ), CosSpace());
+
+julia> Multiplication(c, SinSpace())
+ConcreteMultiplication:SinSpace(【0.0,6.283185307179586❫)→SinSpace(【0.0,6.283185307179586❫)
+ 8.974302782386682e-17  0.5                    …   ⋅                     ⋅
+ 0.5                    8.974302782386682e-17      ⋅                     ⋅
+  ⋅                     0.5                        ⋅                     ⋅
+  ⋅                      ⋅                         ⋅                     ⋅
+  ⋅                      ⋅                         ⋅                     ⋅
+  ⋅                      ⋅                     …   ⋅                     ⋅
+  ⋅                      ⋅                         ⋅                     ⋅
+  ⋅                      ⋅                         ⋅                     ⋅
+  ⋅                      ⋅                        0.5                    ⋅
+  ⋅                      ⋅                        8.974302782386682e-17  ⋱
+  ⋅                      ⋅                     …   ⋱                     ⋱
+```
+
+If a function is given by the expansion
+$$ f(\theta) = \sum_{n=1}^{\infty}  {f}_{n} * sin(n\theta) $$
+
+Then the matrix above can be easily derived from
+$$ cos(\theta) * f(\theta) = cos(\theta) \cdot (\sum_{n=1}^{\infty}  {f}_{n} \cdot sin(n\theta) $$
+$$ = \sum_{n=1}^{\infty}  {f}_{n} \cdot cos(\theta) \cdot sin(n\theta) $$
+$$ = \sum_{n=1}^{\infty}  {f}_{n} \cdot 0.5 \cdot ((sin(n-1)\theta) + (sin(n+1)\theta) $$
+$$ = \sum_{n=1}^{\infty}  0.5 \cdot ({f}_{n-1} + {f}_{n+1}) \cdot sin(n\theta) $$.
+
 ## Algebraic manipulation of operators
 
 Operators can be algebraically manipulated, provided that the domain and
@@ -143,31 +197,31 @@ identity operator:
 ```jldoctest
 julia> D2 = Derivative(Fourier(),2)
 DerivativeWrapper:Fourier(【0.0,6.283185307179586❫)→Fourier(【0.0,6.283185307179586❫)
- 0.0   0.0                                                      
- 0.0  -1.0   0.0                                                
-       0.0  -1.0   0.0                                          
-             0.0  -4.0   0.0                                    
-                   0.0  -4.0   0.0                              
-                         0.0  -9.0   0.0                        
-                               0.0  -9.0    0.0                 
-                                     0.0  -16.0    0.0          
-                                            0.0  -16.0    0.0   
-                                                   0.0  -25.0  ⋱
-                                                           ⋱   ⋱
+ 0.0    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅      ⋅      ⋅      ⋅   ⋅
+  ⋅   -1.0    ⋅     ⋅     ⋅     ⋅     ⋅      ⋅      ⋅      ⋅   ⋅
+  ⋅     ⋅   -1.0    ⋅     ⋅     ⋅     ⋅      ⋅      ⋅      ⋅   ⋅
+  ⋅     ⋅     ⋅   -4.0    ⋅     ⋅     ⋅      ⋅      ⋅      ⋅   ⋅
+  ⋅     ⋅     ⋅     ⋅   -4.0    ⋅     ⋅      ⋅      ⋅      ⋅   ⋅
+  ⋅     ⋅     ⋅     ⋅     ⋅   -9.0    ⋅      ⋅      ⋅      ⋅   ⋅
+  ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   -9.0     ⋅      ⋅      ⋅   ⋅
+  ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   -16.0     ⋅      ⋅   ⋅
+  ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅      ⋅   -16.0     ⋅   ⋅
+  ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅      ⋅      ⋅   -25.0  ⋅
+  ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅      ⋅      ⋅      ⋅   ⋱
 
 julia> D2 + I
 PlusOperator:Fourier(【0.0,6.283185307179586❫)→Fourier(【0.0,6.283185307179586❫)
- 1.0  0.0                                                     
- 0.0  0.0  0.0                                                
-      0.0  0.0   0.0                                          
-           0.0  -3.0   0.0                                    
-                 0.0  -3.0   0.0                              
-                       0.0  -8.0   0.0                        
-                             0.0  -8.0    0.0                 
-                                   0.0  -15.0    0.0          
-                                          0.0  -15.0    0.0   
-                                                 0.0  -24.0  ⋱
-                                                         ⋱   ⋱
+ 1.0   ⋅    ⋅     ⋅     ⋅     ⋅     ⋅      ⋅      ⋅      ⋅   ⋅
+  ⋅   0.0   ⋅     ⋅     ⋅     ⋅     ⋅      ⋅      ⋅      ⋅   ⋅
+  ⋅    ⋅   0.0    ⋅     ⋅     ⋅     ⋅      ⋅      ⋅      ⋅   ⋅
+  ⋅    ⋅    ⋅   -3.0    ⋅     ⋅     ⋅      ⋅      ⋅      ⋅   ⋅
+  ⋅    ⋅    ⋅     ⋅   -3.0    ⋅     ⋅      ⋅      ⋅      ⋅   ⋅
+  ⋅    ⋅    ⋅     ⋅     ⋅   -8.0    ⋅      ⋅      ⋅      ⋅   ⋅
+  ⋅    ⋅    ⋅     ⋅     ⋅     ⋅   -8.0     ⋅      ⋅      ⋅   ⋅
+  ⋅    ⋅    ⋅     ⋅     ⋅     ⋅     ⋅   -15.0     ⋅      ⋅   ⋅
+  ⋅    ⋅    ⋅     ⋅     ⋅     ⋅     ⋅      ⋅   -15.0     ⋅   ⋅
+  ⋅    ⋅    ⋅     ⋅     ⋅     ⋅     ⋅      ⋅      ⋅   -24.0  ⋅
+  ⋅    ⋅    ⋅     ⋅     ⋅     ⋅     ⋅      ⋅      ⋅      ⋅   ⋱
 ```
 
 When the domain and range space are not the same, the identity operator
@@ -177,45 +231,46 @@ space, we would do the following:
 ```jldoctest
 julia> D = Derivative(Chebyshev())
 ConcreteDerivative:Chebyshev(【-1.0,1.0】)→Ultraspherical(1,【-1.0,1.0】)
- 0.0  1.0                                           
-      0.0  2.0                                      
-           0.0  3.0                                 
-                0.0  4.0                            
-                     0.0  5.0                       
-                          0.0  6.0                  
-                               0.0  7.0             
-                                    0.0  8.0        
-                                         0.0  9.0   
-                                              0.0  ⋱
-                                                   ⋱
+ ⋅  1.0   ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   ⋅
+ ⋅   ⋅   2.0   ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   ⋅
+ ⋅   ⋅    ⋅   3.0   ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   ⋅
+ ⋅   ⋅    ⋅    ⋅   4.0   ⋅    ⋅    ⋅    ⋅    ⋅   ⋅
+ ⋅   ⋅    ⋅    ⋅    ⋅   5.0   ⋅    ⋅    ⋅    ⋅   ⋅
+ ⋅   ⋅    ⋅    ⋅    ⋅    ⋅   6.0   ⋅    ⋅    ⋅   ⋅
+ ⋅   ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   7.0   ⋅    ⋅   ⋅
+ ⋅   ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   8.0   ⋅   ⋅
+ ⋅   ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   9.0  ⋅
+ ⋅   ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   ⋱
+ ⋅   ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   ⋱
 
 julia> C = Conversion(Chebyshev(),Ultraspherical(1))
 ConcreteConversion:Chebyshev(【-1.0,1.0】)→Ultraspherical(1,【-1.0,1.0】)
- 1.0  0.0  -0.5                                             
-      0.5   0.0  -0.5                                       
-            0.5   0.0  -0.5                                 
-                  0.5   0.0  -0.5                           
-                        0.5   0.0  -0.5                     
-                              0.5   0.0  -0.5               
-                                    0.5   0.0  -0.5         
-                                          0.5   0.0  -0.5   
-                                                0.5   0.0  ⋱
-                                                      0.5  ⋱
-                                                           ⋱
+ 1.0  0.0  -0.5    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋅
+  ⋅   0.5   0.0  -0.5    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋅
+  ⋅    ⋅    0.5   0.0  -0.5    ⋅     ⋅     ⋅     ⋅     ⋅   ⋅
+  ⋅    ⋅     ⋅    0.5   0.0  -0.5    ⋅     ⋅     ⋅     ⋅   ⋅
+  ⋅    ⋅     ⋅     ⋅    0.5   0.0  -0.5    ⋅     ⋅     ⋅   ⋅
+  ⋅    ⋅     ⋅     ⋅     ⋅    0.5   0.0  -0.5    ⋅     ⋅   ⋅
+  ⋅    ⋅     ⋅     ⋅     ⋅     ⋅    0.5   0.0  -0.5    ⋅   ⋅
+  ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅    0.5   0.0  -0.5  ⋅
+  ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅    0.5   0.0  ⋱
+  ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅    0.5  ⋱
+  ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋱
+
 
 julia> D + C
 PlusOperator:Chebyshev(【-1.0,1.0】)→Ultraspherical(1,【-1.0,1.0】)
- 1.0  1.0  -0.5                                             
-      0.5   2.0  -0.5                                       
-            0.5   3.0  -0.5                                 
-                  0.5   4.0  -0.5                           
-                        0.5   5.0  -0.5                     
-                              0.5   6.0  -0.5               
-                                    0.5   7.0  -0.5         
-                                          0.5   8.0  -0.5   
-                                                0.5   9.0  ⋱
-                                                      0.5  ⋱
-                                                           ⋱
+ 1.0  1.0  -0.5    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋅
+  ⋅   0.5   2.0  -0.5    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋅
+  ⋅    ⋅    0.5   3.0  -0.5    ⋅     ⋅     ⋅     ⋅     ⋅   ⋅
+  ⋅    ⋅     ⋅    0.5   4.0  -0.5    ⋅     ⋅     ⋅     ⋅   ⋅
+  ⋅    ⋅     ⋅     ⋅    0.5   5.0  -0.5    ⋅     ⋅     ⋅   ⋅
+  ⋅    ⋅     ⋅     ⋅     ⋅    0.5   6.0  -0.5    ⋅     ⋅   ⋅
+  ⋅    ⋅     ⋅     ⋅     ⋅     ⋅    0.5   7.0  -0.5    ⋅   ⋅
+  ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅    0.5   8.0  -0.5  ⋅
+  ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅    0.5   9.0  ⋱
+  ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅    0.5  ⋱
+  ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋱
 ```
 
 ApproxFun can automatically determine the spaces, so if one writes
@@ -233,21 +288,21 @@ julia> x = Fun();
 
 julia> Σ = DefiniteIntegral(Chebyshev())
 ConcreteDefiniteIntegral:Chebyshev(【-1.0,1.0】)→ConstantSpace
- 2.0  0.0  -0.666667  0.0  -0.133333  0.0  -0.0571429  0.0  -0.031746  0.0  ⋯
+ 2.0  0.0  -0.6666666666666666  0.0  …  0.0  -0.031746031746031744  0.0  ⋯
 
 julia> L = I + exp(x)*Σ
 LowRankPertOperator:Chebyshev(【-1.0,1.0】)→Chebyshev(【-1.0,1.0】)
- 3.53213     0.0  -0.844044     0.0  …  0.0  -0.0401926    0.0  ⋯
- 2.26064     1.0  -0.753545     0.0     0.0  -0.0358831    0.0  ⋱
- 0.542991    0.0   0.819003     0.0     0.0  -0.0086189    0.0  ⋱
- 0.0886737   0.0  -0.0295579    1.0     0.0  -0.00140752   0.0  ⋱
- 0.0109485   0.0  -0.00364949   0.0     0.0  -0.000173785  0.0  ⋱
- 0.00108585  0.0  -0.000361951  0.0  …  0.0  -1.72358e-5   0.0  ⋱
- 8.99546e-5  0.0  -2.99849e-5   0.0     0.0  -1.42785e-6   0.0  ⋱
- 6.39687e-6  0.0  -2.13229e-6   0.0     1.0  -1.01538e-7   0.0  ⋱
- 3.98425e-7  0.0  -1.32808e-7   0.0     0.0   1.0          0.0  ⋱
- 2.20735e-8  0.0  -7.35785e-9   0.0     0.0  -3.50374e-10  1.0  ⋱
-  ⋮           ⋱     ⋱            ⋱   …   ⋱     ⋱            ⋱   ⋱
+ 3.5321317555040164     0.0  …  -0.0401925675476828      0.0  ⋯
+ 2.260636415969941      1.0     -0.03588311771380859     0.0  ⋱
+ 0.5429906790681531     0.0     -0.008618899667748462    0.0  ⋱
+ 0.08867369969732766    0.0     -0.0014075190428147247   0.0  ⋱
+ 0.010948480884187475   0.0     -0.00017378541086011864  0.0  ⋱
+ 0.001085852623827888   0.0  …  -1.7235755933775998e-5   0.0  ⋱
+ 8.995464590859038e-5   0.0     -1.4278515223585775e-6   0.0  ⋱
+ 6.396872924803984e-6   0.0     -1.015376654730791e-7    0.0  ⋱
+ 3.9842496133455937e-7  0.0      0.9999999936757943      0.0  ⋱
+ 2.20735434510347e-8    0.0     -3.503737055719794e-10   1.0  ⋱
+  ⋮                      ⋱   …    ⋱                       ⋱   ⋱
 
 julia> u = cos(10x^2);
 
@@ -286,7 +341,7 @@ ConcreteMultiplication:ConstantSpace→Chebyshev(【-1.0,1.0】)
  1.10368e-8
   ⋮         
 
-julia> M*Q
+julia> M*Σ
 TimesOperator:Chebyshev(【-1.0,1.0】)→Chebyshev(【-1.0,1.0】)
  2.53213     0.0  -0.844044     0.0  …  0.0  -0.0401926    0.0  ⋯
  2.26064     0.0  -0.753545     0.0     0.0  -0.0358831    0.0  ⋱
@@ -326,17 +381,17 @@ julia> D = Derivative(Chebyshev());
 
 julia> D^2
 ConcreteDerivative:Chebyshev(【-1.0,1.0】)→Ultraspherical(2,【-1.0,1.0】)
- 0.0  0.0  4.0                                           
-      0.0  0.0  6.0                                      
-           0.0  0.0  8.0                                 
-                0.0  0.0  10.0                           
-                     0.0   0.0  12.0                     
-                           0.0   0.0  14.0               
-                                 0.0   0.0  16.0         
-                                       0.0   0.0  18.0   
-                                             0.0   0.0  ⋱
-                                                   0.0  ⋱
-                                                        ⋱
+ ⋅  ⋅  4.0   ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋅
+ ⋅  ⋅   ⋅   6.0   ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋅
+ ⋅  ⋅   ⋅    ⋅   8.0    ⋅     ⋅     ⋅     ⋅     ⋅   ⋅
+ ⋅  ⋅   ⋅    ⋅    ⋅   10.0    ⋅     ⋅     ⋅     ⋅   ⋅
+ ⋅  ⋅   ⋅    ⋅    ⋅     ⋅   12.0    ⋅     ⋅     ⋅   ⋅
+ ⋅  ⋅   ⋅    ⋅    ⋅     ⋅     ⋅   14.0    ⋅     ⋅   ⋅
+ ⋅  ⋅   ⋅    ⋅    ⋅     ⋅     ⋅     ⋅   16.0    ⋅   ⋅
+ ⋅  ⋅   ⋅    ⋅    ⋅     ⋅     ⋅     ⋅     ⋅   18.0  ⋅
+ ⋅  ⋅   ⋅    ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋱
+ ⋅  ⋅   ⋅    ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋱
+ ⋅  ⋅   ⋅    ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋱
 ```
 Note that `rangespace(D) ≠ Chebyshev()`, hence the operators are not compatible.
 Therefore, it has thrown away its domain space, and thus this is equivalent to
@@ -355,4 +410,4 @@ DocTestSetup = nothing
 
 The concatenation functions `vcat`, `hcat` and `hvcat` are overriden for
 operators to represent the resulting combined operator, now with
-a `rangespace` or `domainspace` that is an `ArraySpace`. 
+a `rangespace` or `domainspace` that is an `ArraySpace`.

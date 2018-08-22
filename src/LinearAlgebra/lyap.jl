@@ -1,6 +1,6 @@
 function lyapdiag!(A::Vector,B::Vector,F)
     for i=1:size(F,1),j=1:size(F,2)
-        F[i,j] *= 1./(A[i]+B[j])
+        F[i,j] *= 1/(A[i]+B[j])
     end
 
     F
@@ -68,10 +68,10 @@ function lyapuptriang(P,R,S,T,F::AbstractArray{N}) where N
 end
 
 
-##Solves A*X*B.' + C*X*D.' = E
+##Solves A*X*transpose(B) + C*X*transpose(D) = E
 function lyap(A,B,C,D,E)
-    AC=schurfact(full(A),full(C))
-    BD=schurfact(full(B),full(D))
+    AC=schurfact(Matrix(A),Matrix(C))
+    BD=schurfact(Matrix(B),Matrix(D))
     Q1=AC[:left];Q2=BD[:left]
     Z1=AC[:right];Z2=BD[:right]
 

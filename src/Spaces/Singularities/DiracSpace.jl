@@ -1,5 +1,4 @@
 export DiracDelta, KroneckerDelta
-
 for TYP in (:DiracSpace,:PointSpace)
     @eval begin
         struct $TYP{T,D,R} <: Space{D,R}
@@ -88,6 +87,17 @@ function evaluate(f::AbstractVector,PS::PointSpace,x::Number)
     end
 end
 
+function evaluate(f::AbstractVector, PS::DiracSpace, x::Number)
+    x ∉ domain(PS) && return zero(eltype(f))
+
+    p = findfirst(y->isapprox(x,y), PS.points)
+    if p == 0 || p > length(f)
+        zero(eltype(f))
+    else
+        f[p]*Inf
+    end
+end
+
 Base.sum(f::Fun{DS}) where DS<:DiracSpace =
     sum(f.coefficients[1:dimension(space(f))])
 
@@ -132,35 +142,74 @@ end
 # end
 
 
-function Multiplication(f::Fun{PS},PS2::PointSpace) where PS<:PointSpace
+function Multiplication(f::Fun{PS}, PS2::PointSpace) where PS<:PointSpace
     @assert space(f).points==PS2.points
     FiniteOperator(diagm(values(f)),PS2,PS2)
 end
 
-function Multiplication(f::Fun{PS},DS::DiracSpace) where PS<:PointSpace
+function Multiplication(f::Fun{PS}, DS::DiracSpace) where PS<:PointSpace
     @assert space(f).points==DS.points
     FiniteOperator(diagm(values(f)),DS,DS)
 end
 
-function Multiplication(f::Fun{DS},PS::PointSpace) where DS<:DiracSpace
+function Multiplication(f::Fun{DS}, PS::PointSpace) where DS<:DiracSpace
     @assert space(f).points==PS.points
     FiniteOperator(diagm(coefficient(f,:)),PS,space(f))
 end
 
-function coefficienttimes(f::Fun{PS},g::Fun{DS}) where {PS<:PointSpace,DS<:DiracSpace}
+function coefficienttimes(f::Fun{PS}, g::Fun{DS}) where {PS<:PointSpace,DS<:DiracSpace}
     @assert space(f).points==space(g).points
     Fun(space(g),f.coefficients.*g.coefficients)
 end
 
-function coefficienttimes(f::Fun{DS},g::Fun{PS}) where {PS<:PointSpace,DS<:DiracSpace}
+function coefficienttimes(f::Fun{DS}, g::Fun{PS}) where {PS<:PointSpace,DS<:DiracSpace}
     @assert space(f).points==space(g).points
     Fun(space(f),f.coefficients.*g.coefficients)
 end
 
-function coefficienttimes(f::Fun{PS},g::Fun{PS2}) where {PS<:PointSpace,PS2<:PointSpace}
+function coefficienttimes(f::Fun{PS}, g::Fun{PS2}) where {PS<:PointSpace,PS2<:PointSpace}
     @assert space(f).points==space(g).points
     Fun(space(g),f.coefficients.*g.coefficients)
 end
 
 /(f::Fun,g::Fun{PS}) where PS<:PointSpace = f*inv(g)
-Base.inv(f::Fun{PS}) where PS<:PointSpace = Fun(space(f),1./f.coefficients)
+
+inv(f::Fun{PS}) where PS<:PointSpace = Fun(space(f),1 ./ f.coefficients)
+
+
+#DiracSpace sampling
+function randweights(pts, cfs)
+    cs = cumsum(cfs)
+    r = rand()
+    if r≤cs[1]
+        return pts[1]
+    else
+        for n=1:length(cfs)-1
+            if cs[n]<r≤cs[n+1] && return pts[n+1]
+                break
+            end
+        end
+    end
+end
+
+
+function sample(f::Fun{<:DiracSpace,<:Real})
+    cfs = f.coefficients/sum(f.coefficients)
+    any(c -> c < 0, cfs) && throw(ArgumentError("All weights must be non-negative"))
+    randweights(f.space.points, cfs)
+end
+
+function sample(f::Fun{<:DiracSpace,<:Real},n::Integer)
+    p=[]
+    for i=1:n
+        p=[p;sample(f)]
+    end
+    return p
+end
+#integrate DiracSpace
+function integrate(f::Fun{<:DiracSpace})
+    pts=f.space.points
+    cfs=f.coefficients
+    int=Fun(HeavisideSpace([pts;Inf]),cumsum(cfs))
+    return int
+end

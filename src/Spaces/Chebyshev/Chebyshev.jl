@@ -1,7 +1,7 @@
 
 export Chebyshev
 
-doc"""
+"""
 `Chebyshev()` is the space spanned by the Chebyshev polynomials
 ```
     T_0(x),T_1(x),T_2(x),…
@@ -26,12 +26,12 @@ Space(d::Segment) = Chebyshev(d)
 
 setdomain(S::Chebyshev,d::Domain) = Chebyshev(d)
 
-Base.ones(::Type{T},S::Chebyshev) where {T<:Number} = Fun(S,ones(T,1))
-Base.ones(S::Chebyshev) = Fun(S,ones(1))
+ones(::Type{T},S::Chebyshev) where {T<:Number} = Fun(S,fill(one(T),1))
+ones(S::Chebyshev) = Fun(S,fill(1.0,1))
 
 function Base.first(f::Fun{<:Chebyshev})
     n = ncoefficients(f)
-    n == 0 && return zero(eltype(f))
+    n == 0 && return zero(cfstype(f))
     n == 1 && return f.coefficients[1]
     foldr(-,coefficients(f))
 end
@@ -40,17 +40,6 @@ Base.last(f::Fun{<:Chebyshev}) = reduce(+,coefficients(f))
 
 spacescompatible(a::Chebyshev,b::Chebyshev) = domainscompatible(a,b)
 hasfasttransform(::Chebyshev) = true
-
-
-function coefficients(g::AbstractVector,::ConstantSpace,::Chebyshev)
-    @assert length(g)==1
-    g
-end
-
-function coefficients(g::AbstractVector,::Chebyshev,::ConstantSpace)
-    @assert length(g)==1
-    g
-end
 
 
 ## Transform
@@ -232,17 +221,23 @@ differentiate(f::Fun{Chebyshev{D,R}}) where {D<:Segment,R} =
 
 ## Multivariate
 
+function squarepoints(::Type{T}, N) where T
+    pts=paduapoints(T,Int(cld(-3+sqrt(1+8N),2)))
+    n = size(pts,1)
+    ret=Array{Vec{2,T}}(undef, n)
+    @inbounds for k=1:n
+        ret[k]=Vec{2,T}(pts[k,1],pts[k,2])
+    end
+    ret
+end
+
 function points(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},N) where {D,R}
+    T = real(prectype(D))
+    pts = squarepoints(T, N)
     if domain(S) == Segment()^2
-        pts=paduapoints(real(prectype(D)),Int(cld(-3+sqrt(1+8N),2)))
-        T=eltype(pts)
-        ret=Array{Vec{2,T}}(size(pts,1))
-        @inbounds for k in eachindex(ret)
-            ret[k]=Vec{2,T}(pts[k,1],pts[k,2])
-        end
-        ret
+        pts
     else
-        fromcanonical.(S,points(Chebyshev()^2,N))
+        fromcanonical.(Ref(S),pts)
     end
 end
 

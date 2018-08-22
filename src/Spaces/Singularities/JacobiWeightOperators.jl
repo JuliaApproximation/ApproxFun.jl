@@ -30,8 +30,8 @@ for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:arclength))
             elseif β == -0.5 && α == 0.5
                 return 0.5*$Len(d)*(n == 1 ? f.coefficients[1] : f.coefficients[1] - f.coefficients[2]/2)*π
             else
-                c = zeros(eltype(f),n)
-                c[1] = 2.^(β+α+1)*gamma(β+1)*gamma(α+1)/gamma(β+α+2)
+                c = zeros(cfstype(f),n)
+                c[1] = 2^(β+α+1)*gamma(β+1)*gamma(α+1)/gamma(β+α+2)
                 if n > 1
                     c[2] = c[1]*(β-α)/(β+α+2)
                     for i=1:n-2
@@ -114,6 +114,9 @@ function integrate(f::Fun{JacobiWeight{SS,DD,RR,TT}}) where {SS,DD<:Segment,RR,T
     elseif S.α ≈ 0
         D = Derivative(JacobiWeight(S.β+1, S.α, S.space))
         D\f   # this happens to pick out a smooth solution
+    elseif isapproxinteger(S.β) || isapproxinteger(S.α)
+        D = Derivative(JacobiWeight(S.β+1, S.α+1, S.space))
+        D\f   # this happens to pick out a smooth solution
     else
         s=sum(f)
         if abs(s)<1E-14
@@ -138,7 +141,7 @@ function Base.cumsum(f::Fun{JacobiWeight{SS,DD,RR,TT}}) where {SS,DD<:Segment,RR
     if (S.β==0 && S.α==0) || S.β>-1
         g-first(g)
     else
-        warn("Function is not integrable at left endpoint.  Returning a non-normalized indefinite integral.")
+        @warn "Function is not integrable at left endpoint.  Returning a non-normalized indefinite integral."
         g
     end
 end
@@ -165,20 +168,20 @@ function jacobiweightDerivative(S::JacobiWeight{SS,DDD}) where {SS,DDD<:Segment}
         w=Fun(JacobiWeight(0,1,ConstantSpace(d)),[1.])
 
         DD=-S.α + w*Derivative(S.space)
-        rs=S.α==1?rangespace(DD):JacobiWeight(0.,S.α-1,rangespace(DD))
+        rs=S.α==1 ? rangespace(DD) : JacobiWeight(0.,S.α-1,rangespace(DD))
         DerivativeWrapper(SpaceOperator(DD,S,rs),1)
     elseif S.α==0
         w=Fun(JacobiWeight(1,0,ConstantSpace(d)),[1.])
 
         DD=S.β + w*Derivative(S.space)
-        rs=S.β==1?rangespace(DD):JacobiWeight(S.β-1,0.,rangespace(DD))
+        rs=S.β==1 ? rangespace(DD) : JacobiWeight(S.β-1,0.,rangespace(DD))
         DerivativeWrapper(SpaceOperator(DD,S,rs),1)
     else
         w=Fun(JacobiWeight(1,1,ConstantSpace(d)),[1.])
         x=Fun()
 
         DD=S.β*(1-x) - S.α*(1+x) + w*Derivative(S.space)
-        rs=S.β==1&&S.α==1?rangespace(DD):JacobiWeight(S.β-1,S.α-1,rangespace(DD))
+        rs=S.β==1&&S.α==1 ? rangespace(DD) : JacobiWeight(S.β-1,S.α-1,rangespace(DD))
         DerivativeWrapper(SpaceOperator(DD,S,rs),1)
     end
 end
@@ -281,7 +284,7 @@ end
 function conversion_rule(A::JacobiWeight,B::JacobiWeight)
     if isapproxinteger(A.β-B.β) && isapproxinteger(A.α-B.α)
         ct=conversion_type(A.space,B.space)
-        ct==NoSpace()?NoSpace():JacobiWeight(max(A.β,B.β),max(A.α,B.α),ct)
+        ct==NoSpace() ? NoSpace() : JacobiWeight(max(A.β,B.β),max(A.α,B.α),ct)
     else
         NoSpace()
     end
@@ -336,7 +339,7 @@ defaultConversion(A::JacobiWeight{JS,D},B::Space{D,R}) where {JS,D<:IntervalDoma
 
 ## Evaluation
 
-function  Base.getindex(op::ConcreteEvaluation{<:JacobiWeight,typeof(first)},kr::Range)
+function  Base.getindex(op::ConcreteEvaluation{<:JacobiWeight,typeof(first)},kr::AbstractRange)
     S=op.space
     @assert op.order ≤ 1
     d=domain(op)
@@ -351,11 +354,11 @@ function  Base.getindex(op::ConcreteEvaluation{<:JacobiWeight,typeof(first)},kr:
         end
     else
         @assert op.order==0
-        zeros(kr)
+        zeros(eltype(op), length(kr))
     end
 end
 
-function  Base.getindex(op::ConcreteEvaluation{<:JacobiWeight,typeof(last)},kr::Range)
+function  Base.getindex(op::ConcreteEvaluation{<:JacobiWeight,typeof(last)},kr::AbstractRange)
     S=op.space
     @assert op.order<=1
     d=domain(op)
@@ -371,7 +374,7 @@ function  Base.getindex(op::ConcreteEvaluation{<:JacobiWeight,typeof(last)},kr::
         end
     else
         @assert op.order==0
-        zeros(kr)
+        zeros(eltype(op), length(kr))
     end
 end
 
@@ -379,7 +382,7 @@ end
 ## Definite Integral
 
 for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineIntegral,:arclength,:linesum))
-    ConcFunc = parse("Concrete"*string(Func))
+    ConcFunc = Meta.parse("Concrete"*string(Func))
 
     @eval begin
         $Func(S::JacobiWeight{SS,D}) where {SS,D<:Segment} = $ConcFunc(S)
@@ -393,20 +396,20 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             C = $Len(d)/2
 
             if dsp.β==dsp.α==λ-0.5
-                k == 1? T(C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T))) : zero(T)
+                k == 1 ? convert(T,C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T))) : zero(T)
             else
-                T($Sum(Fun(dsp,[zeros(T,k-1);1])))
+                convert(T,$Sum(Fun(dsp,[zeros(T,k-1);1])))
             end
         end
 
-        function getindex(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D,R},D,R,TT},T},kr::Range) where {LT,D<:Segment,R,T,TT}
+        function getindex(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D,R},D,R,TT},T},kr::AbstractRange) where {LT,D<:Segment,R,T,TT}
             λ = order(domainspace(Σ).space)
             dsp = domainspace(Σ)
             d = domain(Σ)
             C = $Len(d)/2
 
             if dsp.β==dsp.α==λ-0.5
-                T[k == 1? C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T) for k=kr]
+                T[k == 1 ? C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T) for k=kr]
             else
                 T[$Sum(Fun(dsp,[zeros(T,k-1);1])) for k=kr]
             end
@@ -429,19 +432,19 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             C = $Len(d)/2
 
             if dsp.β==dsp.α==-0.5
-                k == 1? T(C*π) : zero(T)
+                k == 1 ? convert(T,C*π) : zero(T)
             else
-                T($Sum(Fun(dsp,[zeros(T,k-1);1])))
+                convert(T,$Sum(Fun(dsp,[zeros(T,k-1);1])))
             end
         end
 
-        function getindex(Σ::$ConcFunc{JacobiWeight{Chebyshev{D,R},D,R,TT},T},kr::Range) where {D<:Segment,R,T,TT}
+        function getindex(Σ::$ConcFunc{JacobiWeight{Chebyshev{D,R},D,R,TT},T},kr::AbstractRange) where {D<:Segment,R,T,TT}
             dsp = domainspace(Σ)
             d = domain(Σ)
             C = $Len(d)/2
 
             if dsp.β==dsp.α==-0.5
-                T[k == 1? C*π : zero(T) for k=kr]
+                T[k == 1 ? C*π : zero(T) for k=kr]
             else
                 T[$Sum(Fun(dsp,[zeros(T,k-1);1])) for k=kr]
             end
