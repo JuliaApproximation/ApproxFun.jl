@@ -51,7 +51,7 @@ transpose(sp::Space) = sp  # default no-op
 
 
 # the default is all spaces have one-coefficient blocks
-blocklengths(S::Space) = repeated(true,dimension(S))
+blocklengths(S::Space) = Fill(true,dimension(S))
 nblocks(S::Space) = length(blocklengths(S))
 block(S::Space,k) = Block(k)
 

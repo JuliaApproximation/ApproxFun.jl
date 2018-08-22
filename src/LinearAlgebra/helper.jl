@@ -249,12 +249,28 @@ pad(A::AbstractMatrix,::Colon,m::Integer) = pad(A,size(A,1),m)
 pad(A::AbstractMatrix,n::Integer,::Colon) = pad(A,n,size(A,2))
 
 
+function pad(v, ::Infinity)
+    if isinf(length(v))
+        v
+    else
+        Vcat(v, Zeros{Int}(∞))
+    end
+end
+
+function pad(v::AbstractVector{T}, ::Infinity) where T
+    if isinf(length(v))
+        v
+    else
+        Vcat(v, Zeros{T}(∞))
+    end
+end
+
 
 #TODO:padleft!
 
 function padleft(f::AbstractVector,n::Integer)
 	if (n > length(f))
-        [zeros(n - length(f)),f]
+        [zeros(n - length(f)); f]
 	else
         f[end-n+1:end]
 	end

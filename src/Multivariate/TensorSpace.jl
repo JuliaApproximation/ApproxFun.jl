@@ -222,7 +222,7 @@ function tensorblocklengths(a::AbstractFill,b)
     elseif length(cs) == 1 && last(cs) == a.x
         a
     else
-        flatten((cs,repeated(last(cs))))
+        flatten((cs,(last(cs))))
     end
 end
 
@@ -236,7 +236,7 @@ function tensorblocklengths(a::AbstractFill{Bool},b)
     elseif length(cs) == 1 && last(cs) == a.x
         a
     else
-        flatten((cs,repeated(last(cs))))
+        flatten((cs,Fill(last(cs),∞)))
     end
 end
 
