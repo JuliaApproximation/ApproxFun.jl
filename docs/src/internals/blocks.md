@@ -14,8 +14,6 @@ of degree `d`, thus the blocks of a tensor product space grow: that is, the firs
 block has length 1, then 2, and so on.
 
 `blocklengths(::Space)` gives an iterator that encodes the lengths of the blocks.
-For trivial blocks, this will return `Fill(true,∞)`.  For
+For trivial blocks, this will return `Ones{Bool}(∞)`.  For
 `Chebyshev(0..1) ∪ Chebyshev(2..3)` it returns `Fill(2,∞)`.
 For `Chebyshev() ⊗ Chebyshev()` it returns `InfiniteArrays.OneToInf()`.  
-(Note that the `Base` iterators have been recreated in
-ApproxFun to add missing features.)

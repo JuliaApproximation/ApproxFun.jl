@@ -2,7 +2,7 @@ using ApproxFun, Test
     import ApproxFun: interlace, Multiplication, ConstantSpace, PointSpace,
     ArraySpace, testblockbandedoperator
 
-@testset "Vector" begin
+# @testset "Vector" begin
     @testset "Construction" begin
         @test Fun(x->[1.,0.])(0.) ≈ [1.,0.]
     end
@@ -67,7 +67,6 @@ using ApproxFun, Test
 
         @test (m+I)(0.1) ≈ m(0.1)+I
     end
-
 
     @testset "CosSpace Vector" begin
         a = [1 2; 3 4]
@@ -188,7 +187,6 @@ using ApproxFun, Test
 
         b=Any[0.,0.,0.,f...]
 
-
         @time u=A\b
         u1=vec(u)[1];u2=vec(u)[2];
 
@@ -216,9 +214,6 @@ using ApproxFun, Test
         @time u=L\Matrix(I,2n,2)
         @test norm(u(1.)-exp(A)[:,1:2])<eps(1000.)
     end
-
-
-
 
     @testset "Multiplication" begin
         d = Interval()
@@ -274,7 +269,6 @@ using ApproxFun, Test
 
         @test Fun(F) ≡ F
 
-
         @test F(exp(0.1im)) ≈ [-exp(-0.1im)+1+2exp(0.1im);-3exp(-0.1im)+1+1exp(0.1im)]
         @test Fun(F̃,space(F))(exp(0.1im)) ≈ [-exp(-0.1im)+1+2exp(0.1im);-3exp(-0.1im)+1+1exp(0.1im)]
 
@@ -284,7 +278,6 @@ using ApproxFun, Test
         @test F == Fun(vec(F),space(F))
 
         @test inv(G(exp(0.1im))) ≈ inv(G)(exp(0.1im))
-
 
         @test Fun(Matrix(I,2,2),space(G))(exp(0.1im)) ≈ Matrix(I,2,2)
         @test Fun(I,space(G))(exp(0.1im)) ≈ Matrix(I,2,2)
@@ -357,7 +350,6 @@ using ApproxFun, Test
 
         @test hcat(Dg).ops == Dg.ops
 
-
         B_row2 = [(2+a*cos(2t))   D  -I            0I]
         @test ([B_row;B_row2]*[f;f;f;f])(0.1) ≈ [0.,(2+a*cos(2*0.1))*f(0.1) + f'(0.1) - f(0.1)]
 
@@ -367,7 +359,6 @@ using ApproxFun, Test
            0I             0I   D            -I;
            -I             0I  (2+a*cos(2t))  D]
 
-
         Φ = A\Matrix(I,2n,n);
 
         @test Φ(π) ≈ [-0.170879 -0.148885 -0.836059 0.265569;
@@ -375,4 +366,4 @@ using ApproxFun, Test
                  -0.836059 0.265569 -0.170879 -0.148885;
                  -0.612945 -0.836059 0.732284 -0.170879] atol=1E-3
     end
-end
+# end
