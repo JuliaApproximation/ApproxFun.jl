@@ -1,10 +1,8 @@
 using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
     import ApproxFun: Multiplication,InterlaceOperator, Block, ∞
     import ApproxFun: testfunctional, testbandedoperator, testraggedbelowoperator, testinfoperator, testblockbandedoperator
-2
-3
-# @testset "Operator" begin
-    # test row/colstarts
+
+@testset "Operator" begin
     @testset "Evaluation" begin
         testfunctional(Evaluation(Ultraspherical(1),0.1))
         d = -4 .. 4
@@ -58,9 +56,6 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
         @test norm(D*f-f')<100eps()
     end
 
-
-    # test fast copy is consistent with getindex
-
     @testset "Toeplitz" begin
         C=ToeplitzOperator([1.,2.,3.],[4.,5.,6.])
 
@@ -74,7 +69,6 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
 
          testbandedoperator(HankelOperator([1.,2.,3.,4.,5.,6.,7.]))
     end
-
 
     @testset "Multiplication" begin
         testbandedoperator(Multiplication(Fun(Chebyshev(),[1.,2.,3.]),Chebyshev()))
@@ -118,8 +112,6 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
         testbandedoperator(P)
         @test P[1:4,1:4] ≈ [0 1 0 0; 1 0 0 0; 0 0 0 1; 0 0 1 0]
     end
-
-
 
     @testset "Periodic" begin
         d=PeriodicInterval(0.,2π)
@@ -320,4 +312,4 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
         M = Multiplication(x, JacobiWeight(0,0,Chebyshev()))
         @test exp(M).f == Multiplication(exp(x), Chebyshev()).f
     end
-# end
+end
