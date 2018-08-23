@@ -1,7 +1,7 @@
 using ApproxFun, SpecialFunctions, Test
     import ApproxFun: Multiplication, testraggedbelowoperator, testbandedoperator, interlace, ∞
 
-@testset "ODE" begin
+# @testset "ODE" begin
     @testset "Airy" begin
         d=Interval(-10.,5.);
         S=Chebyshev(d)
@@ -211,4 +211,4 @@ using ApproxFun, SpecialFunctions, Test
 
         @test abs(u'(1.3) + u(1.3-1) ) ≤ 10eps()
     end
-end
+# end

@@ -142,11 +142,11 @@ Derivative(S::Fourier{DD,RR},k::Integer) where {DD<:Circle,RR} =
 Integral(::CosSpace,m::Integer) =
     error("Integral not defined for CosSpace.  Use Integral(CosSpace()|(2:∞)) if first coefficient vanishes.")
 
-Integral(sp::SinSpace{DD},m::Integer) where {DD<:PeriodicInterval} = ConcreteIntegral(sp,m)
+Integral(sp::SinSpace{<:PeriodicInterval}, m::Integer) = ConcreteIntegral(sp,m)
 
-bandinds(D::ConcreteIntegral{CS}) where {CS<:SinSpace} = iseven(D.order) ? (0,0) : (-1,0)
-rangespace(D::ConcreteIntegral{S}) where {S<:CosSpace} = iseven(D.order) ? D.space : SinSpace(domain(D))
-rangespace(D::ConcreteIntegral{S}) where {S<:SinSpace}=iseven(D.order) ? D.space : CosSpace(domain(D))
+bandinds(D::ConcreteIntegral{<:SinSpace}) = iseven(D.order) ? (0,0) : (-1,0)
+rangespace(D::ConcreteIntegral{<:CosSpace}) = iseven(D.order) ? D.space : SinSpace(domain(D))
+rangespace(D::ConcreteIntegral{<:SinSpace}) = iseven(D.order) ? D.space : CosSpace(domain(D))
 
 function getindex(D::ConcreteIntegral{CS,OT,T},k::Integer,j::Integer) where {CS<:SinSpace,OT,T}
     d=domain(D)
@@ -168,18 +168,18 @@ function getindex(D::ConcreteIntegral{CS,OT,T},k::Integer,j::Integer) where {CS<
     end
 end
 
-function Integral(S::SubSpace{CS,OneToInf{Int},DD},k::Integer) where {CS<:CosSpace,DD<:PeriodicInterval}
+function Integral(S::SubSpace{<:CosSpace,<:AbstractInfUnitRange{Int},<:PeriodicInterval},k::Integer)
     @assert first(S.indexes)==2
     ConcreteIntegral(S,k)
 end
 
-bandinds(D::ConcreteIntegral{SubSpace{CS,OneToInf{Int},DD,RR}}) where {CS<:CosSpace,DD<:PeriodicInterval,RR} =
+bandinds(D::ConcreteIntegral{<:SubSpace{<:CosSpace,<:AbstractInfUnitRange{Int},<:PeriodicInterval}}) =
     (0,0)
-rangespace(D::ConcreteIntegral{SubSpace{CS,OneToInf{Int},DD,RR}}) where {CS<:CosSpace,DD<:PeriodicInterval,RR} =
+rangespace(D::ConcreteIntegral{<:SubSpace{<:CosSpace,<:AbstractInfUnitRange{Int},<:PeriodicInterval}}) =
     iseven(D.order) ? D.space : SinSpace(domain(D))
 
-function getindex(D::ConcreteIntegral{SubSpace{CS,OneToInf{Int},DD,RR}},
-                  k::Integer,j::Integer) where {CS<:CosSpace,DD<:PeriodicInterval,RR}
+function getindex(D::ConcreteIntegral{<:SubSpace{<:CosSpace,<:AbstractInfUnitRange{Int},<:PeriodicInterval}},
+                  k::Integer,j::Integer)
     d=domain(D)
     m=D.order
     T=eltype(D)

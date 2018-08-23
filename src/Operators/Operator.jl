@@ -48,7 +48,7 @@ hastrivialblocks(A::Operator) = hastrivialblocks(domainspace(A)) &&
 # blocklengths are constant lengths
 hasconstblocks(A::Space) = isa(blocklengths(A),AbstractFill)
 hasconstblocks(A::Operator) = hasconstblocks(domainspace(A)) && hasconstblocks(rangespace(A)) &&
-                                blocklengths(domainspace(A)).x == blocklengths(rangespace(A)).x
+                                getindex_value(blocklengths(domainspace(A))) == getindex_value(blocklengths(rangespace(A)))
 
 
 macro functional(FF)
@@ -135,7 +135,7 @@ function blockbandinds(A::Operator)
 
     if hasconstblocks(A)
         a,b = bandinds(A)
-        p = blocklengths(domainspace(A)).x
+        p = getindex_value(blocklengths(domainspace(A)))
         return (fld(a,p),-fld(-b,p))
     end
 
@@ -145,7 +145,7 @@ function blockbandinds(A::Operator)
 
         if hasconstblocks(rs)
             a = bandinds(A,1)
-            p = blocklengths(rs).x
+            p = getindex_value(blocklengths(rs))
             return (fld(a,p),0)
         end
     end
@@ -525,8 +525,8 @@ macro wrappergetindex(Wrap)
         # if the spaces change, then we need to be smarter
         function ApproxFun.BlockBandedMatrix(S::ApproxFun.SubOperator{T,OP}) where {T,OP<:$Wrap}
             P = parent(S)
-            if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
-                    blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
+            if blocklengths(domainspace(P)) === blocklengths(domainspace(P.op)) &&
+                    blocklengths(rangespace(P)) === blocklengths(rangespace(P.op))
                 BlockBandedMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
             else
                 default_BlockBandedMatrix(S)
@@ -535,8 +535,8 @@ macro wrappergetindex(Wrap)
 
         function ApproxFun.PseudoBlockMatrix(S::ApproxFun.SubOperator{T,OP}) where {T,OP<:$Wrap}
             P = parent(S)
-            if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
-                    blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
+            if blocklengths(domainspace(P)) === blocklengths(domainspace(P.op)) &&
+                    blocklengths(rangespace(P)) === blocklengths(rangespace(P.op))
                 PseudoBlockMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
             else
                 default_blockmatrix(S)
@@ -545,8 +545,8 @@ macro wrappergetindex(Wrap)
 
         function ApproxFun.BandedBlockBandedMatrix(S::ApproxFun.SubOperator{T,OP}) where {T,OP<:$Wrap}
             P = parent(S)
-            if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
-                    blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
+            if blocklengths(domainspace(P)) === blocklengths(domainspace(P.op)) &&
+                    blocklengths(rangespace(P)) === blocklengths(rangespace(P.op))
                 BandedBlockBandedMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
             else
                 default_BandedBlockBandedMatrix(S)

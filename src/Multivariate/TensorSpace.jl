@@ -84,7 +84,7 @@ function Base.findfirst(sp::Tensorizer{Tuple{<:AbstractFill{S},<:AbstractFill{T}
     k,j=kj
 
     if k > 0 && j > 0
-        a,b = sp.blocks[1].x,sp.blocks[2].x
+        a,b = getindex_value(sp.blocks[1]),getindex_value(sp.blocks[2])
         kb1,kr = fldmod(k-1,a)
         jb1,jr = fldmod(j-1,b)
         nb=kb1+jb1
@@ -105,7 +105,7 @@ block(::TrivialTensorizer{2},n::Int) =
     Block(floor(Integer,sqrt(2n) + 1/2))
 
 block(sp::Tensorizer{Tuple{<:AbstractFill{S},<:AbstractFill{T}}},n::Int) where {S,T} =
-    Block(floor(Integer,sqrt(2floor(Integer,(n-1)/(sp.blocks[1].x*sp.blocks[2].x))+1) + 1/2))
+    Block(floor(Integer,sqrt(2floor(Integer,(n-1)/(getindex_value(sp.blocks[1])*getindex_value(sp.blocks[2])))+1) + 1/2))
 block(sp::Tensorizer,k::Int) = Block(findfirst(x->x≥k,cumsum(blocklengths(sp))))
 block(sp::CachedIterator,k::Int) = block(sp.iterator,k)
 
@@ -153,7 +153,7 @@ end
 
 # could be cleaned up using blocks
 function getindex(it::Tensorizer{Tuple{<:AbstractFill{S},<:AbstractFill{T}}},n::Integer) where {S,T}
-    a,b = it.blocks[1].x,it.blocks[2].x
+    a,b = getindex_value(it.blocks[1]),getindex_value(it.blocks[2])
     nb1,nr = fldmod(n-1,a*b) # nb1 = "nb" - 1, i.e. using zero-base
     m1=block(it,n).n[1]-1
     pb1=fld(findfirst(it,(1,b*m1+1))-1,a*b)
@@ -192,31 +192,13 @@ subblock2tensor(rt::CachedIterator,K,k) = rt[blockstart(rt,K)+k-1]
 #  a degree is which block you are in
 
 tensorblocklengths(a) = a   # a single block is not modified
-function tensorblocklengths(a::AbstractFill{Bool},b::AbstractFill{Bool})
-    @assert a.x && b.x
-    1:∞
-end
 
 
-function tensorblocklengths(a::AbstractFill,b::AbstractFill{Bool})
-    @assert b.x
-    a.x:a.x:∞
-end
+tensorblocklengths(a::AbstractFill, b::AbstractFill) = cumsum(a.*b)
 
-
-function tensorblocklengths(a::AbstractFill{Bool},b::AbstractFill)
-    @assert a.x
-    b.x:b.x:∞
-end
-
-
-function tensorblocklengths(a::AbstractFill,b::AbstractFill)
-    m=a.x*b.x
-    m:m:∞
-end
 
 function tensorblocklengths(a::AbstractFill,b)
-    cs = a.x*cumsum(b)
+    cs = getindex_value(a) * cumsum(b)
     if isinf(length(b))
         cs
     elseif length(cs) == 1 && last(cs) == a.x
@@ -226,22 +208,33 @@ function tensorblocklengths(a::AbstractFill,b)
     end
 end
 
-
-
-function tensorblocklengths(a::AbstractFill{Bool},b)
-    @assert a.x
+function tensorblocklengths(a::Ones, b)
     cs = cumsum(b)
     if isinf(length(b))
         cs
-    elseif length(cs) == 1 && last(cs) == a.x
+    elseif length(cs) == 1 && last(cs) == true
         a
     else
-        flatten((cs,Fill(last(cs),∞)))
+        Vcat(cs,Fill(last(cs),∞))
     end
 end
 
+# TODO: Remove
+function tensorblocklengths(a::AbstractFill{Bool},b::AbstractFill{Bool})
+    error("Use Ones")
+end
+function tensorblocklengths(a::AbstractFill, b::AbstractFill{Bool})
+    error("Use Ones")
+end
+function tensorblocklengths(a::AbstractFill{Bool},b::AbstractFill)
+    error("Use Ones")
+end
+function tensorblocklengths(a::AbstractFill{Bool},b)
+    error("Use Ones")
+end
 
-tensorblocklengths(a,b::AbstractFill) =
+
+tensorblocklengths(a, b::AbstractFill) =
     tensorblocklengths(b,a)
 
 function tensorblocklengths(a::AbstractVector{Bool},b::AbstractVector{Bool})

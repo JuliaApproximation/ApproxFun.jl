@@ -70,9 +70,9 @@ import BlockBandedMatrices: blockbandwidth, blockbandwidths, blockcolstop, block
 import FastTransforms: ChebyshevTransformPlan, IChebyshevTransformPlan, plan_chebyshevtransform,
                         plan_chebyshevtransform!, plan_ichebyshevtransform, plan_ichebyshevtransform!
 
-import FillArrays: AbstractFill
+import FillArrays: AbstractFill, getindex_value
 
-import InfiniteArrays: Infinity, InfRanges, OneToInf
+import InfiniteArrays: Infinity, InfRanges, AbstractInfUnitRange
 
 # convenience for 1-d block ranges
 const BlockRange1 = BlockRange{1,Tuple{UnitRange{Int}}}

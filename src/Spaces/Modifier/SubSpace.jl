@@ -16,7 +16,7 @@ dimension(sp::SubSpace) = length(sp.indexes)
 |(sp::Space,kr::AbstractRange) = SubSpace(sp,kr)
 
 
-function |(f::Fun,kr::OneToInf)
+function |(f::Fun,kr::AbstractInfUnitRange)
     @assert dimension(space(f)) == ∞
     Fun(space(f)|kr,f.coefficients[kr[1]:end])
 end
@@ -36,12 +36,12 @@ function blocklengths(sp::SubSpace{DS,UnitRange{Int}}) where DS
         M-blockstart(sp.space,B2)+1]
 end
 
-function blocklengths(sp::SubSpace{DS,OneToInf{Int}}) where DS
+function blocklengths(sp::SubSpace{DS,<:AbstractInfUnitRange{Int}}) where DS
     N = first(sp.indexes)
     B1=block(sp.space,N)
 
-    flatten(([zeros(Int,B1.n[1]-1);blockstop(sp.space,B1)-N+1],
-            blocklengths(sp.space)[B1.n[1]+1:∞]))
+    Vcat([zeros(Int,B1.n[1]-1); blockstop(sp.space,B1)-N+1],
+            blocklengths(sp.space)[B1.n[1]+1:∞])
 end
 
 blocklengths(sp::SubSpace{DS,Block{1,T}}) where {DS, T} =
@@ -90,19 +90,17 @@ canonicalspace(a::SubSpace) = a.space
 
 setdomain(DS::SubSpace,d::Domain) = SubSpace(setdomain(DS.space,d),DS.indexes)
 
-Conversion(a::SubSpace{S,IT,DD,RR},b::S) where {S<:Space,IT,DD,RR} =
-    ConcreteConversion(a,b)
+Conversion(a::SubSpace,b::Space) = ConcreteConversion(a,b)
 
-function Conversion(a::S,b::SubSpace{S,IT,DD,RR}) where {S<:Space,IT<:OneToInf{Int},DD,RR}
+function Conversion(a::S,b::SubSpace{S,<:AbstractInfUnitRange{Int}}) where S<:Space
     @assert first(b.indexes) == 1
     ConversionWrapper(SpaceOperator(Operator(I,a),a,b))
 end
 
-bandinds(C::ConcreteConversion{SubSpace{S,OneToInf{Int},DD,RR},S}) where {S,DD,RR} =
-    1-first(domainspace(C).indexes),0
+bandinds(C::ConcreteConversion{<:SubSpace{<:Any,<:AbstractInfUnitRange{Int}}}) =
+    1-first(domainspace(C).indexes),1-first(domainspace(C).indexes)
 
-getindex(C::ConcreteConversion{SubSpace{S,IT,DD,RR},S},
-       k::Integer,j::Integer) where {S,IT,DD,RR} =
+getindex(C::ConcreteConversion{<:SubSpace}, k::Integer,j::Integer) =
     domainspace(C).indexes[j]==k ? one(eltype(C)) : zero(eltype(C))
 
 

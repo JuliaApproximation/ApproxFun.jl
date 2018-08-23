@@ -30,7 +30,7 @@ diagblockshift(a::AbstractUnitRange, b::AbstractUnitRange) = b.start-a.start
 
 #TODO: generalize
 function diagblockshift(a::AbstractFill{Int},b::AbstractFill{Int})
-    @assert a.x == b.x
+    @assert getindex_value(a) == getindex_value(b)
     0
 end
 
@@ -39,7 +39,7 @@ diagblockshift(a::AbstractFill{Int},b::Vcat{Int,1,<:Tuple{V1,<:AbstractFill{Int}
 
 
 function diagblockshift(a::Vcat{Int,1,<:Tuple{V1,<:AbstractFill{Int}}},b::AbstractFill{Int}) where V1 <: AbstractVector{Int}
-    @assert a.it[end].x == b.x
+    @assert getindex_value(a.it[end]) == getindex_value(b)
     isempty(a.it[1]) && return diagblockshift(a.it[2],b)
     a1, b1 = a[1],b[1]
     a1 == b1 && return diagblockshift(flatten((a.it[1][2:end],a.it[2])),b)
