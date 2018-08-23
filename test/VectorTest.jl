@@ -1,7 +1,8 @@
-using ApproxFun, Test
+using ApproxFun, LinearAlgebra, SpecialFunctions, Test
     import ApproxFun: interlace, Multiplication, ConstantSpace, PointSpace,
     ArraySpace, testblockbandedoperator
 
+3
 # @testset "Vector" begin
     @testset "Construction" begin
         @test Fun(x->[1.,0.])(0.) ≈ [1.,0.]
@@ -304,10 +305,10 @@ using ApproxFun, Test
     end
 
     @testset "Interlace" begin
-        S1=Chebyshev()^2
-        S2=Chebyshev()
-        TS=ArraySpace([ConstantSpace(),S1,ConstantSpace(),S2,PointSpace([1.,2.])])
-        f=Fun(TS,collect(1:13))
+        S1 = Chebyshev()^2
+        S2 = Chebyshev()
+        TS = ArraySpace([ConstantSpace(),S1,ConstantSpace(),S2,PointSpace([1.,2.])])
+        f = Fun(TS,collect(1:13))
         @test f[1] == Fun(TS[1],[1.])
         @test f[2] == Fun(TS[2],[2.,7.,8.,10.,11.,12.])
         @test f[3] == Fun(TS[3],[3.])

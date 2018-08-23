@@ -192,12 +192,10 @@ subblock2tensor(rt::CachedIterator,K,k) = rt[blockstart(rt,K)+k-1]
 #  a degree is which block you are in
 
 tensorblocklengths(a) = a   # a single block is not modified
-
-
 tensorblocklengths(a::AbstractFill, b::AbstractFill) = cumsum(a.*b)
 
 
-function tensorblocklengths(a::AbstractFill,b)
+function tensorblocklengths(a::AbstractFill, b)
     cs = getindex_value(a) * cumsum(b)
     if isinf(length(b))
         cs
@@ -208,7 +206,20 @@ function tensorblocklengths(a::AbstractFill,b)
     end
 end
 
+tensorblocklengths(a::Ones{Bool}, b::Ones{Bool}) = cumsum(a.*b)
+tensorblocklengths(a::Ones{Bool}, b::AbstractFill) = cumsum(a.*b)
+tensorblocklengths(a::Ones, b::AbstractFill) = cumsum(a.*b)
 function tensorblocklengths(a::Ones, b)
+    cs = cumsum(b)
+    if isinf(length(b))
+        cs
+    elseif length(cs) == 1 && last(cs) == true
+        a
+    else
+        Vcat(cs,Fill(last(cs),∞))
+    end
+end
+function tensorblocklengths(a::Ones{Bool}, b)
     cs = cumsum(b)
     if isinf(length(b))
         cs
