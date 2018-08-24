@@ -42,12 +42,12 @@ function diagblockshift(a::Vcat{Int,1,<:Tuple{V1,<:AbstractFill{Int}}},b::Abstra
     @assert getindex_value(a.it[end]) == getindex_value(b)
     isempty(a.it[1]) && return diagblockshift(a.it[2],b)
     a1, b1 = a[1],b[1]
-    a1 == b1 && return diagblockshift(flatten((a.it[1][2:end],a.it[2])),b)
+    a1 == b1 && return diagblockshift(Vcat(a.it[1][2:end],a.it[2]),b)
     a1 >  b1 && length(a.it[1]) == 1 && return 0
     a1 >  b1 && return max(0,-1+diagblockshift(flatten(([a1-b1;a.it[1][2:end]],a.it[2]),b)))
     a1 <  b1 && length(a.it[1]) == 1 && return 1
     # a1 <  b1 &&
-    return 1+diagblockshift(flatten((a.it[1][2:end],a.it[2])),flatten(([b1-a1],b)))
+    return 1+diagblockshift(Vcat(a.it[1][2:end],a.it[2]),Vcat([b1-a1],b))
 end
 
 function diagblockshift(a::Vcat{Int,1,<:Tuple{V1,<:AbstractFill{Int}}},
@@ -55,11 +55,11 @@ function diagblockshift(a::Vcat{Int,1,<:Tuple{V1,<:AbstractFill{Int}}},
     isempty(a.it[1]) && return diagblockshift(a.it[2],b)
     isempty(b.it[1]) && return diagblockshift(a,b.it[2])
     a1, b1 = a[1],b[1]
-    a1 == b1 && return diagblockshift(flatten((a.it[1][2:end],a.it[2])),flatten((b.it[1][2:end],b.it[2])))
-    a1 >  b1 && return max(0,-1+diagblockshift(flatten(([a1-b1;a.it[1][2:end]],a.it[2])),
-                                               flatten((b.it[1][2:end],b.it[2]))))
+    a1 == b1 && return diagblockshift(Vcat(a.it[1][2:end],a.it[2]),Vcat(b.it[1][2:end],b.it[2]))
+    a1 >  b1 && return max(0,-1+diagblockshift(Vcat([a1-b1;a.it[1][2:end]],a.it[2]),
+                                               Vcat(b.it[1][2:end],b.it[2])))
     # a1 <  b1 &&
-    return 1+diagblockshift(flatten((a.it[1][2:end],a.it[2])),flatten(([b1-a1;b.it[1][2:end]],b.it[2])))
+    return 1+diagblockshift(Vcat(a.it[1][2:end],a.it[2]),Vcat([b1-a1;b.it[1][2:end]],b.it[2]))
 end
 
 

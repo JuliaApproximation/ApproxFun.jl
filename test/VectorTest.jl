@@ -2,8 +2,7 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
     import ApproxFun: interlace, Multiplication, ConstantSpace, PointSpace,
     ArraySpace, testblockbandedoperator
 
-3
-# @testset "Vector" begin
+@testset "Vector" begin
     @testset "Construction" begin
         @test Fun(x->[1.,0.])(0.) ≈ [1.,0.]
     end
@@ -367,4 +366,4 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
                  -0.836059 0.265569 -0.170879 -0.148885;
                  -0.612945 -0.836059 0.732284 -0.170879] atol=1E-3
     end
-# end
+end

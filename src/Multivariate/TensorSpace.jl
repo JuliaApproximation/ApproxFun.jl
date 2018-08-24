@@ -104,7 +104,7 @@ block(ci::CachedIterator{T,TrivialTensorizer{2}},k::Int) where {T} =
 block(::TrivialTensorizer{2},n::Int) =
     Block(floor(Integer,sqrt(2n) + 1/2))
 
-block(sp::Tensorizer{Tuple{<:AbstractFill{S},<:AbstractFill{T}}},n::Int) where {S,T} =
+block(sp::Tensorizer{<:Tuple{<:AbstractFill{S},<:AbstractFill{T}}},n::Int) where {S,T} =
     Block(floor(Integer,sqrt(2floor(Integer,(n-1)/(getindex_value(sp.blocks[1])*getindex_value(sp.blocks[2])))+1) + 1/2))
 block(sp::Tensorizer,k::Int) = Block(findfirst(x->x≥k,cumsum(blocklengths(sp))))
 block(sp::CachedIterator,k::Int) = block(sp.iterator,k)
@@ -152,7 +152,7 @@ function getindex(it::TrivialTensorizer{2},n::Integer)
 end
 
 # could be cleaned up using blocks
-function getindex(it::Tensorizer{Tuple{<:AbstractFill{S},<:AbstractFill{T}}},n::Integer) where {S,T}
+function getindex(it::Tensorizer{<:Tuple{<:AbstractFill{S},<:AbstractFill{T}}},n::Integer) where {S,T}
     a,b = getindex_value(it.blocks[1]),getindex_value(it.blocks[2])
     nb1,nr = fldmod(n-1,a*b) # nb1 = "nb" - 1, i.e. using zero-base
     m1=block(it,n).n[1]-1
@@ -202,7 +202,7 @@ function tensorblocklengths(a::AbstractFill, b)
     elseif length(cs) == 1 && last(cs) == a.x
         a
     else
-        flatten((cs,(last(cs))))
+        Vcat(cs,Fill(last(cs),∞))
     end
 end
 
