@@ -183,4 +183,10 @@ using ApproxFun, LinearAlgebra, Test
   let w = Fun(x -> 1e5/(x*x+1), 283.72074879785936 .. 335.0101119042838)
       @test w(domain(w).a) ≈ 1e5/(domain(w).a^2+1)
   end
+
+  # Test for supremum norm
+  x = Fun()
+  f = 1/(1 + 25*(x^2))
+  @test norm(f, Inf) ≈ 1.0
+  
 end
