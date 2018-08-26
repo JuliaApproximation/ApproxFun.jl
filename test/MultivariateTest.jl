@@ -202,7 +202,7 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
         @test y(1.0,0.2) ≈ 0.2
     end
 
-    @test "conversion between" begin
+    @testset "conversion between" begin
         dx = dy = Interval()
         d = dx*dy
 
@@ -238,6 +238,8 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
     @testset "Bug in Multiplication" begin
         dom = Interval(0.001, 1) * PeriodicInterval(-pi, pi)
 
+        @test blocklengths(Space(dom)) == 2:2:∞
+
         r,r2 = Fun((r,t) -> [r;r^2], dom)
 
         @test r(0.1,0.2) ≈ 0.1
@@ -245,13 +247,16 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
 
         sp = Space(dom)
         Dr = Derivative(sp, [1,0])
+            @test ApproxFun.blockbandinds(Dr) == (1,1)
+            @test ApproxFun.subblockbandinds(Dr)  == (-1,3)
+
         Dθ = Derivative(sp, [0,1])
         Mr = Multiplication(Fun( (r, θ) -> r, sp ), sp)
         rDr = Mr * Dr
 
         testbandedblockbandedoperator(rDr)
     end
-    @test "Cheby * Interval" begin
+    @testset "Cheby * Interval" begin
         d = Interval()^2
         x,y = Fun(∂(d))
 

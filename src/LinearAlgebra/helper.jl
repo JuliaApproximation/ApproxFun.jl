@@ -213,6 +213,8 @@ function pad(f::AbstractVector{Any},n::Integer)
 	end
 end
 
+pad(x::Number, n::Int) = [x; zeros(typeof(x), n-1)]
+
 function pad(v::AbstractVector,n::Integer,m::Integer)
     @assert m==1
     pad(v,n)
@@ -665,4 +667,30 @@ function FastTransforms.ichebyshevtransform!(X::AbstractMatrix{T};kind::Integer=
             lmul!((size(X,1)-1)*(size(X,2)-1)/4,X)
         end
     end
+end
+
+
+## conv
+
+conv(x::AbstractVector, y::AbstractVector) = DSP.conv(x, y)
+@generated function conv(x::SVector{N}, y::SVector{M}) where {N,M}
+    NM = N+M-1
+    quote
+        convert(SVector{$NM}, DSP.conv(Vector(x), Vector(y)))
+    end
+end
+conv(x::AbstractVector, y::SVector{1}) = x*y[1]
+conv(y::SVector{1}, x::AbstractVector) = y[1]*x
+conv(x::AbstractFill, y::SVector{1}) = x*y[1]
+conv(y::SVector{1}, x::AbstractFill) = y[1]*x
+conv(x::AbstractFill, y::AbstractFill) = DSP.conv(x, y)
+function conv(x::AbstractFill, y::AbstractVector)
+    isinf(length(x)) || return DSP.conv(x,y)
+    @assert length(y) == 1
+    x*y[1]
+end
+function conv(y::AbstractVector, x::AbstractFill)
+    isinf(length(x)) || return DSP.conv(y,x)
+    @assert length(y) == 1
+    y[1]*x
 end

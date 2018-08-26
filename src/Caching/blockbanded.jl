@@ -24,9 +24,9 @@ diagblockshift(a,b) = error("Developer: Not implemented for blocklengths $a, $b"
 
 function diagblockshift(a::AbstractRange, b::AbstractRange)
     @assert step(a) == step(b)
-    b.start-a.start
+    first(b)-first(a)
 end
-diagblockshift(a::AbstractUnitRange, b::AbstractUnitRange) = b.start-a.start
+diagblockshift(a::AbstractUnitRange, b::AbstractUnitRange) = first(b)-first(a)
 
 #TODO: generalize
 function diagblockshift(a::AbstractFill{Int},b::AbstractFill{Int})

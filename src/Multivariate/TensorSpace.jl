@@ -106,7 +106,9 @@ block(::TrivialTensorizer{2},n::Int) =
 
 block(sp::Tensorizer{<:Tuple{<:AbstractFill{S},<:AbstractFill{T}}},n::Int) where {S,T} =
     Block(floor(Integer,sqrt(2floor(Integer,(n-1)/(getindex_value(sp.blocks[1])*getindex_value(sp.blocks[2])))+1) + 1/2))
-block(sp::Tensorizer,k::Int) = Block(findfirst(x->x≥k,cumsum(blocklengths(sp))))
+_cumsum(x) = cumsum(x)
+_cumsum(x::Number) = x
+block(sp::Tensorizer,k::Int) = Block(findfirst(x->x≥k, _cumsum(blocklengths(sp))))
 block(sp::CachedIterator,k::Int) = block(sp.iterator,k)
 
 # [1,2,3] x 1:∞
@@ -165,7 +167,9 @@ end
 
 blockstart(it,K)::Int = K==1 ? 1 : sum(blocklengths(it)[1:K-1])+1
 blockstop(it,::Infinity) = ∞
-blockstop(it,K)::Int = sum(blocklengths(it)[1:K])
+_K_sum(bl::AbstractVector, K) = sum(bl[1:K])
+_K_sum(bl::Integer, K) = bl
+blockstop(it, K)::Int = _K_sum(blocklengths(it), K)
 
 blockstart(it,K::Block) = blockstart(it,K.n[1])
 blockstop(it,K::Block) = blockstop(it,K.n[1])
@@ -191,69 +195,9 @@ subblock2tensor(rt::CachedIterator,K,k) = rt[blockstart(rt,K)+k-1]
 #  Tensor product degrees are taken to be the sum of the degrees
 #  a degree is which block you are in
 
+
 tensorblocklengths(a) = a   # a single block is not modified
-tensorblocklengths(a::AbstractFill, b::AbstractFill) = cumsum(a.*b)
-
-
-function tensorblocklengths(a::AbstractFill, b)
-    cs = getindex_value(a) * cumsum(b)
-    if isinf(length(b))
-        cs
-    elseif length(cs) == 1 && last(cs) == a.x
-        a
-    else
-        Vcat(cs,Fill(last(cs),∞))
-    end
-end
-
-tensorblocklengths(a::Ones{Bool}, b::Ones{Bool}) = cumsum(a.*b)
-tensorblocklengths(a::Ones{Bool}, b::AbstractFill) = cumsum(a.*b)
-tensorblocklengths(a::Ones, b::AbstractFill) = cumsum(a.*b)
-function tensorblocklengths(a::Ones, b)
-    cs = cumsum(b)
-    if isinf(length(b))
-        cs
-    elseif length(cs) == 1 && last(cs) == true
-        a
-    else
-        Vcat(cs,Fill(last(cs),∞))
-    end
-end
-function tensorblocklengths(a::Ones{Bool}, b)
-    cs = cumsum(b)
-    if isinf(length(b))
-        cs
-    elseif length(cs) == 1 && last(cs) == true
-        a
-    else
-        Vcat(cs,Fill(last(cs),∞))
-    end
-end
-
-# TODO: Remove
-function tensorblocklengths(a::AbstractFill{Bool},b::AbstractFill{Bool})
-    error("Use Ones")
-end
-function tensorblocklengths(a::AbstractFill, b::AbstractFill{Bool})
-    error("Use Ones")
-end
-function tensorblocklengths(a::AbstractFill{Bool},b::AbstractFill)
-    error("Use Ones")
-end
-function tensorblocklengths(a::AbstractFill{Bool},b)
-    error("Use Ones")
-end
-
-
-tensorblocklengths(a, b::AbstractFill) =
-    tensorblocklengths(b,a)
-
-function tensorblocklengths(a::AbstractVector{Bool},b::AbstractVector{Bool})
-    @assert length(a) == length(b) && a[1] && b[1]
-    a
-end
-
-
+tensorblocklengths(a, b) = conv(a,b)
 tensorblocklengths(a,b,c,d...) = tensorblocklengths(tensorblocklengths(a,b),c,d...)
 
 

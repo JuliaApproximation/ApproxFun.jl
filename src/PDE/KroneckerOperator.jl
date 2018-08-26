@@ -131,13 +131,11 @@ function subblockbandinds(K::KroneckerOperator)
         rt = rangetensorizer(K).iterator
         # assume block size is repeated and square
         @assert all(b->isa(b,AbstractFill),dt.blocks)
-        @assert rt.blocks == dt.blocks
-
-
+        @assert rt.blocks ≡ dt.blocks
 
         sb = subblock_blockbandinds(K)
         # divide by the size of each block
-        sb_sz = mapreduce(value,*,dt.blocks)
+        sb_sz = mapreduce(getindex_value,*,dt.blocks)
         # spread by sub block szie
         (sb[1]-1)*sb_sz+1,(sb[2]+1)*sb_sz-1
     end

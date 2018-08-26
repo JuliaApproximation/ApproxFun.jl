@@ -3,7 +3,7 @@ __precompile__()
 module ApproxFun
     using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers,
             BlockArrays, BandedMatrices, BlockBandedMatrices, IntervalSets,
-            SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions,
+            SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions, DSP,
             LinearAlgebra, LowRankApprox, SparseArrays, FillArrays, InfiniteArrays #, Arpack
     import StaticArrays, ToeplitzMatrices, Calculus
 
@@ -51,6 +51,7 @@ import SpecialFunctions: sinpi, cospi, airy, besselh,
                     abs, sign, log, expm1, tan, abs2, sqrt, angle, max, min, cbrt, log,
                     atan, acos, asin, erfc, inv
 
+import StaticArrays: SVector
 
 import BlockArrays: nblocks, blocksize, global2blockindex, globalrange, BlockSizes
 
@@ -71,13 +72,16 @@ import FastTransforms: ChebyshevTransformPlan, IChebyshevTransformPlan, plan_che
                         plan_chebyshevtransform!, plan_ichebyshevtransform, plan_ichebyshevtransform!
 
 import FillArrays: AbstractFill, getindex_value
-
+import LazyArrays: cache
 import InfiniteArrays: Infinity, InfRanges, AbstractInfUnitRange
+
+
+
 
 # convenience for 1-d block ranges
 const BlockRange1 = BlockRange{1,Tuple{UnitRange{Int}}}
 
-import StaticArrays: SVector
+
 
 
 const Vec{d,T} = SVector{d,T}

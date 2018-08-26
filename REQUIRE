@@ -16,3 +16,5 @@ SpecialFunctions 0.7
 LowRankApprox 0.1.4
 FillArrays 0.1
 InfiniteArrays
+LazyArrays 0.1
+DSP 0.5.1

@@ -1,6 +1,7 @@
-using ApproxFun, LinearAlgebra, SpecialFunctions, Test
+using ApproxFun, LazyArrays, FillArrays, LinearAlgebra, SpecialFunctions, Test
     import ApproxFun: interlace, Multiplication, ConstantSpace, PointSpace,
-    ArraySpace, testblockbandedoperator
+                        ArraySpace, testblockbandedoperator, blocklengths, ∞,
+                        testraggedbelowoperator, Vec
 
 @testset "Vector" begin
     @testset "Construction" begin
@@ -334,6 +335,7 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
         B=ldirichlet(d)
 
         B_row = [D             -I  0I            0I]
+
         f=Fun(exp,d)
         @test norm((B_row*[f;f;f;f])[1]) ≤ 1000eps()
         @test B_row isa ApproxFun.MatrixInterlaceOperator
@@ -344,8 +346,12 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
 
         n=4
         Dg = Operator(diagm(0 => fill(ldirichlet(d),n)))
+
         @test Dg isa ApproxFun.MatrixInterlaceOperator
         @test size([Dg; B_row].ops) == (5,4)
+
+        L = [Dg; B_row]
+        testraggedbelowoperator(L)
         @test ([Dg; B_row]*[f;f;f;f])(0.1) ≈ [fill(1.0,4);0]
 
         @test hcat(Dg).ops == Dg.ops
