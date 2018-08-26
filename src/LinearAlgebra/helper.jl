@@ -679,6 +679,8 @@ conv(x::AbstractVector, y::AbstractVector) = DSP.conv(x, y)
         convert(SVector{$NM}, DSP.conv(Vector(x), Vector(y)))
     end
 end
+
+conv(x::SVector{1}, y::SVector{1}) = x.*y
 conv(x::AbstractVector, y::SVector{1}) = x*y[1]
 conv(y::SVector{1}, x::AbstractVector) = y[1]*x
 conv(x::AbstractFill, y::SVector{1}) = x*y[1]
