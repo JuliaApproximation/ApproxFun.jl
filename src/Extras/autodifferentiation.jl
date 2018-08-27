@@ -95,7 +95,7 @@ function newton(N,u0::Fun;maxiterations=15,tolerance=1E-15)
         if err≤10tolerance
             return unew
         else
-            u=chop(unew,tolerance)
+            u=chop(unew, head=tolerance)
         end
     end
     @warn "Maximum number of iterations $maxiterations reached, with approximate accuracy of $err."

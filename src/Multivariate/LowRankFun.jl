@@ -368,7 +368,7 @@ end
 
 ## Truncate
 #TODO: should reduce rank if needed
-chop(f::LowRankFun,tol)=LowRankFun(map(g->chop(g,tol),f.A),map(g->chop(g,tol),f.B),f.space)
+chop(f::LowRankFun,tol)=LowRankFun(map(g->chop(g, head=tol),f.A),map(g->chop(g, head=tol),f.B),f.space)
 function pad(f::LowRankFun,m::Integer,n::Integer)
     A,B = deepcopy(f.A),deepcopy(f.B)
 

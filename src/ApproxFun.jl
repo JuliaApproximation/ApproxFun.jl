@@ -1,5 +1,3 @@
-__precompile__()
-
 module ApproxFun
     using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers,
             BlockArrays, BandedMatrices, BlockBandedMatrices, IntervalSets,

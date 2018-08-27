@@ -19,7 +19,7 @@ end
 function conv(u::StridedVector{F}, v::StridedVector) where F<:Fun
     nu,nv = length(u),length(v)
     n = nu + nv - 1
-    np2 = nextpow2(n)
+    np2 = nextpow(2, n)
     pad!(u,np2),pad!(v,np2)
     y = ifft_pow2(fft_pow2(u).*fft_pow2(v))
     #TODO This would not handle Dual/ComplexDual numbers correctly

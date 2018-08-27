@@ -175,7 +175,7 @@ stride(::Fun)
 
 reduces the number of coefficients by dropping the tail that is below the specified tolerance.
 """
-chop(::Fun,_)
+chop(::Fun, head=_)
 
 """
     reverseorientation(f::Fun)

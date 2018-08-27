@@ -198,7 +198,7 @@ function rootsunit_coeffs(c::Vector{T}, htol::Float64,clplan::ClenshawPlan{S,T})
     # Simplify the coefficients by chopping off the tail:
     nrmc=norm(c, 1)
     @assert nrmc > 0  # There's an error if we make it this far
-    c = chop(c,eps()*nrmc)
+    c = chop(c, head=eps()*nrmc)
     n = length(c)
 
     if n == 0
@@ -376,7 +376,7 @@ end
 #     end
 # else
 complexroots(cfs::Vector{T}) where {T<:Union{Float64,ComplexF64}} =
-    hesseneigvals(companion_matrix(chop(cfs,10eps())))
+    hesseneigvals(companion_matrix(chop(cfs, head=10eps())))
 # end
 
 function complexroots(cfs::Vector{T}) where T<:Union{BigFloat,Complex{BigFloat}}
@@ -391,7 +391,7 @@ function complexroots(cfs::Vector{T}) where T<:Union{BigFloat,Complex{BigFloat}}
 end
 
 complexroots(neg::Vector, pos::Vector) =
-    complexroots([reverse(chop(neg,10eps()), dims=1);pos])
+    complexroots([reverse(chop(neg, head=10eps()), dims=1);pos])
 complexroots(f::Fun{Laurent{DD,RR}}) where {DD,RR} =
     mappoint.(Ref(Circle()), Ref(domain(f)),
         complexroots(f.coefficients[2:2:end],f.coefficients[1:2:end]))

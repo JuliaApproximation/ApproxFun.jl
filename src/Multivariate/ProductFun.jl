@@ -26,8 +26,8 @@ function ProductFun(cfs::AbstractMatrix{T},sp::AbstractProductSpace{Tuple{S,V},D
   tol::Real=100eps(T),chopping::Bool=false) where {S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,DD}
     if chopping
         ncfs,kend=norm(cfs,Inf),size(cfs,2)
-        if kend > 1 while isempty(chop(cfs[:,kend],ncfs*tol)) kend-=1 end end
-        ret=VFun{S,T}[Fun(columnspace(sp,k),chop(cfs[:,k],ncfs*tol)) for k=1:max(kend,1)]
+        if kend > 1 while isempty(chop(cfs[:,kend], head=ncfs*tol)) kend-=1 end end
+        ret=VFun{S,T}[Fun(columnspace(sp,k),chop(cfs[:,k], head=ncfs*tol)) for k=1:max(kend,1)]
         ProductFun{S,V,typeof(sp),T}(ret,sp)
     else
         ret=VFun{S,T}[Fun(columnspace(sp,k),cfs[:,k]) for k=1:size(cfs,2)]
@@ -227,10 +227,10 @@ evaluate(f::ProductFun,x) = evaluate(f,x...)
 
 function chop(f::ProductFun{S},es...) where S
     kend=size(f,2)
-    while kend > 1 && isempty(chop(f.coefficients[kend].coefficients,es...))
+    while kend > 1 && isempty(chop(f.coefficients[kend].coefficients, head=es...))
         kend-=1
     end
-    ret=VFun{S,cfstype(f)}[Fun(space(f.coefficients[k]),chop(f.coefficients[k].coefficients,es...)) for k=1:max(kend,1)]
+    ret=VFun{S,cfstype(f)}[Fun(space(f.coefficients[k]),chop(f.coefficients[k].coefficients, head=es...)) for k=1:max(kend,1)]
 
     typeof(f)(ret,f.space)
 end

@@ -14,7 +14,7 @@ function ConcreteMultiplication(::Type{V},f::Fun{D,T},sp::Space) where {V,D,T}
         error("Domain mismatch: cannot multiply function on $(domain(f)) to function on $(domain(sp))")
     end
     ConcreteMultiplication{D,typeof(sp),V}(
-        convert(Fun{D,V},chop(f,40*eps(cfstype(f)))),sp)
+        convert(Fun{D,V},chop(f, head=40*eps(cfstype(f)))),sp)
 end
 
 
@@ -23,7 +23,7 @@ function ConcreteMultiplication(f::Fun{D,T},sp::Space) where {D,T}
         error("Domain mismatch: cannot multiply function on $(domain(f)) to function on $(domain(sp))")
     end
     V = promote_type(T,rangetype(sp))
-    ConcreteMultiplication{D,typeof(sp),V}(convert(Fun{D,V},chop(f,40*eps(cfstype(f)))),sp)
+    ConcreteMultiplication{D,typeof(sp),V}(convert(Fun{D,V},chop(f, head=40*eps(cfstype(f)))),sp)
 end
 
 # We do this in two stages to support Modifier spaces

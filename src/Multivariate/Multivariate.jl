@@ -17,7 +17,7 @@ Base.div(u::AbstractVector{B}) where {B<:BivariateFun} =
     differentiate(u[1],1)+differentiate(u[2],2)
 curl(u::AbstractVector{B}) where {B<:BivariateFun} = differentiate(u[2],1)-differentiate(u[1],2)
 
-Base.chop(f::MultivariateFun) = chop(f,10eps())
+Base.chop(f::MultivariateFun) = chop(f, head=10eps())
 cfstype(::MultivariateFun{T}) where {T} = T
 cfstype(::Type{MultivariateFun{T,N}}) where {T,N} = T
 cfstype(::Type{MF}) where {MF<:MultivariateFun} = cfstype(supertype(MF))

@@ -284,7 +284,7 @@ atan(f::Fun)=cumsum(f'/(1+f^2))+atan(first(f))
 # this is used to find a point in which to impose a boundary
 # condition in calculating secial functions
 function specialfunctionnormalizationpoint(op,growth,f)
-    g=chop(growth(f),eps(cfstype(f)))
+    g=chop(growth(f), head=eps(cfstype(f)))
     xmin = isempty(g.coefficients) ? first(domain(g)) : argmin(g)
     xmax = isempty(g.coefficients) ? last(domain(g)) : argmax(g)
     opfxmin,opfxmax = op(f(xmin)),op(f(xmax))
@@ -414,7 +414,7 @@ for (op,ODE,RHS,growth) in ((:(erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
         function $op(fin::Fun{S,T}) where {S,T}
             f=setcanonicaldomain(fin)
 
-            g=chop($growth(f),eps(T))
+            g=chop($growth(f), head=eps(T))
             xmin = isempty(g.coefficients) ? first(domain(g)) : argmin(g)
             xmax = isempty(g.coefficients) ? last(domain(g)) : argmax(g)
             opfxmin,opfxmax = $op(f(xmin)),$op(f(xmax))
@@ -452,7 +452,7 @@ for (op,ODE,RHS,growth) in ((:(hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^
         function $op(ν,fin::Fun{S,T}) where {S<:Union{Ultraspherical,Chebyshev},T}
             f=setcanonicaldomain(fin)
 
-            g=chop($growth(f),eps(T))
+            g=chop($growth(f), head=eps(T))
             xmin = isempty(g.coefficients) ? first(domain(g)) : argmin(g)
             xmax = isempty(g.coefficients) ? last(domain(g)) : argmax(g)
             opfxmin,opfxmax = $op(ν,f(xmin)),$op(ν,f(xmax))

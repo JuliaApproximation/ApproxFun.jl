@@ -239,7 +239,7 @@ struct TimesOperator{T,BI} <: Operator{T}
         end
 
         if hastimes
-            newops=Vector{Operator{T}}(0)
+            newops=Vector{Operator{T}}()
             for op in ops
                if isa(op,TimesOperator)
                     for op2 in op.ops

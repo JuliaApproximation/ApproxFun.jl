@@ -299,7 +299,7 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
     ## Bug in chop of ProductFun
 
     u = Fun(Chebyshev()^2,[0.0,0.0])
-    @test coefficients(chop(ProductFun(u),10eps())) == zeros(0,1)
+    @test coefficients(chop(ProductFun(u), head=10eps())) == zeros(0,1)
 
 
     d=Domain(-1..1)^2

@@ -1,4 +1,4 @@
-using ApproxFun, Compat.Test
+using ApproxFun, Test
     import ApproxFun: testbandedoperator
 
 @testset "Hermite and GaussWeight" begin

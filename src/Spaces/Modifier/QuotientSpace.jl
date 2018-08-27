@@ -140,7 +140,7 @@ for (gesdd, elty, relty) in ((:dgesdd_,:Float64,:Float64),
                     # http://icl.cs.utk.edu/lapack-forum/viewtopic.php?f=13&t=4587&p=11036&hilit=sgesdd#p11036
                     # and
                     # https://github.com/scipy/scipy/issues/5401
-                    lwork = round(BlasInt, nextfloat(real(work[1])))
+                    lwork = round(BlasInt, digits=nextfloat(real(work[1])))
                     #work = Vector{$elty}(lwork)
                 end
             end
