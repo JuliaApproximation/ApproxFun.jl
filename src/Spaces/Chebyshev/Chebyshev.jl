@@ -230,15 +230,21 @@ function squarepoints(::Type{T}, N) where T
     end
     ret
 end
+function mapsquares!(a,b,pts)
+    @inbounds for k=1:length(pts)
+        pts[k] = Vec(fromcanonical(a,pts[k][1]), fromcanonical(b,pts[k][2]))
+    end
+    pts
+end
 
 function points(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},N) where {D,R}
     T = real(prectype(D))
     pts = squarepoints(T, N)
-    if domain(S) == Segment()^2
-        pts
-    else
-        fromcanonical.(Ref(S),pts)
+    a,b = domain(S).domains
+    if domain(S) ≠ Segment()^2
+        mapsquares!(a,b,pts)
     end
+    pts
 end
 
 plan_transform(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector) where {D,R} =
