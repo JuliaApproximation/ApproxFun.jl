@@ -3,8 +3,8 @@ __precompile__()
 module ApproxFun
     using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers,
             BlockArrays, BandedMatrices, BlockBandedMatrices, IntervalSets,
-            SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions,
-            LinearAlgebra, LowRankApprox, SparseArrays #, Arpack
+            SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions, DSP,
+            LinearAlgebra, LowRankApprox, SparseArrays, FillArrays, InfiniteArrays #, Arpack
     import StaticArrays, ToeplitzMatrices, Calculus
 
 
@@ -21,7 +21,7 @@ import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, 
                 minimum, maximum, extrema, argmax, argmin, findmax, findmin, isfinite,
                 zeros, zero, one, promote_rule, repeat, length, resize!, isinf,
                 getproperty, findfirst, unsafe_getindex, fld, cld, div, real, imag,
-                @_inline_meta, eachindex, lastindex, keys, isreal, 
+                @_inline_meta, eachindex, lastindex, keys, isreal, OneTo,
                 Array, Vector, Matrix, view, ones, @propagate_inbounds, print_array
 
 import Base.Broadcast: BroadcastStyle, Broadcasted, AbstractArrayStyle, broadcastable,
@@ -51,6 +51,7 @@ import SpecialFunctions: sinpi, cospi, airy, besselh,
                     abs, sign, log, expm1, tan, abs2, sqrt, angle, max, min, cbrt, log,
                     atan, acos, asin, erfc, inv
 
+import StaticArrays: SVector
 
 import BlockArrays: nblocks, blocksize, global2blockindex, globalrange, BlockSizes
 
@@ -70,10 +71,17 @@ import BlockBandedMatrices: blockbandwidth, blockbandwidths, blockcolstop, block
 import FastTransforms: ChebyshevTransformPlan, IChebyshevTransformPlan, plan_chebyshevtransform,
                         plan_chebyshevtransform!, plan_ichebyshevtransform, plan_ichebyshevtransform!
 
+import FillArrays: AbstractFill, getindex_value
+import LazyArrays: cache
+import InfiniteArrays: Infinity, InfRanges, AbstractInfUnitRange
+
+
+
+
 # convenience for 1-d block ranges
 const BlockRange1 = BlockRange{1,Tuple{UnitRange{Int}}}
 
-import StaticArrays: SVector
+
 
 
 const Vec{d,T} = SVector{d,T}

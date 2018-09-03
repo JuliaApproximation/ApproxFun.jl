@@ -213,6 +213,8 @@ function pad(f::AbstractVector{Any},n::Integer)
 	end
 end
 
+pad(x::Number, n::Int) = [x; zeros(typeof(x), n-1)]
+
 function pad(v::AbstractVector,n::Integer,m::Integer)
     @assert m==1
     pad(v,n)
@@ -249,12 +251,28 @@ pad(A::AbstractMatrix,::Colon,m::Integer) = pad(A,size(A,1),m)
 pad(A::AbstractMatrix,n::Integer,::Colon) = pad(A,n,size(A,2))
 
 
+function pad(v, ::Infinity)
+    if isinf(length(v))
+        v
+    else
+        Vcat(v, Zeros{Int}(∞))
+    end
+end
+
+function pad(v::AbstractVector{T}, ::Infinity) where T
+    if isinf(length(v))
+        v
+    else
+        Vcat(v, Zeros{T}(∞))
+    end
+end
+
 
 #TODO:padleft!
 
 function padleft(f::AbstractVector,n::Integer)
 	if (n > length(f))
-        [zeros(n - length(f)),f]
+        [zeros(n - length(f)); f]
 	else
         f[end-n+1:end]
 	end
@@ -473,375 +491,12 @@ slnorm(m::AbstractMatrix,k::Integer,::Colon) = slnorm(m,k,1:size(m,2))
 slnorm(m::AbstractMatrix,::Colon,j::Integer) = slnorm(m,1:size(m,1),j)
 
 
+## Infinity
 
-## New Inf
 
-# angle is π*a where a is (false==0) and (true==1)
-struct Infinity{T}
-    angle::T
-end
 
-Infinity() = Infinity(false)
-const ∞ = Infinity()
-
-
-isinf(::Infinity) = true
-isfinite(::Infinity) = false
-sign(y::Infinity{B}) where {B<:Integer} = mod(y.angle,2)==0 ? 1 : -1
-angle(x::Infinity) = π*x.angle
-
-function show(io::IO, y::Infinity{B}) where B<:Integer
-    if sign(y) == 1
-        print(io, "∞")
-    else
-        print(io, "-∞")
-    end
-end
-
-show(io::IO,x::Infinity) = print(io,"$(exp(im*π*x.angle))∞")
-
-==(x::Infinity,y::Infinity) = x.angle == y.angle
-for TYP in (:Dual,:Number)
-    @eval begin
-        ==(x::Infinity,y::$TYP) = isinf(y) && angle(y) == angle(x)
-        ==(y::$TYP,x::Infinity) = x == y
-    end
-end
-isless(x::Infinity{Bool}, y::Infinity{Bool}) = x.angle && !y.angle
-isless(x::Number, y::Infinity{Bool}) = !y.angle && x ≠ ∞
-isless(x::Infinity{Bool}, y::Number) = x.angle && y ≠ -∞
-isless(x::Block{1}, y::Infinity{Bool}) = isless(Int(x), y)
-isless(x::Infinity{Bool}, y::Block{1}) = isless(x, Int(y))
-
--(y::Infinity{B}) where {B<:Integer} = sign(y)==1 ? Infinity(one(B)) : Infinity(zero(B))
-
-function +(x::Infinity{B}, y::Infinity{B}) where B
-    if x.angle != y.angle
-        error("Angles must be the same to add ∞")
-    end
-    x
-end
-
-for T in (:BlasFloat,:Integer,:(Complex{Int}))
-    @eval begin
-        +(::$T,y::Infinity) = y
-        +(y::Infinity,::$T) = y
-        -(y::Infinity,::$T) = y
-        -(::$T,y::Infinity) = -y
-    end
-end
-
-
-# ⊻ is xor
-*(a::Infinity{Bool},b::Infinity{Bool}) = Infinity(a.angle ⊻ b.angle)
-*(a::Infinity,b::Infinity) = Infinity(a.angle + b.angle)
-
-for T in (:Dual,:Bool,:Integer,:AbstractFloat)
-    @eval begin
-        *(a::$T,y::Infinity) = a>0 ? y : (-y)
-        *(y::Infinity,a::$T) = a*y
-    end
-end
-
-*(a::Number,y::Infinity) = Infinity(y.angle+angle(a)/π)
-*(y::Infinity,a::Number) = a*y
-
-for OP in (:fld,:cld,:div)
-  @eval $OP(y::Infinity,a::Number) = y*(1/sign(a))
-end
-
-min(x::Infinity{B},y::Infinity{B}) where {B<:Integer} = sign(x)==-1 ? x : y
-max(x::Infinity{B},::Infinity{B}) where {B<:Integer} = sign(x)==1 ? x : y
-min(x::Real,y::Infinity{B}) where {B<:Integer} = sign(y)==1 ? x : y
-min(x::Infinity{B},y::Real) where {B<:Integer} = min(y,x)
-max(x::Real,y::Infinity{B}) where {B<:Integer} = sign(y)==1 ? y : x
-max(x::Infinity{B},y::Real) where {B<:Integer} = max(y,x)
-
-for OP in (:<,:<=)
-    @eval begin
-        $OP(x::Real,y::Infinity{B}) where {B<:Integer} = sign(y)==1
-        $OP(y::Infinity{B},x::Real) where {B<:Integer} = sign(y)==-1
-    end
-end
-
-for OP in (:>,:>=)
-    @eval begin
-        $OP(x::Real,y::Infinity{B}) where {B<:Integer} = sign(y)==-1
-        $OP(y::Infinity{B},x::Real) where {B<:Integer} = sign(y)==1
-    end
-end
-
-
-abstract type Iterator end
-
-BroadcastStyle(::Type{<:Iterator}) = DefaultArrayStyle{1}()
-broadcastable(x::Iterator) = x
-size(x::Iterator) = (length(x),)
-
-function findfirst(testf::Function, A::Iterator)
-    for (k,v) in enumerate(A)
-        testf(v) && return k
-    end
-    return 0
-end
-
-# Take -- iterate through the first n elements
-
-struct Take{I,T} <: AbstractVector{T}
-    xs::I
-    n::Int
-    function Take{I,T}(xs,n) where {I,T}
-        @assert n ≤ length(xs)
-        new{I,T}(xs,n)
-    end
-end
-
-Take(xs,n) = Take{typeof(xs),eltype(xs)}(xs,n)
-
-"""
-    take(iter, n)
-
-An iterator that generates at most the first `n` elements of `iter`.
-
-```jldoctest
-julia> a = 1:2:11
-1:2:11
-
-julia> collect(a)
-6-element Array{Int64,1}:
-  1
-  3
-  5
-  7
-  9
- 11
-
-julia> collect(take(a,3))
-3-element Array{Int64,1}:
- 1
- 3
- 5
-```
-"""
-take(xs, n::Int) = Take(xs, n)
-
-eltype(::Type{Take{I}}) where {I} = eltype(I)
-length(t::Take) = t.n
-size(t::Take) = (length(t),)
-function iterate(it::Take)
-    it.n ≤ 0 && return nothing
-    x, st = iterate(it.xs)
-    (x, (it.n-1, st))
-end
-function iterate(it::Take, state)
-    n, xs_state = state
-    n ≤ 0 && return nothing
-    vxs_state = iterate(it.xs, xs_state)
-    vxs_state == nothing && return nothing
-    v,xs_state = vxs_state
-    return v, (n-1, xs_state)
-end
-
-function getindex(it::Take,k)
-    !isempty(k) && maximum(k) > it.n && throw(BoundsError())
-
-    it.xs[k]
-end
-
-getindex(it::Take,k::CartesianIndex{1}) = it[k[1]]
-
-function sum(it::Take)
-    ret = zero(eltype(it))
-    for a in it
-        ret += a
-    end
-    ret
-end
-
-pad(it::Take,n::Integer) = pad!(collect(it),n)
-
-
-
-# Re-implementation of Base iterators
-# to use ∞ and allow getindex
-
-abstract type AbstractRepeated{T} <: Iterator end
-
-eltype(::Type{AbstractRepeated{T}}) where {T} = T
-eltype(::Type{R}) where {R<:AbstractRepeated} = eltype(super(R))
-eltype(::AbstractRepeated{T}) where {T} = T
-
-step(::AbstractRepeated) = 0
-
-iterate(it::AbstractRepeated) = value(it),nothing
-iterate(it::AbstractRepeated,state) = value(it),nothing
-
-length(::AbstractRepeated) = ∞
-
-getindex(it::AbstractRepeated,k::Integer) = value(it)
-getindex(it::AbstractRepeated,k::AbstractRange) = take(it,length(k))
-
-
-maximum(r::AbstractRepeated) = value(r)
-minimum(r::AbstractRepeated) = value(r)
-
-sum(it::Take{AR}) where {AR<:AbstractRepeated} = it.n*value(it.xs)
-
-struct ZeroRepeated{T} <: AbstractRepeated{T} end
-
-ZeroRepeated(::Type{T}) where {T} = ZeroRepeated{T}()
-
-value(::ZeroRepeated{T}) where {T} = zero(T)
-sum(r::ZeroRepeated) = value(r)
-
-struct Repeated{T} <: AbstractRepeated{T}
-    x::T
-    function Repeated{T}(x::T) where T
-        # TODO: Add ZeroRepeated type.
-        if x == zero(T)
-            error("Zero repeated not supported to maintain type stability")
-        end
-
-        new{T}(x)
-    end
-end
-
-Repeated(x) = Repeated{typeof(x)}(x)
-
-
-value(r::Repeated) = r.x
-
-sum(r::Repeated) = r.x > 0 ? ∞ : -∞
-
-
-
-function repeated(x)
-    if x == zero(x)
-        error("Use ZeroRepeated to repeat zeros")
-    end
-    Repeated(x)
-end
-repeated(x,::Infinity{Bool}) = repeated(x)
-repeated(x,m::Integer) = take(repeated(x),m)
-
-
-abstract type AbstractCount{S} <: Iterator end
-
-struct UnitCount{S} <: AbstractCount{S}
-    start::S
-end
-
-struct Count{S} <: AbstractCount{S}
-    start::S
-    step::S
-end
-
-
-countfrom(start::Number, step::Number) = Count(promote(start, step)...)
-countfrom(start::Number)               = UnitCount(start)
-countfrom()                            = UnitCount(1)
-
-
-eltype(::Type{AbstractCount{S}}) where {S} = S
-eltype(::Type{AS}) where {AS<:AbstractCount} = eltype(supertype(AS))
-eltype(::AbstractCount{S}) where {S} = S
-
-step(it::Count) = it.step
-step(it::UnitCount) = 1
-iterate(it::AbstractCount) = (it.start,it.start)
-function iterate(it::AbstractCount, state)
-    x = state + step(it)
-    (x,x)
-end
-
-length(it::AbstractCount) = ∞
-
-getindex(it::Count,k) = it.start .+ it.step.*(k.-1)
-getindex(it::UnitCount,k) = (it.start-1) .+ k
-getindex(it::AbstractRepeated,k::AbstractCount) = it
-
-# use reindex, copied from Base
-reindex(V, idxs::Tuple{AbstractCount, Vararg{Any}}, subidxs::Tuple{Any, Vararg{Any}}) =
-    (Base.@_propagate_inbounds_meta; (idxs[1][subidxs[1]], reindex(V, tail(idxs), tail(subidxs))...))
-
-# special functions
-maximum(it::UnitCount{S}) where {S<:Real} = ∞
-minimum(it::UnitCount{S}) where {S<:Real} = it.start
-
-maximum(it::Count{S}) where {S<:Real} = it.step > 0 ? ∞ : it.start
-minimum(it::Count{S}) where {S<:Real} = it.step < 0 ? -∞ : it.start
-
-sum(it::UnitCount) = ∞
-sum(it::Count) = it.step > 0 ? ∞ : -∞
-
-@inline first(it::AbstractCount) = it.start
-
-last(it::UnitCount{S}) where {S<:Real} = ∞
-last(it::Count{S}) where {S<:Real} =
-    it.step > 0 ? ∞ : (it.step < 0 ? -∞ : error("zero step not supported"))
-
-
-function (:)(a::Real,b::Infinity{Bool})
-    if b.angle
-        throw(ArgumentError("Cannot create $a:-∞"))
-    end
-    countfrom(a)
-end
-function (:)(a::Infinity{Bool},st::AbstractFloat,b::Infinity{Bool})
-    if a ≠ b
-        throw(ArgumentError("Cannot create $a:$st:$b"))
-    end
-    [a]
-end
-function (:)(a::Real,st::Real,b::Infinity{Bool})
-    if st == 0
-        throw(ArgumentError("step cannot be zero"))
-    elseif b.angle == st > 0
-        throw(ArgumentError("Cannot create $a:$st:$b"))
-    else
-        countfrom(a,st)
-    end
-end
-
-
-
-intersect(a::UnitCount, b::UnitCount) = UnitCount(max(first(a), first(b)))
-intersect(a::AbstractCount, b::AbstractCount) = error("Not implemented")
-
-intersect(a::UnitCount, b::AbstractRange) = intersect(first(a):last(b), b)
-intersect(a::AbstractRange, b::UnitCount) = intersect(a, first(b):last(a))
-
-intersect(a::Count, b::AbstractRange) = intersect(first(a):step(a):last(b), b)
-intersect(a::AbstractRange, b::Count) = intersect(a, first(b):step(b):last(a))
-
-
-
-struct CumSumIterator{CC} <: Iterator
-    iterator::CC
-end
-
-eltype(::Type{CumSumIterator{S}}) where {S} = eltype(S)
-eltype(CC::CumSumIterator) = eltype(CC.iterator)
-
-function iterate(it::CumSumIterator)
-    x,st = iterate(it.iterator)
-    (x,(x,st))
-end
-function iterate(it::CumSumIterator, (n,st))
-    anx_st = iterate(it.iterator,st)
-    anx_st == nothing && return nothing
-    a,nx_st = anx_st
-    cs=n+a
-    (cs,(cs,nx_st))
-end
-
-length(it::CumSumIterator) = length(it.iterator)
-
-getindex(it::CumSumIterator{AC},k) where {AC<:UnitCount} = it.iterator.start*k + ((k*(k-1))÷2)
-getindex(it::CumSumIterator{AC},k) where {AC<:Count} = it.iterator.start*k + step(it.iterator)*((k*(k-1))÷2)
-
-
-
+Base.isless(x::Block{1}, y::Infinity) = isless(Int(x), y)
+Base.isless(x::Infinity, y::Block{1}) = isless(x, Int(y))
 
 
 ## BandedMatrix
@@ -854,7 +509,7 @@ columnrange(A,row::Integer) = max(1,row+bandinds(A,1)):row+bandinds(A,2)
 
 
 ## Store iterator
-mutable struct CachedIterator{T,IT} <: Iterator
+mutable struct CachedIterator{T,IT}
     iterator::IT
     storage::Vector{T}
     state
@@ -933,308 +588,6 @@ length(A::CachedIterator) = length(A.iterator)
 
 # The following don't need caching
 cache(A::AbstractVector{T}) where {T<:Number} = A
-cache(A::AbstractRange) = A
-cache(A::AbstractCount) = A
-
-
-
-## From Julia v0.5 code
-
-
-# flatten an iterator of iterators
-# we add indexing
-
-struct Flatten{I} <: Iterator
-    it::I
-end
-
-"""
-    flatten(iter)
-
-Given an iterator that yields iterators, return an iterator that yields the
-elements of those iterators.
-Put differently, the elements of the argument iterator are concatenated. Example:
-
-    julia> collect(flatten((1:2, 8:9)))
-    4-element Array{Int64,1}:
-     1
-     2
-     8
-     9
-"""
-flatten(itr) = Flatten(itr)
-
-eltype(f::Flatten) = mapreduce(eltype,promote_type,f.it)
-
-
-@propagate_inbounds function iterate(f::Flatten, state=())
-    if state !== ()
-        y = iterate(tail(state)...)
-        y !== nothing && return (y[1], (state[1], state[2], y[2]))
-    end
-    x = (state === () ? iterate(f.it) : iterate(f.it, state[1]))
-    x === nothing && return nothing
-    iterate(f, (x[2], x[1]))
-end
-
-length(f::Flatten) = mapreduce(length,+,f.it)
-size(f::Flatten) = (length(f),)
-keys(f::Flatten) = 1:length(f)
-Base.OneTo(::Infinity{Bool}) = 1:∞
-
-eachindex(f::Flatten) = 1:length(f)
-
-function getindex(f::Flatten,k::Int)
-    sh = 0
-    for it in f.it
-        n = length(it)
-        if k ≤ sh + n
-            return it[k-sh]
-        else
-            sh += n
-        end
-    end
-
-    throw(BoundsError())
-end
-
-getindex(f::Flatten,kr::UnitRange{Int}) = eltype(f)[f[k] for k in kr]
-
-sum(f::Flatten) = mapreduce(sum,+,f.it)
-
-
-maximum(f::Flatten) = mapreduce(maximum,max,f.it)
-minimum(f::Flatten) = mapreduce(minimum,min,f.it)
-
-
-## Iterator Algebra
-
-broadcasted(::DefaultArrayStyle{1}, op, f::Flatten, c...) = Flatten(map(it->op(it,c...),f.it))
-
-
-broadcasted(::DefaultArrayStyle{1}, op,a::AbstractRepeated,b::AbstractRepeated) = repeated(op.(value(a),value(b)))
-broadcasted(::DefaultArrayStyle{1}, op,a::AbstractRepeated,b::Number) = repeated(op.(value(a),b))
-broadcasted(::DefaultArrayStyle{1}, op,a::Number,b::AbstractRepeated) = repeated(op.(a,value(b)))
-
-broadcasted(::DefaultArrayStyle{1}, op,a::AbstractCount,b::AbstractRepeated) = op.(a,value(b))
-broadcasted(::DefaultArrayStyle{1}, op,a::AbstractRepeated,b::AbstractCount) = op.(value(a),b)
-
-function broadcasted(::DefaultArrayStyle{1}, op,a::Flatten,b::AbstractRepeated)
-    @assert isinf(length(a.it[end]))
-    flatten(map(it->op.(it,value(b)),a.it))
-end
-function broadcasted(::DefaultArrayStyle{1}, op,a::AbstractRepeated,b::Flatten)
-    @assert isinf(length(b.it[end]))
-    flatten(map(it->op.(value(a),it),b.it))
-end
-function broadcasted(::DefaultArrayStyle{1}, op,a::Flatten,b::AbstractCount)
-    K=0
-    it=tuple()
-    for k=1:length(a.it)
-        it=(it...,op.(a.it[k],b[K+1:K+length(a.it[k])]))
-        K+=length(a.it[k])
-    end
-    flatten(it)
-end
-function broadcasted(::DefaultArrayStyle{1}, op,a::AbstractCount,b::Flatten)
-    K=0
-    it=tuple()
-    for k=1:length(b.it)
-        it=(it...,op.(a[K+1:K+length(it[k])],b.it[k]))
-        K+=length(b.it[k])
-    end
-    flatten(it)
-end
-function broadcasted(::DefaultArrayStyle{1}, op,a::Take,b::Take)
-    n = length(a)
-    @assert n == length(b)
-    take(op.(a.xs,b.xs),n)
-end
-function broadcasted(::DefaultArrayStyle{1}, op,a::Take,b::Number)
-    n = length(a)
-    take(op.(a.xs,b),n)
-end
-function broadcasted(::DefaultArrayStyle{1}, op,a::Number,b::Take)
-    n = length(b)
-    take(op.(a,b.xs),n)
-end
-
-const InfiniteIterators = Union{AbstractRepeated,AbstractCount,Flatten}
-
-+(a::InfiniteIterators) = a
--(a::ZeroRepeated) = a
--(a::Repeated) = Repeated(-value(a))
--(a::Flatten) = Flatten(map(-,a.it))
-
-for OP in (:+,:-)
-    @eval begin
-        $OP(a::AbstractRepeated,b::AbstractRepeated) = repeated($OP(value(a),value(b)))
-        $OP(a::Number,b::AbstractRepeated) = repeated($OP(a,value(b)))
-        $OP(a::AbstractRepeated,b::Number) = repeated($OP(value(a),b))
-
-        $OP(a::AbstractCount,b::AbstractRepeated) = $OP(a,value(b))
-        $OP(a::AbstractRepeated,b::AbstractCount) = $OP(value(a),b)
-
-        function $OP(a::Flatten,b::AbstractRepeated)
-            @assert isinf(length(a.it[end]))
-            flatten(map(it->$OP.(it,value(b)),a.it))
-        end
-        function $OP(a::AbstractRepeated,b::Flatten)
-            @assert isinf(length(b.it[end]))
-            flatten(map(it->$OP.(value(a),it),b.it))
-        end
-
-        function $OP(a::Flatten,b::AbstractCount)
-            K=0
-            it=tuple()
-            for k=1:length(a.it)
-                it=(it...,$OP(a.it[k],b[K+1:K+length(a.it[k])]))
-                K+=length(a.it[k])
-            end
-            flatten(it)
-        end
-        function $OP(a::AbstractCount,b::Flatten)
-            K=0
-            it=tuple()
-            for k=1:length(b.it)
-                it=(it...,$OP(a[K+1:K+length(it[k])],b.it[k]))
-                K+=length(b.it[k])
-            end
-            flatten(it)
-        end
-
-        function $OP(a::Take,b::Take)
-            n = length(a)
-            @assert n == length(b)
-            take($OP(a.xs,b.xs),n)
-        end
-
-        function $OP(a::Take,b::Bool)
-            n = length(a)
-            take($OP(a.xs,b),n)
-        end
-        function $OP(a::Bool,b::Take)
-            n = length(b)
-            take($OP(a,b.xs),n)
-        end
-
-        function $OP(a::Take,b::Number)
-            n = length(a)
-            take($OP(a.xs,b),n)
-        end
-        function $OP(a::Number,b::Take)
-            n = length(b)
-            take($OP(a,b.xs),n)
-        end
-    end
-end
-
-
-for OP in (:+,:-)
-    @eval begin
-        $OP(a::ZeroRepeated,b::ZeroRepeated) = a
-        $OP(a::Number,b::ZeroRepeated) = repeated(a)
-        $OP(a::ZeroRepeated,b::Number) = repeated($OP(b))
-
-
-        $OP(a::Flatten,b::ZeroRepeated) = a
-        $OP(a::ZeroRepeated,b::Flatten) = $OP(b)
-
-        $OP(a::AbstractCount,b::AbstractCount) =
-            Count($OP(first(a),first(b)),$OP(step(a),step(b)))
-        $OP(a::UnitCount,b::Number) = UnitCount($OP(a.start,b))
-        $OP(a::Count,b::Number) = Count($OP(a.start,b),a.step)
-
-        $OP(a::Number,b::AbstractCount) = $OP(b) + a
-
-        broadcasted(::DefaultArrayStyle{1}, ::typeof($OP),a::AbstractRepeated,b::AbstractRepeated) = $OP(a,b)
-        broadcasted(::DefaultArrayStyle{1}, ::typeof($OP),a::Number,b::AbstractRepeated) = $OP(a,b)
-        broadcasted(::DefaultArrayStyle{1}, ::typeof($OP),a::AbstractRepeated,b::Number) = $OP(a,b)
-
-        broadcasted(::DefaultArrayStyle{1}, ::typeof($OP),a::AbstractCount,b::AbstractCount) = $OP(a,b)
-        broadcasted(::DefaultArrayStyle{1}, ::typeof($OP),a::Number,b::AbstractCount) = $OP(a,b)
-        broadcasted(::DefaultArrayStyle{1}, ::typeof($OP),a::AbstractCount,b::Number) = $OP(a,b)
-
-        broadcasted(::DefaultArrayStyle{1}, ::typeof($OP),a::Flatten,b::Flatten) = $OP(a,b)
-        broadcasted(::DefaultArrayStyle{1}, ::typeof($OP),a::Number,b::Flatten) = $OP(a,b)
-        broadcasted(::DefaultArrayStyle{1}, ::typeof($OP),a::Flatten,b::Number) = $OP(a,b)
-    end
-end
-
-broadcasted(::DefaultArrayStyle{1}, ::typeof(*),a::ZeroRepeated,b::ZeroRepeated) = a
-broadcasted(::DefaultArrayStyle{1}, ::typeof(*),a::Number,b::AbstractCount) = Count(first(b)*a,step(b)*a)
-broadcasted(::DefaultArrayStyle{1}, ::typeof(*),b::AbstractCount,a::Number) = a*b
-
-
-+(a::Number,b::UnitCount) = UnitCount(a+b.start)
-+(a::Number,b::Count) = Count(a+b.start,b.step)
--(a::Number,b::UnitCount) = Count(a-b.start,-1)
--(a::Number,b::Count) = Count(a-b.start,-b.step)
-
-*(a::Number,b::AbstractCount) = Count(a*first(b),a*step(b))
-*(a::AbstractCount,b::Number) = b*a
-
-function +(a::Flatten,b::Flatten)
-    if isempty(a)
-        @assert isempty(b)
-        a
-    elseif length(a.it) == 1
-        a.it[1]+b
-    elseif length(b.it) == 1
-        a+b.it[1]
-    elseif length(a.it[1]) == length(b.it[1])
-        flatten((a.it[1]+b.it[1],(flatten(a.it[2:end])+flatten(b.it[2:end])).it...))
-    elseif length(a.it[1]) < length(b.it[1])
-        n=length(a.it[1])
-        flatten((a.it[1]+b.it[1][1:n],
-            (flatten(a.it[2:end])+flatten((b.it[1][n+1:end],b.it[2:end]...))).it...))
-    else #length(a.it[1]) > length(b.it[1])
-        n=length(a.it[2])
-        flatten((a.it[1][1:n]+b.it[1],
-            (flatten((a.it[1][n+1:end],b.it[2:end]...))+flatten(b.it[2:end])).it...))
-    end
-end
-
-
-cumsum(r::Repeated) = r.x:r.x:(r.x>0 ? ∞ : -∞)
-cumsum(r::Repeated{Bool}) = 1:∞
-cumsum(r::ZeroRepeated) = r
-cumsum(r::Iterator) = CumSumIterator(r)
-
-
-
-
-
-function cumsum(f::Flatten)
-    cs=zero(eltype(f))
-    its = Vector{eltype(f.it)}(undef, 0)
-    for it in f.it[1:end-1]
-        c = cumsum(cs .+ it)
-        push!(its,c)
-        cs=last(c)
-    end
-
-    c=cs+cumsum(f.it[end])
-    push!(its,c)
-    Flatten(tuple(its...))
-end
-
-
-function pad(v,::Infinity{Bool})
-    if isinf(length(v))
-        v
-    else
-        flatten((v,ZeroRepeated(Int)))
-    end
-end
-
-function pad(v::AbstractArray,::Infinity{Bool})
-    if isinf(length(v))
-        v
-    else
-        flatten((v,ZeroRepeated(Int)))
-    end
-end
 
 
 ## nocat
@@ -1314,4 +667,32 @@ function FastTransforms.ichebyshevtransform!(X::AbstractMatrix{T};kind::Integer=
             lmul!((size(X,1)-1)*(size(X,2)-1)/4,X)
         end
     end
+end
+
+
+## conv
+
+conv(x::AbstractVector, y::AbstractVector) = DSP.conv(x, y)
+@generated function conv(x::SVector{N}, y::SVector{M}) where {N,M}
+    NM = N+M-1
+    quote
+        convert(SVector{$NM}, DSP.conv(Vector(x), Vector(y)))
+    end
+end
+
+conv(x::SVector{1}, y::SVector{1}) = x.*y
+conv(x::AbstractVector, y::SVector{1}) = x*y[1]
+conv(y::SVector{1}, x::AbstractVector) = y[1]*x
+conv(x::AbstractFill, y::SVector{1}) = x*y[1]
+conv(y::SVector{1}, x::AbstractFill) = y[1]*x
+conv(x::AbstractFill, y::AbstractFill) = DSP.conv(x, y)
+function conv(x::AbstractFill, y::AbstractVector)
+    isinf(length(x)) || return DSP.conv(x,y)
+    @assert length(y) == 1
+    x*y[1]
+end
+function conv(y::AbstractVector, x::AbstractFill)
+    isinf(length(x)) || return DSP.conv(y,x)
+    @assert length(y) == 1
+    y[1]*x
 end

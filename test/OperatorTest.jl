@@ -3,7 +3,6 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
     import ApproxFun: testfunctional, testbandedoperator, testraggedbelowoperator, testinfoperator, testblockbandedoperator
 
 @testset "Operator" begin
-    # test row/colstarts
     @testset "Evaluation" begin
         testfunctional(Evaluation(Ultraspherical(1),0.1))
         d = -4 .. 4
@@ -57,9 +56,6 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
         @test norm(D*f-f')<100eps()
     end
 
-
-    # test fast copy is consistent with getindex
-
     @testset "Toeplitz" begin
         C=ToeplitzOperator([1.,2.,3.],[4.,5.,6.])
 
@@ -73,7 +69,6 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
 
          testbandedoperator(HankelOperator([1.,2.,3.,4.,5.,6.,7.]))
     end
-
 
     @testset "Multiplication" begin
         testbandedoperator(Multiplication(Fun(Chebyshev(),[1.,2.,3.]),Chebyshev()))
@@ -117,8 +112,6 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
         testbandedoperator(P)
         @test P[1:4,1:4] ≈ [0 1 0 0; 1 0 0 0; 0 0 0 1; 0 0 1 0]
     end
-
-
 
     @testset "Periodic" begin
         d=PeriodicInterval(0.,2π)
@@ -219,26 +212,40 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
         @test norm(ApproxFun.ReverseOrientation(Fourier())*Fun(t->cos(cos(t-0.2)-0.1),Fourier()) - Fun(t->cos(cos(t-0.2)-0.1),Fourier(PeriodicInterval(2π,0)))) < 10eps()
     end
 
+    @testset "Sub-operator re-view bug" begin
+        D = Derivative(Chebyshev())
+        S = view(D[:, 2:end], Block.(3:4), Block.(2:4))
+        @test parent(S) == D
+        @test parentindices(S) == (3:4,2:4)
+        @test bandinds(S)  == (2,2)
+    end
+
     @testset "Sub-operators" begin
         f = Fun(exp)
-
         D = Derivative(Chebyshev())
+        testbandedoperator(D[:, 2:end])
+
         u = D[:,2:end] \ f
+        @test u(0.1) ≈ exp(0.1)-coefficient(f,1)
+
+        D̃ = Derivative(space(u))
+        @test bandinds(D̃) == (0,0)
+        testbandedoperator(D̃)
         @test norm(u'-f) < 10eps()
-        @test u(0.1) ≈ exp(0.1)-f.coefficients[1]
 
-
+        testbandedoperator(D[1:end,2:end])
         u = D[1:end,2:end] \ f
         @test u(0.1) ≈ exp(0.1)-f.coefficients[1]
 
-        u = D[1:ApproxFun.∞,2:ApproxFun.∞] \ f
+        testbandedoperator(D[1:∞,2:∞])
+        u = D[1:∞,2:∞] \ f
         @test u(0.1) ≈ exp(0.1)-f.coefficients[1]
     end
 
     @testset "InterlaceOperator" begin
         A = InterlaceOperator(Diagonal([Matrix(I,2,2),Derivative(Chebyshev())]))
-        @test A[Block(1):Block(2), Block(1):Block(2)] isa BlockBandedMatrix
 
+        @test A[Block(1):Block(2), Block(1):Block(2)] isa BlockBandedMatrix
         @test Matrix(view(A, Block(1), Block(1))) == A[1:3,1:3]
         @test Matrix(view(A, Block(1):Block(2), Block(1):Block(2))) == A[1:4,1:4]
         testblockbandedoperator(A)

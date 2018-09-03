@@ -234,12 +234,12 @@ end
 function points(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},N) where {D,R}
     T = real(prectype(D))
     pts = squarepoints(T, N)
+
     d = domain(S)
-    if d == Segment()^2
-        pts
-    else
+    if d ≠ Segment()^2
         pts .= fromcanonical.(Ref(d),pts)
     end
+    pts
 end
 
 plan_transform(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector) where {D,R} =

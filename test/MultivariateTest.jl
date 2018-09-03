@@ -1,10 +1,15 @@
 using ApproxFun, LinearAlgebra, SpecialFunctions, Test
-    import ApproxFun: testbandedblockbandedoperator, testraggedbelowoperator, factor, Block, cfstype
+    import ApproxFun: testbandedblockbandedoperator, testraggedbelowoperator, factor, Block, cfstype,
+                        blocklengths, block, tensorizer, Vec, ArraySpace, ∞
 
 @testset "Multivariate" begin
     @testset "Square" begin
         S = Space(Interval()^2)
-        @test ApproxFun.block(ApproxFun.tensorizer(S), 1) == Block(1)
+
+        @test @inferred(blocklengths(S)) ≡ Base.OneTo(∞)
+        block(tensorizer(S), 1)
+
+        @test block(tensorizer(S), 1) == Block(1)
 
         @time for k=0:5,j=0:5
             ff=(x,y)->cos(k*acos(x))*cos(j*acos(y))
@@ -76,19 +81,19 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
 
 
     @testset  "Vec segment" begin
-        d=Domain(ApproxFun.Vec(0.,0.) .. ApproxFun.Vec(1.,1.))
+        d=Domain(Vec(0.,0.) .. Vec(1.,1.))
         x=Fun()
         @test ((d.b - d.a)x/2)(0.1)  ≈ (d.b - d.a)*0.1/2
         @test ApproxFun.fromcanonical(d,x)(0.1) ≈ (d.b+d.a)/2 + (d.b - d.a)*0.1/2
 
-        x,y = Fun(ApproxFun.Vec(0.,0.) .. ApproxFun.Vec(2.,1.))
+        x,y = Fun(Vec(0.,0.) .. Vec(2.,1.))
         @test x(0.2,0.1) ≈ 0.2
         @test y(0.2,0.1) ≈ 0.1
 
         d=Segment((0.,0.),(1.,1.))
         f=Fun(xy->exp(-xy[1]-2cos(xy[2])),d)
         @test f(0.5,0.5) ≈ exp(-0.5-2cos(0.5))
-        @test f(ApproxFun.Vec(0.5,0.5)) ≈ exp(-0.5-2cos(0.5))
+        @test f(Vec(0.5,0.5)) ≈ exp(-0.5-2cos(0.5))
 
         f=Fun(xy->exp(-xy[1]-2cos(xy[2])),d,20)
         @test f(0.5,0.5) ≈ exp(-0.5-2cos(0.5))
@@ -104,7 +109,7 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
         d=Circle((0.,0.),1.)
         f=Fun(xy->exp(-xy[1]-2cos(xy[2])),Fourier(d),40)
         @test f(cos(0.1),sin(0.1)) ≈ exp(-cos(0.1)-2cos(sin(0.1)))
-        @test f(ApproxFun.Vec(cos(0.1),sin(0.1))) ≈ exp(-cos(0.1)-2cos(sin(0.1)))
+        @test f(Vec(cos(0.1),sin(0.1))) ≈ exp(-cos(0.1)-2cos(sin(0.1)))
 
         f=Fun((x,y)->exp(-x-2cos(y)),Fourier(d),40)
         @test f(cos(0.1),sin(0.1)) ≈ exp(-cos(0.1)-2cos(sin(0.1)))
@@ -166,6 +171,11 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
 
     @time @testset "x,y constructors" begin
         d=Interval()^2
+
+        sp = ArraySpace(d,2)
+        @test blocklengths(sp) == 2:2:∞
+        @test block(ArraySpace(d,2),1) == Block(1)
+
         x,y=Fun(d)
         @test x(0.1,0.2) ≈ 0.1
         @test y(0.1,0.2) ≈ 0.2
@@ -192,142 +202,127 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
         @test y(1.0,0.2) ≈ 0.2
     end
 
-    # test conversion between
-    dx = dy = Interval()
-    d = dx*dy
+    @testset "conversion between" begin
+        dx = dy = Interval()
+        d = dx*dy
 
-    x,y = Fun(∂(d))
-    x,y = components(x),components(y)
+        x,y = Fun(∂(d))
+        x,y = components(x),components(y)
 
-    g = [real(exp(x[1]-1im));0.0y[2];real(exp(x[3]+1im));real(exp(-1+1im*y[4]))]
-    B = [ Operator(I,dx)⊗ldirichlet(dy);
-         ldirichlet(dx)⊗Operator(I,dy);
-         Operator(I,dx)⊗rdirichlet(dy);
-         rneumann(dx)⊗Operator(I,dy)    ]
-
-
-    @test Fun(g[1],rangespace(B)[1])(-0.1,-1.0) ≈ g[1](-0.1,-1.0)
-    @test Fun(g[3],rangespace(B)[3])(-0.1,1.0)  ≈ g[3](-0.1,1.0)
+        g = [real(exp(x[1]-1im));0.0y[2];real(exp(x[3]+1im));real(exp(-1+1im*y[4]))]
+        B = [ Operator(I,dx)⊗ldirichlet(dy);
+             ldirichlet(dx)⊗Operator(I,dy);
+             Operator(I,dx)⊗rdirichlet(dy);
+             rneumann(dx)⊗Operator(I,dy)    ]
 
 
-    A = [B; Laplacian()]
-
-    @test cfstype([g;0.0]) == Float64
-    g2 = Fun([g;0.0],rangespace(A))
-    @test cfstype(g2) == Float64
+        @test Fun(g[1],rangespace(B)[1])(-0.1,-1.0) ≈ g[1](-0.1,-1.0)
+        @test Fun(g[3],rangespace(B)[3])(-0.1,1.0)  ≈ g[3](-0.1,1.0)
 
 
-    @test g2[1](-0.1,-1.0) ≈ g[1](-0.1,-1.0)
-    @test g2[3](-0.1,1.0)  ≈ g[3](-0.1,1.0)
+        A = [B; Laplacian()]
+
+        @test cfstype([g;0.0]) == Float64
+        g2 = Fun([g;0.0],rangespace(A))
+        @test cfstype(g2) == Float64
 
 
+        @test g2[1](-0.1,-1.0) ≈ g[1](-0.1,-1.0)
+        @test g2[3](-0.1,1.0)  ≈ g[3](-0.1,1.0)
 
-    S=WeightedJacobi(1,1)^2
-    L=Laplacian(S)
-    testbandedblockbandedoperator(L)
+        S=WeightedJacobi(1,1)^2
+        L=Laplacian(S)
+        testbandedblockbandedoperator(L)
+    end
 
+    @testset "Bug in Multiplication" begin
+        dom = Interval(0.001, 1) * PeriodicInterval(-pi, pi)
 
+        @test blocklengths(Space(dom)) == 2:2:∞
 
-    ## Bug in Multiplication
+        r,r2 = Fun((r,t) -> [r;r^2], dom)
 
-    dom = Interval(0.001, 1) * PeriodicInterval(-pi, pi)
+        @test r(0.1,0.2) ≈ 0.1
+        @test r2(0.1,0.2) ≈ 0.1^2
 
+        sp = Space(dom)
+        Dr = Derivative(sp, [1,0])
+            @test ApproxFun.blockbandinds(Dr) == (1,1)
+            @test ApproxFun.subblockbandinds(Dr)  == (-1,3)
 
+        Dθ = Derivative(sp, [0,1])
+        Mr = Multiplication(Fun( (r, θ) -> r, sp ), sp)
+        rDr = Mr * Dr
 
-
-    r,r2 = Fun((r,t) -> [r;r^2], dom)
-
-    @test r(0.1,0.2) ≈ 0.1
-    @test r2(0.1,0.2) ≈ 0.1^2
-
-    sp = Space(dom)
-    Dr = Derivative(sp, [1,0])
-    Dθ = Derivative(sp, [0,1])
-    Mr = Multiplication(Fun( (r, θ) -> r, sp ), sp)
-    rDr = Mr * Dr
-
-    testbandedblockbandedoperator(rDr)
-
-
-
-    ## Cheby * Interval
-
-
-    d = Interval()^2
-    x,y = Fun(∂(d))
+        testbandedblockbandedoperator(rDr)
+    end
+    @testset "Cheby * Interval" begin
+        d = Interval()^2
+        x,y = Fun(∂(d))
 
 
-    @test ApproxFun.rangetype(Space(∂(d))) == Float64
-    @test ApproxFun.rangetype(space(y)) == Float64
+        @test ApproxFun.rangetype(Space(∂(d))) == Float64
+        @test ApproxFun.rangetype(space(y)) == Float64
 
 
-    @test (im*y)(1.0,0.1) ≈ 0.1im
-    @test (x+im*y)(1.0,0.1) ≈ 1+0.1im
+        @test (im*y)(1.0,0.1) ≈ 0.1im
+        @test (x+im*y)(1.0,0.1) ≈ 1+0.1im
 
-    @test exp(x+im*y)(1.0,0.1) ≈ exp(1.0+0.1im)
-
-
-    ## Taylor()^2, checks bug in type of plan_transform
-
-    f = Fun((x,y)->exp((x-0.1)*cos(y-0.2)),Taylor()^2)
-    @test f(0.2,0.3) ≈ exp(0.1*cos(0.1))
+        @test exp(x+im*y)(1.0,0.1) ≈ exp(1.0+0.1im)
+    end
 
 
-    ## Test DefiniteIntegral
+    @testset "Taylor()^2, checks bug in type of plan_transform" begin
+        f = Fun((x,y)->exp((x-0.1)*cos(y-0.2)),Taylor()^2)
+        @test f(0.2,0.3) ≈ exp(0.1*cos(0.1))
+    end
 
-    f = Fun((x,y) -> exp(-x*cos(y)))
-    @test Number(DefiniteIntegral()*f) ≈ sum(f)
+    @testset "DefiniteIntegral" begin
+        f = Fun((x,y) -> exp(-x*cos(y)))
+        @test Number(DefiniteIntegral()*f) ≈ sum(f)
+    end
 
+    @testset "Piecewise Tensor" begin
+        a = Fun(0..1) + Fun(2..3)
+        f = a ⊗ a
+        @test f(0.1,0.2) ≈ 0.1*0.2
+        @test f(1.1,0.2) ≈ 0
+        @test f(2.1,0.2) ≈ 2.1*0.2
 
+        @test component(space(f),1,1) == Chebyshev(0..1)^2
+        @test component(space(f),1,2) == Chebyshev(0..1)*Chebyshev(2..3)
+        @test component(space(f),2,1) == Chebyshev(2..3)*Chebyshev(0..1)
+        @test component(space(f),2,2) == Chebyshev(2..3)^2
+    end
 
-    ## Piecewise Tensor
-
-
-    a = Fun(0..1) + Fun(2..3)
-    f = a ⊗ a
-    @test f(0.1,0.2) ≈ 0.1*0.2
-    @test f(1.1,0.2) ≈ 0
-    @test f(2.1,0.2) ≈ 2.1*0.2
-
-    @test component(space(f),1,1) == Chebyshev(0..1)^2
-    @test component(space(f),1,2) == Chebyshev(0..1)*Chebyshev(2..3)
-    @test component(space(f),2,1) == Chebyshev(2..3)*Chebyshev(0..1)
-    @test component(space(f),2,2) == Chebyshev(2..3)^2
-
-
-
-    ## Bug in chop of ProductFun
-
-    u = Fun(Chebyshev()^2,[0.0,0.0])
-    @test coefficients(chop(ProductFun(u),10eps())) == zeros(0,1)
-
-
-    d=Domain(-1..1)^2
-    B=[Dirichlet(factor(d,1))⊗I;I⊗ldirichlet(factor(d,2));I⊗rneumann(factor(d,2))]
-    Δ=Laplacian(d)
-
-    rs = rangespace([B;Δ])
-    f = Fun((x,y)->exp(-x^2-y^2),d)
-    @test_throws DimensionMismatch coefficients([0.0;0.0;0.0;0.0;f],rs)
+    @testset "Bug in chop of ProductFun" begin
+        u = Fun(Chebyshev()^2,[0.0,0.0])
+        @test coefficients(chop(ProductFun(u),10eps())) == zeros(0,1)
 
 
+        d=Domain(-1..1)^2
+        B=[Dirichlet(factor(d,1))⊗I;I⊗ldirichlet(factor(d,2));I⊗rneumann(factor(d,2))]
+        Δ=Laplacian(d)
 
-    ## tensor of mult for Fourier #507
+        rs = rangespace([B;Δ])
+        f = Fun((x,y)->exp(-x^2-y^2),d)
+        @test_throws DimensionMismatch coefficients([0.0;0.0;0.0;0.0;f],rs)
+    end
 
-    mySin = Fun(Fourier(),[0,1])
-    A = Multiplication(mySin,Fourier())
-    L = A ⊗ A
-    @test L[1,1] == 0
+    @testset "tensor of mult for Fourier #507" begin
+        mySin = Fun(Fourier(),[0,1])
+        A = Multiplication(mySin,Fourier())
+        L = A ⊗ A
+        @test L[1,1] == 0
+    end
 
+    @testset "off domain evaluate" begin
+        g = Fun(1, ApproxFun.Vec(0,-1) .. ApproxFun.Vec(π,-1))
+        @test g(0.1,-1) ≈ 1
+        @test g(0.1,1) ≈ 0
 
-
-    ## Check off domain evaluate
-
-    g = Fun(1, ApproxFun.Vec(0,-1) .. ApproxFun.Vec(π,-1))
-    @test g(0.1,-1) ≈ 1
-    @test g(0.1,1) ≈ 0
-
-    g = Fun(1, PeriodicInterval(ApproxFun.Vec(0,-1) , ApproxFun.Vec(π,-1)))
-    @test g(0.1,-1) ≈ 1
-    @test g(0.1,1) ≈ 0
+        g = Fun(1, PeriodicInterval(ApproxFun.Vec(0,-1) , ApproxFun.Vec(π,-1)))
+        @test g(0.1,-1) ≈ 1
+        @test g(0.1,1) ≈ 0
+    end
 end

@@ -95,7 +95,7 @@ canonicalspace(S::ContinuousSpace) = PiecewiseSpace(map(ChebyshevDirichlet{1,1},
 
 
 
-blocklengths(C::ContinuousSpace) = repeated(ncomponents(C.domain))
+blocklengths(C::ContinuousSpace) = Fill(ncomponents(C.domain),∞)
 
 block(C::ContinuousSpace,k) = Block((k-1)÷ncomponents(C.domain)+1)
 

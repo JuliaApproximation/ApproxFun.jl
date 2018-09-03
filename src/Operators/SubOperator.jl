@@ -4,12 +4,12 @@ checkbounds(A::Operator,kr) =
     (maximum(kr) > length(A) || minimum(kr) < 1) && throw(BoundsError(A,kr))
 
 
-checkbounds(A::Operator,kr::Union{Colon,AbstractCount},jr::Union{Colon,AbstractCount}) = nothing
+checkbounds(A::Operator,kr::Union{Colon,InfRanges},jr::Union{Colon,InfRanges}) = nothing
 
-checkbounds(A::Operator,kr::Union{Colon,AbstractCount},jr) =
+checkbounds(A::Operator,kr::Union{Colon,InfRanges},jr) =
     (maximum(jr) > size(A,2) || minimum(jr) < 1) && throw(BoundsError(A,(kr,jr)))
 
-checkbounds(A::Operator,kr,jr::Union{Colon,AbstractCount}) =
+checkbounds(A::Operator,kr,jr::Union{Colon,InfRanges}) =
     (maximum(kr) > size(A,1)  || minimum(kr) < 1 ) && throw(BoundsError(A,(kr,jr)))
 
 checkbounds(A::Operator,kr,jr) =
@@ -69,7 +69,7 @@ SubOperator(A,inds) = SubOperator(A,inds,map(length,inds))
 convert(::Type{Operator{T}},SO::SubOperator) where {T} =
     SubOperator(Operator{T}(SO.parent),SO.indexes,SO.dims,SO.bandwidths)::Operator{T}
 
-function view(A::Operator,kr::AbstractCount,jr::AbstractCount)
+function view(A::Operator,kr::InfRanges,jr::InfRanges)
     @assert isinf(size(A,1)) && isinf(size(A,2))
     st=step(kr)
     if isbanded(A) && st==step(jr)  # Otherwise, its not a banded operator
@@ -82,8 +82,10 @@ function view(A::Operator,kr::AbstractCount,jr::AbstractCount)
     SubOperator(A,(kr,jr),size(A),(-l,u))
 end
 
+view(V::SubOperator, kr::AbstractRange, jr::AbstractRange) =
+    view(V.parent,reindex(V,parentindices(V),(kr,jr))...)
 
-function view(A::Operator,kr::AbstractRange,jr::AbstractRange)
+function view(A::Operator, kr::AbstractRange, jr::AbstractRange)
     st=step(kr)
     if isbanded(A) && st == step(jr)
         kr1=first(kr)
@@ -120,6 +122,10 @@ view(A::Operator,KR::BlockRange,JR::BlockRange) = SubOperator(A,(KR,JR))
 
 view(A::Operator,k,j) = SubOperator(A,(k,j))
 
+defaultgetindex(B::Operator,k::InfRanges, j::InfRanges) = view(B, k, j)
+defaultgetindex(B::Operator,k::AbstractRange, j::InfRanges) = view(B, k, j)
+defaultgetindex(B::Operator,k::InfRanges, j::AbstractRange) = view(B, k, j)
+
 
 
 reindex(A::Operator, B::Tuple{Block,Any}, kj::Tuple{Any,Any}) =
@@ -135,12 +141,11 @@ reindex(A::Operator, B::Tuple{BlockRange1,Any}, kj::Tuple{Any,Any}) =
 reindex(A::Operator, B::Tuple{BlockRange1}, kj::Tuple{Any}) =
     reindex(domainspace(A),B,kj)
 # Blocks are preserved under ranges
-for TYP in (:Block,:BlockRange1,:(AbstractVector{Block{1}}),:(AbstractCount{Block{1}})),
-        VTYP in (:AbstractVector,:AbstractCount)
+for TYP in (:Block,:BlockRange1,:(AbstractVector{Block{1}}))
     @eval begin
-        reindex(A::Operator, B::Tuple{$VTYP{Int},Any}, kj::Tuple{$TYP,Any}) =
+        reindex(A::Operator, B::Tuple{AbstractVector{Int},Any}, kj::Tuple{$TYP,Any}) =
             (reindex(rangespace(A), (B[1],), (kj[1],))[1], reindex(domainspace(A),tail(B), tail(kj))[1])
-        reindex(A::Operator, B::Tuple{$VTYP{Int}}, kj::Tuple{$TYP}) =
+        reindex(A::Operator, B::Tuple{AbstractVector{Int}}, kj::Tuple{$TYP}) =
             reindex(domainspace(A),B,kj)
     end
 end
@@ -149,14 +154,14 @@ end
 
 view(V::SubOperator,kr::UnitRange,jr::UnitRange) = view(V.parent,reindex(V,parentindices(V),(kr,jr))...)
 view(V::SubOperator,K::Block,J::Block) = view(V.parent,reindex(V,parentindices(V),(K,J))...)
-view(V::SubOperator,KR::BlockRange,JR::BlockRange) = SubOperator(V.parent, reindex(V,parentindices(V),(KR,JR)))
+view(V::SubOperator,KR::BlockRange,JR::BlockRange) = view(V.parent, reindex(V,parentindices(V),(KR,JR))...)
 function view(V::SubOperator,::Type{FiniteRange},jr::AbstractVector{Int})
     cs = (isbanded(V) || isblockbandedbelow(V)) ? colstop(V,maximum(jr)) : mapreduce(j->colstop(V,j),max,jr)
     view(V,1:cs,jr)
 end
 
-view(V::SubOperator,kr,jr) = view(V.parent,reindex(V,parentindices(V),(kr,jr))...)
-view(V::SubOperator,kr::AbstractCount,jr::AbstractCount) = view(V.parent,reindex(V,parentindices(V),(kr,jr))...)
+view(V::SubOperator, kr, jr) = view(V.parent,reindex(V,parentindices(V),(kr,jr))...)
+view(V::SubOperator,kr::InfRanges,jr::InfRanges) = view(V.parent,reindex(V,parentindices(V),(kr,jr))...)
 
 
 bandwidth(S::SubOperator,k::Int) = S.bandwidths[k]

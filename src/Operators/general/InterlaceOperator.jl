@@ -98,8 +98,8 @@ function InterlaceOperator(ops::AbstractMatrix{Operator{T}},ds::Space,rs::Space)
     rsi = interlacer(rs)
 
     if size(ops,2) == p && all(isbanded,ops) &&# only support nblocks 1 for now
-            all(i->isa(i,Repeated) && i.x == 1, dsi.blocks) &&
-            all(i->isa(i,Repeated) && i.x == 1, rsi.blocks)
+            all(i->isa(i,AbstractFill) && getindex_value(i) == 1, dsi.blocks) &&
+            all(i->isa(i,AbstractFill) && getindex_value(i) == 1, rsi.blocks)
         l,u = 0,0
         for k=1:p,j=1:p
             l=min(l,p*bandinds(ops[k,j],1)+j-k)

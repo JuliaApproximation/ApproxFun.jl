@@ -1,11 +1,3 @@
-
-
-## Counts
-
-show(io::IO,c::UnitCount) = print(io,"$(c.start):∞")
-show(io::IO,c::Count) = print(io,"$(c.start):$(c.step):∞")
-
-
 ## Domains
 
 show(io::IO,d::Segment) = print(io,"【$(d.a),$(d.b)】")

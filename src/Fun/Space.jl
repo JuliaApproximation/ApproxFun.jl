@@ -51,7 +51,7 @@ transpose(sp::Space) = sp  # default no-op
 
 
 # the default is all spaces have one-coefficient blocks
-blocklengths(S::Space) = repeated(true,dimension(S))
+blocklengths(S::Space) = Ones{Bool}(dimension(S))
 nblocks(S::Space) = length(blocklengths(S))
 block(S::Space,k) = Block(k)
 
@@ -510,6 +510,7 @@ space(f::AbstractArray{T}) where T<:Number = ArraySpace(ConstantSpace{T}(), size
 
 setdomain(A::ConstantSpace{DD,R}, d) where {DD,R} = ConstantSpace{typeof(d),R}(d)
 
+blocklengths(::ConstantSpace) = Vec(1)
 
 # Range type is Nothing since function evaluation is not defined
 struct SequenceSpace <: Space{PositiveIntegers,Nothing} end

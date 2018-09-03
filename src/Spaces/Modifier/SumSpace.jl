@@ -15,7 +15,7 @@ struct BlockInterlacer{DMS<:Tuple}
 end
 
 
-const TrivialInterlacer{d} = BlockInterlacer{NTuple{d,Repeated{Bool}}}
+const TrivialInterlacer{d} = BlockInterlacer{NTuple{d,<:AbstractFill{Bool,1}}}
 
 BlockInterlacer(v::AbstractVector) = BlockInterlacer(tuple(v...))
 

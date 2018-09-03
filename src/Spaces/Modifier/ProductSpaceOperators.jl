@@ -172,7 +172,7 @@ function Conversion(a::SumSpace, b::Space)
     for n=1:length(a.spaces)
         m[1,n]=Conversion(a.spaces[n],b)
     end
-    return ConversionWrapper(InterlaceOperator(m, a, b, cache(interlacer(a)), cache(BlockInterlacer((repeated(1),))), (1-dimension(b),dimension(a)-1)))
+    return ConversionWrapper(InterlaceOperator(m, a, b, cache(interlacer(a)), cache(BlockInterlacer((Fill(1,∞),))), (1-dimension(b),dimension(a)-1)))
 end
 
 
