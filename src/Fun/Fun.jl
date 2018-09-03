@@ -401,7 +401,7 @@ for (OP,SUM) in ((:(norm),:(sum)),(:linenorm,:linesum))
     @eval begin
         $OP(f::Fun) = $OP(f,2)
 
-        function $OP(f::Fun{S},p::Number) where S<:Space{D,R} where {D,R<:Number}
+        function $OP(f::Fun{S},p::Real) where S<:Space{D,R} where {D,R<:Number}
             if p < 1
                 return error("p should be 1 ≤ p ≤ ∞")
             elseif 1 ≤ p < Inf

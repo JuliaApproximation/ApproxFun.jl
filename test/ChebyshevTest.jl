@@ -32,7 +32,7 @@ using ApproxFun, LinearAlgebra, Test
         @test maximum(abs,ef.(r)-exp.(r))<200eps()
         @test maximum(abs,ecf.(r).-cos.(r).*exp.(r))<200eps()
     end
-    
+
     @testset "Algebra" begin
         ef = Fun(exp,Interval())
 
@@ -155,4 +155,10 @@ using ApproxFun, LinearAlgebra, Test
           @test w(domain(w).a) ≈ 1e5/(domain(w).a^2+1)
         end
     end
+
+  @testset "supremum norm" begin
+      x = Fun()
+      f = 1/(1 + 25*(x^2))
+      @test norm(f, Inf) ≈ 1.0
+  end
 end

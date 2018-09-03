@@ -222,27 +222,22 @@ differentiate(f::Fun{Chebyshev{D,R}}) where {D<:Segment,R} =
 ## Multivariate
 
 function squarepoints(::Type{T}, N) where T
-    pts=paduapoints(T,Int(cld(-3+sqrt(1+8N),2)))
+    pts = paduapoints(T,Int(cld(-3+sqrt(1+8N),2)))
     n = size(pts,1)
-    ret=Array{Vec{2,T}}(undef, n)
+    ret = Array{Vec{2,T}}(undef, n)
     @inbounds for k=1:n
-        ret[k]=Vec{2,T}(pts[k,1],pts[k,2])
+        ret[k] = Vec{2,T}(pts[k,1],pts[k,2])
     end
     ret
-end
-function mapsquares!(a,b,pts)
-    @inbounds for k=1:length(pts)
-        pts[k] = Vec(fromcanonical(a,pts[k][1]), fromcanonical(b,pts[k][2]))
-    end
-    pts
 end
 
 function points(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},N) where {D,R}
     T = real(prectype(D))
     pts = squarepoints(T, N)
-    a,b = domain(S).domains
-    if domain(S) ≠ Segment()^2
-        mapsquares!(a,b,pts)
+
+    d = domain(S)
+    if d ≠ Segment()^2
+        pts .= fromcanonical.(Ref(d),pts)
     end
     pts
 end
