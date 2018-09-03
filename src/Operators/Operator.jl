@@ -30,6 +30,7 @@ broadcastable(A::Operator) = A
 ## We assume operators are T->T
 rangespace(A::Operator) = error("Override rangespace for $(typeof(A))")
 domainspace(A::Operator) = error("Override domainspace for $(typeof(A))")
+spaces(A::Operator) = (rangespace(A), domainspace(A)) # order is consistent with size(::Matrix)
 domain(A::Operator) = domain(domainspace(A))
 
 
@@ -38,16 +39,16 @@ isconstspace(_) = false
 isafunctional(A::Operator) = size(A,1)==1 && isconstspace(rangespace(A))
 
 
-isboolvec(A) = isa(A,Repeated{Bool}) || isa(A,AbstractVector{Bool})
+isboolvec(A) = isa(A,AbstractFill{Bool}) || isa(A,AbstractVector{Bool})
 # block lengths of a space are 1
 hastrivialblocks(A::Space) = isboolvec(blocklengths(A))
 hastrivialblocks(A::Operator) = hastrivialblocks(domainspace(A)) &&
                                 hastrivialblocks(rangespace(A))
 
 # blocklengths are constant lengths
-hasconstblocks(A::Space) = isa(blocklengths(A),Repeated)
+hasconstblocks(A::Space) = isa(blocklengths(A),AbstractFill)
 hasconstblocks(A::Operator) = hasconstblocks(domainspace(A)) && hasconstblocks(rangespace(A)) &&
-                                blocklengths(domainspace(A)).x == blocklengths(rangespace(A)).x
+                                getindex_value(blocklengths(domainspace(A))) == getindex_value(blocklengths(rangespace(A)))
 
 
 macro functional(FF)
@@ -134,7 +135,7 @@ function blockbandinds(A::Operator)
 
     if hasconstblocks(A)
         a,b = bandinds(A)
-        p = blocklengths(domainspace(A)).x
+        p = getindex_value(blocklengths(domainspace(A)))
         return (fld(a,p),-fld(-b,p))
     end
 
@@ -144,7 +145,7 @@ function blockbandinds(A::Operator)
 
         if hasconstblocks(rs)
             a = bandinds(A,1)
-            p = blocklengths(rs).x
+            p = getindex_value(blocklengths(rs))
             return (fld(a,p),0)
         end
     end
@@ -376,7 +377,7 @@ for OP in (:colstart,:colstop,:rowstart,:rowstop)
     defOP = Meta.parse("default_"*string(OP))
     @eval begin
         $OP(A::Operator,i::Integer) = $defOP(A,i)
-        $OP(A::Operator,i::Infinity{Bool}) = ∞
+        $OP(A::Operator,i::Infinity) = ∞
     end
 end
 
@@ -524,8 +525,8 @@ macro wrappergetindex(Wrap)
         # if the spaces change, then we need to be smarter
         function ApproxFun.BlockBandedMatrix(S::ApproxFun.SubOperator{T,OP}) where {T,OP<:$Wrap}
             P = parent(S)
-            if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
-                    blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
+            if blocklengths(domainspace(P)) === blocklengths(domainspace(P.op)) &&
+                    blocklengths(rangespace(P)) === blocklengths(rangespace(P.op))
                 BlockBandedMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
             else
                 default_BlockBandedMatrix(S)
@@ -534,8 +535,8 @@ macro wrappergetindex(Wrap)
 
         function ApproxFun.PseudoBlockMatrix(S::ApproxFun.SubOperator{T,OP}) where {T,OP<:$Wrap}
             P = parent(S)
-            if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
-                    blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
+            if blocklengths(domainspace(P)) === blocklengths(domainspace(P.op)) &&
+                    blocklengths(rangespace(P)) === blocklengths(rangespace(P.op))
                 PseudoBlockMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
             else
                 default_blockmatrix(S)
@@ -544,8 +545,8 @@ macro wrappergetindex(Wrap)
 
         function ApproxFun.BandedBlockBandedMatrix(S::ApproxFun.SubOperator{T,OP}) where {T,OP<:$Wrap}
             P = parent(S)
-            if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
-                    blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
+            if blocklengths(domainspace(P)) === blocklengths(domainspace(P.op)) &&
+                    blocklengths(rangespace(P)) === blocklengths(rangespace(P.op))
                 BandedBlockBandedMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
             else
                 default_BandedBlockBandedMatrix(S)
@@ -620,8 +621,10 @@ zero(::Type{Operator{T}}) where {T<:Number} = ZeroOperator(T)
 zero(::Type{O}) where {O<:Operator} = ZeroOperator(eltype(O))
 
 
-eye(S::Space) = IdentityOperator(S)
-eye(S::Domain) = eye(Space(S))
+
+Operator(L::UniformScaling, s::Space) = ConstantOperator(L, s)
+Operator(L::UniformScaling{Bool}, s::Space) = L.λ ? IdentityOperator(s) : ZeroOperator(s)
+Operator(L::UniformScaling, d::Domain) = Operator(L, Space(d))
 
 Operator{T}(f::Fun) where {T} =
     norm(f.coefficients)==0 ? zero(Operator{T}) : convert(Operator{T}, Multiplication(f))

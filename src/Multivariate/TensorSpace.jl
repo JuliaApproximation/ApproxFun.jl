@@ -24,7 +24,7 @@ struct Tensorizer{DMS<:Tuple}
     blocks::DMS
 end
 
-const TrivialTensorizer{d} = Tensorizer{NTuple{d,Repeated{Bool}}}
+const TrivialTensorizer{d} = Tensorizer{NTuple{d,Fill{Bool,1,Int}}}
 
 Base.eltype(a::Tensorizer) = NTuple{length(a.blocks),Int}
 Base.eltype(::Tensorizer{NTuple{d,T}}) where {d,T} = NTuple{d,Int}
@@ -80,11 +80,11 @@ function Base.findfirst(::TrivialTensorizer{2},kj::Tuple{Int,Int})
     end
 end
 
-function Base.findfirst(sp::Tensorizer{Tuple{Repeated{S},Repeated{T}}},kj::Tuple{Int,Int}) where {S,T}
+function Base.findfirst(sp::Tensorizer{Tuple{<:AbstractFill{S},<:AbstractFill{T}}},kj::Tuple{Int,Int}) where {S,T}
     k,j=kj
 
     if k > 0 && j > 0
-        a,b = sp.blocks[1].x,sp.blocks[2].x
+        a,b = getindex_value(sp.blocks[1]),getindex_value(sp.blocks[2])
         kb1,kr = fldmod(k-1,a)
         jb1,jr = fldmod(j-1,b)
         nb=kb1+jb1
@@ -104,13 +104,15 @@ block(ci::CachedIterator{T,TrivialTensorizer{2}},k::Int) where {T} =
 block(::TrivialTensorizer{2},n::Int) =
     Block(floor(Integer,sqrt(2n) + 1/2))
 
-block(sp::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Int) where {S,T} =
-    Block(floor(Integer,sqrt(2floor(Integer,(n-1)/(sp.blocks[1].x*sp.blocks[2].x))+1) + 1/2))
-block(sp::Tensorizer,k::Int) = Block(findfirst(x->x≥k,cumsum(blocklengths(sp))))
+block(sp::Tensorizer{<:Tuple{<:AbstractFill{S},<:AbstractFill{T}}},n::Int) where {S,T} =
+    Block(floor(Integer,sqrt(2floor(Integer,(n-1)/(getindex_value(sp.blocks[1])*getindex_value(sp.blocks[2])))+1) + 1/2))
+_cumsum(x) = cumsum(x)
+_cumsum(x::Number) = x
+block(sp::Tensorizer,k::Int) = Block(findfirst(x->x≥k, _cumsum(blocklengths(sp))))
 block(sp::CachedIterator,k::Int) = block(sp.iterator,k)
 
 # [1,2,3] x 1:∞
-function block(it::Tensorizer{Tuple{Vector{Bool},Repeated{Bool}}},n::Int)
+function block(it::Tensorizer{Tuple{Vector{Bool},<:AbstractFill{Bool}}},n::Int)
     m=sum(it.blocks[1])
     if m == length(it.blocks[1])  # trivial blocks
         N=(m*(m+1))÷2
@@ -125,7 +127,7 @@ function block(it::Tensorizer{Tuple{Vector{Bool},Repeated{Bool}}},n::Int)
 end
 
 # 1:∞ x 1:m
-function block(it::Tensorizer{Tuple{Repeated{Bool},Vector{Bool}}},n::Int)
+function block(it::Tensorizer{Tuple{<:AbstractFill{Bool},Vector{Bool}}},n::Int)
     m=length(it.blocks[2])  # assume all true
     N=(m*(m+1))÷2
     Block(n < N ?
@@ -152,8 +154,8 @@ function getindex(it::TrivialTensorizer{2},n::Integer)
 end
 
 # could be cleaned up using blocks
-function getindex(it::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Integer) where {S,T}
-    a,b = it.blocks[1].x,it.blocks[2].x
+function getindex(it::Tensorizer{<:Tuple{<:AbstractFill{S},<:AbstractFill{T}}},n::Integer) where {S,T}
+    a,b = getindex_value(it.blocks[1]),getindex_value(it.blocks[2])
     nb1,nr = fldmod(n-1,a*b) # nb1 = "nb" - 1, i.e. using zero-base
     m1=block(it,n).n[1]-1
     pb1=fld(findfirst(it,(1,b*m1+1))-1,a*b)
@@ -164,8 +166,10 @@ end
 
 
 blockstart(it,K)::Int = K==1 ? 1 : sum(blocklengths(it)[1:K-1])+1
-blockstop(it,::Infinity{Bool}) = ∞
-blockstop(it,K)::Int = sum(blocklengths(it)[1:K])
+blockstop(it,::Infinity) = ∞
+_K_sum(bl::AbstractVector, K) = sum(bl[1:K])
+_K_sum(bl::Integer, K) = bl
+blockstop(it, K)::Int = _K_sum(blocklengths(it), K)
 
 blockstart(it,K::Block) = blockstart(it,K.n[1])
 blockstop(it,K::Block) = blockstop(it,K.n[1])
@@ -191,65 +195,9 @@ subblock2tensor(rt::CachedIterator,K,k) = rt[blockstart(rt,K)+k-1]
 #  Tensor product degrees are taken to be the sum of the degrees
 #  a degree is which block you are in
 
+
 tensorblocklengths(a) = a   # a single block is not modified
-function tensorblocklengths(a::Repeated{Bool},b::Repeated{Bool})
-    @assert a.x && b.x
-    1:∞
-end
-
-
-function tensorblocklengths(a::Repeated,b::Repeated{Bool})
-    @assert b.x
-    a.x:a.x:∞
-end
-
-
-function tensorblocklengths(a::Repeated{Bool},b::Repeated)
-    @assert a.x
-    b.x:b.x:∞
-end
-
-
-function tensorblocklengths(a::Repeated,b::Repeated)
-    m=a.x*b.x
-    m:m:∞
-end
-
-function tensorblocklengths(a::Repeated,b)
-    cs = a.x*cumsum(b)
-    if isinf(length(b))
-        cs
-    elseif length(cs) == 1 && last(cs) == a.x
-        a
-    else
-        flatten((cs,repeated(last(cs))))
-    end
-end
-
-
-
-function tensorblocklengths(a::Repeated{Bool},b)
-    @assert a.x
-    cs = cumsum(b)
-    if isinf(length(b))
-        cs
-    elseif length(cs) == 1 && last(cs) == a.x
-        a
-    else
-        flatten((cs,repeated(last(cs))))
-    end
-end
-
-
-tensorblocklengths(a,b::Repeated) =
-    tensorblocklengths(b,a)
-
-function tensorblocklengths(a::AbstractVector{Bool},b::AbstractVector{Bool})
-    @assert length(a) == length(b) && a[1] && b[1]
-    a
-end
-
-
+tensorblocklengths(a, b) = conv(a,b)
 tensorblocklengths(a,b,c,d...) = tensorblocklengths(tensorblocklengths(a,b),c,d...)
 
 
@@ -597,7 +545,7 @@ end
 
 for OP in (:block,:blockstart,:blockstop)
     @eval begin
-        $OP(s::TensorSpace, ::Infinity{Bool}) = ∞
+        $OP(s::TensorSpace, ::Infinity) = ∞
         $OP(s::TensorSpace, M::Block) = $OP(tensorizer(s),M)
         $OP(s::TensorSpace, M) = $OP(tensorizer(s),M)
     end

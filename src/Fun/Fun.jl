@@ -180,7 +180,7 @@ domaindimension(f::Fun) = domaindimension(f.space)
 setdomain(f::Fun,d::Domain) = Fun(setdomain(space(f),d),f.coefficients)
 
 for op in (:tocanonical,:tocanonicalD,:fromcanonical,:fromcanonicalD,:invfromcanonicalD)
-    @eval $op(f::Fun,x...) = $op(domain(f),x...)
+    @eval $op(f::Fun,x...) = $op(space(f),x...)
 end
 
 for op in (:tocanonical,:tocanonicalD)
@@ -401,7 +401,7 @@ for (OP,SUM) in ((:(norm),:(sum)),(:linenorm,:linesum))
     @eval begin
         $OP(f::Fun) = $OP(f,2)
 
-        function $OP(f::Fun{S},p::Number) where S<:Space{D,R} where {D,R<:Number}
+        function $OP(f::Fun{S},p::Real) where S<:Space{D,R} where {D,R<:Number}
             if p < 1
                 return error("p should be 1 ≤ p ≤ ∞")
             elseif 1 ≤ p < Inf

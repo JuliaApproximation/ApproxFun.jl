@@ -103,7 +103,17 @@ for TYP in (:SumSpace,:PiecewiseSpace)
         T = promote_type(eltype(domain(S1)),eltype(domain(S2)))
 
         if any(s->!isinf(dimension(s)),v1) || any(s->!isinf(dimension(s)),v2)
-            error("Need to implement finite dimensional case")
+            @assert length(S1.spaces) == length(S2.spaces) == 2
+            if hasconversion(S1, S2.spaces[1])
+                ops = Operator{T}[Conversion(S1.spaces[1], S2.spaces[1]) Conversion(S1.spaces[2], S2.spaces[1]);
+                                ZeroOperator(T, S1.spaces[1], S2.spaces[2]) ZeroOperator(T, S1.spaces[2], S2.spaces[2])]
+            elseif hasconversion(S1, S2.spaces[2])
+                ops = Operator{T}[ZeroOperator(T, S1.spaces[1], S2.spaces[1]) ZeroOperator(T, S1.spaces[2], S2.spaces[1]);
+                                  Conversion(S1.spaces[1], S2.spaces[2]) Conversion(S1.spaces[2], S2.spaces[2])]
+            else
+                error("Not implemented")
+            end
+            ConversionWrapper(InterlaceOperator(ops, S1, S2))
         elseif sort1 == sort2
             # swaps sumspace order
             ConversionWrapper(PermutationOperator{T}(perm(v1,v2),S1,S2))
@@ -144,8 +154,25 @@ for TYP in (:SumSpace,:PiecewiseSpace)
     end
 end
 
-function Conversion(S1::SumSpace, S2::Space)
-    error("Implement")
+function hasconversion(a::SumSpace, b::Space)
+    for n=1:length(a.spaces)
+        if hasconversion(a.spaces[n],b) ≠ true
+            return false
+        end
+    end
+    return true
+end
+
+function Conversion(a::SumSpace, b::Space)
+    if !hasconversion(a, b)
+        throw(ArgumentError("Cannot convert $a to $b"))
+    end
+
+    m=zeros(Operator{promote_type(prectype(a), prectype(b))},1,length(a.spaces))
+    for n=1:length(a.spaces)
+        m[1,n]=Conversion(a.spaces[n],b)
+    end
+    return ConversionWrapper(InterlaceOperator(m, a, b, cache(interlacer(a)), cache(BlockInterlacer((Fill(1,∞),))), (1-dimension(b),dimension(a)-1)))
 end
 
 

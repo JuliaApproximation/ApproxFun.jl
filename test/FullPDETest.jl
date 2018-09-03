@@ -87,6 +87,7 @@ import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, testbandedblockband
         testbandedblockbandedoperator(L)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
     println("    Bilaplacian Tests")
 
@@ -116,6 +117,16 @@ import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, testbandedblockband
                 rneumann(dx)⊗eye(dy);
                 eye(dx)⊗lneumann(dy);
                 eye(dx)⊗rneumann(dy);
+=======
+        A=[ldirichlet(dx)⊗Operator(I,dy);
+                rdirichlet(dx)⊗Operator(I,dy);
+                Operator(I,dx)⊗ldirichlet(dy);
+                Operator(I,dx)⊗rdirichlet(dy);
+                lneumann(dx)⊗Operator(I,dy);
+                rneumann(dx)⊗Operator(I,dy);
+                Operator(I,dx)⊗lneumann(dy);
+                Operator(I,dx)⊗rneumann(dy);
+>>>>>>> 82ea8e01d55dcc134a18912a0634c340a570b780
                  L]
 >>>>>>> 0492575c44dad31e566938556f419a3e1ea04b5d
 
@@ -157,6 +168,7 @@ import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, testbandedblockband
         testbandedblockbandedoperator(L)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
     A=[(ldirichlet(dx)+lneumann(dx))⊗eye(dy);
             (rdirichlet(dx)+rneumann(dx))⊗eye(dy);
@@ -176,6 +188,16 @@ import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, testbandedblockband
                 (rdirichlet(dx)-rneumann(dx))⊗eye(dy);
                 eye(dx)⊗(ldirichlet(dy)-lneumann(dy));
                 eye(dx)⊗(rdirichlet(dy)-rneumann(dy));
+=======
+        A=[(ldirichlet(dx)+lneumann(dx))⊗Operator(I,dy);
+                (rdirichlet(dx)+rneumann(dx))⊗Operator(I,dy);
+                Operator(I,dx)⊗(ldirichlet(dy)+lneumann(dy));
+                Operator(I,dx)⊗(rdirichlet(dy)+rneumann(dy));
+                (ldirichlet(dx)-lneumann(dx))⊗Operator(I,dy);
+                (rdirichlet(dx)-rneumann(dx))⊗Operator(I,dy);
+                Operator(I,dx)⊗(ldirichlet(dy)-lneumann(dy));
+                Operator(I,dx)⊗(rdirichlet(dy)-rneumann(dy));
+>>>>>>> 82ea8e01d55dcc134a18912a0634c340a570b780
                  L]
 >>>>>>> 0492575c44dad31e566938556f419a3e1ea04b5d
 
@@ -446,16 +468,16 @@ import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, testbandedblockband
         ff=(x,y)->exp(x)*cos(y)
         u=Fun(ff,S)
 
-        for KO in [eye(factor(S,1))⊗rdirichlet(factor(S,1)),rdirichlet(factor(S,1))⊗eye(factor(S,2))]
+        for KO in [Operator(I,factor(S,1))⊗rdirichlet(factor(S,1)),rdirichlet(factor(S,1))⊗Operator(I,factor(S,2))]
             testblockbandedoperator(KO)
             @test norm((KO*u-Fun(ff,rangespace(KO))).coefficients) ≤ 1E-10
         end
 
 
-        B=[ldirichlet(factor(S,1))⊗eye(factor(S,2));
-            rdirichlet(factor(S,1))⊗eye(factor(S,2));
-           eye(factor(S,1))⊗ldirichlet(factor(S,2));
-           eye(factor(S,1))⊗rdirichlet(factor(S,2));
+        B=[ldirichlet(factor(S,1))⊗Operator(I,factor(S,2));
+            rdirichlet(factor(S,1))⊗Operator(I,factor(S,2));
+           Operator(I,factor(S,1))⊗ldirichlet(factor(S,2));
+           Operator(I,factor(S,1))⊗rdirichlet(factor(S,2));
            Laplacian()]
 
         u=\(B,[fill(1.0,4);0];tolerance=1E-14)
@@ -925,7 +947,7 @@ u=\(A,
 
         @test ApproxFun.rangetype(rangespace(continuity(s,0))) == Vector{Float64}
         @test ApproxFun.rangetype(rangespace(Bx)) == Vector{Any}
-        @test ApproxFun.rangetype(rangespace(Bx⊗eye(Chebyshev()))) == Vector{Any}
+        @test ApproxFun.rangetype(rangespace(Bx⊗Operator(I,Chebyshev()))) == Vector{Any}
 
         rhs = Fun([0,[0,[0,0]],0],rangespace([I⊗ldirichlet(dt);Bx⊗I;I⊗Dt+(a*Dx)⊗I]))
         @test rhs(-0.5,0.0) == [0,[0,[0,0]],0]

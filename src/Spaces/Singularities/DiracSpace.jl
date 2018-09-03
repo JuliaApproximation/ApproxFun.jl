@@ -87,6 +87,17 @@ function evaluate(f::AbstractVector,PS::PointSpace,x::Number)
     end
 end
 
+function evaluate(f::AbstractVector, PS::DiracSpace, x::Number)
+    x ∉ domain(PS) && return zero(eltype(f))
+
+    p = findfirst(y->isapprox(x,y), PS.points)
+    if p == 0 || p > length(f)
+        zero(eltype(f))
+    else
+        f[p]*Inf
+    end
+end
+
 Base.sum(f::Fun{DS}) where DS<:DiracSpace =
     sum(f.coefficients[1:dimension(space(f))])
 

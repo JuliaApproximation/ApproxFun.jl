@@ -1,4 +1,4 @@
-using ApproxFun, Test
+using ApproxFun, SpecialFunctions, LinearAlgebra, Test
     import ApproxFun: ChebyshevDirichlet, Ultraspherical, PiecewiseSegment, ContinuousSpace, space,
                         testspace, testbandedoperator, testraggedbelowoperator, testcalculus, testtransforms
 
@@ -330,5 +330,41 @@ using ApproxFun, Test
     @testset "blockbandinds for FiniteOperator of pointscompatibleace bug" begin
         S = ApproxFun.PointSpace([1.0,2.0])
         @test ApproxFun.blockbandinds(FiniteOperator([1 2; 3 4],S,S)) == (0,0)
+    end
+
+    @testset "SumSpace Conversion" begin
+        H = ApproxFun.HeavisideSpace([-1.0,0.0,1.0])
+        C = ApproxFun.ContinuousSpace(ApproxFun.PiecewiseSegment([-1.0,0,1]))
+        S = H + C
+        P = Ultraspherical(1,-1.0..0.0) ∪ Ultraspherical(1,0.0..1.0)
+        f = Fun(S, randn(100))
+        @test f(0.1) ≈ Fun(f, P)(0.1)
+
+        @test Conversion(S,P)[1,1]==1.0
+        @test Conversion(S,P)[1,2]==0.5
+        @test rangespace(Conversion(S,P))==Ultraspherical(1,-1.0..0.0) ∪ Ultraspherical(1,0.0..1.0)
+        @test domainspace(Conversion(S,P))==ApproxFun.SumSpace(ApproxFun.HeavisideSpace([-1.0,0.0,1.0]),ApproxFun.ContinuousSpace(ApproxFun.PiecewiseSegment([-1.0,0,1])))
+
+        D = ApproxFun.DiracSpace([-1.0,0.0,1.0])
+        S2 = ApproxFun.SumSpace(D , P)
+        f = Fun(S, randn(100))
+        @test (Conversion(S,S2) * f)(0.1) ≈ f(0.1)
+    end
+
+    @testset "Mix Fourier-Chebyshev (#602)" begin
+        s = Chebyshev(-π..π)
+        a = Fun(t-> 1+sin(cos(2t)), s)
+        L = Derivative() + a
+        f = Fun(t->exp(sin(10t)), s)
+        B = periodic(s,0)
+        uChebyshev = [B;L] \ [0.;f]
+
+        s = Fourier(-π..π)
+        a = Fun(t-> 1+sin(cos(2t)), s)
+        L = Derivative() + a
+        f = Fun(t->exp(sin(10t)), s)
+        uFourier = L\f
+
+        @test norm(uFourier-uChebyshev) ≤ 100eps()
     end
 end

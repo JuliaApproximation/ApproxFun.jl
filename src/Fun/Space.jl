@@ -51,7 +51,7 @@ transpose(sp::Space) = sp  # default no-op
 
 
 # the default is all spaces have one-coefficient blocks
-blocklengths(S::Space) = repeated(true,dimension(S))
+blocklengths(S::Space) = Ones{Bool}(dimension(S))
 nblocks(S::Space) = length(blocklengths(S))
 block(S::Space,k) = Block(k)
 
@@ -292,7 +292,7 @@ hasconversion(a,b) = maxspace(a,b) == b
 
 
 # tests whether a coefficients can be converted to b
-isconvertible(a,b) = hasconversion(a,b)
+isconvertible(a,b) = a == b || hasconversion(a,b)
 
 ## Conversion routines
 #       coefficients(v::AbstractVector,a,b)
@@ -488,7 +488,7 @@ ConstantSpace(::Type{N}) where {N<:Number} = ConstantSpace(N,AnyDomain())
 ConstantSpace() = ConstantSpace(Float64)
 
 
-convert(::Type{Space}, z::Number) = ConstantSpace(Domain(z))  # Spaces
+convert(::Type{Space}, z::Number) = ConstantSpace(convert(Domain, z))  # Spaces
 convert(::Type{ConstantSpace}, d::Domain) = ConstantSpace(d)
 Space(z::Number) = convert(Space, z)
 
@@ -514,6 +514,7 @@ space(f::AbstractArray{T}) where T<:Number = ArraySpace(ConstantSpace{T}(), size
 
 setdomain(A::ConstantSpace{DD,R}, d) where {DD,R} = ConstantSpace{typeof(d),R}(d)
 
+blocklengths(::ConstantSpace) = Vec(1)
 
 # Range type is Nothing since function evaluation is not defined
 struct SequenceSpace <: Space{PositiveIntegers,Nothing} end

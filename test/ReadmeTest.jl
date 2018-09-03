@@ -119,47 +119,6 @@ using ApproxFun, SpecialFunctions, Test
         @test ≈(u(0.1,0.2),-0.02768276827514463;atol=1E-8)
     end
 
-<<<<<<< HEAD
-
-
-println("    Sampling tests")
-## Sampling
-
-f = abs(Fun(sin,-5..5))
-x = ApproxFun.sample(f,10)
-
-
-
-println("    PDE tests")
-## PDEs
-
-d = ChebyshevInterval()^2                            # Defines a rectangle
-
-# @time u = \([Dirichlet(d);Laplacian(d)+100I],
-#                     [ones(∂(d));0.];tolerance=1E-10)      # First four entries of rhs are
-#
-
-
-
-QR = qrfact([Dirichlet(d);Laplacian()+100I])
-        @time ApproxFun.resizedata!(QR,:,4000)
-        @time u = \(QR,
-                        [ones(∂(d));0.];tolerance=1E-7)
-
-
-@test u(0.1,1.) ≈ 1.0
-@test ≈(u(0.1,0.2),-0.02768276827514463;atol=1E-8)
-
-
-
-println("    BigFloat tests")
-
-setprecision(1000) do
-    d=BigFloat(0)..BigFloat(1)
-    D=Derivative(d)
-    u=[ldirichlet();D-I]\[1;0]
-    @test u(1) ≈ exp(BigFloat(1))
-=======
     @testset "BigFloat" begin
         setprecision(1000) do
             d=BigFloat(0)..BigFloat(1)
@@ -168,5 +127,4 @@ setprecision(1000) do
             @test u(1) ≈ exp(BigFloat(1))
         end
     end
->>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
 end

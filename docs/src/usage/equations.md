@@ -33,9 +33,9 @@ $$u + {\rm e}^x \int_{-1}^1 \cos x \, u(x) {\rm d}x = \cos {\rm e}^x$$
 
 We can solve this equation as follows:
 ```jldoctest
-julia> Σ = DefiniteIntegral(Chebyshev()); x=Fun();
+julia> Σ = DefiniteIntegral(Chebyshev()); x = Fun();
 
-julia> u = (I+exp(x)*Σ[cos(x)])\cos(exp(x));
+julia> u = (I+exp(x)*Σ[cos(x)]) \ cos(exp(x));
 
 julia> u(0.1)
 0.21864294855628802
@@ -193,7 +193,7 @@ g = exp.(-10(x+0.2)^2-20(y-0.1)^2)
 Many PDEs have weak singularities at the corners, in which case it is beneficial to
 specify a tolerance to reduce the time:
 ```julia
-\(A,[zeros(∂(d));f]; tolerance=1E-6)
+\(A, [zeros(∂(d));f]; tolerance=1E-6)
 ```
 
 
@@ -210,6 +210,6 @@ $$\begin{align*}
 This can be solved using
 ```julia
 x = Fun()
-N = u->[u(-1.)-c;u(1.);ε*u''+6*(1-x^2)*u'+u^2-1.]
+N = u -> [u(-1.)-c; u(1.); ε*u'' + 6*(1-x^2)*u' + u^2 - 1.0]
 u = newton(N,u0)
 ```

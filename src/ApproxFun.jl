@@ -3,8 +3,8 @@ __precompile__()
 module ApproxFun
     using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers,
             BlockArrays, BandedMatrices, BlockBandedMatrices, Domains, IntervalSets,
-            SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions,
-            LinearAlgebra, LowRankApprox, SparseArrays, Statistics #, Arpack
+            SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions, DSP,
+            LinearAlgebra, LowRankApprox, SparseArrays, FillArrays, InfiniteArrays #, Arpack
     import StaticArrays, ToeplitzMatrices, Calculus
 
 
@@ -16,7 +16,7 @@ import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC
                 r2r!, r2r,  plan_fft, plan_ifft, plan_ifft!, plan_fft!
 
 
-import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, !=, eltype, iterate, start, next, done,
+import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, !=, eltype, iterate,
                 >=, /, ^, \, ∪, transpose, size, reindex, tail, broadcast, broadcast!, copyto!, copy, to_index, (:),
                 similar, map, vcat, hcat, hvcat, show, summary, stride, sum, cumsum, sign, imag, conj, inv,
                 complex, reverse, exp, sqrt, abs, abs2, sign, issubset, values, in, first, last, rand, intersect, setdiff,
@@ -24,8 +24,8 @@ import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, 
                 minimum, maximum, extrema, argmax, argmin, findmax, findmin, isfinite,
                 zeros, zero, one, promote_rule, repeat, length, resize!, isinf,
                 getproperty, findfirst, unsafe_getindex, fld, cld, div, real, imag,
-                @_inline_meta, eachindex, lastindex, keys,
-                Array, Vector, Matrix, view, ones, float, @propagate_inbounds
+                @_inline_meta, eachindex, lastindex, keys, isreal, OneTo,
+                Array, Vector, Matrix, view, ones, float, @propagate_inbounds, print_array
 
 import Base.Broadcast: BroadcastStyle, Broadcasted, AbstractArrayStyle, broadcastable,
                         DefaultArrayStyle, broadcasted
@@ -34,7 +34,7 @@ import Statistics: mean
 
 import LinearAlgebra: BlasInt, BlasFloat, norm, ldiv!, mul!, det, eigvals, dot, cross,
                         qr, qr!, isdiag, rank, issymmetric, ishermitian, Tridiagonal,
-                        diagm, factorize, nullspace, adjoint, transpose, diagm_container, eye
+                        diagm, factorize, nullspace, adjoint, transpose, diagm_container
 
 import SparseArrays: blockdiag
 
@@ -55,6 +55,7 @@ import SpecialFunctions: sinpi, cospi, airy, besselh,
                     abs, sign, log, expm1, tan, abs2, sqrt, angle, max, min, cbrt, log,
                     atan, acos, asin, erfc, inv
 
+import StaticArrays: SVector
 
 import BlockArrays: nblocks, blocksize, global2blockindex, globalrange, BlockSizes
 
@@ -74,12 +75,20 @@ import BlockBandedMatrices: blockbandwidth, blockbandwidths, blockcolstop, block
 import FastTransforms: ChebyshevTransformPlan, IChebyshevTransformPlan, plan_chebyshevtransform,
                         plan_chebyshevtransform!, plan_ichebyshevtransform, plan_ichebyshevtransform!
 
+import FillArrays: AbstractFill, getindex_value
+import LazyArrays: cache
+import InfiniteArrays: Infinity, InfRanges, AbstractInfUnitRange
+
+
+
+
 # convenience for 1-d block ranges
 const BlockRange1 = BlockRange{1,Tuple{UnitRange{Int}}}
 
 import Base: view
 
 import StaticArrays: StaticArray, SVector
+
 
 import IntervalSets: (..)
 

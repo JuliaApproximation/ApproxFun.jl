@@ -5,7 +5,6 @@ convert(::Type{Point},::AnyDomain) = Point(NaN)
 convert(::Type{Point{T}},::AnyDomain) where T = Point{T}(NaN)
 
 
-
 isambiguous(d::Point) = isnan(d.x)
 
 

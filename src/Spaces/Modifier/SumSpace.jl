@@ -15,7 +15,7 @@ struct BlockInterlacer{DMS<:Tuple}
 end
 
 
-const TrivialInterlacer{d} = BlockInterlacer{NTuple{d,Repeated{Bool}}}
+const TrivialInterlacer{d} = BlockInterlacer{NTuple{d,<:AbstractFill{Bool,1}}}
 
 BlockInterlacer(v::AbstractVector) = BlockInterlacer(tuple(v...))
 
@@ -272,7 +272,7 @@ function union_rule(B::ConstantSpace,A::SumSpace)
     end
 end
 
-function union_rule(A::SumSpace,B::Space)
+function union_rule(A::SumSpace, B::Space)
     if !domainscompatible(A,B)
         NoSpace()
     else
@@ -284,6 +284,9 @@ function union_rule(A::SumSpace,B::Space)
         SumSpace(A,B)
     end
 end
+
+union_rule(A::SumSpace{<:Any,<:PeriodicInterval}, B::Space{<:IntervalDomain}) =
+    union(Space(Interval(domain(A))), B)
 
 
 ## components

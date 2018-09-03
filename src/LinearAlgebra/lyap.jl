@@ -70,8 +70,8 @@ end
 
 ##Solves A*X*transpose(B) + C*X*transpose(D) = E
 function lyap(A,B,C,D,E)
-    AC=schurfact(full(A),full(C))
-    BD=schurfact(full(B),full(D))
+    AC=schurfact(Matrix(A),Matrix(C))
+    BD=schurfact(Matrix(B),Matrix(D))
     Q1=AC[:left];Q2=BD[:left]
     Z1=AC[:right];Z2=BD[:right]
 

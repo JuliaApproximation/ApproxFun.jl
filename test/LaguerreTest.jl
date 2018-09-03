@@ -8,6 +8,11 @@ using ApproxFun, Compat.Test
 
         f = Fun(Laguerre(0.1), ones(100))
         @test f(0.2) ≈ 8.840040924281498
+
+        x = Fun(Laguerre())
+        w = (1+x) * Fun(WeightedLaguerre(),[1.0])
+        @test w(0.1) ≈ exp(-0.1)*(1+0.1)
+        @test last(w) == 0.0
     end
 
 

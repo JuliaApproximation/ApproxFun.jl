@@ -22,44 +22,44 @@ end
 
 diagblockshift(a,b) = error("Developer: Not implemented for blocklengths $a, $b")
 
-function diagblockshift(a::AbstractCount,b::AbstractCount)
+function diagblockshift(a::AbstractRange, b::AbstractRange)
     @assert step(a) == step(b)
-    b.start-a.start
+    first(b)-first(a)
 end
-diagblockshift(a::UnitCount,b::UnitCount) = b.start-a.start
+diagblockshift(a::AbstractUnitRange, b::AbstractUnitRange) = first(b)-first(a)
 
 #TODO: generalize
-function diagblockshift(a::Repeated{Int},b::Repeated{Int})
-    @assert a.x == b.x
+function diagblockshift(a::AbstractFill{Int},b::AbstractFill{Int})
+    @assert getindex_value(a) == getindex_value(b)
     0
 end
 
-diagblockshift(a::Repeated{Int},b::Flatten{Tuple{V1,Repeated{Int}}}) where {V1 <: AbstractVector{Int}} =
+diagblockshift(a::AbstractFill{Int},b::Vcat{Int,1,<:Tuple{V1,<:AbstractFill{Int}}}) where {V1 <: AbstractVector{Int}} =
     max(0,-diagblockshift(b,a))
 
 
-function diagblockshift(a::Flatten{Tuple{V1,Repeated{Int}}},b::Repeated{Int}) where V1 <: AbstractVector{Int}
-    @assert a.it[end].x == b.x
+function diagblockshift(a::Vcat{Int,1,<:Tuple{V1,<:AbstractFill{Int}}},b::AbstractFill{Int}) where V1 <: AbstractVector{Int}
+    @assert getindex_value(a.it[end]) == getindex_value(b)
     isempty(a.it[1]) && return diagblockshift(a.it[2],b)
     a1, b1 = a[1],b[1]
-    a1 == b1 && return diagblockshift(flatten((a.it[1][2:end],a.it[2])),b)
+    a1 == b1 && return diagblockshift(Vcat(a.it[1][2:end],a.it[2]),b)
     a1 >  b1 && length(a.it[1]) == 1 && return 0
     a1 >  b1 && return max(0,-1+diagblockshift(flatten(([a1-b1;a.it[1][2:end]],a.it[2]),b)))
     a1 <  b1 && length(a.it[1]) == 1 && return 1
     # a1 <  b1 &&
-    return 1+diagblockshift(flatten((a.it[1][2:end],a.it[2])),flatten(([b1-a1],b)))
+    return 1+diagblockshift(Vcat(a.it[1][2:end],a.it[2]),Vcat([b1-a1],b))
 end
 
-function diagblockshift(a::Flatten{Tuple{V1,Repeated{Int}}},
-                        b::Flatten{Tuple{V2,Repeated{Int}}}) where {V1 <: AbstractVector{Int},V2 <: AbstractVector{Int}}
+function diagblockshift(a::Vcat{Int,1,<:Tuple{V1,<:AbstractFill{Int}}},
+                        b::Vcat{Int,1,<:Tuple{V2,<:AbstractFill{Int}}}) where {V1 <: AbstractVector{Int},V2 <: AbstractVector{Int}}
     isempty(a.it[1]) && return diagblockshift(a.it[2],b)
     isempty(b.it[1]) && return diagblockshift(a,b.it[2])
     a1, b1 = a[1],b[1]
-    a1 == b1 && return diagblockshift(flatten((a.it[1][2:end],a.it[2])),flatten((b.it[1][2:end],b.it[2])))
-    a1 >  b1 && return max(0,-1+diagblockshift(flatten(([a1-b1;a.it[1][2:end]],a.it[2])),
-                                               flatten((b.it[1][2:end],b.it[2]))))
+    a1 == b1 && return diagblockshift(Vcat(a.it[1][2:end],a.it[2]),Vcat(b.it[1][2:end],b.it[2]))
+    a1 >  b1 && return max(0,-1+diagblockshift(Vcat([a1-b1;a.it[1][2:end]],a.it[2]),
+                                               Vcat(b.it[1][2:end],b.it[2])))
     # a1 <  b1 &&
-    return 1+diagblockshift(flatten((a.it[1][2:end],a.it[2])),flatten(([b1-a1;b.it[1][2:end]],b.it[2])))
+    return 1+diagblockshift(Vcat(a.it[1][2:end],a.it[2]),Vcat([b1-a1;b.it[1][2:end]],b.it[2]))
 end
 
 

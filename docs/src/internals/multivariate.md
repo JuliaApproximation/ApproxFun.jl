@@ -41,10 +41,6 @@ A `ProductFun` also has two fields: `f.coefficients` and `f.space`, where `f.spa
 space(f.coefficients[k]) == columnspace(f.space,k)
 ```
 
-
-
-
-
 ## LowRankFun
 
 `LowRankFun`

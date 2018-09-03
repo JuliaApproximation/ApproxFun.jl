@@ -160,7 +160,7 @@ function getindex(D::ConcreteIntegral{Taylor{DD,RR}},k::Integer,j::Integer) wher
 end
 
 
-function Integral(S::SubSpace{Hardy{false,DD,RR},UnitCount{Int64},DD,RR},k::Integer) where {DD<:Circle,RR}
+function Integral(S::SubSpace{<:Hardy{false,<:Circle}, <:AbstractInfUnitRange{Int}},k::Integer)
     if first(S.indexes) == k+1
         ConcreteIntegral(S,k)
     else
@@ -170,14 +170,14 @@ function Integral(S::SubSpace{Hardy{false,DD,RR},UnitCount{Int64},DD,RR},k::Inte
     end
 end
 
-bandinds(D::ConcreteIntegral{SubSpace{Hardy{false,DD,RR},UnitCount{Int64},DD,RR}}) where {DD<:Circle,RR} =
+bandinds(D::ConcreteIntegral{<:SubSpace{<:Hardy{false,<:Circle}, <:AbstractInfUnitRange{Int}}}) =
     (0,0)
 
-rangespace(D::ConcreteIntegral{SubSpace{Hardy{false,DD,RR},UnitCount{Int64},DD,RR}}) where {DD<:Circle,RR} =
+rangespace(D::ConcreteIntegral{<:SubSpace{<:Hardy{false,<:Circle}, <:AbstractInfUnitRange{Int}}}) =
     D.space.space
 
-function getindex(D::ConcreteIntegral{SubSpace{Hardy{false,DD,RR},UnitCount{Int64},DD,RR},OT,TT},
-                 k::Integer,j::Integer) where {RR,OT,TT,DD<:Circle}
+function getindex(D::ConcreteIntegral{<:SubSpace{<:Hardy{false,<:Circle}, <:AbstractInfUnitRange{Int}},OT,TT},
+                 k::Integer,j::Integer) where {OT,TT}
     d=domain(D)
     m=D.order
 
@@ -214,12 +214,12 @@ end
 
 
 
-bandinds(D::ConcreteIntegral{SubSpace{Taylor{DD,RR},UnitCount{Int64},DD,RR}}) where {RR,DD<:PeriodicInterval} =
+bandinds(D::ConcreteIntegral{<:SubSpace{Taylor{DD,RR},<:AbstractInfUnitRange{Int},DD,RR}}) where {RR,DD<:PeriodicInterval} =
     (0,0)
-rangespace(D::ConcreteIntegral{SubSpace{Taylor{DD,RR},UnitCount{Int64},DD,RR}}) where {RR,DD<:PeriodicInterval} =
+rangespace(D::ConcreteIntegral{<:SubSpace{Taylor{DD,RR},<:AbstractInfUnitRange{Int},DD,RR}}) where {RR,DD<:PeriodicInterval} =
     D.space
 
-function getindex(D::ConcreteIntegral{SubSpace{Taylor{DD,RR},UnitCount{Int64},DD,RR}},
+function getindex(D::ConcreteIntegral{<:SubSpace{Taylor{DD,RR},<:AbstractInfUnitRange{Int},DD,RR}},
                  k::Integer,j::Integer) where {RR,DD<:PeriodicInterval}
     d=domain(D)
     m=D.order
@@ -289,6 +289,6 @@ conversion_type(A::Laurent{DD,RR},B::Laurent{DD,RR}) where {DD<:Circle,RR}=domai
 function Conversion(A::Laurent{DD,RR},B::Laurent{DD,RR}) where {DD,RR}
     @assert domain(A) == reverseorientation(domain(B))
     ConversionWrapper(SpaceOperator(
-        InterlaceOperator(Diagonal([eye(1),PermutationOperator([2,1])]))
+        InterlaceOperator(Diagonal([Matrix(I,1,1),PermutationOperator([2,1])]))
     ,A,B))
 end

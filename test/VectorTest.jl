@@ -1,6 +1,7 @@
-using ApproxFun, LinearAlgebra, SpecialFunctions, Test
+using ApproxFun, LazyArrays, FillArrays, LinearAlgebra, SpecialFunctions, Test
     import ApproxFun: interlace, Multiplication, ConstantSpace, PointSpace,
-    ArraySpace, testblockbandedoperator
+                        ArraySpace, testblockbandedoperator, blocklengths, ∞,
+                        testraggedbelowoperator, Vec
 
 @testset "Vector" begin
     @testset "Construction" begin
@@ -67,7 +68,6 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
 
         @test (m+I)(0.1) ≈ m(0.1)+I
     end
-
 
     @testset "CosSpace Vector" begin
         a = [1 2; 3 4]
@@ -188,7 +188,6 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
 
         b=Any[0.,0.,0.,f...]
 
-
         @time u=A\b
         u1=vec(u)[1];u2=vec(u)[2];
 
@@ -216,9 +215,6 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
         @time u=L\Matrix(I,2n,2)
         @test norm(u(1.)-exp(A)[:,1:2])<eps(1000.)
     end
-
-
-
 
     @testset "Multiplication" begin
         d = ChebyshevInterval()
@@ -284,7 +280,6 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
 
         @test inv(G(exp(0.1im))) ≈ inv(G)(exp(0.1im))
 
-
         @test Fun(Matrix(I,2,2),space(G))(exp(0.1im)) ≈ Matrix(I,2,2)
         @test Fun(I,space(G))(exp(0.1im)) ≈ Matrix(I,2,2)
     end
@@ -310,10 +305,10 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
     end
 
     @testset "Interlace" begin
-        S1=Chebyshev()^2
-        S2=Chebyshev()
-        TS=ArraySpace([ConstantSpace(),S1,ConstantSpace(),S2,PointSpace([1.,2.])])
-        f=Fun(TS,collect(1:13))
+        S1 = Chebyshev()^2
+        S2 = Chebyshev()
+        TS = ArraySpace([ConstantSpace(),S1,ConstantSpace(),S2,PointSpace([1.,2.])])
+        f = Fun(TS,collect(1:13))
         @test f[1] == Fun(TS[1],[1.])
         @test f[2] == Fun(TS[2],[2.,7.,8.,10.,11.,12.])
         @test f[3] == Fun(TS[3],[3.])
@@ -341,6 +336,7 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
         B=ldirichlet(d)
 
         B_row = [D             -I  0I            0I]
+
         f=Fun(exp,d)
         @test norm((B_row*[f;f;f;f])[1]) ≤ 1000eps()
         @test B_row isa ApproxFun.MatrixInterlaceOperator
@@ -351,12 +347,15 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
 
         n=4
         Dg = Operator(diagm(0 => fill(ldirichlet(d),n)))
+
         @test Dg isa ApproxFun.MatrixInterlaceOperator
         @test size([Dg; B_row].ops) == (5,4)
+
+        L = [Dg; B_row]
+        testraggedbelowoperator(L)
         @test ([Dg; B_row]*[f;f;f;f])(0.1) ≈ [fill(1.0,4);0]
 
         @test hcat(Dg).ops == Dg.ops
-
 
         B_row2 = [(2+a*cos(2t))   D  -I            0I]
         @test ([B_row;B_row2]*[f;f;f;f])(0.1) ≈ [0.,(2+a*cos(2*0.1))*f(0.1) + f'(0.1) - f(0.1)]
@@ -366,7 +365,6 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
            (2+a*cos(2t))   D  -I            0I;
            0I             0I   D            -I;
            -I             0I  (2+a*cos(2t))  D]
-
 
         Φ = A\Matrix(I,2n,n);
 

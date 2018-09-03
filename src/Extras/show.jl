@@ -1,11 +1,3 @@
-
-
-## Counts
-
-show(io::IO,c::UnitCount) = print(io,"$(c.start):∞")
-show(io::IO,c::Count) = print(io,"$(c.start):$(c.step):∞")
-
-
 ## Domains
 
 show(io::IO,d::Segment) = print(io,"the segment [$(leftendpoint(d)),$(rightendpoint(d))]")
@@ -205,7 +197,7 @@ function show(io::IO,B::Operator;header::Bool=true)
                 M[end,j]=PrintShow("⋱")
             end
 
-            show(io, M)
+            print_array(io, M)
         elseif isinf(size(B,1)) && isinf(size(B,2))
             BM=B[1:10,1:10]
 
@@ -221,7 +213,7 @@ function show(io::IO,B::Operator;header::Bool=true)
                 M[k,end]=M[end,k]=PrintShow("⋱")
             end
 
-            show(io, M)
+            print_array(io, M)
         elseif isinf(size(B,1))
             BM=B[1:10,1:size(B,2)]
 
@@ -233,7 +225,7 @@ function show(io::IO,B::Operator;header::Bool=true)
                 M[end,k]=PrintShow("⋮")
             end
 
-            show(io, M)
+            print_array(io, M)
         elseif isinf(size(B,2))
             BM=B[1:size(B,1),1:10]
 
@@ -245,48 +237,9 @@ function show(io::IO,B::Operator;header::Bool=true)
                 M[k,end]=PrintShow("⋯")
             end
 
-            show(io, M)
+            print_array(io, M)
         else
-            show(io,AbstractMatrix(B)[1:size(B,1),1:size(B,2)])
+            print_array(io, AbstractMatrix(B)[1:size(B,1),1:size(B,2)])
         end
-    end
-end
-
-
-function show(io::IO, ::MIME"text/plain", A::Vector{T}; header::Bool=true) where T<:Operator
-    nf = length(A)-1
-    header && for k=1:nf+1 println(io,summary(A[k])) end
-    if all(Ak -> isafunctional(Ak), A[1:nf]) && isbanded(A[end]) &&
-            isinf(size(A[end],1)) && isinf(size(A[end],2)) && eltype(A[end]) <: Number &&
-            all(Ak -> !isambiguous(domainspace(Ak)), A)
-        M=Array{Any}(undef, 11,11)
-        fill!(M,PrintShow(""))
-        for k=1:nf
-            M[k,1:10] = A[k][1:10]
-            M[k,end]=PrintShow("⋯")
-        end
-
-        MM=Array{Any}(undef, 11-nf,11)
-        fill!(MM,PrintShow(""))
-
-        B = A[end]
-        BM=B[1:10-nf,1:10]
-
-        for j = 1:size(BM,2), k = colrange(BM,j)
-            MM[k,j]=BM[k,j]
-        end
-
-        for k=1+nf:10,j=1:10
-            M[k,j] = MM[k-nf,j]
-        end
-
-        for k=max(1,11-bandinds(B,2)+nf):11
-            M[k,end]=PrintShow("⋱")
-        end
-        for j=max(1,11+bandinds(B,1)-nf):10
-            M[end,j]=PrintShow("⋱")
-        end
-
-        Base.with_output_limit(()->Base.print_matrix(io, M))
     end
 end

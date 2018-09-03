@@ -58,7 +58,7 @@ Fun(exp)
 If a function is not specified, then it is taken to be `identity`.  Thus we have the
 following synonyms:
 ```julia
-x = Fun(identity,-1..1)
+x = Fun(identity, -1..1)
 x = Fun(-1..1)
 x = Fun(identity)
 x = Fun()
@@ -70,12 +70,12 @@ x = Fun()
 It is sometimes necessary to specify coefficients explicitly.  This is possible
 via specifying the space followed by a vector of coefficients:
 ```jldoctest
-julia> f = Fun(Taylor(),[1,2,3]);  # represents 1 + 2z + 3z^2
+julia> f = Fun(Taylor(), [1,2,3]);  # represents 1 + 2z + 3z^2
 
 julia> f(0.1)
 1.23
 
-julia> 1+2*0.1+3*0.1^2
+julia> 1 + 2*0.1 + 3*0.1^2
 1.23
 ```
 

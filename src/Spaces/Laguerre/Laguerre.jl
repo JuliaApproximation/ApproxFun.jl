@@ -14,10 +14,12 @@ export Laguerre, LaguerreWeight, WeightedLaguerre
 # p_{n+1} = (A_n x + B_n)p_n - C_n p_{n-1}
 #####
 
-struct Laguerre{T} <: PolynomialSpace{Ray{false,Float64},Float64}
+struct Laguerre{T<:Real,D<:Ray} <: PolynomialSpace{D,T}
     α::T
+    domain::D
 end
 
+Laguerre(α) = Laguerre(α,Ray())
 Laguerre() = Laguerre(0)
 
 """
@@ -31,8 +33,11 @@ on `(0, Inf)`, which satisfy the differential equations
 spacescompatible(A::Laguerre,B::Laguerre) = A.α ≈ B.α
 
 canonicaldomain(::Laguerre) = Ray()
-domain(::Laguerre) = Ray()
-tocanonical(::Laguerre,x) = x
+domain(d::Laguerre) = d.domain
+setdomain(L::Laguerre, d::Domain) = Laguerre(L.α, d)
+tocanonical(d::Laguerre,x) = mappoint(domain(d),Ray(),x)
+fromcanonical(d::Laguerre,x) = mappoint(Ray(),domain(d),x)
+
 
 @inline laguerrerecα(::Type{T},α,k) where {T} = convert(T,2k+α-1)
 @inline laguerrerecβ(::Type{T},_,k) where {T} = convert(T,-k)
@@ -179,8 +184,10 @@ is the weighted Laguerre space exp(-x)*L_k(x).
 WeightedLaguerre() = WeightedLaguerre(0)
 
 @inline laguerreweight(α,L,x) = isinf(x) ? zero(x) : x^α * exp(-L*x)
-@inline weight(L::LaguerreWeight,x) = laguerreweight(L.α,L.L,x)
+@inline weight(L::LaguerreWeight,x) = laguerreweight(L.α,L.L, mappoint(domain(L),Ray(),x))
 
+
+setdomain(L::LaguerreWeight, d::Domain) = LaguerreWeight(L.α, L.L, setdomain(L.space,d))
 
 evaluate(f::AbstractVector,S::LaguerreWeight,x) =
     isinf(x) ? zero(x) : weight(S,x)*evaluate(f,S.space,x)
@@ -198,7 +205,7 @@ function Base.sum(f::Fun{LaguerreWeight{H,T}}) where {H<:Laguerre,T}
     f.coefficients[1]*gamma(1+space(f).α)
 end
 
-
+last(f::Fun{<:LaguerreWeight,T}) where T = zero(T)
 
 
 function Derivative(sp::LaguerreWeight,k)

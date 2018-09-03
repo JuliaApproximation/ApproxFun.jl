@@ -1,4 +1,5 @@
 using ApproxFun, IntervalSets, SpecialFunctions, LinearAlgebra, Random, Test
+    import ApproxFun: HeavisideSpace, PointSpace, DiracSpace, PiecewiseSegment
 
 
 @testset "Singularities" begin
@@ -190,9 +191,9 @@ using ApproxFun, IntervalSets, SpecialFunctions, LinearAlgebra, Random, Test
 
         ## PointSpace
 
-        @test eltype(domain(ApproxFun.PointSpace([0,0.1,1])) ) == Float64
+        @test eltype(domain(PointSpace([0,0.1,1])) ) == Float64
 
-        f=Fun(x->(x-0.1),ApproxFun.PointSpace([0,0.1,1]))
+        f=Fun(x->(x-0.1),PointSpace([0,0.1,1]))
         @test roots(f) == [0.1]
 
         a=Fun(exp,space(f))
@@ -217,20 +218,20 @@ using ApproxFun, IntervalSets, SpecialFunctions, LinearAlgebra, Random, Test
     @testset "DiracDelta integration and differentiation" begin
         δ = DiracDelta()
         h = integrate(δ)
-        @test domain(h) == ApproxFun.PiecewiseSegment([0,Inf])
+        @test domain(h) == PiecewiseSegment([0,Inf])
         @test h(-2) == 0
         @test h(2) == 1
 
         δ = 0.3DiracDelta(0.1) + 3DiracDelta(2.3)
         h = integrate(δ)
-        @test domain(h) == ApproxFun.PiecewiseSegment([0.1,2.3,Inf])
+        @test domain(h) == PiecewiseSegment([0.1,2.3,Inf])
         @test h(-2) == 0
         @test h(2) == 0.3
         @test h(3) == 3.3
 
         δ = (0.3+1im)DiracDelta(0.1) + 3DiracDelta(2.3)
         h = integrate(δ)
-        @test domain(h) == ApproxFun.PiecewiseSegment([0.1,2.3,Inf])
+        @test domain(h) == PiecewiseSegment([0.1,2.3,Inf])
         @test h(-2) == 0
         @test h(2) == 0.3+1im
         @test h(3) == 3.3+1im
@@ -300,23 +301,24 @@ using ApproxFun, IntervalSets, SpecialFunctions, LinearAlgebra, Random, Test
 
 
     @testset "Derivative operator for HeavisideSpace" begin
-        H=ApproxFun.HeavisideSpace([1,2,3])
-        D=Derivative(H)
-        @test domain(D)==ApproxFun.PiecewiseSegment([1,2,3])
-        @test D[1,1]==1
-        @test D[1,2]==0
-        @test D[2,2]==1
+        H = HeavisideSpace([-1.0,0.0,1.0])
+        @test Fun(H, [1.0])(1.0) == 0.0
+        @test Fun(H, [0.0,1.0])(1.0) == 1.0
 
-        H=ApproxFun.HeavisideSpace([1,2,3,Inf])
+        H=HeavisideSpace([1,2,3])
         D=Derivative(H)
-        @test domain(D)==ApproxFun.PiecewiseSegment([1,2,3,Inf])
-        @test D[1,1]==1
-        @test D[2,2]==1
-        @test D[3,3]==1
-        @test D[1,2]==0
-        @test D[2,1]==-1
+        @test domain(D)==PiecewiseSegment([1,2,3])
+        @test D[1,1]==-1
+        @test D[1,2]==1
 
-        S = ApproxFun.HeavisideSpace([-1.0,0.0,1.0])
+        H=HeavisideSpace([1,2,3,Inf])
+        D=Derivative(H)
+        @test domain(D)==PiecewiseSegment([1,2,3,Inf])
+        @test D[1,1]==-1
+        @test D[2,2]==-1
+        @test D[1,2]==1
+
+        S = HeavisideSpace([-1.0,0.0,1.0])
         @test Derivative(S) === Derivative(S,1)
     end
 end

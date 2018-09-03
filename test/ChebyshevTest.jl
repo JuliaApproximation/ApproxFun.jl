@@ -3,6 +3,15 @@ using ApproxFun, LinearAlgebra, Test
 
 @testset "Chebyshev" begin
     @testset "ChebyshevInterval" begin
+        @test Fun(x->2,10)(.1) ≈ 2
+        @test Fun(x->2)(.1) ≈ 2
+        @test Fun(Chebyshev,Float64[]).([0.,1.]) ≈ [0.,0.]
+        @test Fun(Chebyshev,[])(0.) ≈ 0.
+        @test Fun(x->4,Chebyshev(),1).coefficients == [4.0]
+        @test Fun(x->4).coefficients == [4.0]
+        @test Fun(4).coefficients == [4.0]
+
+
         @test Fun(x->4).coefficients == [4.0]
         @test Fun(4).coefficients == [4.0]
 
@@ -23,6 +32,17 @@ using ApproxFun, LinearAlgebra, Test
 
         ef = Fun(exp)
 
+        cf = Fun(cos)
+
+        ecf = Fun(x->cos(x).*exp(x))
+        eocf = Fun(x->cos(x)./exp(x))
+
+        @test ef(.5) ≈ exp(.5)
+        @test ecf(.123456) ≈ cos(.123456).*exp(.123456)
+    end
+
+    @testset "Algebra" begin
+        ef = Fun(exp,Interval())
 
         @test ef == -(-ef)
         @test ef == (ef-1) + 1
@@ -50,13 +70,33 @@ using ApproxFun, LinearAlgebra, Test
         @test norm((ecf-cf.*ef).coefficients)<200eps()
         @test maximum(abs,(eocf-cf./ef).coefficients)<1000eps()
         @test norm(((ef/3).*(3/ef)-1).coefficients)<1000eps()
+    end
 
-        ## Diff and cumsum
-        @test norm((ef - ef').coefficients) < 10E-11
+    @testset "Diff and cumsum" begin
+        ef = Fun(exp)
+        cf = Fun(cos)
+        @test norm((ef - ef').coefficients)<10E-11
+
         @test norm((ef - cumsum(ef)').coefficients) < 20eps()
         @test norm((cf - cumsum(cf)').coefficients) < 20eps()
+
         @test sum(ef)  ≈ 2.3504023872876028
         @test norm(ef)  ≈ 1.90443178083307
+    end
+
+    @testset "other domains" begin
+        ef = Fun(exp,1..2)
+        cf = Fun(cos,1..2)
+
+        ecf = Fun(x->cos(x).*exp(x),1..2)
+        eocf = Fun(x->cos(x)./exp(x),1..2)
+
+        x=1.5
+        @test ef(x) ≈ exp(x)
+
+        r=rand(100) .+ 1
+        @test maximum(abs,ef.(r)-exp.(r))<400eps()
+        @test maximum(abs,ecf.(r).-cos.(r).*exp.(r))<100eps()
     end
 
     @testset "Other interval" begin
@@ -81,6 +121,7 @@ using ApproxFun, LinearAlgebra, Test
         @test norm((ef - ef').coefficients)<10E-11
         @test norm((ef - cumsum(ef)').coefficients) < 10eps()
         @test norm((cf - cumsum(cf)').coefficients) < 10eps()
+
         @test sum(ef) ≈ 4.670774270471604
         @test norm(ef) ≈ 4.858451087240335
     end
@@ -148,5 +189,11 @@ using ApproxFun, LinearAlgebra, Test
     @testset "Large scaling" begin
         w = Fun(x -> 1e5/(x*x+1), 283.72074879785936 .. 335.0101119042838)
         @test w(leftendpoint(domain(w))) ≈ 1e5/(leftendpoint(domain(w))^2+1)
+    end
+
+    @testset "supremum norm" begin
+        x = Fun()
+        f = 1/(1 + 25*(x^2))
+        @test norm(f, Inf) ≈ 1.0
     end
 end
