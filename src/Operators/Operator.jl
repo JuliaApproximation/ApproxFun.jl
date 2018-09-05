@@ -1,5 +1,5 @@
 export Operator
-export bandinds, bandrange, \, periodic
+export bandwidths, bandrange, \, periodic
 export neumann
 export ldirichlet,rdirichlet,lneumann,rneumann
 export ldiffbc,rdiffbc,diffbcs
@@ -56,7 +56,7 @@ macro functional(FF)
         Base.size(A::$FF,k::Integer) = k==1 ? 1 : dimension(domainspace(A))
         ApproxFun.rangespace(F::$FF) = ConstantSpace(eltype(F))
         ApproxFun.isafunctional(::$FF) = true
-        ApproxFun.blockbandinds(A::$FF) = 0,hastrivialblocks(domainspace(A)) ? bandinds(A,2) : ∞
+        ApproxFun.blockbandwidths(A::$FF) = 0,hastrivialblocks(domainspace(A)) ? bandwidth(A,2) : ∞
         function ApproxFun.defaultgetindex(f::$FF,k::Integer,j::Integer)
             @assert k==1
             f[j]::eltype(f)
@@ -115,8 +115,8 @@ Base.ndims(::Operator) = 2
 
 
 ## bandrange and indexrange
-isbandedbelow(A::Operator) = isfinite(bandinds(A,1))
-isbandedabove(A::Operator) = isfinite(bandinds(A,2))
+isbandedbelow(A::Operator) = isfinite(bandwidth(A,1))
+isbandedabove(A::Operator) = isfinite(bandwidth(A,2))
 isbanded(A::Operator) = isbandedbelow(A) && isbandedabove(A)
 
 
@@ -130,13 +130,13 @@ isbandedblockbanded(A::Operator) = isbandedblockbandedabove(A) && isbandedblockb
 #TODO: I think it can be generalized to the case when the domainspace
 # blocklengths == rangespace blocklengths, in which case replace the definition
 # of p with maximum(blocklength(domainspace(A)))
-function blockbandinds(A::Operator)
-    hastrivialblocks(A) && return bandinds(A)
+function blockbandwidths(A::Operator)
+    hastrivialblocks(A) && return bandwidths(A)
 
     if hasconstblocks(A)
-        a,b = bandinds(A)
+        a,b = bandwidths(A)
         p = getindex_value(blocklengths(domainspace(A)))
-        return (fld(a,p),-fld(-b,p))
+        return (-fld(-a,p),-fld(-b,p))
     end
 
     #TODO: Generalize to finite dimensional
@@ -144,42 +144,33 @@ function blockbandinds(A::Operator)
         rs = rangespace(A)
 
         if hasconstblocks(rs)
-            a = bandinds(A,1)
+            a = bandwidth(A,1)
             p = getindex_value(blocklengths(rs))
-            return (fld(a,p),0)
+            return (-fld(-a,p),0)
         end
     end
 
-    return (1-length(blocklengths(rangespace(A))),length(blocklengths(domainspace(A)))-1)
+    return (length(blocklengths(rangespace(A)))-1,length(blocklengths(domainspace(A)))-1)
 end
 
 # assume dense blocks
-subblockbandinds(K::Operator,k) = k==1 ? 1-maximum(blocklengths(rangespace(K))) : maximum(blocklengths(domainspace(K)))-1
+subblockbandwidths(K::Operator) = maximum(blocklengths(rangespace(K)))-1, maximum(blocklengths(domainspace(K)))-1
 
-isblockbandedbelow(A) = isfinite(blockbandinds(A,1))
-isblockbandedabove(A) = isfinite(blockbandinds(A,2))
+isblockbandedbelow(A) = isfinite(blockbandwidth(A,1))
+isblockbandedabove(A) = isfinite(blockbandwidth(A,2))
 isblockbanded(A::Operator) = isblockbandedbelow(A) && isblockbandedabove(A)
 
 israggedbelow(A::Operator) = isbandedbelow(A) || isbandedblockbanded(A) || isblockbandedbelow(A)
 
 
-blockbandwidths(S::Operator) = (-blockbandinds(S,1),blockbandinds(S,2))
-blockbandinds(K::Operator,k::Integer) = blockbandinds(K)[k]
-blockbandwidth(K::Operator,k::Integer) = k==1 ? -blockbandinds(K,k) : blockbandinds(K,k)
-
-subblockbandwidths(K::Operator) = -subblockbandinds(K,1),subblockbandinds(K,2)
-subblockbandinds(K::Operator) = subblockbandinds(K,1),subblockbandinds(K,2)
-subblockbandwidth(K::Operator,k::Integer) = k==1 ? -subblockbandinds(K,k) : subblockbandinds(K,k)
+blockbandwidth(K::Operator, k::Integer) = blockbandwidths(K)[k]
+subblockbandwidth(K::Operator,k::Integer) = subblockbandwidths(K)[k]
 
 
-
-bandwidth(A::Operator) = bandwidth(A,1) + bandwidth(A,2) + 1
-bandwidth(A::Operator,k::Integer) = k==1 ? -bandinds(A,1) : bandinds(A,2)
-bandwidths(A::Operator) = (bandwidth(A,1),bandwidth(A,2))
+bandwidth(A::Operator, k::Integer) = bandwidths(A)[k]
 # we are always banded by the size
-bandinds(A::Operator) = (1-size(A,1),size(A,2)-1)
-bandinds(A,k::Integer) = bandinds(A)[k]
-bandrange(b::Operator) = UnitRange(bandinds(b)...)
+bandwidths(A::Operator) = (size(A,1)-1,size(A,2)-1)
+bandwidths(A::Operator, k::Integer) = bandwidths(A)[k]
 
 
 
@@ -192,7 +183,7 @@ bandrange(b::Operator) = UnitRange(bandinds(b)...)
 stride(A::Operator) =
     isdiag(A) ? factorial(10) : 1
 
-isdiag(A::Operator) = bandinds(A)==(0,0)
+isdiag(A::Operator) = bandwidths(A)==(0,0)
 
 
 ## Construct operators
@@ -447,11 +438,10 @@ macro wrapperstructure(Wrap)
         haswrapperstructure(::$Wrap) = true
     end
 
-    for func in (:(ApproxFun.bandinds),:(LinearAlgebra.stride),
+    for func in (:(ApproxFun.bandwidths),:(LinearAlgebra.stride),
                  :(ApproxFun.isbandedblockbanded),:(ApproxFun.isblockbanded),
                  :(ApproxFun.israggedbelow),:(Base.size),:(ApproxFun.isbanded),
-                 :(ApproxFun.bandwidth),:(ApproxFun.bandwidths),
-                 :(ApproxFun.blockbandinds),:(ApproxFun.subblockbandinds),
+                 :(ApproxFun.blockbandwidths),:(ApproxFun.subblockbandwidths),
                  :(LinearAlgebra.issymmetric))
         ret = quote
             $ret
@@ -461,8 +451,8 @@ macro wrapperstructure(Wrap)
     end
 
      for func in (:(ApproxFun.bandwidth),:(ApproxFun.colstart),:(ApproxFun.colstop),
-                     :(ApproxFun.rowstart),:(ApproxFun.rowstop),:(ApproxFun.blockbandinds),
-                     :(Base.size),:(ApproxFun.bandinds),:(ApproxFun.subblockbandinds))
+                     :(ApproxFun.rowstart),:(ApproxFun.rowstop),:(ApproxFun.blockbandwidth),
+                     :(Base.size),:(ApproxFun.subblockbandwidth))
          ret = quote
              $ret
 

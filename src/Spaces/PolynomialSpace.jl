@@ -6,8 +6,8 @@ abstract type PolynomialSpace{D,R} <: Space{D,R} end
 @containsconstants PolynomialSpace
 
 Multiplication(f::Fun{U},sp::PolynomialSpace) where {U<:PolynomialSpace} = ConcreteMultiplication(f,sp)
-bandinds(M::ConcreteMultiplication{U,V}) where {U<:PolynomialSpace,V<:PolynomialSpace} =
-    (1-ncoefficients(M.f),ncoefficients(M.f)-1)
+bandwidths(M::ConcreteMultiplication{U,V}) where {U<:PolynomialSpace,V<:PolynomialSpace} =
+    (ncoefficients(M.f)-1,ncoefficients(M.f)-1)
 rangespace(M::ConcreteMultiplication{U,V}) where {U<:PolynomialSpace,V<:PolynomialSpace} = domainspace(M)
 
 

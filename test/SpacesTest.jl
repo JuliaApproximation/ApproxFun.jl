@@ -329,9 +329,9 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
         @test o(0.5) == 1
     end
 
-    @testset "blockbandinds for FiniteOperator of pointscompatibleace bug" begin
+    @testset "blockbandwidths for FiniteOperator of pointscompatibleace bug" begin
         S = ApproxFun.PointSpace([1.0,2.0])
-        @test ApproxFun.blockbandinds(FiniteOperator([1 2; 3 4],S,S)) == (0,0)
+        @test ApproxFun.blockbandwidths(FiniteOperator([1 2; 3 4],S,S)) == (0,0)
     end
 
     @testset "SumSpace Conversion" begin

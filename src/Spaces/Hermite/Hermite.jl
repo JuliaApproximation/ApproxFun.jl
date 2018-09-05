@@ -35,7 +35,7 @@ recC(::Type,::Hermite,k) = 2k;
 Derivative(H::Hermite,order) = ConcreteDerivative(H,order)
 
 
-bandinds(D::ConcreteDerivative{H}) where {H<:Hermite} = 0,D.order
+bandwidths(D::ConcreteDerivative{H}) where {H<:Hermite} = 0,D.order
 rangespace(D::ConcreteDerivative{H}) where {H<:Hermite} = domainspace(D)
 getindex(D::ConcreteDerivative{H},k::Integer,j::Integer) where {H<:Hermite} =
         j==k+D.order ? one(eltype(D))*2^D.order*pochhammer(k,D.order) : zero(eltype(D))

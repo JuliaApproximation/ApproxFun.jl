@@ -504,7 +504,7 @@ Base.isless(x::Infinity, y::Block{1}) = isless(x, Int(y))
 
 
 pad!(A::BandedMatrix,n,::Colon) = pad!(A,n,n+A.u)  # Default is to get all columns
-columnrange(A,row::Integer) = max(1,row+bandinds(A,1)):row+bandinds(A,2)
+columnrange(A,row::Integer) = max(1,row-bandwidth(A,1)):row+bandwidth(A,2)
 
 
 

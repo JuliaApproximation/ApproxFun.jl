@@ -47,7 +47,7 @@ convert(::Type{Operator{T}},L::LowRankOperator{S}) where {S,T} =
 datasize(L::LowRankOperator,k) =
     k==1 ? mapreduce(ncoefficients,max,L.U) : mapreduce(bandwidth,max,L.V)
 datasize(L::LowRankOperator) = datasize(L,1),datasize(L,2)
-bandinds(L::LowRankOperator) = 1-datasize(L,1),datasize(L,2)-1
+bandwidths(L::LowRankOperator) = datasize(L,1)-1,datasize(L,2)-1
 
 domainspace(L::LowRankOperator) = domainspace(first(L.V))
 rangespace(L::LowRankOperator) = space(first(L.U))

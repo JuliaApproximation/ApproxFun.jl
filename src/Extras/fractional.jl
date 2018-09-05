@@ -61,7 +61,7 @@ end
 
 for TYP in (:ConcreteLeftIntegral,:ConcreteRightIntegral)
     @eval begin
-        bandinds(Q::$TYP{Jacobi{DD,RR},Float64}) where {DD<:Segment,RR}=(0,0)
+        bandwidths(Q::$TYP{Jacobi{DD,RR},Float64}) where {DD<:Segment,RR}=(0,0)
         getindex(Q::$TYP{Jacobi{DD,RR},Float64},k::Integer,j::Integer) where {DD<:Segment,RR} =
             jacobi_frac_getindex(domain(Q),0.,Q.order,k,j)
     end
@@ -154,7 +154,7 @@ function rangespace(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR,TT
 end
 
 for TYP in (:ConcreteLeftIntegral,:ConcreteRightIntegral)
-    @eval bandinds(Q::$TYP{JacobiWeight{Jacobi{DD,RR},DD,RR,TT},Float64}) where {DD<:Segment,RR,TT} = (0,0)
+    @eval bandwidths(Q::$TYP{JacobiWeight{Jacobi{DD,RR},DD,RR,TT},Float64}) where {DD<:Segment,RR,TT} = (0,0)
 end
 
 getindex(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR,TT},Float64},k::Integer,j::Integer) where {DD<:Segment,RR,TT} =

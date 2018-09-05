@@ -247,8 +247,8 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
 
         sp = Space(dom)
         Dr = Derivative(sp, [1,0])
-            @test ApproxFun.blockbandinds(Dr) == (1,1)
-            @test ApproxFun.subblockbandinds(Dr)  == (-1,3)
+            @test ApproxFun.blockbandwidths(Dr) == (1,1)
+            @test ApproxFun.subblockbandwidths(Dr)  == (-1,3)
 
         Dθ = Derivative(sp, [0,1])
         Mr = Multiplication(Fun( (r, θ) -> r, sp ), sp)

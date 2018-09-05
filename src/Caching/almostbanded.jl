@@ -115,10 +115,10 @@ function CachedOperator(io::InterlaceOperator{T,2};padding::Bool=false) where T
 
     l∞,u∞ = 0,0
     for k=1:p,j=1:p
-        l∞=min(l∞,p*bandinds(io.ops[r∞[k],d∞[j]],1)+j-k)
+        l∞=min(l∞,-p*bandwidth(io.ops[r∞[k],d∞[j]],1)+j-k)
     end
     for k=1:p,j=1:p
-        u∞=max(u∞,p*bandinds(io.ops[r∞[k],d∞[j]],2)+j-k)
+        u∞=max(u∞,p*bandwidth(io.ops[r∞[k],d∞[j]],2)+j-k)
     end
 
     # now we move everything by the finite rank
@@ -127,13 +127,13 @@ function CachedOperator(io::InterlaceOperator{T,2};padding::Bool=false) where T
     shft=ncols-nbcs
     l∞,u∞=l∞+shft,u∞+shft
 
-    # iterate through finite rows to find worst case bandinds
+    # iterate through finite rows to find worst case bandwidth
     l,u=l∞,u∞
         for k=1+nbcs+p,j=1:ncols+p
             N,n=ri[k]
             M,m=di[j]
-            l=min(l,bandinds(io.ops[N,M],1)+n-m-k+j)
-            u=max(u,bandinds(io.ops[N,M],2)+n-m-k+j)
+            l=min(l,-bandwidth(io.ops[N,M],1)+n-m-k+j)
+            u=max(u,bandwidth(io.ops[N,M],2)+n-m-k+j)
         end
 
 

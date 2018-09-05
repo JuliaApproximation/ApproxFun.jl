@@ -46,8 +46,8 @@ function getindex(C::ConcreteConversion{Fourier{DD,R1},Laurent{DD,R2},T},k::Inte
 end
 
 
-bandinds(::ConcreteConversion{Laurent{DD,R1},Fourier{DD,R2}}) where {DD,R1,R2}=-1,1
-bandinds(::ConcreteConversion{Fourier{DD,R1},Laurent{DD,R2}}) where {DD,R1,R2}=-1,1
+bandwidths(::ConcreteConversion{Laurent{DD,R1},Fourier{DD,R2}}) where {DD,R1,R2} = 1,1
+bandwidths(::ConcreteConversion{Fourier{DD,R1},Laurent{DD,R2}}) where {DD,R1,R2} = 1,1
 
 for RULE in (:conversion_rule,:maxspace_rule,:union_rule)
     @eval begin
@@ -74,7 +74,7 @@ function Conversion(A::Fourier{DD,R1},B::Fourier{DD,R2}) where {DD,R1,R2}
         ConcreteConversion(A,B)
     end
 end
-bandinds(::ConcreteConversion{Fourier{DD,R1},Fourier{DD,R2}}) where {DD,R1,R2}=0,0
+bandwidths(::ConcreteConversion{Fourier{DD,R1},Fourier{DD,R2}}) where {DD,R1,R2}=0,0
 
 getindex(C::ConcreteConversion{Fourier{DD,R1},Fourier{DD,R2},T},k::Integer,j::Integer) where {DD,R1,R2,T} =
     k==j ? (iseven(k) ? (-one(T)) : one(T)) : zero(T)
@@ -92,8 +92,8 @@ function Derivative(S::Union{CosSpace,SinSpace},order)
 end
 
 
-bandinds(D::ConcreteDerivative{CS}) where {CS<:CosSpace} = iseven(D.order) ? (0,0) : (0,1)
-bandinds(D::ConcreteDerivative{S}) where {S<:SinSpace} = iseven(D.order) ? (0,0) : (-1,0)
+bandwidths(D::ConcreteDerivative{CS}) where {CS<:CosSpace} = iseven(D.order) ? (0,0) : (0,1)
+bandwidths(D::ConcreteDerivative{S}) where {S<:SinSpace} = iseven(D.order) ? (0,0) : (1,0)
 rangespace(D::ConcreteDerivative{S}) where {S<:CosSpace} = iseven(D.order) ? D.space : SinSpace(domain(D))
 rangespace(D::ConcreteDerivative{S}) where {S<:SinSpace} = iseven(D.order) ? D.space : CosSpace(domain(D))
 
@@ -144,7 +144,7 @@ Integral(::CosSpace,m::Integer) =
 
 Integral(sp::SinSpace{<:PeriodicInterval}, m::Integer) = ConcreteIntegral(sp,m)
 
-bandinds(D::ConcreteIntegral{<:SinSpace}) = iseven(D.order) ? (0,0) : (-1,0)
+bandwidths(D::ConcreteIntegral{<:SinSpace}) = iseven(D.order) ? (0,0) : (1,0)
 rangespace(D::ConcreteIntegral{<:CosSpace}) = iseven(D.order) ? D.space : SinSpace(domain(D))
 rangespace(D::ConcreteIntegral{<:SinSpace}) = iseven(D.order) ? D.space : CosSpace(domain(D))
 
@@ -173,7 +173,7 @@ function Integral(S::SubSpace{<:CosSpace,<:AbstractInfUnitRange{Int},<:PeriodicI
     ConcreteIntegral(S,k)
 end
 
-bandinds(D::ConcreteIntegral{<:SubSpace{<:CosSpace,<:AbstractInfUnitRange{Int},<:PeriodicInterval}}) =
+bandwidths(D::ConcreteIntegral{<:SubSpace{<:CosSpace,<:AbstractInfUnitRange{Int},<:PeriodicInterval}}) =
     (0,0)
 rangespace(D::ConcreteIntegral{<:SubSpace{<:CosSpace,<:AbstractInfUnitRange{Int},<:PeriodicInterval}}) =
     iseven(D.order) ? D.space : SinSpace(domain(D))
@@ -223,8 +223,8 @@ function Multiplication(f::Fun{SS},sp::CosSpace) where SS<:SinSpace
 end
 
 
-bandinds(M::ConcreteMultiplication{CS,CS}) where {CS<:CosSpace} =
-    (1-ncoefficients(M.f),ncoefficients(M.f)-1)
+bandwidths(M::ConcreteMultiplication{CS,CS}) where {CS<:CosSpace} =
+    (ncoefficients(M.f)-1,ncoefficients(M.f)-1)
 rangespace(M::ConcreteMultiplication{CS,CS}) where {CS<:CosSpace} = domainspace(M)
 getindex(M::ConcreteMultiplication{CS,CS},k::Integer,j::Integer) where {CS<:CosSpace} =
     chebmult_getindex(M.f.coefficients,k,j)
@@ -240,7 +240,7 @@ function getindex(M::ConcreteMultiplication{SS,SS},k::Integer,j::Integer) where 
     ret
 end
 
-bandinds(M::ConcreteMultiplication{SS,SS}) where {SS<:SinSpace}=-ncoefficients(M.f)-1,ncoefficients(M.f)-1
+bandwidths(M::ConcreteMultiplication{SS,SS}) where {SS<:SinSpace}=ncoefficients(M.f)+1,ncoefficients(M.f)-1
 rangespace(M::ConcreteMultiplication{SS,SS}) where {SS<:SinSpace}=CosSpace(domain(M))
 
 
@@ -253,8 +253,8 @@ function getindex(M::ConcreteMultiplication{Cs,SS},k::Integer,j::Integer) where 
     ret
 end
 
-bandinds(M::ConcreteMultiplication{Cs,SS}) where {SS<:SinSpace,Cs<:CosSpace} =
-    (1-ncoefficients(M.f),ncoefficients(M.f)-1)
+bandwidths(M::ConcreteMultiplication{Cs,SS}) where {SS<:SinSpace,Cs<:CosSpace} =
+    (ncoefficients(M.f)-1,ncoefficients(M.f)-1)
 rangespace(M::ConcreteMultiplication{Cs,SS}) where {SS<:SinSpace,Cs<:CosSpace} =
     SinSpace(domain(M))
 
@@ -318,15 +318,15 @@ getindex(Σ::ConcreteDefiniteLineIntegral{SinSpace{D,R},T},k::Integer) where {T,
 getindex(Σ::ConcreteDefiniteLineIntegral{Fourier{D,R},T},k::Integer) where {T,D<:Circle,R} =
     k==1 ? convert(T,arclength(domain(Σ))) : zero(T)
 
-bandinds(Σ::ConcreteDefiniteIntegral{CosSpace{D,R}}) where {D<:PeriodicInterval,R} = 0,0
-bandinds(Σ::ConcreteDefiniteIntegral{SinSpace{D,R}}) where {D<:PeriodicInterval,R} = 0,0
-bandinds(Σ::ConcreteDefiniteIntegral{Fourier{D,R}}) where {D<:PeriodicInterval,R} = 0,0
-bandinds(Σ::ConcreteDefiniteIntegral{CosSpace{D,R}}) where {D<:Circle,R} = 0,1
-bandinds(Σ::ConcreteDefiniteIntegral{SinSpace{D,R}}) where {D<:Circle,R} = 0,0
-bandinds(Σ::ConcreteDefiniteIntegral{Fourier{D,R}}) where {D<:Circle,R} = 0,2
-bandinds(Σ::ConcreteDefiniteLineIntegral{CosSpace{D,R}}) where {D,R} = 0,0
-bandinds(Σ::ConcreteDefiniteLineIntegral{SinSpace{D,R}}) where {D,R} = 0,0
-bandinds(Σ::ConcreteDefiniteLineIntegral{Fourier{D,R}}) where {D,R} = 0,0
+bandwidths(Σ::ConcreteDefiniteIntegral{CosSpace{D,R}}) where {D<:PeriodicInterval,R} = 0,0
+bandwidths(Σ::ConcreteDefiniteIntegral{SinSpace{D,R}}) where {D<:PeriodicInterval,R} = 0,0
+bandwidths(Σ::ConcreteDefiniteIntegral{Fourier{D,R}}) where {D<:PeriodicInterval,R} = 0,0
+bandwidths(Σ::ConcreteDefiniteIntegral{CosSpace{D,R}}) where {D<:Circle,R} = 0,1
+bandwidths(Σ::ConcreteDefiniteIntegral{SinSpace{D,R}}) where {D<:Circle,R} = 0,0
+bandwidths(Σ::ConcreteDefiniteIntegral{Fourier{D,R}}) where {D<:Circle,R} = 0,2
+bandwidths(Σ::ConcreteDefiniteLineIntegral{CosSpace{D,R}}) where {D,R} = 0,0
+bandwidths(Σ::ConcreteDefiniteLineIntegral{SinSpace{D,R}}) where {D,R} = 0,0
+bandwidths(Σ::ConcreteDefiniteLineIntegral{Fourier{D,R}}) where {D,R} = 0,0
 
 
 transformtimes(f::Fun{CS},g::Fun{Fourier{D,R}}) where {CS<:CosSpace,D,R} =

@@ -14,10 +14,10 @@ mutable struct CachedOperator{T<:Number,DM<:AbstractMatrix,M<:Operator,DS,RS,BI}
     datasize::Tuple{Int,Int}
     domainspace::DS
     rangespace::RS
-    bandinds::BI
+    bandwidths::BI
     padding::Bool   # records whether the operator should be padded for QR operations
                     #  note that BandedMatrix/AlmostBandedMatrix don't need this
-                    #  as the padding is done in the bandinds
+                    #  as the padding is done in the bandwidths
 end
 
 CachedOperator(op::Operator,data::AbstractMatrix,sz::Tuple{Int,Int},ds,rs,bi,pd=false) =
@@ -26,7 +26,7 @@ CachedOperator(op::Operator,data::AbstractMatrix,sz::Tuple{Int,Int},ds,rs,bi,pd=
 
 
 CachedOperator(op::Operator,data::AbstractMatrix,sz::Tuple{Int,Int},pd=false) =
-    CachedOperator(op,data,sz,domainspace(op),rangespace(op),bandinds(op),pd)
+    CachedOperator(op,data,sz,domainspace(op),rangespace(op),bandwidths(op),pd)
 CachedOperator(op::Operator,data::AbstractMatrix,padding=false) = CachedOperator(op,data,size(data),padding)
 
 
@@ -58,13 +58,13 @@ cache(::Type{MT},O::Operator;kwds...) where {MT<:AbstractMatrix} = CachedOperato
 convert(::Type{Operator{T}},S::CachedOperator{T}) where {T} = S
 convert(::Type{Operator{T}},S::CachedOperator) where {T} =
     CachedOperator(convert(Operator{T}, S.op),convert(AbstractMatrix{T}, S.data),
-                    S.datasize,S.domainspace,S.rangespace,S.bandinds)
+                    S.datasize,S.domainspace,S.rangespace,S.bandwidths)
 
 
 domainspace(C::CachedOperator) = C.domainspace
 rangespace(C::CachedOperator) = C.rangespace
-bandinds(C::CachedOperator{T,BM,M}) where {T<:Number,BM<:BandedMatrix,M<:Operator} = C.bandinds
-blockbandinds(C::CachedOperator{T,BM,M}) where {T<:Number,BM<:BandedMatrix,M<:Operator} = C.bandinds
+bandwidths(C::CachedOperator{T,BM,M}) where {T<:Number,BM<:BandedMatrix,M<:Operator} = C.bandwidths
+blockbandwidths(C::CachedOperator{T,BM,M}) where {T<:Number,BM<:BandedMatrix,M<:Operator} = C.bandwidths
 
 
 # TODO: cache this information as well

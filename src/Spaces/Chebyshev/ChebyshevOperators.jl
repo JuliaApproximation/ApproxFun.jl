@@ -240,7 +240,7 @@ Derivative(sp::Chebyshev{DD},order::Integer) where {DD<:Segment} =
 
 rangespace(D::ConcreteDerivative{Chebyshev{DD,RR}}) where {DD<:Segment,RR} =
     Ultraspherical(D.order,domain(D))
-bandinds(D::ConcreteDerivative{Chebyshev{DD,RR}}) where {DD<:Segment,RR} = D.order,D.order
+bandwidths(D::ConcreteDerivative{Chebyshev{DD,RR}}) where {DD<:Segment,RR} = -D.order,D.order
 Base.stride(D::ConcreteDerivative{Chebyshev{DD,RR}}) where {DD<:Segment,RR} = D.order
 
 function getindex(D::ConcreteDerivative{Chebyshev{DD,RR},K,T},k::Integer,j::Integer) where {DD<:Segment,RR,K,T}

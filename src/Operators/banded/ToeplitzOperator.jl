@@ -68,7 +68,7 @@ end
 
 
 
-bandinds(T::ToeplitzOperator)=(-length(T.negative),length(T.nonnegative)-1)
+bandwidths(T::ToeplitzOperator)=(length(T.negative),length(T.nonnegative)-1)
 
 
 # slice of a ToeplitzOPerator is a ToeplitzOperator
@@ -129,7 +129,7 @@ function BandedMatrix(S::SubOperator{T,HankelOperator{T},Tuple{UnitRange{Int},Un
 end
 
 
-bandinds(T::HankelOperator) = (min(0,1-length(T.coefficients)),max(0,length(T.coefficients)-1))
+bandwidths(T::HankelOperator) = (max(0,length(T.coefficients)-1),max(0,length(T.coefficients)-1))
 
 
 

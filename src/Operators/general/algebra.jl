@@ -6,7 +6,7 @@ export PlusOperator, TimesOperator, mul_coefficients
 
 struct PlusOperator{T,BI} <: Operator{T}
     ops::Vector{Operator{T}}
-    bandinds::BI
+    bandwidths::BI
     function PlusOperator{T,BI}(opsin::Vector{Operator{T}},bi::BI) where {T,BI}
         n,m=size(first(opsin))
         for k=2:length(opsin)
@@ -22,7 +22,7 @@ Base.size(P::PlusOperator,k::Integer) = size(first(P.ops),k)
 PlusOperator(opsin::Vector{Operator{T}},bi::Tuple{UT,VT}) where {T,UT,VT} =
     PlusOperator{T,typeof(bi)}(opsin,bi)
 
-bandinds(P::PlusOperator) = P.bandinds
+bandwidths(P::PlusOperator) = P.bandwidths
 
 israggedbelow(P::PlusOperator) = isbandedbelow(P) || all(israggedbelow,P.ops)
 
@@ -38,11 +38,11 @@ for (OP,mn) in ((:colstart,:min),(:colstop,:max),(:rowstart,:min),(:rowstop,:max
 end
 
 function PlusOperator(ops::Vector)
-    # calculate bandinds
-    b1,b2=720,-720  # approximates ∞,-∞
+    # calculate bandwidths
+    b1,b2=-720,-720  # approximates ∞,-∞
     for op in ops
-        br=bandinds(op)
-        b1=min(br[1],b1)
+        br=bandwidths(op)
+        b1=max(br[1],b1)
         b2=max(br[end],b2)
     end
     PlusOperator(ops,(b1,b2))
@@ -52,7 +52,7 @@ function convert(::Type{Operator{T}},P::PlusOperator) where T
     if T==eltype(P)
         P
     else
-        PlusOperator{T,typeof(P.bandinds)}(Vector{Operator{T}}(P.ops),P.bandinds)
+        PlusOperator{T,typeof(P.bandwidths)}(Vector{Operator{T}}(P.ops),P.bandwidths)
     end
 end
 
@@ -223,7 +223,7 @@ BLAS.axpy!(α,S::SubOperator{T,OP},A::AbstractMatrix) where {T,OP<:ConstantTimes
 
 struct TimesOperator{T,BI} <: Operator{T}
     ops::Vector{Operator{T}}
-    bandinds::BI
+    bandwidths::BI
 
     function TimesOperator{T,BI}(ops::Vector{Operator{T}},bi::BI) where {T,BI}
         # check compatible
@@ -258,22 +258,22 @@ struct TimesOperator{T,BI} <: Operator{T}
 end
 
 
-function bandindssum(P,k)
+function bandwidthsum(P,k)
     ret=0
     for op in P
-        ret+=bandinds(op)[k]
+        ret+=bandwidths(op)[k]
     end
     ret
 end
 
-bandindssum(P) = (bandindssum(P,1),bandindssum(P,2))
+bandwidthssum(P) = (bandwidthsum(P,1),bandwidthsum(P,2))
 
 TimesOperator(ops::Vector{Operator{T}},bi::Tuple{N1,N2}) where {T,N1,N2} =
     TimesOperator{T,typeof(bi)}(ops,bi)
 
-TimesOperator(ops::Vector{Operator{T}}) where {T} = TimesOperator(ops,bandindssum(ops))
+TimesOperator(ops::Vector{Operator{T}}) where {T} = TimesOperator(ops,bandwidthssum(ops))
 TimesOperator(ops::Vector{OT}) where {OT<:Operator} =
-    TimesOperator(convert(Vector{Operator{eltype(OT)}},ops),bandindssum(ops))
+    TimesOperator(convert(Vector{Operator{eltype(OT)}},ops),bandwidthssum(ops))
 
 TimesOperator(A::TimesOperator,B::TimesOperator) =
     TimesOperator(Operator{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
@@ -335,7 +335,7 @@ rangespace(P::TimesOperator)=rangespace(first(P.ops))
 domain(P::TimesOperator)=commondomain(P.ops)
 
 
-bandinds(P::TimesOperator) = P.bandinds
+bandwidths(P::TimesOperator) = P.bandwidths
 
 israggedbelow(P::TimesOperator) = isbandedbelow(P) || all(israggedbelow,P.ops)
 

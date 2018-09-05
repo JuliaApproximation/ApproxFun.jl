@@ -34,7 +34,7 @@ rangespace(L::LowRankPertOperator)=rangespace(L.op)
 datasize(L::LowRankPertOperator,k...)=datasize(L.pert,k...)
 
 israggedbelow(P::LowRankPertOperator) = israggedbelow(P.op) && israggedbelow(P.pert)
-bandinds(P::LowRankPertOperator) = bandinds(P.op,1)+bandinds(P.pert,1) , bandinds(P.op,2)+bandinds(P.pert,2)
+bandwidths(P::LowRankPertOperator) = bandwidth(P.op,1)+bandwidth(P.pert,1) , bandwidth(P.op,2)+bandwidth(P.pert,2)
 
 colstop(L::LowRankPertOperator,k::Integer) = max(colstop(L.op,k),colstop(L.pert,k))
 
