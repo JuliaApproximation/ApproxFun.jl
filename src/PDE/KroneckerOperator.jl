@@ -171,20 +171,6 @@ for FUNC in (:blockbandwidths, :subblockbandwidths, :isbandedblockbanded,:domain
 end
 
 
-
-function subblockbandwidthsum(P,k)
-    ret=0
-    for op in P
-        ret+=subblockbandwidth(op,k)::Int
-    end
-    ret
-end
-
-#TODO: Why 1 here?
-subblockbandwidths(P::TimesOperator) = (subblockbandwidthsum(P.ops,1), subblockbandwidthsum(P.ops,1))
-
-
-
 domainspace(K::KroneckerOperator) = K.domainspace
 rangespace(K::KroneckerOperator) = K.rangespace
 
