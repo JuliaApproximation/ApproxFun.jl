@@ -45,7 +45,7 @@ convert(::Type{Operator{T}},L::LowRankOperator{S}) where {S,T} =
 
 
 datasize(L::LowRankOperator,k) =
-    k==1 ? mapreduce(ncoefficients,max,L.U) : mapreduce(bandwidth,max,L.V)
+    k==1 ? mapreduce(ncoefficients,max,L.U) : mapreduce(a -> bandwidth(a,1) + bandwidth(a,2)+1,max,L.V)
 datasize(L::LowRankOperator) = datasize(L,1),datasize(L,2)
 bandwidths(L::LowRankOperator) = datasize(L,1)-1,datasize(L,2)-1
 

@@ -152,7 +152,7 @@ isbandedblockbanded(P::Union{PlusOperator,TimesOperator}) = all(isbandedblockban
 
 
 blockbandwidths(P::PlusOperator) = mapreduce(blockbandwidths, (a,b) -> max.(a,b), P.ops)
-subblockbandwidths(K::PlusOperator) = mapreduce(subblockbandwidths, (a,b) -> max.(a,b), P.ops)
+subblockbandwidths(P::PlusOperator) = mapreduce(subblockbandwidths, (a,b) -> max.(a,b), P.ops)
 
 blockbandwidths(P::TimesOperator) = mapreduce(blockbandwidths, (a,b) -> a .+ b, P.ops)
 subblockbandwidths(P::TimesOperator) = mapreduce(subblockbandwidths, (a,b) -> a .+ b, P.ops)

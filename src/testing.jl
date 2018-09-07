@@ -190,7 +190,7 @@ function testbandedbelowoperator(A)
     testraggedbelowoperator(A)
 
     for k=1:10
-        @test colstop(A,k) ≤ k + bandwidth(A,1)
+        @test colstop(A,k) ≤ max(0,k + bandwidth(A,1))
     end
 end
 

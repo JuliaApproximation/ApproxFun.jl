@@ -171,10 +171,6 @@ function jac_gbmm!(α, J, B, β, C, b)
     C
 end
 
-
-
-
-
 function BandedMatrix(S::SubOperator{T,ConcreteMultiplication{C,PS,T},
                                      Tuple{UnitRange{Int},UnitRange{Int}}}) where {PS<:PolynomialSpace,T,C<:PolynomialSpace}
     M=parent(S)
@@ -212,16 +208,16 @@ function BandedMatrix(S::SubOperator{T,ConcreteMultiplication{C,PS,T},
 
     # Clenshaw for operators
     Bk2 = BandedMatrix(Zeros{T}(size(J,1),size(J,2)), (B,B))
-    Bk2[band(0)] = a[n]/recβ(T,sp,n-1)
+    Bk2[band(0)] .= a[n]/recβ(T,sp,n-1)
     α,β = recα(T,sp,n-1),recβ(T,sp,n-2)
     Bk1 = (-α/β)*Bk2
-    LinearAlgebra.axpy!(a[n-1]/β,I,Bk1)
+    view(Bk1, band(0)) .= (a[n-1]/β) .+ view(Bk1, band(0))
     jac_gbmm!(one(T)/β,J,Bk2,one(T),Bk1,0)
     b=1  # we keep track of bandwidths manually to reuse memory
     for k=n-2:-1:2
         α,β,γ=recα(T,sp,k),recβ(T,sp,k-1),recγ(T,sp,k+1)
         lmul!(-γ/β,Bk2)
-        LinearAlgebra.axpy!(a[k]/β,I,Bk2)
+        view(Bk2, band(0)) .= (a[k]/β) .+ view(Bk2, band(0))
         jac_gbmm!(1/β,J,Bk1,one(T),Bk2,b)
         LinearAlgebra.axpy!(-α/β,Bk1,Bk2)
         Bk2,Bk1=Bk1,Bk2
@@ -229,7 +225,7 @@ function BandedMatrix(S::SubOperator{T,ConcreteMultiplication{C,PS,T},
     end
     α,γ=recα(T,sp,1),recγ(T,sp,2)
     lmul!(-γ,Bk2)
-    LinearAlgebra.axpy!(a[1],I,Bk2)
+    view(Bk2, band(0)) .= a[1] .+ view(Bk2, band(0))
     jac_gbmm!(one(T),J,Bk1,one(T),Bk2,b)
     LinearAlgebra.axpy!(-α,Bk1,Bk2)
 

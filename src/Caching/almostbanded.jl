@@ -139,11 +139,11 @@ function CachedOperator(io::InterlaceOperator{T,2};padding::Bool=false) where T
 
     # add extra rows for QR
     if padding
-        u-=l
+        u += l
     end
 
     n=1+nbcs+p
-    ret=AlmostBandedMatrix(Zeros{T}(n,n+u),(-l,u),nbcs)
+    ret=AlmostBandedMatrix(Zeros{T}(n,n+u),(l,u),nbcs)
 
     # populate entries and fill functionals
     bcrow=1

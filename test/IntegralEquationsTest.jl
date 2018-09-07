@@ -47,7 +47,7 @@ using ApproxFun, Random, Test
         JacobiWeight{Chebyshev{Segment{Float64}},Segment{Float64},Float64,Float64}(-0.5,-0.5,Chebyshev())
 
     L = I+Σ[exp(x)*w]
-    bandwidths(L)
+    testbandedoperator(L)
     usol = sin(2x)
     f = L*usol
 

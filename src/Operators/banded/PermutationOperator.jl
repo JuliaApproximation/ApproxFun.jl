@@ -19,7 +19,7 @@ convert(::Type{Operator{T}},P::PermutationOperator) where {T} =
 
 function bandwidths(P::PermutationOperator)
     dfs=P.perm-(1:length(P.perm))
-    minimum(dfs),maximum(dfs)
+    -minimum(dfs),maximum(dfs)
 end
 
 function getindex(P::PermutationOperator{T},k::Integer,j::Integer) where T
