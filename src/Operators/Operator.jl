@@ -39,9 +39,9 @@ isconstspace(_) = false
 isafunctional(A::Operator) = size(A,1)==1 && isconstspace(rangespace(A))
 
 
-isboolvec(A) = isa(A,AbstractFill{Bool}) || isa(A,AbstractVector{Bool})
+isonesvec(A) = A isa AbstractFill && getindex_value(A) == 1
 # block lengths of a space are 1
-hastrivialblocks(A::Space) = isboolvec(blocklengths(A))
+hastrivialblocks(A::Space) = isonesvec(blocklengths(A))
 hastrivialblocks(A::Operator) = hastrivialblocks(domainspace(A)) &&
                                 hastrivialblocks(rangespace(A))
 

@@ -103,12 +103,14 @@ function CachedOperator(io::InterlaceOperator{T,2};padding::Bool=false) where T
 
     # we only support block size 1 for now
     for k in d∞
-        if blocklengths(ds[k]) !== Ones{Bool}(∞)
+        bl = blocklengths(ds[k])
+        if !(bl isa AbstractFill) || getindex_value(bl) ≠ 1
             return default_CachedOperator(io;padding=padding)
         end
     end
     for k in r∞
-        if blocklengths(rs[k]) !== Ones{Bool}(∞)
+        bl = blocklengths(rs[k])
+        if !(bl isa AbstractFill) || getindex_value(bl) ≠ 1
             return default_CachedOperator(io;padding=padding)
         end
     end

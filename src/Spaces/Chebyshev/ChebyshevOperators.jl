@@ -13,7 +13,9 @@ recγ(::Type{T},::Chebyshev,k) where {T} = one(T)/2   # one(T) ensures we get co
 
 ## Evaluation
 
-Evaluation(S::Chebyshev,x::Bool,o::Integer) =
+Evaluation(S::Chebyshev,x::typeof(first),o::Integer) =
+    ConcreteEvaluation(S,x,o)
+Evaluation(S::Chebyshev,x::typeof(last),o::Integer) =
     ConcreteEvaluation(S,x,o)
 
 Evaluation(S::Chebyshev,x::Number,o::Integer) =

@@ -24,7 +24,7 @@ struct Tensorizer{DMS<:Tuple}
     blocks::DMS
 end
 
-const TrivialTensorizer{d} = Tensorizer{NTuple{d,Fill{Bool,1,Int}}}
+const TrivialTensorizer{d} = Tensorizer{NTuple{d,Ones{Int,1,Int}}}
 
 Base.eltype(a::Tensorizer) = NTuple{length(a.blocks),Int}
 Base.eltype(::Tensorizer{NTuple{d,T}}) where {d,T} = NTuple{d,Int}
@@ -110,30 +110,6 @@ _cumsum(x) = cumsum(x)
 _cumsum(x::Number) = x
 block(sp::Tensorizer,k::Int) = Block(findfirst(x->x≥k, _cumsum(blocklengths(sp))))
 block(sp::CachedIterator,k::Int) = block(sp.iterator,k)
-
-# [1,2,3] x 1:∞
-function block(it::Tensorizer{Tuple{Vector{Bool},<:AbstractFill{Bool}}},n::Int)
-    m=sum(it.blocks[1])
-    if m == length(it.blocks[1])  # trivial blocks
-        N=(m*(m+1))÷2
-        if n < N
-            return Block(floor(Integer,sqrt(2n)+1/2))
-        else
-            return Block(m+(n-N)÷m)
-        end
-    else
-        return Block(findfirst(x->x≥n,cumsum(blocklengths(it))))
-    end
-end
-
-# 1:∞ x 1:m
-function block(it::Tensorizer{Tuple{<:AbstractFill{Bool},Vector{Bool}}},n::Int)
-    m=length(it.blocks[2])  # assume all true
-    N=(m*(m+1))÷2
-    Block(n < N ?
-        floor(Integer,sqrt(2n)+1/2) :
-        m+(n-N)÷m)
-end
 
 blocklength(it,k) = blocklengths(it)[k]
 blocklength(it,k::Block) = blocklength(it,k.n[1])
