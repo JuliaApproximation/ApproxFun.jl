@@ -59,7 +59,7 @@ import StaticArrays: SVector
 
 import BlockArrays: nblocks, blocksize, global2blockindex, globalrange, BlockSizes
 
-import BandedMatrices: bandinds, bandrange, PrintShow, bandshift,
+import BandedMatrices: bandrange, bandshift,
                         inbands_getindex, inbands_setindex!, bandwidth, AbstractBandedMatrix,
                         dotu, normalize!, flipsign,
                         colstart, colstop, colrange, rowstart, rowstop, rowrange,

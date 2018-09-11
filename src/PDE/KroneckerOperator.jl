@@ -102,7 +102,7 @@ function rowstop(A::KroneckerOperator,k::Integer)
 end
 
 
-bandinds(K::KroneckerOperator) = (-∞,∞)
+bandwidths(K::KroneckerOperator) = (∞,∞)
 
 isblockbanded(K::KroneckerOperator) = all(isblockbanded,K.ops)
 isbandedblockbanded(K::KroneckerOperator) =
@@ -110,22 +110,22 @@ isbandedblockbanded(K::KroneckerOperator) =
 israggedbelow(K::KroneckerOperator) = all(israggedbelow,K.ops)
 
 
-blockbandinds(K::KroneckerOperator) =
-    (blockbandinds(K.ops[1],1)+blockbandinds(K.ops[2],1),
-    blockbandinds(K.ops[1],2)+blockbandinds(K.ops[2],2))
+blockbandwidths(K::KroneckerOperator) =
+    (blockbandwidth(K.ops[1],1)+blockbandwidth(K.ops[2],1),
+    blockbandwidth(K.ops[1],2)+blockbandwidth(K.ops[2],2))
 
 # If each block were in turn BlockBandedMatrix, these would
-# be the    bandinds
-subblock_blockbandinds(K::KroneckerOperator) =
-    (min(blockbandinds(K.ops[1],1),-blockbandinds(K.ops[2],2)) ,
-           max(blockbandinds(K.ops[1],2),-blockbandinds(K.ops[2],1)))
+# be the    bandwidths
+subblock_blockbandwidths(K::KroneckerOperator) =
+    (max(blockbandwidth(K.ops[1],1),blockbandwidth(K.ops[2],2)) ,
+           max(blockbandwidth(K.ops[1],2),blockbandwidth(K.ops[2],1)))
 
 
-# If each block were in turn BandedMatrix, these are the bandinds
-function subblockbandinds(K::KroneckerOperator)
+# If each block were in turn BandedMatrix, these are the bandwidths
+function subblockbandwidths(K::KroneckerOperator)
     if all(hastrivialblocks,domainspace(K).spaces) &&
             all(hastrivialblocks,rangespace(K).spaces)
-        subblock_blockbandinds(K)
+        subblock_blockbandwidths(K)
     else
         dt = domaintensorizer(K).iterator
         rt = rangetensorizer(K).iterator
@@ -133,17 +133,13 @@ function subblockbandinds(K::KroneckerOperator)
         @assert all(b->isa(b,AbstractFill),dt.blocks)
         @assert rt.blocks ≡ dt.blocks
 
-        sb = subblock_blockbandinds(K)
+        sb = subblock_blockbandwidths(K)
         # divide by the size of each block
         sb_sz = mapreduce(getindex_value,*,dt.blocks)
         # spread by sub block szie
-        (sb[1]-1)*sb_sz+1,(sb[2]+1)*sb_sz-1
+        (sb[1]+1)*sb_sz-1,(sb[2]+1)*sb_sz-1
     end
 end
-
-subblockbandinds(K::KroneckerOperator,k::Integer) = subblockbandinds(K)[k]
-
-subblockbandinds(::Union{ConstantOperator,ZeroOperator},::Integer) = 0
 
 
 const Wrappers = Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,LaplacianWrapper,
@@ -155,15 +151,11 @@ isbandedblockbanded(P::Union{PlusOperator,TimesOperator}) = all(isbandedblockban
 
 
 
-blockbandinds(P::PlusOperator,k::Int) =
-    mapreduce(op->blockbandinds(op,k),k==1 ? min : max,P.ops)
-blockbandinds(P::PlusOperator) = blockbandinds(P,1),blockbandinds(P,2)
-subblockbandinds(K::PlusOperator,k::Integer) =
-    mapreduce(v->subblockbandinds(v,k),k==1 ? min : max,K.ops)
+blockbandwidths(P::PlusOperator) = mapreduce(blockbandwidths, (a,b) -> max.(a,b), P.ops)
+subblockbandwidths(P::PlusOperator) = mapreduce(subblockbandwidths, (a,b) -> max.(a,b), P.ops)
 
-blockbandinds(P::TimesOperator,k::Int) = mapreduce(op->blockbandinds(op,k),+,P.ops)
-subblockbandinds(P::TimesOperator,k::Int) = mapreduce(op->subblockbandinds(op,k),+,P.ops)
-blockbandinds(P::TimesOperator) = blockbandinds(P,1),blockbandinds(P,2)
+blockbandwidths(P::TimesOperator) = mapreduce(blockbandwidths, (a,b) -> a .+ b, P.ops)
+subblockbandwidths(P::TimesOperator) = mapreduce(subblockbandwidths, (a,b) -> a .+ b, P.ops)
 
 domaintensorizer(R::Operator) = tensorizer(domainspace(R))
 rangetensorizer(R::Operator) = tensorizer(rangespace(R))
@@ -174,24 +166,9 @@ rangetensorizer(P::PlusOperator) = rangetensorizer(P.ops[1])
 domaintensorizer(P::TimesOperator) = domaintensorizer(P.ops[end])
 rangetensorizer(P::TimesOperator) = rangetensorizer(P.ops[1])
 
-
-subblockbandinds(K::Wrappers,k::Integer) = subblockbandinds(K.op,k)
-for FUNC in (:blockbandinds,:isbandedblockbanded,:domaintensorizer,:rangetensorizer)
+for FUNC in (:blockbandwidths, :subblockbandwidths, :isbandedblockbanded,:domaintensorizer,:rangetensorizer)
     @eval $FUNC(K::Wrappers) = $FUNC(K.op)
 end
-
-
-
-function subblockbandindssum(P,k)
-    ret=0
-    for op in P
-        ret+=subblockbandinds(op,k)::Int
-    end
-    ret
-end
-
-subblockbandinds(P::TimesOperator,k) = subblockbandindssum(P.ops,1)
-
 
 
 domainspace(K::KroneckerOperator) = K.domainspace

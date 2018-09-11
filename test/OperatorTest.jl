@@ -192,7 +192,7 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
         S=Chebyshev()
         D=Derivative(S)
         @time for padding = [true,false]
-          co=ApproxFun.CachedOperator(D,ApproxFun.RaggedMatrix(Float64[],Int[1],0),(0,0),domainspace(D),rangespace(D),bandinds(D),padding) #initialise with empty RaggedMatrix
+          co=ApproxFun.CachedOperator(D,ApproxFun.RaggedMatrix(Float64[],Int[1],0),(0,0),domainspace(D),rangespace(D),bandwidths(D),padding) #initialise with empty RaggedMatrix
           @test co[1:20,1:10] == D[1:20,1:10]
           @test size(co.data) == (20,10)
           ApproxFun.resizedata!(co,10,30)
@@ -217,7 +217,7 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
         S = view(D[:, 2:end], Block.(3:4), Block.(2:4))
         @test parent(S) == D
         @test parentindices(S) == (3:4,2:4)
-        @test bandinds(S)  == (2,2)
+        @test bandwidths(S)  == (-2,2)
     end
 
     @testset "Sub-operators" begin
@@ -229,7 +229,7 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
         @test u(0.1) ≈ exp(0.1)-coefficient(f,1)
 
         D̃ = Derivative(space(u))
-        @test bandinds(D̃) == (0,0)
+        @test bandwidths(D̃) == (0,0)
         testbandedoperator(D̃)
         @test norm(u'-f) < 10eps()
 
@@ -281,9 +281,9 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
         end
     end
 
-    @testset "Zero operator has correct bandinds" begin
+    @testset "Zero operator has correct bandwidths" begin
         Z=ApproxFun.ZeroOperator(Chebyshev())
-        @test ApproxFun.bandinds(Z) == ApproxFun.bandinds(Z+Z)
+        @test ApproxFun.bandwidths(Z) == ApproxFun.bandwidths(Z+Z)
     end
 
     @testset "hcat of functionals (#407)" begin

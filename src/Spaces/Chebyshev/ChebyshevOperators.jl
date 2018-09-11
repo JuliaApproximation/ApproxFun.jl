@@ -13,7 +13,9 @@ recγ(::Type{T},::Chebyshev,k) where {T} = one(T)/2   # one(T) ensures we get co
 
 ## Evaluation
 
-Evaluation(S::Chebyshev,x::Bool,o::Integer) =
+Evaluation(S::Chebyshev,x::typeof(first),o::Integer) =
+    ConcreteEvaluation(S,x,o)
+Evaluation(S::Chebyshev,x::typeof(last),o::Integer) =
     ConcreteEvaluation(S,x,o)
 
 Evaluation(S::Chebyshev,x::Number,o::Integer) =
@@ -239,7 +241,8 @@ Derivative(sp::Chebyshev{DD},order::Integer) where {DD<:IntervalOrSegment} =
 
 rangespace(D::ConcreteDerivative{Chebyshev{DD,RR}}) where {DD<:IntervalOrSegment,RR} =
     Ultraspherical(D.order,domain(D))
-bandinds(D::ConcreteDerivative{Chebyshev{DD,RR}}) where {DD<:IntervalOrSegment,RR} = D.order,D.order
+
+bandwidths(D::ConcreteDerivative{Chebyshev{DD,RR}}) where {DD<:IntervalOrSegment,RR} = -D.order,D.order
 Base.stride(D::ConcreteDerivative{Chebyshev{DD,RR}}) where {DD<:IntervalOrSegment,RR} = D.order
 
 function getindex(D::ConcreteDerivative{Chebyshev{DD,RR},K,T},k::Integer,j::Integer) where {DD<:IntervalOrSegment,RR,K,T}

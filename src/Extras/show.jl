@@ -175,6 +175,11 @@ end
 summary(B::Operator) =
     string(typeof(B).name.name)*":"*string(domainspace(B))*"→"*string(rangespace(B))
 
+struct PrintShow
+    str
+end
+Base.show(io::IO,N::PrintShow) = print(io,N.str)
+
 
 function show(io::IO,B::Operator;header::Bool=true)
     header && println(io,summary(B))
@@ -190,10 +195,10 @@ function show(io::IO,B::Operator;header::Bool=true)
                 M[k,j]=BM[k,j]
             end
 
-            for k=max(1,11-bandinds(B,2)):11
+            for k=max(1,11-bandwidth(B,2)):11
                 M[k,end]=PrintShow("⋱")
             end
-            for j=max(1,11+bandinds(B,1)):10
+            for j=max(1,11-bandwidth(B,1)):10
                 M[end,j]=PrintShow("⋱")
             end
 

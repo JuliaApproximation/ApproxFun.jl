@@ -43,7 +43,7 @@ dimension(QS::QuotientSpace) = dimension(QS.space)
 
 Conversion(Q::QuotientSpace{SP}, S::SP) where {SP<:Space} = ConcreteConversion(Q, S)
 
-bandinds(C::ConcreteConversion{QuotientSpace{SP,O,DD,T,RT},SP}) where {SP,O,DD,T,RT} = 0, size(C.domainspace.A, 1)
+bandwidths(C::ConcreteConversion{QuotientSpace{SP,O,DD,T,RT},SP}) where {SP,O,DD,T,RT} = 0, size(C.domainspace.A, 1)
 
 function getindex(C::ConcreteConversion{QuotientSpace{SP,O,DD,T,RT},SP}, i::Integer, j::Integer) where {SP,O,DD,T,RT}
     sp = domainspace(C)

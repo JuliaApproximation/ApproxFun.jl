@@ -44,14 +44,14 @@ function getindex(T::ConcreteMultiplication{Laurent{DD,RR},Laurent{DD,RR}},k::In
     laurent_getindex(T.f.coefficients[3:2:end],T.f.coefficients[[1;2:2:end]],k,j)
 end
 
-function bandinds(T::ConcreteMultiplication{Laurent{DD,RR},Laurent{DD,RR}}) where {DD,RR}
-    bbi = blockbandinds(T)
-    (2bbi[1]-1,2bbi[2]+1)
+function bandwidths(T::ConcreteMultiplication{Laurent{DD,RR},Laurent{DD,RR}}) where {DD,RR}
+    bbi = blockbandwidths(T)
+    (2bbi[1]+1,2bbi[2]+1)
 end
 
-function blockbandinds(T::ConcreteMultiplication{Laurent{DD,RR},Laurent{DD,RR}}) where {DD,RR}
+function blockbandwidths(T::ConcreteMultiplication{Laurent{DD,RR},Laurent{DD,RR}}) where {DD,RR}
     m = ncoefficients(T.f)÷2
-    (-m,m)
+    (m,m)
 end
 
 
@@ -72,8 +72,8 @@ Derivative(S::Hardy{s,DD},k::Integer) where {s,DD<:PeriodicInterval} = ConcreteD
 Derivative(S::Laurent{DD,RR},k::Integer) where {DD<:Circle,RR} =
     DerivativeWrapper(InterlaceOperator(Diagonal([map(s->Derivative(s,k),S.spaces)...]),SumSpace),k)
 
-bandinds(D::ConcreteDerivative{Hardy{s,DD,RR}}) where {s,DD<:PeriodicInterval,RR}=(0,0)
-bandinds(D::ConcreteDerivative{Hardy{s,DD,RR}}) where {s,DD<:Circle,RR}=s ? (0,D.order) : (-D.order,0)
+bandwidths(D::ConcreteDerivative{Hardy{s,DD,RR}}) where {s,DD<:PeriodicInterval,RR}=(0,0)
+bandwidths(D::ConcreteDerivative{Hardy{s,DD,RR}}) where {s,DD<:Circle,RR}=s ? (0,D.order) : (D.order,0)
 
 rangespace(D::ConcreteDerivative{S}) where {S<:Hardy}=D.space
 
@@ -139,7 +139,7 @@ getindex(D::ConcreteDerivative{Hardy{false,DD,RR},OT,T},k::Integer,j::Integer) w
 
 Integral(S::Hardy{s,DD,RR},k::Integer) where {s,DD<:Circle,RR} = ConcreteIntegral(S,k)
 
-bandinds(D::ConcreteIntegral{Taylor{DD,RR}}) where {DD<:Circle,RR} = (-D.order,0)
+bandwidths(D::ConcreteIntegral{Taylor{DD,RR}}) where {DD<:Circle,RR} = (D.order,0)
 rangespace(Q::ConcreteIntegral{Hardy{s,DD,RR}}) where {s,DD<:Circle,RR} = Q.space
 
 function getindex(D::ConcreteIntegral{Taylor{DD,RR}},k::Integer,j::Integer) where {DD<:Circle,RR}
@@ -170,7 +170,7 @@ function Integral(S::SubSpace{<:Hardy{false,<:Circle}, <:AbstractInfUnitRange{In
     end
 end
 
-bandinds(D::ConcreteIntegral{<:SubSpace{<:Hardy{false,<:Circle}, <:AbstractInfUnitRange{Int}}}) =
+bandwidths(D::ConcreteIntegral{<:SubSpace{<:Hardy{false,<:Circle}, <:AbstractInfUnitRange{Int}}}) =
     (0,0)
 
 rangespace(D::ConcreteIntegral{<:SubSpace{<:Hardy{false,<:Circle}, <:AbstractInfUnitRange{Int}}}) =
@@ -196,7 +196,7 @@ end
 
 
 
-bandinds(D::ConcreteIntegral{Hardy{false,DD,RR}}) where {DD<:PeriodicInterval,RR} = (0,0)
+bandwidths(D::ConcreteIntegral{Hardy{false,DD,RR}}) where {DD<:PeriodicInterval,RR} = (0,0)
 rangespace(D::ConcreteIntegral{Taylor{DD,RR}}) where {DD<:PeriodicInterval,RR} = D.space
 
 
@@ -214,7 +214,7 @@ end
 
 
 
-bandinds(D::ConcreteIntegral{<:SubSpace{Taylor{DD,RR},<:AbstractInfUnitRange{Int},DD,RR}}) where {RR,DD<:PeriodicInterval} =
+bandwidths(D::ConcreteIntegral{<:SubSpace{Taylor{DD,RR},<:AbstractInfUnitRange{Int},DD,RR}}) where {RR,DD<:PeriodicInterval} =
     (0,0)
 rangespace(D::ConcreteIntegral{<:SubSpace{Taylor{DD,RR},<:AbstractInfUnitRange{Int},DD,RR}}) where {RR,DD<:PeriodicInterval} =
     D.space
@@ -272,15 +272,15 @@ getindex(Σ::ConcreteDefiniteLineIntegral{Hardy{false,D,R},T},k::Integer) where 
 getindex(Σ::ConcreteDefiniteLineIntegral{Laurent{D,R},T},k::Integer) where {T,D,R} =
     k == 1 ? convert(T,arclength(domain(Σ))) : zero(T)
 
-bandinds(Σ::ConcreteDefiniteIntegral{Taylor{D,R}}) where {D<:PeriodicInterval,R} = 0,0
-bandinds(Σ::ConcreteDefiniteIntegral{Hardy{false,D,R}}) where {D<:PeriodicInterval,R} = 0,0
-bandinds(Σ::ConcreteDefiniteIntegral{Laurent{D,R}}) where {D<:PeriodicInterval,R} = 0,0
-bandinds(Σ::ConcreteDefiniteIntegral{Taylor{D,R}}) where {D<:Circle,R} = 0,0
-bandinds(Σ::ConcreteDefiniteIntegral{Hardy{false,D,R}}) where {D<:Circle,R} = 0,0
-bandinds(Σ::ConcreteDefiniteIntegral{Laurent{D,R}}) where {D<:Circle,R} = 0,1
-bandinds(Σ::ConcreteDefiniteLineIntegral{Taylor{D,R}}) where {D,R} = 0,0
-bandinds(Σ::ConcreteDefiniteLineIntegral{Hardy{false,D,R}}) where {D,R} = 0,0
-bandinds(Σ::ConcreteDefiniteLineIntegral{Laurent{D,R}}) where {D,R} = 0,0
+bandwidths(Σ::ConcreteDefiniteIntegral{Taylor{D,R}}) where {D<:PeriodicInterval,R} = 0,0
+bandwidths(Σ::ConcreteDefiniteIntegral{Hardy{false,D,R}}) where {D<:PeriodicInterval,R} = 0,0
+bandwidths(Σ::ConcreteDefiniteIntegral{Laurent{D,R}}) where {D<:PeriodicInterval,R} = 0,0
+bandwidths(Σ::ConcreteDefiniteIntegral{Taylor{D,R}}) where {D<:Circle,R} = 0,0
+bandwidths(Σ::ConcreteDefiniteIntegral{Hardy{false,D,R}}) where {D<:Circle,R} = 0,0
+bandwidths(Σ::ConcreteDefiniteIntegral{Laurent{D,R}}) where {D<:Circle,R} = 0,1
+bandwidths(Σ::ConcreteDefiniteLineIntegral{Taylor{D,R}}) where {D,R} = 0,0
+bandwidths(Σ::ConcreteDefiniteLineIntegral{Hardy{false,D,R}}) where {D,R} = 0,0
+bandwidths(Σ::ConcreteDefiniteLineIntegral{Laurent{D,R}}) where {D,R} = 0,0
 
 
 ## reverse orientation

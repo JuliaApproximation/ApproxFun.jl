@@ -18,7 +18,7 @@ using ApproxFun, Random, Test
 
     ⨍ = DefiniteLineIntegral(dom)
     S = domainspace(⨍)
-    @test ApproxFun.blockbandinds(⨍) == (0,0)
+    @test ApproxFun.blockbandwidths(⨍) == (0,0)
 
     f = Fun(S,rand(20))
 
@@ -41,13 +41,13 @@ using ApproxFun, Random, Test
     d = domain(x)
 
     Σ = DefiniteIntegral(d)
-    @test bandinds(Σ) == (0,0)
+    @test bandwidths(Σ) == (0,0)
 
     @test domainspace(Σ) ==
         JacobiWeight{Chebyshev{Segment{Float64}},Segment{Float64},Float64,Float64}(-0.5,-0.5,Chebyshev())
 
     L = I+Σ[exp(x)*w]
-    bandinds(L)
+    testbandedoperator(L)
     usol = sin(2x)
     f = L*usol
 

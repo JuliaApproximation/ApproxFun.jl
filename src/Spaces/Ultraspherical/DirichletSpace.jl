@@ -127,10 +127,10 @@ function getindex(C::ConcreteConversion{ChebyshevDirichlet{2,2,D,R},CC,T},k::Int
 end
 
 
-bandinds(::ConcreteConversion{ChebyshevDirichlet{1,0,D,R},C}) where {D,R,C<:Chebyshev}=0,1
-bandinds(::ConcreteConversion{ChebyshevDirichlet{0,1,D,R},C}) where {D,R,C<:Chebyshev}=0,1
-bandinds(::ConcreteConversion{ChebyshevDirichlet{1,1,D,R},C}) where {D,R,C<:Chebyshev}=0,2
-bandinds(::ConcreteConversion{ChebyshevDirichlet{2,2,D,R},C}) where {D,R,C<:Chebyshev}=0,4
+bandwidths(::ConcreteConversion{ChebyshevDirichlet{1,0,D,R},C}) where {D,R,C<:Chebyshev}=0,1
+bandwidths(::ConcreteConversion{ChebyshevDirichlet{0,1,D,R},C}) where {D,R,C<:Chebyshev}=0,1
+bandwidths(::ConcreteConversion{ChebyshevDirichlet{1,1,D,R},C}) where {D,R,C<:Chebyshev}=0,2
+bandwidths(::ConcreteConversion{ChebyshevDirichlet{2,2,D,R},C}) where {D,R,C<:Chebyshev}=0,4
 
 conversion_rule(b::ChebyshevDirichlet,a::Chebyshev)=b
 
@@ -147,12 +147,12 @@ conversion_rule(b::ChebyshevDirichlet,a::Chebyshev)=b
 ## Evaluation Functional
 
 
-bandinds(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(first)}) where {D,R} = 0,0
-bandinds(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(last)}) where {D,R} = 0,∞
-bandinds(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(first)}) where {D,R} = 0,∞
-bandinds(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(last)}) where {D,R} = 0,0
-bandinds(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(first)}) where {D,R} = 0,1
-bandinds(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(last)}) where {D,R} = 0,1
+bandwidths(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(first)}) where {D,R} = 0,0
+bandwidths(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(last)}) where {D,R} = 0,∞
+bandwidths(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(first)}) where {D,R} = 0,∞
+bandwidths(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D,R},typeof(last)}) where {D,R} = 0,0
+bandwidths(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(first)}) where {D,R} = 0,1
+bandwidths(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D,R},typeof(last)}) where {D,R} = 0,1
 
 function getindex(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D,R},typeof(first)},kr::AbstractRange) where {D,R}
     d = domain(B)

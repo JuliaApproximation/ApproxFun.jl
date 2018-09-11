@@ -62,8 +62,9 @@ end
 
 rangespace(D::ConcreteDerivative{Ultraspherical{LT,DD,RR}}) where {LT,DD<:IntervalOrSegment,RR} =
     Ultraspherical(order(domainspace(D))+D.order,domain(D))
-bandinds(D::ConcreteDerivative{Ultraspherical{LT,DD,RR}}) where {LT,DD<:IntervalOrSegment,RR} = D.order,D.order
-bandinds(D::ConcreteIntegral{Ultraspherical{LT,DD,RR}}) where {LT,DD<:IntervalOrSegment,RR} = -D.order,-D.order
+
+bandwidths(D::ConcreteDerivative{Ultraspherical{LT,DD,RR}}) where {LT,DD<:IntervalOrSegment,RR} = -D.order,D.order
+bandwidths(D::ConcreteIntegral{Ultraspherical{LT,DD,RR}}) where {LT,DD<:IntervalOrSegment,RR} = D.order,-D.order
 Base.stride(D::ConcreteDerivative{Ultraspherical{LT,DD,RR}}) where {LT,DD<:IntervalOrSegment,RR} = D.order
 
 
@@ -200,15 +201,15 @@ function getindex(M::ConcreteConversion{Ultraspherical{LT,DD,RR},Ultraspherical{
 end
 
 
-bandinds(C::ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR}}) where {DD,RR} = 0,2  # order == 1
-bandinds(C::ConcreteConversion{Ultraspherical{Int,DD,RR},Ultraspherical{Int,DD,RR}}) where {DD,RR} = 0,2
+bandwidths(C::ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR}}) where {DD,RR} = 0,2  # order == 1
+bandwidths(C::ConcreteConversion{Ultraspherical{Int,DD,RR},Ultraspherical{Int,DD,RR}}) where {DD,RR} = 0,2
 
-bandinds(C::ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{LT,DD,RR}}) where {LT,DD,RR} =
+bandwidths(C::ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{LT,DD,RR}}) where {LT,DD,RR} =
     0,order(rangespace(C))==1 ? 2 : ∞
-bandinds(C::ConcreteConversion{Ultraspherical{LT,DD,RR},Chebyshev{DD,RR}}) where {LT,DD,RR} =
+bandwidths(C::ConcreteConversion{Ultraspherical{LT,DD,RR},Chebyshev{DD,RR}}) where {LT,DD,RR} =
     0,order(domainspace(C))==1 ? 2 : ∞
 
-bandinds(C::ConcreteConversion{Ultraspherical{LT1,DD,RR},Ultraspherical{LT2,DD,RR}}) where {LT1,LT2,DD,RR} =
+bandwidths(C::ConcreteConversion{Ultraspherical{LT1,DD,RR},Ultraspherical{LT2,DD,RR}}) where {LT1,LT2,DD,RR} =
     0,order(domainspace(C))+1==order(rangespace(C)) ? 2 : ∞
 
 Base.stride(C::ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR}}) where {DD,RR} = 2

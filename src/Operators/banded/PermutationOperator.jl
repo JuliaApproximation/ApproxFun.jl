@@ -17,9 +17,9 @@ rangespace(P::PermutationOperator) = P.rangespace
 convert(::Type{Operator{T}},P::PermutationOperator) where {T} =
     PermutationOperator{T}(P.perm, P.domainspace, P.rangespace)
 
-function bandinds(P::PermutationOperator)
+function bandwidths(P::PermutationOperator)
     dfs=P.perm-(1:length(P.perm))
-    minimum(dfs),maximum(dfs)
+    -minimum(dfs),maximum(dfs)
 end
 
 function getindex(P::PermutationOperator{T},k::Integer,j::Integer) where T
@@ -55,7 +55,7 @@ rangespace(P::NegateEven) = P.rangespace
 convert(::Type{Operator{T}},P::NegateEven) where {T} =
     NegateEven{T}(P.domainspace, P.rangespace)
 
-bandinds(P::NegateEven) = (0,0)
+bandwidths(P::NegateEven) = (0,0)
 
 
 getindex(P::NegateEven{T},k::Integer,j::Integer) where {T} =

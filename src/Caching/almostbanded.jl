@@ -103,47 +103,49 @@ function CachedOperator(io::InterlaceOperator{T,2};padding::Bool=false) where T
 
     # we only support block size 1 for now
     for k in d∞
-        if blocklengths(ds[k]) !== Ones{Bool}(∞)
+        bl = blocklengths(ds[k])
+        if !(bl isa AbstractFill) || getindex_value(bl) ≠ 1
             return default_CachedOperator(io;padding=padding)
         end
     end
     for k in r∞
-        if blocklengths(rs[k]) !== Ones{Bool}(∞)
+        bl = blocklengths(rs[k])
+        if !(bl isa AbstractFill) || getindex_value(bl) ≠ 1
             return default_CachedOperator(io;padding=padding)
         end
     end
 
     l∞,u∞ = 0,0
     for k=1:p,j=1:p
-        l∞=min(l∞,p*bandinds(io.ops[r∞[k],d∞[j]],1)+j-k)
+        l∞=max(l∞,p*bandwidth(io.ops[r∞[k],d∞[j]],1)+k-j)
     end
     for k=1:p,j=1:p
-        u∞=max(u∞,p*bandinds(io.ops[r∞[k],d∞[j]],2)+j-k)
+        u∞=max(u∞,p*bandwidth(io.ops[r∞[k],d∞[j]],2)+j-k)
     end
 
     # now we move everything by the finite rank
     ncols=mapreduce(d->isfinite(d) ? d : 0,+,ddims)
     nbcs=mapreduce(d->isfinite(d) ? d : 0,+,rdims)
     shft=ncols-nbcs
-    l∞,u∞=l∞+shft,u∞+shft
+    l∞,u∞=l∞-shft,u∞+shft
 
-    # iterate through finite rows to find worst case bandinds
+    # iterate through finite rows to find worst case bandwidth
     l,u=l∞,u∞
         for k=1+nbcs+p,j=1:ncols+p
             N,n=ri[k]
             M,m=di[j]
-            l=min(l,bandinds(io.ops[N,M],1)+n-m-k+j)
-            u=max(u,bandinds(io.ops[N,M],2)+n-m-k+j)
+            l=max(l,bandwidth(io.ops[N,M],1)+m-n+k-j)
+            u=max(u,bandwidth(io.ops[N,M],2)+n-m+j-k)
         end
 
 
     # add extra rows for QR
     if padding
-        u-=l
+        u += l
     end
 
     n=1+nbcs+p
-    ret=AlmostBandedMatrix(Zeros{T}(n,n+u),(-l,u),nbcs)
+    ret=AlmostBandedMatrix(Zeros{T}(n,n+u),(l,u),nbcs)
 
     # populate entries and fill functionals
     bcrow=1
