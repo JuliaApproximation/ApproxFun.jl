@@ -28,7 +28,7 @@ end
 
 function checkpoints(d::ProductDomain)
     pts=map(checkpoints,d.domains)
-    ret=Vector{Vec{length(d.domains),mapreduce(eltype,promote_type,d.domains)}}(undef, 0)
+    ret=Vector{Vec{length(d.domains),float(mapreduce(eltype,promote_type,d.domains))}}(undef, 0)
 
     pushappendpts!(ret,(),pts)
     ret

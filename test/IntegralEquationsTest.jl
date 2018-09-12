@@ -1,16 +1,14 @@
-using ApproxFun, Random, Test
+using ApproxFun, IntervalSets, Random, Test
     import ApproxFun: testfunctional, testbandedbelowoperator, testbandedoperator
 
 
 @testset "Integral equations" begin
     @time for S in (Fourier(Circle()),Laurent(Circle()),Taylor(Circle()),
                 CosSpace(Circle()),JacobiWeight(-0.5,-0.5,Chebyshev()),
-                JacobiWeight(-0.5,-0.5,Chebyshev(1.0..2.0+im)),
-                JacobiWeight(0.5,0.5,Ultraspherical(1,1.0..2.0+im)))
+                JacobiWeight(-0.5,-0.5,Chebyshev(Segment(1.0,2.0+im))),
+                JacobiWeight(0.5,0.5,Ultraspherical(1,Segment(1.0,2.0+im))))
         testfunctional(DefiniteLineIntegral(S))
     end
-
-
 
     # checks bug for
     dom = Segment(-1.0,1) ∪ Segment(1.0+im,1+2im) ∪ Segment(-2.0+im,-1+2im)
@@ -28,10 +26,6 @@ using ApproxFun, Random, Test
 
     @test ⨍*f ≈ linesum(f)
 
-
-
-
-
     #The first test checks the solution of the integral equation
     # u(x) + \int_{-1}^{+1} \frac{e^{y} u(y)}{\sqrt{1-y^2}} dy = f
     # on the interval -1..1.
@@ -44,7 +38,7 @@ using ApproxFun, Random, Test
     @test bandwidths(Σ) == (0,0)
 
     @test domainspace(Σ) ==
-        JacobiWeight{Chebyshev{Segment{Float64}},Segment{Float64},Float64,Float64}(-0.5,-0.5,Chebyshev())
+        JacobiWeight{Chebyshev{ChebyshevInterval{Float64}},ChebyshevInterval{Float64},Float64,Float64}(-0.5,-0.5,Chebyshev())
 
     L = I+Σ[exp(x)*w]
     testbandedoperator(L)
@@ -68,7 +62,7 @@ using ApproxFun, Random, Test
     Σ = DefiniteIntegral(.5,.5,d)
 
     @test domainspace(Σ) ==
-        JacobiWeight{Ultraspherical{Int,Segment{Float64}},Segment{Float64},Float64,Float64}(.5,.5,Ultraspherical(1,d))
+        JacobiWeight{Ultraspherical{Int,ClosedInterval{Int},Float64},ClosedInterval{Float64},Float64,Float64}(.5,.5,Ultraspherical(1,d))
 
     K = LowRankFun((x,y)->sin(y-x)*w(y),Ultraspherical(1,d),domainspace(Σ))
 
@@ -100,8 +94,8 @@ using ApproxFun, Random, Test
     ## test over arcs
 
 
-    d=exp(im*Interval(0.1,0.2))
-    x=Fun(d)
+    d = exp(im*Segment(0.1,0.2))
+    x = Fun(d)
     @time w=1/(sqrt(abs(first(d)-x))*sqrt(abs(last(d)-x)))
 
     @test linesum(w) ≈ DefiniteLineIntegral()*w
@@ -173,7 +167,7 @@ using ApproxFun, Random, Test
 
     # definite integral
 
-    dom = Domain(0..1) ∪ Domain(2..3)
+    dom = ApproxFun.UnionDomain(0..1, 2..3)
     ⨍ = DefiniteLineIntegral(union(JacobiWeight.(-0.5,-0.5,ChebyshevDirichlet{1,1}.(components(dom)))...))
 
     x = Fun(dom)

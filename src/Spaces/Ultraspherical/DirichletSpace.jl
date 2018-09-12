@@ -14,7 +14,7 @@ for TYP in (:Number,:AbstractArray,:Vec,:Fun)
         evaluate(Fun(Fun(S,f),canonicalspace(S)),x)
 end
 ChebyshevDirichlet{l,r}() where {l,r} =
-    ChebyshevDirichlet{l,r,Segment{Float64},Float64}()
+    ChebyshevDirichlet{l,r,ChebyshevInterval{Float64},Float64}()
 ChebyshevDirichlet{l,r}(d::Domain) where {l,r} =
     ChebyshevDirichlet{l,r,typeof(d),real(prectype(d))}(d)
 

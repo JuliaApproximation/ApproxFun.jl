@@ -1,4 +1,4 @@
-using ApproxFun, Domains, SpecialFunctions, Test
+using ApproxFun, SpecialFunctions, Test
     import ApproxFun: Multiplication, testraggedbelowoperator, testbandedoperator, interlace, ∞
 
 @testset "ODE" begin

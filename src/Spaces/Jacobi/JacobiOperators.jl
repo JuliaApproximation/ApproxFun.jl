@@ -41,11 +41,11 @@ function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(first)},kr::AbstractRan
         jacobip(T,kr-1,a,b,-one(T))
     elseif op.order == 1&&  b==0
         d=domain(op)
-        @assert isa(d,Segment)
+        @assert isa(d,IntervalOrSegment)
         T[tocanonicalD(d,leftendpoint(d))/2*(a+k)*(k-1)*(-1)^k for k=kr]
     elseif op.order == 1
         d=domain(op)
-        @assert isa(d,Segment)
+        @assert isa(d,IntervalOrSegment)
         if kr[1]==1 && kr[end] ≥ 2
             tocanonicalD(d,leftendpoint(d))*(a+b+kr).*T[zero(T);jacobip(T,0:kr[end]-2,1+a,1+b,-one(T))]/2
         elseif kr[1]==1  # kr[end] ≤ 1
@@ -55,7 +55,7 @@ function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(first)},kr::AbstractRan
         end
     elseif op.order == 2
         @assert b==0
-        @assert domain(op) == Segment()
+        @assert domain(op) == ChebyshevInterval()
         T[-0.125*(a+k)*(a+k+1)*(k-2)*(k-1)*(-1)^k for k=kr]
     else
         error("Not implemented")
@@ -74,7 +74,7 @@ function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(last)},kr::AbstractRang
         jacobip(T,kr.-1,a,b,one(T))
     elseif op.order == 1
         d=domain(op)
-        @assert isa(d,Segment)
+        @assert isa(d,IntervalOrSegment)
         if kr[1]==1 && kr[end] ≥ 2
             tocanonicalD(d,leftendpoint(d))*((a+b).+kr).*T[zero(T);jacobip(T,0:kr[end]-2,1+a,1+b,one(T))]/2
         elseif kr[1]==1  # kr[end] ≤ 1
@@ -157,8 +157,8 @@ end
 
 ## Volterra Integral operator
 
-Volterra(d::Segment) = Volterra(Legendre(d))
-function Volterra(S::Jacobi,order::Integer)
+Volterra(d::IntervalOrSegment) = Volterra(Legendre(d))
+function Volterra(S::Jacobi, order::Integer)
     @assert S.a == S.b == 0.0
     @assert order==1
     ConcreteVolterra(S,order)
@@ -188,9 +188,9 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
     ConcFunc = Meta.parse("Concrete"*string(Func))
 
     @eval begin
-        $Func(S::Jacobi{<:Segment}) = $ConcFunc(S)
+        $Func(S::Jacobi{<:IntervalOrSegment}) = $ConcFunc(S)
 
-        function getindex(Σ::$ConcFunc{Jacobi{D,R},T},k::Integer) where {D<:Segment,R,T}
+        function getindex(Σ::$ConcFunc{Jacobi{D,R},T},k::Integer) where {D<:IntervalOrSegment,R,T}
             dsp = domainspace(Σ)
 
             if dsp.b == dsp.a == 0
@@ -202,7 +202,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
         end
 
 
-        function getindex(Σ::$ConcFunc{JacobiWeight{Jacobi{D,R},D,R,TT},T},k::Integer) where {D<:Segment,R,T,TT}
+        function getindex(Σ::$ConcFunc{JacobiWeight{Jacobi{D,R},D,R,TT},T},k::Integer) where {D<:IntervalOrSegment,R,T,TT}
             dsp = domainspace(Σ)
 
             if dsp.β == dsp.space.b && dsp.α == dsp.space.a
@@ -213,7 +213,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             end
         end
 
-        function bandwidths(Σ::$ConcFunc{JacobiWeight{Jacobi{D,R},D,R,TT}}) where {D<:Segment,R,TT}
+        function bandwidths(Σ::$ConcFunc{JacobiWeight{Jacobi{D,R},D,R,TT}}) where {D<:IntervalOrSegment,R,TT}
             β,α = domainspace(Σ).β,domainspace(Σ).α
             if domainspace(Σ).β == domainspace(Σ).space.b && domainspace(Σ).α == domainspace(Σ).space.a
                 0,0  # first entry
@@ -222,7 +222,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             end
         end
 
-        function bandwidths(Σ::$ConcFunc{Jacobi{D,R}}) where {D<:Segment,R}
+        function bandwidths(Σ::$ConcFunc{Jacobi{D,R}}) where {D<:IntervalOrSegment,R}
             if domainspace(Σ).b == domainspace(Σ).a == 0
                 0,0  # first entry
             else

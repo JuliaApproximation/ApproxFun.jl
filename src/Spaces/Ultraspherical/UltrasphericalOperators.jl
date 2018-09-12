@@ -201,19 +201,19 @@ function getindex(M::ConcreteConversion{Ultraspherical{LT,DD,RR},Ultraspherical{
 end
 
 
-bandwidths(C::ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR}}) where {DD,RR} = 0,2  # order == 1
-bandwidths(C::ConcreteConversion{Ultraspherical{Int,DD,RR},Ultraspherical{Int,DD,RR}}) where {DD,RR} = 0,2
+bandwidths(C::ConcreteConversion{<:Chebyshev,<:Ultraspherical{Int}}) = 0,2  # order == 1
+bandwidths(C::ConcreteConversion{<:Ultraspherical{Int},<:Ultraspherical{Int}}) = 0,2
 
-bandwidths(C::ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{LT,DD,RR}}) where {LT,DD,RR} =
+bandwidths(C::ConcreteConversion{<:Chebyshev,<:Ultraspherical}) =
     0,order(rangespace(C))==1 ? 2 : ∞
-bandwidths(C::ConcreteConversion{Ultraspherical{LT,DD,RR},Chebyshev{DD,RR}}) where {LT,DD,RR} =
+bandwidths(C::ConcreteConversion{<:Ultraspherical,<:Chebyshev}) =
     0,order(domainspace(C))==1 ? 2 : ∞
 
-bandwidths(C::ConcreteConversion{Ultraspherical{LT1,DD,RR},Ultraspherical{LT2,DD,RR}}) where {LT1,LT2,DD,RR} =
+bandwidths(C::ConcreteConversion{<:Ultraspherical,<:Ultraspherical}) =
     0,order(domainspace(C))+1==order(rangespace(C)) ? 2 : ∞
 
-Base.stride(C::ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR}}) where {DD,RR} = 2
-Base.stride(C::ConcreteConversion{Ultraspherical{LT1,DD,RR},Ultraspherical{LT2,DD,RR}}) where {LT1,LT2,DD,RR} = 2
+Base.stride(C::ConcreteConversion{<:Chebyshev,<:Ultraspherical{Int}}) = 2
+Base.stride(C::ConcreteConversion{<:Ultraspherical,<:Ultraspherical}) = 2
 
 
 ## coefficients

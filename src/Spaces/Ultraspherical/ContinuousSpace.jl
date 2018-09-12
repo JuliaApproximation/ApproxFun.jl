@@ -89,11 +89,9 @@ function *(P::TransformPlan{T,SS,false},vals::AbstractVector{T}) where {T,SS<:Co
     end
 end
 
-canonicalspace(S::ContinuousSpace) = PiecewiseSpace(map(ChebyshevDirichlet{1,1},components(domain(S))))
-
-
-
-
+components(S::ContinuousSpace) = map(ChebyshevDirichlet{1,1},components(domain(S)))
+canonicalspace(S::ContinuousSpace) = PiecewiseSpace(components(S))
+convert(::Type{PiecewiseSpace}, S::ContinuousSpace) = canonicalspace(S)
 
 blocklengths(C::ContinuousSpace) = Fill(ncomponents(C.domain),∞)
 
@@ -400,3 +398,6 @@ function BlockBandedMatrix(S::SubOperator{T,ConcreteDirichlet{TensorSpace{Tuple{
 
     ret
 end
+
+
+union_rule(A::PiecewiseSpace, B::ContinuousSpace) = union(A, convert(PiecewiseSpace, B))

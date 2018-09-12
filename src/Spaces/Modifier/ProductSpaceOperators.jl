@@ -201,7 +201,7 @@ for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspac
             elseif sort(collect(cs1)) == sort(collect(cs2))
                 # sort S1
                 p=perm(cs1,cs2)
-                $OP($TYP(S1[p]),S2)
+                $OP($TYP(S1[p]),S2sp)
             elseif length(S1) == length(S2) == 2  &&
                     $OP(S1[1],S2[1]) != NoSpace() &&
                     $OP(S1[2],S2[2]) != NoSpace()

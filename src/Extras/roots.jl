@@ -250,7 +250,7 @@ function rootsunit_coeffs(c::Vector{T}, htol::Float64,clplan::ClenshawPlan{S,T})
 end
 
 
-extremal_args(f::Fun{S}) where {S<:PiecewiseSpace} = cat(1,[extremal_args(fp) for fp in components(f)]...)
+extremal_args(f::Fun{S}) where {S<:Union{PiecewiseSpace,ContinuousSpace}} = cat(1,[extremal_args(fp) for fp in components(f)]...)
 
 
 function extremal_args(f::Fun)
@@ -291,7 +291,11 @@ for op in (:(maximum),:(minimum))
         end
         $op(f::Fun{PiecewiseSpace{SV,DD,RR},T}) where {SV,DD<:UnionDomain,RR<:Real,T<:Real} =
             $op(map($op,components(f)))
+        $op(f::Fun{ContinuousSpace{T,R},T}) where {T<:Real,R<:Real} =
+            $op(map($op,components(f)))
         $op(::typeof(abs), f::Fun{PiecewiseSpace{SV,DD,RR},T}) where {SV,DD<:UnionDomain,RR<:Real,T<:Real} =
+            $op(abs, map(g -> $op(abs, g),components(f)))
+        $op(::typeof(abs), f::Fun{ContinuousSpace{T,R},T}) where {T<:Real,R<:Real} =
             $op(abs, map(g -> $op(abs, g),components(f)))
     end
 end
@@ -299,6 +303,8 @@ end
 
 
 extrema(f::Fun{PiecewiseSpace{SV,DD,RR},T}) where {SV,DD<:UnionDomain,RR<:Real,T<:Real} =
+    mapreduce(extrema,(x,y)->extrema([x...;y...]),components(f))
+extrema(f::Fun{ContinuousSpace{T,R},T}) where {T<:Real,R<:Real} =
     mapreduce(extrema,(x,y)->extrema([x...;y...]),components(f))
 
 
@@ -416,7 +422,7 @@ end
 
 roots(f::Fun{Fourier{D,R}}) where {D,R} = roots(Fun(f,Laurent))
 
-function roots(f::Fun{P}) where P<:PiecewiseSpace
+function roots(f::Fun{P}) where P<:Union{PiecewiseSpace, ContinuousSpace}
     rts=mapreduce(roots,vcat,components(f))
     k=1
     while k < length(rts)

@@ -51,6 +51,7 @@ convert(::Type{Segment},::AnyDomain) = AnySegment()
 ## Information
 @inline leftendpoint(d::Segment) = d.a
 @inline rightendpoint(d::Segment) = d.b
+@inline endpoints(d::Segment) = d.a, d.b
 
 @inline minimum(d::Segment) = min(leftendpoint(d),rightendpoint(d))
 @inline maximum(d::Segment) = max(leftendpoint(d),rightendpoint(d))

@@ -26,6 +26,8 @@ end
 
 ==(a::PiecewiseSegment,b::PiecewiseSegment) = a.points==b.points
 
+indomain(x, d::PiecewiseSegment) = any(in.(x, components(d)))
+
 
 canonicaldomain(d::PiecewiseSegment)=d
 ncomponents(d::PiecewiseSegment)=length(d.points)-1

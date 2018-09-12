@@ -297,7 +297,7 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
         testbandedblockbandedoperator(rDr)
     end
     @testset "Cheby * Interval" begin
-        d = Interval()^2
+        d = ChebyshevInterval()^2
         x,y = Fun(∂(d))
 
 

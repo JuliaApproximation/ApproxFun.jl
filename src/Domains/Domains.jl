@@ -32,19 +32,29 @@ convert(::Type{Space},d::ClosedInterval) = Space(Domain(d))
 
 #issubset between domains
 
-issubset(a::PeriodicInterval,b::Segment) = Segment(endpoints(a)...)⊆b
-issubset(a::Segment,b::PeriodicInterval) = PeriodicInterval(endpoints(a)...)⊆b
-issubset(a::Segment{T},b::PiecewiseSegment{T}) where {T<:Real} =
+issubset(a::PeriodicInterval, b::IntervalOrSegment) = Segment(endpoints(a)...)⊆b
+issubset(a::IntervalOrSegment, b::PeriodicInterval) = PeriodicInterval(endpoints(a)...)⊆b
+issubset(a::IntervalOrSegment{T}, b::PiecewiseSegment{T}) where {T<:Real} =
     a⊆Segment(first(b.points),last(b.points))
-issubset(a::Segment,b::Line) = first(a)∈b && last(a)∈b
+issubset(a::IntervalOrSegment, b::Line) = first(a)∈b && last(a)∈b
+issubset(a::Ray{angle}, b::Line{angle}) where angle = first(a) ∈ b
+issubset(a::Ray{true}, b::Line{false}) = true
+issubset(a::Ray{false}, b::Line{true}) = true
 
 
-function intersect(a::Segment,b::Line)
+
+function intersect(a::Union{Interval,Segment,Ray},b::Line)
     @assert a ⊆ b
     a
 end
 
-intersect(b::Line,a::Segment) = intersect(a,b)
+function union(a::Union{Interval,Segment,Ray},b::Line)
+    @assert a ⊆ b
+    b
+end
+
+intersect(b::Line,a::Union{Interval,Segment,Ray}) = intersect(a,b)
+union(b::Line,a::Union{Interval,Segment,Ray}) = union(a,b)
 
 
 function setdiff(b::Line,a::Segment)

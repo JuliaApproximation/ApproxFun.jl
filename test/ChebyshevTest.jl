@@ -42,7 +42,7 @@ using ApproxFun, LinearAlgebra, Test
     end
 
     @testset "Algebra" begin
-        ef = Fun(exp,Interval())
+        ef = Fun(exp,ChebyshevInterval())
 
         @test ef == -(-ef)
         @test ef == (ef-1) + 1

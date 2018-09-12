@@ -1,5 +1,23 @@
 ## abs
-splitmap(g,d::Domain,pts) = Fun(g,d \ Set(pts))
+splitmap(g,d::Domain,pts) = Fun(g,split(d , pts))
+
+function split(d::IntervalOrSegment, pts)
+    a,b = endpoints(d)
+    isendpoint = true
+    for p in pts
+        if !(p ≈ a) && !(p ≈ b)
+            isendpoint = false
+            break
+        end
+    end
+    isendpoint && return d
+
+    @assert all(in.(pts, Ref(d)))
+    PiecewiseSegment(sort!(union(endpoints(d), pts)))
+end
+
+
+split(d::SegmentDomain, pts) = d
 
 
 function splitatroots(f::Fun)
@@ -15,6 +33,7 @@ function abs(f::Fun{S,T}) where {S<:RealUnivariateSpace,T<:Real}
 end
 
 function abs(f::Fun)
+
     d=domain(f)
 
     pts = iszero(f) ? cfstype(f)[] : roots(f)
@@ -29,8 +48,7 @@ end
 
 
 midpoints(d::Segment) = [mean(d)]
-midpoints(d::UnionDomain) = mapreduce(midpoints,vcat,d.domains)
-
+midpoints(d::Union{UnionDomain,PiecewiseSegment}) = mapreduce(midpoints,vcat,components(d))
 
 for OP in (:sign,:angle)
     @eval function $OP(f::Fun{S,T}) where {S<:RealUnivariateSpace,T<:Real}
@@ -41,9 +59,9 @@ for OP in (:sign,:angle)
         if isempty(pts)
             $OP(first(f))*one(f)
         else
-            d = d \ Set(pts)
+            d = split(d , pts)
             midpts = midpoints(d)
-            Fun(d, $OP.(f.(midpts)))
+            Fun(UnionDomain(components(d)), $OP.(f.(midpts)))
         end
     end
 end
@@ -97,7 +115,7 @@ end
 scaleshiftdomain(f::Fun,sc,sh) = setdomain(f,sc*domain(f)+sh)
 
 /(c::Number,f::Fun{Ultraspherical{λ,DD,RR}}) where {λ,DD,RR} = c/Fun(f,Chebyshev(domain(f)))
-/(c::Number,f::Fun{Jacobi{DD,RR}}) where {DD,RR} = c/Fun(f,Chebyshev(domain(f)))
+/(c::Number,f::Fun{<:PolynomialSpace{<:IntervalOrSegment}}) = c/Fun(f,Chebyshev(domain(f)))
 
 /(c::Number,f::Fun{C}) where {C<:Chebyshev}=setdomain(c/setcanonicaldomain(f),domain(f))
 function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:IntervalOrSegment,RR}
@@ -264,6 +282,8 @@ function log(f::Fun{US}) where US<:Union{Ultraspherical,Chebyshev}
         setdomain(g,domain(f))
     end
 end
+
+log(f::Fun{<:PolynomialSpace{<:IntervalOrSegment}}) = log(Fun(f, Chebyshev))
 
 
 function log(f::Fun{Fourier{D,R},T}) where {T<:Real,D,R}
@@ -627,17 +647,20 @@ end
 ## PIecewiseSpace
 # map over components
 
-/(c::Number,f::Fun{S}) where {S<:PiecewiseSpace} = Fun(map(f->c/f,components(f)),PiecewiseSpace)
-^(f::Fun{S},c::Integer) where {S<:PiecewiseSpace} = Fun(map(f->f^c,components(f)),PiecewiseSpace)
-^(f::Fun{S},c::Number) where {S<:PiecewiseSpace} = Fun(map(f->f^c,components(f)),PiecewiseSpace)
+/(c::Number,f::Fun{S}) where {S<:Union{PiecewiseSpace,ContinuousSpace}} = Fun(map(f->c/f,components(f)),PiecewiseSpace)
+^(f::Fun{S},c::Integer) where {S<:Union{PiecewiseSpace,ContinuousSpace}} = Fun(map(f->f^c,components(f)),PiecewiseSpace)
+^(f::Fun{S},c::Number) where {S<:Union{PiecewiseSpace,ContinuousSpace}} = Fun(map(f->f^c,components(f)),PiecewiseSpace)
 
 
 
 for OP in (:abs,:sign,:log,:angle)
     @eval begin
-        $OP(f::Fun{PiecewiseSpace{S,DD,RR},T}) where {S,DD,RR<:Real,T<:Real} =
+        $OP(f::Fun{<:PiecewiseSpace{<:Any,<:Any,<:Real},<:Real}) =
             Fun(map($OP,components(f)),PiecewiseSpace)
-        $OP(f::Fun{PiecewiseSpace{S,DD,RR}}) where {S,DD<:UnivariateDomain,RR} = Fun(map($OP,components(f)),PiecewiseSpace)
+        $OP(f::Fun{<:ContinuousSpace{<:Any,<:Real},<:Real}) =
+            Fun(map($OP,components(f)),PiecewiseSpace)
+        $OP(f::Fun{<:PiecewiseSpace{<:Any,<:UnivariateDomain}}) =
+            Fun(map($OP,components(f)),PiecewiseSpace)
     end
 end
 
@@ -649,7 +672,7 @@ function jumplocations(f::Fun)
 end
 
 # Return the locations of jump discontinuities
-function jumplocations(f::Fun{S}) where{S<:PiecewiseSpace}
+function jumplocations(f::Fun{S}) where{S<:Union{PiecewiseSpace,ContinuousSpace}}
     d = domain(f)
 
     if ncomponents(d) < 2

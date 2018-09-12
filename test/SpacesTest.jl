@@ -9,8 +9,11 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
         @test Fun(exp,ChebyshevDirichlet{1,1})(.1) ≈ exp(.1)
         @test Fun(Fun(exp,ChebyshevDirichlet{1,1}),Ultraspherical(1))(.1) ≈ exp(.1)
 
-        d=ChebyshevInterval()
-        sp=ChebyshevDirichlet{1,1}(d)
+        @test domain(ChebyshevDirichlet{1,1}()) === ChebyshevInterval()
+        @test Fun(Fun(exp,ChebyshevDirichlet{1,1}(Segment(-1,1))),Ultraspherical(1))(.1) ≈ exp(.1)
+
+        d = ChebyshevInterval()
+        sp = ChebyshevDirichlet{1,1}(d)
         B=Dirichlet(sp)
         D=Derivative(d)
         L=D^2+I

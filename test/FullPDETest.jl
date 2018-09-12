@@ -405,7 +405,7 @@ import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, testbandedblockband
     end
 
     @testset "Check resizing" begin
-        d=Interval()^2
+        d=ChebyshevInterval()^2
         A=[Dirichlet(d);Laplacian()+100I]
         QR = qr(A)
         @time ApproxFun.resizedata!(QR.R_cache,:,2000)

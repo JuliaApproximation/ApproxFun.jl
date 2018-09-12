@@ -30,7 +30,7 @@ order(S::Ultraspherical) = S.order
 setdomain(S::Ultraspherical,d::Domain) = Ultraspherical(order(S),d)
 
 
-
+convert(::Type{Ultraspherical{T,D,R}}, S::Ultraspherical{T,D,R}) where {T,D,R} = S
 
 
 canonicalspace(S::Ultraspherical) = Chebyshev(domain(S))

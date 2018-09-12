@@ -201,7 +201,7 @@ end
 
 #Left multiplication. Here, S is considered the domainspace and we determine rangespace accordingly.
 
-function Multiplication(f::Fun{JacobiWeight{S1,DD,RR,TT},T},S::JacobiWeight{S2,DD,RR}) where {S1,S2,DD<:IntervalOrSegment,RR,T,TT}
+function Multiplication(f::Fun{<:JacobiWeight},S::JacobiWeight)
     M=Multiplication(Fun(space(f).space,f.coefficients),S.space)
     if space(f).β+S.β==space(f).α+S.α==0
         rsp=rangespace(M)
@@ -211,13 +211,13 @@ function Multiplication(f::Fun{JacobiWeight{S1,DD,RR,TT},T},S::JacobiWeight{S2,D
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
 end
 
-function Multiplication(f::Fun{D,T}, S::JacobiWeight{SS,DD}) where {D,T,SS,DD<:IntervalOrSegment}
+function Multiplication(f::Fun, S::JacobiWeight)
     M=Multiplication(f,S.space)
     rsp=JacobiWeight(S.β,S.α,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
 end
 
-function Multiplication(f::Fun{JacobiWeight{SS,ID,RR,TT},T},S::PolynomialSpace{ID}) where {SS,T,ID<:IntervalOrSegment,RR,TT}
+function Multiplication(f::Fun{<:JacobiWeight},S::PolynomialSpace)
     M=Multiplication(Fun(space(f).space,f.coefficients),S)
     rsp=JacobiWeight(space(f).β,space(f).α,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
@@ -225,13 +225,13 @@ end
 
 #Right multiplication. Here, S is considered the rangespace and we determine domainspace accordingly.
 
-function Multiplication(S::JacobiWeight{SS,DD,RR},f::Fun{JacobiWeight{S2,DD,RR,TT},T}) where {DD<:IntervalOrSegment,RR,SS,S2,T,TT}
+function Multiplication(S::JacobiWeight, f::Fun{<:JacobiWeight})
     M=Multiplication(Fun(space(f).space,f.coefficients),S.space)
     dsp=canonicalspace(JacobiWeight(S.β-space(f).β,S.α-space(f).α,rangespace(M)))
     MultiplicationWrapper(f,SpaceOperator(M,dsp,S))
 end
 
-function Multiplication(S::JacobiWeight{SS,DD},f::Fun{D,T}) where {D,SS,DD<:IntervalOrSegment,T}
+function Multiplication(S::JacobiWeight, f::Fun)
     M=Multiplication(f,S.space)
     dsp=JacobiWeight(S.β,S.α,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,dsp,S))
@@ -291,7 +291,7 @@ conversion_rule(A::JacobiWeight,B::Space{D}) where {D<:IntervalOrSegment} = conv
 
 
 # override defaultConversion instead of Conversion to avoid ambiguity errors
-function defaultConversion(A::JacobiWeight{<:Any,<:IntervalOrSegment},B::JacobiWeight{<:Any,<:IntervalOrSegment})
+function defaultConversion(A::JacobiWeight{<:Any,<:IntervalOrSegmentDomain},B::JacobiWeight{<:Any,<:IntervalOrSegmentDomain})
     @assert isapproxinteger(A.β-B.β) && isapproxinteger(A.α-B.α)
 
     if isapprox(A.β,B.β) && isapprox(A.α,B.α)
@@ -320,11 +320,11 @@ function defaultConversion(A::JacobiWeight{<:Any,<:IntervalOrSegment},B::JacobiW
     end
 end
 
-defaultConversion(A::Space{<:IntervalOrSegment,<:Real},B::JacobiWeight{<:Any,<:IntervalOrSegment}) =
+defaultConversion(A::Space{<:IntervalOrSegmentDomain,<:Real},B::JacobiWeight{<:Any,<:IntervalOrSegmentDomain}) =
     ConversionWrapper(SpaceOperator(
         Conversion(JacobiWeight(0,0,A),B),
         A,B))
-defaultConversion(A::JacobiWeight{<:Any,<:IntervalOrSegment},B::Space{<:IntervalOrSegment,<:Real}) =
+defaultConversion(A::JacobiWeight{<:Any,<:IntervalOrSegmentDomain},B::Space{<:IntervalOrSegmentDomain,<:Real}) =
     ConversionWrapper(SpaceOperator(
         Conversion(A,JacobiWeight(0,0,B)),
         A,B))

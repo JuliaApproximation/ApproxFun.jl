@@ -103,7 +103,7 @@ using ApproxFun, IntervalSets, SpecialFunctions, LinearAlgebra, Random, Test
             @test ≈(sum(Fun(sech,0..Inf)),sum(Fun(sech,0..40));atol=1000000eps())
             @test Line() ∪ Ray() == Line()
             @test Line() ∩ Ray() == Ray()
-            Space(Ray())
+
             f=Fun(sech,Line())
             Fun(f,Ray())(2.0) ≈ sech(2.0)
             Fun(f,Ray(0.,π))(-2.0) ≈ sech(-2.0)
@@ -160,7 +160,7 @@ using ApproxFun, IntervalSets, SpecialFunctions, LinearAlgebra, Random, Test
     end
 
     @testset "Complex domains sqrt" begin
-        a=1+10*im;b=2-6*im
+        a=1+10*im; b=2-6*im
         d=Curve(Fun(x->1+a*x+b*x^2))
 
         x=Fun(d)
@@ -250,6 +250,7 @@ using ApproxFun, IntervalSets, SpecialFunctions, LinearAlgebra, Random, Test
 
     @testset "Multiple roots" begin
         x=Fun(identity,-1..1)
+
         @test (1/x^2)(0.1) ≈ 100.
         @test (1/x^2)(-0.1) ≈ 100.
 
@@ -267,23 +268,31 @@ using ApproxFun, IntervalSets, SpecialFunctions, LinearAlgebra, Random, Test
 
         ## roots of log(abs(x-y))
         x=Fun(-2..(-1))
+        @test space(abs(x)) == Chebyshev(-2 .. (-1))
+
         @test roots(abs(x+1.2)) ≈ [-1.2]
 
+        f = sign(x+1.2)
+        @test space(f) isa PiecewiseSpace
+        @test f(-1.4) == -1
+        @test f(-1.1) == 1
+
         f=abs(x+1.2)
-
+        @test abs(f)(-1.3) ≈ f(-1.3)
+        @test abs(f)(-1.1) ≈ f(-1.1)
         @test norm(abs(f)-f)<10eps()
-        @test norm(sign(f)-Fun(1,space(f)))<10eps()
 
+        @test norm(sign(f)-Fun(1,space(f)))<10eps()
 
         @test log(f)(-1.3) ≈ log(abs(-1.3+1.2))
         @test log(f)(-1.1) ≈ log(abs(-1.1+1.2))
+    end
 
-        #393
-        x=Fun(0..1)
+    @testset "#393" begin
+        x = Fun(0..1)
         f = exp(x)*sqrt(x)*log(1-x)
         @test f(0.1) ≈ exp(0.1)*sqrt(0.1)*log(1-0.1)
     end
-
 
     @testset "Jacobi conversions" begin
         S1,S2=JacobiWeight(3.,1.,Jacobi(1.,1.)),JacobiWeight(1.,1.,Jacobi(0.,1.))
