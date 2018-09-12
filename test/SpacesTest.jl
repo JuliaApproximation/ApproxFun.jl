@@ -57,67 +57,96 @@ sc=Fun(x -> abs(sin(x))+abs(cos(x)), UnionDomain(-2..(-π/2), (-π/2)..0, 0..(π
 
 intersect(0..1 , 2..2.5)
 a,b = domain(ApproxFun.canonicalspace(c)),domain(ApproxFun.canonicalspace(s))
-merge(a,b)
-d1, m = (a,component(b,1))
-    m
-    ret=d1.domains
-    k=length(ret)
-        global ret, m
-        @show k, ret[k], m
-        it=intersect(ret[k],m)
-        @show it
-        if arclength(it) ≠ 0
-            sa=setdiff(ret[k],it)
-            m=setdiff(m,it)
-            if arclength(sa) == 0
-                ret = [ret[1:k-1]...; it; ret[k+1:end]...]
-            else
-                ret = [ret[1:k-1]...; sa; it; ret[k+1:end]...]
-            end
-            if arclength(m) == 0
-                # break
-            end
-        end
-        k -= 1
-        @show k, ret[k], m
-        it=intersect(ret[k],m)
-        @show it
-        if arclength(it) ≠ 0
-            sa=setdiff(ret[k],it)
-            m=setdiff(m,it)
-            if arclength(sa) == 0
-                ret = [ret[1:k-1]...; it; ret[k+1:end]...]
-            else
-                ret = [ret[1:k-1]...; sa; it; ret[k+1:end]...]
-            end
-            if arclength(m) == 0
-                # break
-            end
-        end
-        k -= 1
-        @show k, ret[k], m
-        d1,d2 = (ret[k], m)
-        (intersect.(Ref(d1), d2.domains))
-it=intersect(ret[k],m)
-    # @show it
-        # if arclength(it) ≠ 0
-        #     sa=setdiff(ret[k],it)
-        #     m=setdiff(m,it)
-        #     if arclength(sa) == 0
-        #         ret = [ret[1:k-1]...; it; ret[k+1:end]...]
-        #     else
-        #         ret = [ret[1:k-1]...; sa; it; ret[k+1:end]...]
-        #     end
-        #     if arclength(m) == 0
-        #         # break
-        #     end
-        # end
 
-    # end
+    d1, m = (a,component(b,1))
+    T = float(promote_type(eltype(d1), eltype(m)))
+    ret=d1.domains
+
+    for k=length(ret):-1:1
+        global ret,m
+        it=intersect(ret[k],m)
+        @show it
+        if arclength(it) ≠ 0
+            sa=setdiff(ret[k],it)
+            @show m, it
+            m=setdiff(m,it)
+            @show m
+            if arclength(sa) ≤ 10eps(T)
+                ret = [ret[1:k-1]...; it; ret[k+1:end]...]
+            else
+                ret = [ret[1:k-1]...; sa; it; ret[k+1:end]...]
+            end
+            if arclength(m) ≤ 10eps(T)
+                break
+            end
+        end
+    end
+    if !isempty(m)
+        ret = [ret...; m]
+    end
+
+    UnionDomain(sort!(ret,by=first))
+ret=d1.domains
+
+    k=3
+        global ret,m
+        it=intersect(ret[k],m)
+        if arclength(it) ≠ 0
+            sa=setdiff(ret[k],it)
+            m=setdiff(m,it)
+            if arclength(sa) ≤ eps(T)
+                ret = [ret[1:k-1]...; it; ret[k+1:end]...]
+            else
+                ret = [ret[1:k-1]...; sa; it; ret[k+1:end]...]
+            end
+            if arclength(m) == 0
+                # break
+            end
+        end
+        k=2
+            global ret,m
+            it=intersect(ret[k],m)
+            if arclength(it) ≤ eps()
+                sa=setdiff(ret[k],it)
+                m=setdiff(m,it)
+                if arclength(sa) ≤ eps(T)
+                    ret = [ret[1:k-1]...; it; ret[k+1:end]...]
+                else
+                    ret = [ret[1:k-1]...; sa; it; ret[k+1:end]...]
+                end
+                if arclength(m) == 0
+                    # break
+                end
+            end
+        ret
+        k=1
+            global ret,m
+            it=intersect(ret[k],m)
+            if arclength(it) ≤ eps()
+                sa=setdiff(ret[k],it)
+                m=setdiff(m,it)
+                if arclength(sa) ≤ eps(T)
+                    ret = [ret[1:k-1]...; it; ret[k+1:end]...]
+                else
+                    ret = [ret[1:k-1]...; sa; it; ret[k+1:end]...]
+                end
+                if arclength(m) == 0
+                    # break
+                end
+            end
+        ret
+# end
+arclength(m.domains[2]) < eps()
 if !isempty(m)
     ret = [ret...; m]
 end
 
+UnionDomain(sort!(ret,by=first))
+
+
+d1
+
+length(ret)
 UnionDomain(sort!(ret,by=first))
 
 
