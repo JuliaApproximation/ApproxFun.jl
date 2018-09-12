@@ -50,6 +50,11 @@ convert(::Type{Domain{T}}, ::AnyDomain) where T = Domain(T)
 
 union(::AnyDomain, d::Domain) = d
 union(d::Domain, ::AnyDomain) = d
+
+union(::EmptyDomain, ::EmptyDomain) = EmptyDomain()
+union(::EmptyDomain, a::Domain) = a
+union(a::Domain, ::EmptyDomain) = a
+
 ##General routines
 
 

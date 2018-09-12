@@ -59,8 +59,7 @@ end
 
 
 rand(d::PiecewiseSegment) = rand(d[rand(1:ncomponents(d))])
-checkpoints(d::PiecewiseSegment{T}) where {T} =
-    mapreduce(checkpoints,union,components(d))::Vector{T}
+checkpoints(d::PiecewiseSegment{T}) where {T} = mapreduce(checkpoints,union,components(d))
 
 for OP in (:(first),:(last))
     @eval $OP(d::PiecewiseSegment) = $OP(d.points)

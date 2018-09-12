@@ -16,6 +16,10 @@ function split(d::IntervalOrSegment, pts)
     PiecewiseSegment(sort!(union(endpoints(d), pts)))
 end
 
+function split(d::PiecewiseSegment, pts)
+    @assert all(in.(pts, Ref(d)))
+    PiecewiseSegment(sort!(union(d.points, pts)))
+end
 
 split(d::SegmentDomain, pts) = d
 

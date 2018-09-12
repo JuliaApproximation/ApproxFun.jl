@@ -1,4 +1,4 @@
-using ApproxFun, SpecialFunctions, LinearAlgebra, Test
+using ApproxFun, SpecialFunctions, LinearAlgebra, Domains, Test
     import ApproxFun: ChebyshevDirichlet, Ultraspherical, PiecewiseSegment, ContinuousSpace, space,
                         testspace, testbandedoperator, testraggedbelowoperator, testcalculus, testtransforms
 
@@ -26,42 +26,113 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
         @test norm(([B;L]\[[1.,0],0])-([Dirichlet(d);L]\[[1.,0],0])) <10eps()
     end
 
-    @testset "PiecewiseSpace" begin
-        x=Fun(identity,Domain(-1..1) \ 0)
-        sp=space(x)
-        testtransforms(sp;minpoints=2)
+@testset "PiecewiseSpace" begin
+x = Fun(identity,UnionDomain(-1..0, 0..1))
+sp=space(x)
+testtransforms(sp;minpoints=2)
 
-        D=Derivative(sp)
-        testbandedoperator(D)
+D = Derivative(sp)
+testbandedoperator(D)
 
-        B=[Dirichlet(sp);continuity(sp,0:1)]
-        u=[B;
-            D^2]\Any[[1,0],zeros(2),0];
-        u2=[Dirichlet();Derivative(Chebyshev())^2]\[[1.,0],0]
-        @test u(0.) ≈ u2(0.)
+B = [Dirichlet(sp); continuity(sp,0:1)]
+u = [B; D^2] \ [[1,0],zeros(2),0];
+u2 = [Dirichlet();Derivative(Chebyshev())^2] \ [[1.,0],0]
+@test u(0.) ≈ u2(0.)
 
-        x=Fun(identity,Domain(-10..15) \ [0,1])
-        sp=space(x)
-        D=Derivative(sp)
-        B=Dirichlet(sp)
+x = Fun(identity, UnionDomain(-10..0, 0..1, 1..15))
+sp=space(x)
+D=Derivative(sp)
+B=Dirichlet(sp)
 
-        u=[B;
-            continuity(sp,0:1);
-            D^2-x]\[[airyai(-10.),0],zeros(4),0];
+u=[B;
+    continuity(sp,0:1);
+    D^2-x]\[[airyai(-10.),0],zeros(4),0];
 
-        @test u(0.) ≈ airyai(0.)
+@test u(0.) ≈ airyai(0.)
 
-        s=Fun(sin,-2..2)|>abs
-        c=Fun(cos,-2..2)|>abs
-        sc=Fun(x->abs(sin(x))+abs(cos(x)),Domain(-2..2) \ [-π/2,0,π/2])
-        @test norm(sc-(c+s))<100eps()
-    end
+s=Fun(sin,-2..2)|>abs
+c=Fun(cos,-2..2)|>abs
+sc=Fun(x -> abs(sin(x))+abs(cos(x)), UnionDomain(-2..(-π/2), (-π/2)..0, 0..(π/2), (π/2)..2))
+@test norm(sc-(c+s))<100eps()
 
-    @testset "max/min creates breakpoints" begin
-        x=Fun()
-        g=4*(x-0.2)
-        f=max(-1,g)
-        f2=min(f,1)
+intersect(0..1 , 2..2.5)
+a,b = domain(ApproxFun.canonicalspace(c)),domain(ApproxFun.canonicalspace(s))
+merge(a,b)
+d1, m = (a,component(b,1))
+    m
+    ret=d1.domains
+    k=length(ret)
+        global ret, m
+        @show k, ret[k], m
+        it=intersect(ret[k],m)
+        @show it
+        if arclength(it) ≠ 0
+            sa=setdiff(ret[k],it)
+            m=setdiff(m,it)
+            if arclength(sa) == 0
+                ret = [ret[1:k-1]...; it; ret[k+1:end]...]
+            else
+                ret = [ret[1:k-1]...; sa; it; ret[k+1:end]...]
+            end
+            if arclength(m) == 0
+                # break
+            end
+        end
+        k -= 1
+        @show k, ret[k], m
+        it=intersect(ret[k],m)
+        @show it
+        if arclength(it) ≠ 0
+            sa=setdiff(ret[k],it)
+            m=setdiff(m,it)
+            if arclength(sa) == 0
+                ret = [ret[1:k-1]...; it; ret[k+1:end]...]
+            else
+                ret = [ret[1:k-1]...; sa; it; ret[k+1:end]...]
+            end
+            if arclength(m) == 0
+                # break
+            end
+        end
+        k -= 1
+        @show k, ret[k], m
+        d1,d2 = (ret[k], m)
+        (intersect.(Ref(d1), d2.domains))
+it=intersect(ret[k],m)
+    # @show it
+        # if arclength(it) ≠ 0
+        #     sa=setdiff(ret[k],it)
+        #     m=setdiff(m,it)
+        #     if arclength(sa) == 0
+        #         ret = [ret[1:k-1]...; it; ret[k+1:end]...]
+        #     else
+        #         ret = [ret[1:k-1]...; sa; it; ret[k+1:end]...]
+        #     end
+        #     if arclength(m) == 0
+        #         # break
+        #     end
+        # end
+
+    # end
+if !isempty(m)
+    ret = [ret...; m]
+end
+
+UnionDomain(sort!(ret,by=first))
+
+
+component(b,1)
+
+union(space(c), space(s))
+(c+s)
+
+end
+
+@testset "max/min creates breakpoints" begin
+        x = Fun()
+        g = 4*(x-0.2)
+        f = max(-1,g)
+        f2 = min(f,1)
 
         @test norm(max(x,x)-x)<100eps()
         @test norm(min(x,x)-x)<100eps()
@@ -208,10 +279,10 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
     end
 
     @testset "Extending function" begin
-        Γ=Segment(-im,1.0-im) ∪ Curve(Fun(x->exp(0.8im)*(x+x^2-1+im*(x-4x^3+x^4)/6))) ∪ Circle(2.0,0.2)
+        Γ = Segment(-im,1.0-im) ∪ Curve(Fun(x->exp(0.8im)*(x+x^2-1+im*(x-4x^3+x^4)/6))) ∪ Circle(2.0,0.2)
 
         @test isempty(component(Γ,1)\component(Γ,1))
-        @test Γ\component(Γ,1) == component(Γ,2) ∪ component(Γ,3)
+        @test Γ \ component(Γ,1) == component(Γ,2) ∪ component(Γ,3)
 
         @test norm(Fun(ones(component(Γ,1)),Γ) - Fun(x->x ∈ component(Γ,1) ? 1.0 : 0.0,Γ)) == 0
     end

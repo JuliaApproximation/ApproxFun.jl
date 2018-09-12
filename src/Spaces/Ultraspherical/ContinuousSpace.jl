@@ -401,3 +401,4 @@ end
 
 
 union_rule(A::PiecewiseSpace, B::ContinuousSpace) = union(A, convert(PiecewiseSpace, B))
+union_rule(A::ConstantSpace, B::ContinuousSpace) = B

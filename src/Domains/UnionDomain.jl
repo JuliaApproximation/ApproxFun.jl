@@ -46,6 +46,7 @@ checkpoints(d::UnionDomain) = mapreduce(checkpoints,union,d.domains)
 
 ## to move over
 function Base.merge(d1::UnionDomain,m::IntervalOrSegment)
+    T = float(promote_type(eltype(d1), eltype(m)))
     ret=d1.domains
 
     for k=length(ret):-1:1
@@ -53,7 +54,7 @@ function Base.merge(d1::UnionDomain,m::IntervalOrSegment)
         if arclength(it) ≠ 0
             sa=setdiff(ret[k],it)
             m=setdiff(m,it)
-            if arclength(sa) == 0
+            if arclength(sa) ≤ eps(T)
                 ret = [ret[1:k-1]...; it; ret[k+1:end]...]
             else
                 ret = [ret[1:k-1]...; sa; it; ret[k+1:end]...]
