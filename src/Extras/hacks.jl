@@ -70,8 +70,8 @@ end
 
 
 
-## Gets blockbandinds working for SpectralMeasures
+## Gets blockbandwidths working for SpectralMeasures
 
 # TODO: Is this a good definition?
-blockbandinds(T::FiniteOperator{AT,TT,SS1,SS2}) where {AT,TT,SS1<:Union{EuclideanSpace,SequenceSpace},
-              SS2<:Union{EuclideanSpace,SequenceSpace}} = bandinds(T)
+blockbandwidths(T::FiniteOperator{AT,TT,SS1,SS2}) where {AT,TT,SS1<:Union{EuclideanSpace,SequenceSpace},
+              SS2<:Union{EuclideanSpace,SequenceSpace}} = bandwidths(T)

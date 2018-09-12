@@ -97,8 +97,8 @@ function Conversion(a::S,b::SubSpace{S,<:AbstractInfUnitRange{Int}}) where S<:Sp
     ConversionWrapper(SpaceOperator(Operator(I,a),a,b))
 end
 
-bandinds(C::ConcreteConversion{<:SubSpace{<:Any,<:AbstractInfUnitRange{Int}}}) =
-    1-first(domainspace(C).indexes),1-first(domainspace(C).indexes)
+bandwidths(C::ConcreteConversion{<:SubSpace{<:Any,<:AbstractInfUnitRange{Int}}}) =
+    first(domainspace(C).indexes)-1,1-first(domainspace(C).indexes)
 
 getindex(C::ConcreteConversion{<:SubSpace}, k::Integer,j::Integer) =
     domainspace(C).indexes[j]==k ? one(eltype(C)) : zero(eltype(C))

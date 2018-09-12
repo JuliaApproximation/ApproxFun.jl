@@ -75,11 +75,11 @@ function view(A::Operator,kr::InfRanges,jr::InfRanges)
     if isbanded(A) && st==step(jr)  # Otherwise, its not a banded operator
         kr1=first(kr)
         jr1=first(jr)
-        l,u=(bandinds(A,1)+kr1-jr1)÷st,(bandinds(A,2)+kr1-jr1)÷st
+        l,u=(bandwidth(A,1)+jr1-kr1)÷st,(bandwidth(A,2)+kr1-jr1)÷st
     else
-        l,u=-∞,∞
+        l,u=∞,∞
     end
-    SubOperator(A,(kr,jr),size(A),(-l,u))
+    SubOperator(A,(kr,jr),size(A),(l,u))
 end
 
 view(V::SubOperator, kr::AbstractRange, jr::AbstractRange) =
@@ -90,8 +90,8 @@ function view(A::Operator, kr::AbstractRange, jr::AbstractRange)
     if isbanded(A) && st == step(jr)
         kr1=first(kr)
         jr1=first(jr)
-        l,u=(bandinds(A,1)+kr1-jr1)÷st,(bandinds(A,2)+kr1-jr1)÷st
-        SubOperator(A,(kr,jr),(length(kr),length(jr)),(-l,u))
+        l,u=(bandwidth(A,1)+jr1-kr1)÷st,(bandwidth(A,2)+kr1-jr1)÷st
+        SubOperator(A,(kr,jr),(length(kr),length(jr)),(l,u))
     else
         SubOperator(A,(kr,jr))
     end
@@ -101,7 +101,7 @@ end
 function view(A::Operator,kr::UnitRange,jr::UnitRange)
     if isbanded(A)
         shft=first(kr)-first(jr)
-        l,u=bandwidth(A,1)-shft,bandinds(A,2)+shft
+        l,u=bandwidth(A,1)-shft,bandwidth(A,2)+shft
         SubOperator(A,(kr,jr),(length(kr),length(jr)),(l,u))
     else
         SubOperator(A,(kr,jr))
@@ -163,9 +163,7 @@ end
 view(V::SubOperator, kr, jr) = view(V.parent,reindex(V,parentindices(V),(kr,jr))...)
 view(V::SubOperator,kr::InfRanges,jr::InfRanges) = view(V.parent,reindex(V,parentindices(V),(kr,jr))...)
 
-
-bandwidth(S::SubOperator,k::Int) = S.bandwidths[k]
-bandinds(S::SubOperator) = (-bandwidth(S,1),bandwidth(S,2))
+bandwidths(S::SubOperator) = S.bandwidths
 function colstop(S::SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},j::Integer) where {T,OP}
     cs = colstop(parent(S),parentindices(S)[2][j])
     kr = parentindices(S)[1]
@@ -192,26 +190,26 @@ blockcolstop(S::SubOperator{T,OP,Tuple{II,JJ}},J::Integer) where {T,OP,II<:Abstr
 
 israggedbelow(S::SubOperator) = israggedbelow(parent(S))
 
-# since blocks don't change with indexex, neither do blockbandinds
-blockbandinds(S::SubOperator{T,OP,Tuple{II,JJ}}) where {T,OP,II<:AbstractRange{Int},JJ<:AbstractRange{Int}} =
-    blockbandinds(parent(S))
-function blockbandinds(S::SubOperator{T,B,Tuple{BlockRange1,BlockRange1}}) where {T,B}
+# since blocks don't change with indexex, neither do blockbandwidths
+blockbandwidths(S::SubOperator{T,OP,Tuple{II,JJ}}) where {T,OP,II<:AbstractRange{Int},JJ<:AbstractRange{Int}} =
+    blockbandwidths(parent(S))
+function blockbandwidths(S::SubOperator{T,B,Tuple{BlockRange1,BlockRange1}}) where {T,B}
     KR,JR = parentindices(S)
-    l,u = blockbandinds(parent(S))
+    l,u = blockbandwidths(parent(S))
     sh = first(KR).n[1]-first(JR).n[1]
-    l+sh,u+sh
+    l-sh,u+sh
 end
 
 isblockbanded(S::SubOperator{T,B,Tuple{Block,Block}}) where {T,B} = false
 isbanded(S::SubOperator{T,B,Tuple{Block,Block}}) where {T,B} = isbandedblockbanded(parent(S))
-bandinds(S::SubOperator{T,B,Tuple{Block,Block}}) where {T,B} = subblockbandinds(parent(S))
-blockbandinds(S::SubOperator{T,B,Tuple{Block,Block}}) where {T,B} = 0,0
+bandwidths(S::SubOperator{T,B,Tuple{Block,Block}}) where {T,B} = subblockbandwidths(parent(S))
+blockbandwidths(S::SubOperator{T,B,Tuple{Block,Block}}) where {T,B} = 0,0
 
 function BandedBlockBandedMatrix(::Type{Zeros}, S::SubOperator)
     kr,jr=parentindices(S)
     KO=parent(S)
-    l,u=blockbandinds(KO)
-    λ,μ=subblockbandinds(KO)
+    l,u=blockbandwidths(KO)
+    λ,μ=subblockbandwidths(KO)
 
     rt=rangespace(KO)
     dt=domainspace(KO)
@@ -228,7 +226,7 @@ function BandedBlockBandedMatrix(::Type{Zeros}, S::SubOperator)
     rows,cols = blocklengths(rangespace(S)), blocklengths(domainspace(S))
 
     BandedBlockBandedMatrix(Zeros{eltype(KO)}(sum(rows),sum(cols)),
-                                (rows,cols), (-l,u), (-λ+jsh,μ+ksh))
+                                (rows,cols), (l,u), (λ-jsh,μ+ksh))
 end
 
 function BandedBlockBandedMatrix(::Type{Zeros}, S::SubOperator{T,B,Tuple{BlockRange1,BlockRange1}}) where {T,B}

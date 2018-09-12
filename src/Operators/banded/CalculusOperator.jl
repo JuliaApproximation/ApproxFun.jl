@@ -94,7 +94,7 @@ macro calculus_operator(Op)
             end
         end
     end)
-#     for func in (:rangespace,:domainspace,:bandinds)
+#     for func in (:rangespace,:domainspace,:bandwidths)
 #         # We assume the operator wrapped has the correct spaces
 #         @eval $func(D::$WrappOp)=$func(D.op)
 #     end

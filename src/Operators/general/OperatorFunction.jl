@@ -12,7 +12,7 @@ ConcreteOperatorFunction(op::Operator,f::Function) =
     ConcreteOperatorFunction{typeof(op),typeof(f),eltype(op)}(op,f)
 OperatorFunction(op::Operator,f::Function) = ConcreteOperatorFunction(op,f)
 
-for op in (:domainspace,:rangespace,:domain,:bandinds)
+for op in (:domainspace,:rangespace,:domain,:bandwidths)
     @eval begin
         $op(OF::ConcreteOperatorFunction) = $op(OF.op)
     end

@@ -18,7 +18,7 @@ rangespace(P::TransposeOperator)=domainspace(P.op)
 
 domain(P::TransposeOperator)=domain(P.op)
 
-bandinds(P::TransposeOperator)=-bandinds(P.op)[end],-bandinds(P.op)[1]
+bandwidths(P::TransposeOperator) = reverse(bandwidths(P.op))
 
 
 getindex(P::TransposeOperator,k::Integer,j::Integer) =

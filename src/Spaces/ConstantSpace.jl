@@ -118,8 +118,8 @@ Conversion(a::ConstantSpace,b::Space{D}) where {D<:BivariateDomain} = ConcreteCo
         promote_type(real(prectype(a)),real(prectype(b)))}(a,b)
 
 Conversion(a::ConstantSpace,b::Space) = ConcreteConversion(a,b)
-bandinds(C::ConcreteConversion{CS,S}) where {CS<:ConstantSpace,S<:Space} =
-    1-ncoefficients(ones(rangespace(C))),0
+bandwidths(C::ConcreteConversion{CS,S}) where {CS<:ConstantSpace,S<:Space} =
+    ncoefficients(ones(rangespace(C)))-1,0
 function getindex(C::ConcreteConversion{CS,S,T},k::Integer,j::Integer) where {CS<:ConstantSpace,S<:Space,T}
     if j != 1
         throw(BoundsError())
@@ -159,7 +159,7 @@ defaultMultiplication(f::Fun{CS},b::Space) where {CS<:ConstantSpace} =
     ConcreteMultiplication(f,b)
 defaultMultiplication(f::Fun,b::ConstantSpace) = ConcreteMultiplication(f,b)
 
-bandinds(D::ConcreteMultiplication{CS1,CS2,T}) where {CS1<:ConstantSpace,CS2<:ConstantSpace,T} =
+bandwidths(D::ConcreteMultiplication{CS1,CS2,T}) where {CS1<:ConstantSpace,CS2<:ConstantSpace,T} =
     0,0
 getindex(D::ConcreteMultiplication{CS1,CS2,T},k::Integer,j::Integer) where {CS1<:ConstantSpace,CS2<:ConstantSpace,T} =
     k==j==1 ? convert(T,D.f.coefficients[1]) : one(T)
@@ -170,17 +170,17 @@ rangespace(D::ConcreteMultiplication{CS1,CS2,T}) where {CS1<:ConstantSpace,CS2<:
 
 rangespace(D::ConcreteMultiplication{F,UnsetSpace,T}) where {F<:ConstantSpace,T} =
     UnsetSpace()
-bandinds(D::ConcreteMultiplication{F,UnsetSpace,T}) where {F<:ConstantSpace,T} =
-    (-∞,∞)
+bandwidths(D::ConcreteMultiplication{F,UnsetSpace,T}) where {F<:ConstantSpace,T} =
+    (∞,∞)
 getindex(D::ConcreteMultiplication{F,UnsetSpace,T},k::Integer,j::Integer) where {F<:ConstantSpace,T} =
     error("No range space attached to Multiplication")
 
 
 
-bandinds(D::ConcreteMultiplication{CS,F,T}) where {CS<:ConstantSpace,F<:Space,T} = 0,0
-blockbandinds(D::ConcreteMultiplication{CS,F,T}) where {CS<:ConstantSpace,F<:Space,T} = 0,0
-subblockbandinds(D::ConcreteMultiplication{CS,F,T}) where {CS<:ConstantSpace,F<:Space,T} = 0,0
-subblockbandinds(D::ConcreteMultiplication{CS,F,T}, k) where {CS<:ConstantSpace,F<:Space,T} = 0
+bandwidths(D::ConcreteMultiplication{CS,F,T}) where {CS<:ConstantSpace,F<:Space,T} = 0,0
+blockbandwidths(D::ConcreteMultiplication{CS,F,T}) where {CS<:ConstantSpace,F<:Space,T} = 0,0
+subblockbandwidths(D::ConcreteMultiplication{CS,F,T}) where {CS<:ConstantSpace,F<:Space,T} = 0,0
+subblockbandwidths(D::ConcreteMultiplication{CS,F,T}, k) where {CS<:ConstantSpace,F<:Space,T} = 0
 isbandedblockbanded(D::ConcreteMultiplication{CS,F,T}) where {CS<:ConstantSpace,F<:Space,T} = true
 isblockbanded(D::ConcreteMultiplication{CS,F,T}) where {CS<:ConstantSpace,F<:Space,T} = true
 getindex(D::ConcreteMultiplication{CS,F,T},k::Integer,j::Integer) where {CS<:ConstantSpace,F<:Space,T} =
@@ -188,7 +188,7 @@ getindex(D::ConcreteMultiplication{CS,F,T},k::Integer,j::Integer) where {CS<:Con
 rangespace(D::ConcreteMultiplication{CS,F,T}) where {CS<:ConstantSpace,F<:Space,T} = D.space
 
 
-bandinds(D::ConcreteMultiplication{F,CS,T}) where {CS<:ConstantSpace,F<:Space,T} = 1-ncoefficients(D.f),0
+bandwidths(D::ConcreteMultiplication{F,CS,T}) where {CS<:ConstantSpace,F<:Space,T} = ncoefficients(D.f)-1,0
 function getindex(D::ConcreteMultiplication{F,CS,T},k::Integer,j::Integer) where {CS<:ConstantSpace,F<:Space,T}
     k≤ncoefficients(D.f) && j==1 ? convert(T,D.f.coefficients[k]) : zero(T)
 end

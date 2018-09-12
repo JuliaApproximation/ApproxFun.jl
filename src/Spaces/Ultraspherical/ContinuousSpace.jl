@@ -131,9 +131,9 @@ Conversion(cs::ContinuousSpace,ps::PiecewiseSpace{CD,DD,RR}) where {CD<:Tuple{Va
                 ConcreteConversion(cs,ps)
 
 
-bandinds(C::ConcreteConversion{PiecewiseSpace{CD,DD,RR},CS}) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1,DDD,RRR}}},
+bandwidths(C::ConcreteConversion{PiecewiseSpace{CD,DD,RR},CS}) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1,DDD,RRR}}},
                                                                                     DD,RR<:Real,CS<:ContinuousSpace} where {DDD,RRR} =
-    -1,ncomponents(domain(rangespace(C)))
+    1,ncomponents(domain(rangespace(C)))
 
 
 function getindex(C::ConcreteConversion{PiecewiseSpace{CD,DD,RR},CS,T},
@@ -169,11 +169,11 @@ function getindex(C::ConcreteConversion{PiecewiseSpace{CD,DD,RR},CS,T},
 end
 
 
-bandinds(C::ConcreteConversion{<:ContinuousSpace,
+bandwidths(C::ConcreteConversion{<:ContinuousSpace,
                                      PiecewiseSpace{CD,DD,RR}}) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1,DDD,RRR}}},
                                               DD,RR<:Real}  where {DDD,RRR} =
-            isperiodic(domainspace(C)) ? (1-2ncomponents(domain(rangespace(C))),1) :
-                                         (-ncomponents(domain(rangespace(C))),1)
+            isperiodic(domainspace(C)) ? (2ncomponents(domain(rangespace(C)))-1,1) :
+                                         (ncomponents(domain(rangespace(C))),1)
 
 function getindex(C::ConcreteConversion{<:ContinuousSpace,
                                             PiecewiseSpace{CD,DD,RR},T},
@@ -227,7 +227,7 @@ Dirichlet(d::ProductDomain{Tuple{Segment{T},Segment{T}}}) where {T<:Real} =
 isblockbanded(::Dirichlet{TensorSpace{Tuple{CD,CD},DD,RR}}) where {CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR} =
     true
 
-blockbandinds(::Dirichlet{TensorSpace{Tuple{CD,CD},DD,RR}}) where {CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR} =
+blockbandwidths(::Dirichlet{TensorSpace{Tuple{CD,CD},DD,RR}}) where {CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR} =
     (0,2)
 
 colstop(B::Dirichlet{TensorSpace{Tuple{CD,CD},DD,RR}},j::Integer) where {CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR} =

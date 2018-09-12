@@ -8,9 +8,9 @@ abstract type BidiagonalOperator{T} <: TridiagonalOperator{T} end
 abstract type DiagonalOperator{T} <: BidiagonalOperator{T} end
 # override getindex
 
-bandinds(::TridiagonalOperator)=-1,1
-bandinds(::BidiagonalOperator)=0,1
-bandinds(::DiagonalOperator)=0,0
+bandwidths(::TridiagonalOperator)=1,1
+bandwidths(::BidiagonalOperator)=0,1
+bandwidths(::DiagonalOperator)=0,0
 
 
 
