@@ -154,11 +154,7 @@ function rangespace(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR,TT
 end
 
 for TYP in (:ConcreteLeftIntegral,:ConcreteRightIntegral)
-<<<<<<< HEAD
-    @eval bandinds(Q::$TYP{JacobiWeight{Jacobi{DD,RR},DD,RR,TT},Float64}) where {DD<:IntervalOrSegment,RR,TT} = (0,0)
-=======
-    @eval bandwidths(Q::$TYP{JacobiWeight{Jacobi{DD,RR},DD,RR,TT},Float64}) where {DD<:Segment,RR,TT} = (0,0)
->>>>>>> cbb8c4d8f537b6a9e501e3959c1b4d0ce5f33b84
+    @eval bandwidths(Q::$TYP{JacobiWeight{Jacobi{DD,RR},DD,RR,TT},Float64}) where {DD<:IntervalOrSegment,RR,TT} = (0,0)
 end
 
 getindex(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{DD,RR},DD,RR,TT},Float64},k::Integer,j::Integer) where {DD<:IntervalOrSegment,RR,TT} =

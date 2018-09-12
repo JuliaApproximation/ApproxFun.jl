@@ -285,7 +285,7 @@ function union_rule(A::SumSpace, B::Space)
     end
 end
 
-union_rule(A::SumSpace{<:Any,<:PeriodicInterval}, B::Space{<:IntervalDomain}) =
+union_rule(A::SumSpace{<:Any,<:PeriodicInterval}, B::Space{<:IntervalOrSegment}) =
     union(Space(Interval(domain(A))), B)
 
 
