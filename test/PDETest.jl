@@ -6,36 +6,35 @@ using ApproxFun, LinearAlgebra, Test
         S = JacobiWeight(1.,1.,Jacobi(1.,1.))^2
         Δ = Laplacian(S)
 
-
         testbandedblockbandedoperator(Δ)
 
         u = Fun((x,y)->sin(π*x)*sin(π*y),S)
         f = -2π^2*u
 
-
-        QR=qr(Δ)
-        ApproxFun.resizedata!(QR,:,1000)
-        @time v=QR\f
+        F = qr(Δ)
+        ApproxFun.resizedata!(F,:,1000)
+        @time v=F\f
         @test norm((u-v).coefficients)<100eps()
 
 
-        QR=qr(Δ)
-        ApproxFun.resizedata!(QR.R_cache,:,100)
-        ApproxFun.resizedata!(QR.R_cache,:,1000)
-        @time v=QR\f
+        F=qr(Δ)
+        ApproxFun.resizedata!(F.R_cache,:,100)
+        ApproxFun.resizedata!(F.R_cache,:,1000)
+        @time v=F \ f
         @test norm((u-v).coefficients)<100eps()
 
-        QR=qr(Δ)
-        @time v=QR\f
+        F=qr(Δ)
+        @time v=F\f
         @test norm((u-v).coefficients)<100eps()
     end
 
     @testset "Rectangle Laplace/Poisson" begin
-        dx=dy=ChebyshevInterval()
-        d=dx*dy
-        g=Fun((x,y)->exp(x)*cos(y),∂(d))
+        dx = dy = ChebyshevInterval()
+        d = dx × dy
+        g = Fun((x,y)->exp(x)*cos(y),∂(d))
 
-        B=Dirichlet(d)
+        B = Dirichlet(d)
+
         testblockbandedoperator(B)
         testbandedblockbandedoperator(Laplacian(d)+0.0I)
 
@@ -54,7 +53,7 @@ using ApproxFun, LinearAlgebra, Test
 
     @testset "Bilaplacian" begin
         dx = dy = ChebyshevInterval()
-        d = dx*dy
+        d = dx × dy
         Dx = Derivative(dx); Dy = Derivative(dy)
         L = Dx^4⊗I + 2*Dx^2⊗Dy^2 + I⊗Dy^4
 
@@ -76,7 +75,7 @@ using ApproxFun, LinearAlgebra, Test
     end
 
     @testset "Periodic x Interval" begin
-        d=PeriodicInterval()*ChebyshevInterval()
+        d=PeriodicSegment() × ChebyshevInterval()
 
         u_ex=Fun((x,y)->real(cos(x+im*y)),d)
         @test u_ex(1.0,0.1) ≈ real(cos(1.0+im*0.1)) atol=10eps()
@@ -101,20 +100,22 @@ using ApproxFun, LinearAlgebra, Test
         testbandedblockbandedoperator(C)
         testbandedblockbandedoperator(Operator{ComplexF64}(C))
 
+        d = dx × dt
 
-        d=dx*dt
+        x,y = Fun(d)
+        @test x(0.1,0.0001) ≈ 0.1
+        @test y(0.1,0.0001) ≈ 0.0001
 
-        x,y=Fun(d)
-        V=x^2
+        V = x^2
 
         Dt=Derivative(d,[0,1]);Dx=Derivative(d,[1,0])
 
-        ϵ=1.
-        u0=Fun(x->exp(-100*(x-.5)^2)*exp(-1/(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
-        L=ϵ*Dt+(.5im*ϵ^2*Dx^2)
+        ϵ = 1.
+        u0 = Fun(x->exp(-100*(x-.5)^2)*exp(-1/(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
+        L = ϵ*Dt+(.5im*ϵ^2*Dx^2)
         testbandedblockbandedoperator(L)
 
-        @time u=\([timedirichlet(d);L],[u0,[0.,0.],0.];tolerance=1E-5)
+        @time u = \([timedirichlet(d);L],[u0,[0.,0.],0.];tolerance=1E-5)
         @test u(0.5,0.001) ≈ 0.857215539785593+0.08694948835021317im  # empircal from ≈ schurfact
     end
 end

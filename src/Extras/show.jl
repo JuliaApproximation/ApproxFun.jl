@@ -27,7 +27,7 @@ function show(io::IO,d::Ray)
     end
 end
 
-show(io::IO,d::PeriodicInterval) = print(io,"【$(leftendpoint(d)),$(rightendpoint(d))❫")
+show(io::IO,d::PeriodicSegment) = print(io,"【$(leftendpoint(d)),$(rightendpoint(d))❫")
 show(io::IO,d::Circle) =
     print(io,(d.radius==1 ? "" : string(d.radius))*
                     (d.orientation ? "🕒" : "🕞")*

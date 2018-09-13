@@ -529,7 +529,7 @@ import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, testbandedblockband
 
 
 
-    d=PeriodicInterval()^2
+    d=PeriodicSegment()^2
     S=Space(d)
 
 
@@ -548,7 +548,7 @@ import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, testbandedblockband
     ## Test periodic x interval
 
 
-    dθ=PeriodicInterval(-π,π);dt=Interval(0,1.)
+    dθ=PeriodicSegment(-π,π);dt=Interval(0,1.)
     d=dθ×dt
     ε=0.1
     Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
@@ -560,7 +560,7 @@ import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, testbandedblockband
 
 <<<<<<< HEAD
     # Transport equation
-    dθ=PeriodicInterval(-2.,2.);dt=Interval(0,1.)
+    dθ=PeriodicSegment(-2.,2.);dt=Interval(0,1.)
     d=dθ×dt
     Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
     u0=Fun(θ->exp(-20θ^2),dθ)
@@ -572,7 +572,7 @@ import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, testbandedblockband
 
 
     # Transport equation
-    dθ=PeriodicInterval(-2.,2.);dt=Interval(0,1.)
+    dθ=PeriodicSegment(-2.,2.);dt=Interval(0,1.)
     d=dθ*dt
     Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
     u0=Fun(θ->exp(-20θ^2),dθ)
@@ -623,10 +623,10 @@ x,t=Fun(dx×dt)
     println("    Periodic tests")
 
 <<<<<<< HEAD
-d=PeriodicInterval()×ChebyshevInterval()
+d=PeriodicSegment()×ChebyshevInterval()
 g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
 =======
-    d=PeriodicInterval(-π,π)^2
+    d=PeriodicSegment(-π,π)^2
     f=Fun((θ,ϕ)->exp(-10(sin(θ/2)^2+sin(ϕ/2)^2)),d)
     A=Laplacian(d)+.1I
     @time u=A\f
@@ -634,7 +634,7 @@ g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
 >>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
 
 
-    d=PeriodicInterval()*ChebyshevInterval()
+    d=PeriodicSegment()*ChebyshevInterval()
     g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
 
     @test g(0.1,1.0) ≈ real(cos(0.1+im))
@@ -653,7 +653,7 @@ g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
     @test ApproxFun.default_Fun(v[1] , b[1])(0.1,1.0) ≈ v(0.1,1.0)[1]
 =======
     @testset "Periodic Poisson" begin
-        d=PeriodicInterval()^2
+        d=PeriodicSegment()^2
         S=Space(d)
 >>>>>>> 0492575c44dad31e566938556f419a3e1ea04b5d
 
@@ -666,7 +666,7 @@ g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
     end
 
     @testset "Periodic x Interval" begin
-        dθ=PeriodicInterval(-π,π);dt=Interval(0,1.)
+        dθ=PeriodicSegment(-π,π);dt=Interval(0,1.)
         d=dθ*dt
         ε=0.1
         Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
@@ -680,7 +680,7 @@ g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
 
 
         # Transport equation
-        dθ=PeriodicInterval(-2.,2.);dt=Interval(0,1.)
+        dθ=PeriodicSegment(-2.,2.);dt=Interval(0,1.)
         d=dθ*dt
         Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
         u0=Fun(θ->exp(-20θ^2),dθ)
@@ -689,7 +689,7 @@ g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
 
 <<<<<<< HEAD
 <<<<<<< HEAD
-dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
+dθ=PeriodicSegment(-2.,2.);dt=Interval(0,3.)
 d=dt×dθ
 Dt=Derivative(d,[1,0]);Dθ=Derivative(d,[0,1])
 A=[ldirichlet(dt)⊗I;Dt+Dθ]
@@ -731,14 +731,14 @@ testbandedblockbandedoperator(A.ops[2])
     end
 
     @testset "Periodic" begin
-        d=PeriodicInterval(-π,π)^2
+        d=PeriodicSegment(-π,π)^2
         f=Fun((θ,ϕ)->exp(-10(sin(θ/2)^2+sin(ϕ/2)^2)),d)
         A=Laplacian(d)+.1I
         @time u=A\f
         @test u(.1,.2) ≈ u(.2,.1)
 
 
-        d=PeriodicInterval()*Interval()
+        d=PeriodicSegment()*Interval()
         g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
 
         @test g(0.1,1.0) ≈ real(cos(0.1+im))
@@ -749,7 +749,7 @@ testbandedblockbandedoperator(A.ops[2])
 
 <<<<<<< HEAD
 <<<<<<< HEAD
-dθ=PeriodicInterval(0.0,1.0);dt=Interval(0,0.01)
+dθ=PeriodicSegment(0.0,1.0);dt=Interval(0,0.01)
 d=dθ×dt
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1]);
 =======
@@ -796,7 +796,7 @@ Bx=[ldirichlet(s);continuity(s,0)]
     @test u(.1,.9) ≈ 0.03679861429138079
 >>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
 =======
-        dθ=PeriodicInterval(-2.,2.);dt=Interval(0,1.)
+        dθ=PeriodicSegment(-2.,2.);dt=Interval(0,1.)
 >>>>>>> 0492575c44dad31e566938556f419a3e1ea04b5d
 
 
@@ -807,7 +807,7 @@ Bx=[ldirichlet(s);continuity(s,0)]
         @test CO*Fun(exp,dt) ≈ 1.0
 
 
-        dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
+        dθ=PeriodicSegment(-2.,2.);dt=Interval(0,3.)
         d=dt*dθ
         Dt=Derivative(d,[1,0]);Dθ=Derivative(d,[0,1])
         A=[ldirichlet(dt)⊗I;Dt+Dθ]
@@ -835,7 +835,7 @@ x,y=Fun(identity,d)
 >>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
 =======
     @testset "Beam" begin
-        dθ=PeriodicInterval(0.0,1.0);dt=Interval(0,0.01)
+        dθ=PeriodicSegment(0.0,1.0);dt=Interval(0,0.01)
         d=dθ*dt
         Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1]);
 >>>>>>> 0492575c44dad31e566938556f419a3e1ea04b5d
@@ -849,7 +849,7 @@ x,y=Fun(identity,d)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
-dθ=PeriodicInterval();dt=Interval(0,1.)
+dθ=PeriodicSegment();dt=Interval(0,1.)
 d=dθ×dt
 ε=0.1
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
@@ -884,7 +884,7 @@ rhs = Fun([0,[0,[0,0]],0],rangespace(A))
 u=\(A,
     [Fun(x->exp(-20(x+0.5)^2),s),[0,[0,0]],0.0];tolerance=1E-2)
 =======
-    dθ=PeriodicInterval();dt=Interval(0,1.)
+    dθ=PeriodicSegment();dt=Interval(0,1.)
     d=dθ*dt
     ε=0.1
     Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
@@ -925,7 +925,7 @@ u=\(A,
         @test u(0.1,0.2) ≈ 0.8745340845783758  # empirical
 
 
-        dθ=PeriodicInterval();dt=Interval(0,1.)
+        dθ=PeriodicSegment();dt=Interval(0,1.)
         d=dθ*dt
         ε=0.1
         Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])

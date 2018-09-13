@@ -36,7 +36,7 @@ checkpoints(d::Disk) = [fromcanonical(d,(.1,.2243));fromcanonical(d,(-.212423,-.
 
 # function points(d::Disk,n,m,k)
 #     ptsx=0.5*(1-gaussjacobi(n,1.,0.)[1])
-#     ptst=points(PeriodicInterval(),m)
+#     ptst=points(PeriodicSegment(),m)
 #
 #     Float64[fromcanonical(d,x,t)[k] for x in ptsx, t in ptst]
 # end

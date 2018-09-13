@@ -3,7 +3,7 @@
 `Domain` is an abstract type whose subtypes represent oriented domains on which
 we wish to approximate functions.  
 Examples include `Interval`, `Ray`, `Line` and `Arc`.  
-Periodic domains include `PeriodicInterval`, `PeriodicLine` and `Circle`.
+Periodic domains include `PeriodicSegment`, `PeriodicLine` and `Circle`.
 
 
 ## Relationship with spaces
@@ -11,7 +11,7 @@ Periodic domains include `PeriodicInterval`, `PeriodicLine` and `Circle`.
 Every domain `d` has a default space, constructed via `Space(d)`.  For example,
 the default space for `ChebyshevInterval()` is `Chebyshev(ChebyshevInterval())`, which is
 efficient for representing smooth functions.  On the other hand, the
-default space for `PeriodicInterval()` is `Fourier(PeriodicInterval())`, which
+default space for `PeriodicSegment()` is `Fourier(PeriodicSegment())`, which
 uses trigonometric polynomials to approximate periodic functions.  
 
 

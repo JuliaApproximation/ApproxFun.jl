@@ -255,7 +255,7 @@ extremal_args(f::Fun{S}) where {S<:Union{PiecewiseSpace,ContinuousSpace}} = cat(
 
 function extremal_args(f::Fun)
     d = domain(f)
-    if isa(d,PeriodicInterval)
+    if isa(d,PeriodicSegment)
         roots(differentiate(f))
     elseif isa(d,PeriodicDomain)  # avoid complex domains
         S=typeof(space(f))
@@ -411,7 +411,7 @@ function roots(f::Fun{Laurent{DD,RR}}) where {DD,RR}
         Complex{Float64}[]
     else
         rts=fromcanonical.(f, tocanonical.(Ref(Circle()), irts))
-        if isa(domain(f),PeriodicInterval)
+        if isa(domain(f),PeriodicSegment)
             sort!(real(rts))  # Make type safe?
         else
             rts

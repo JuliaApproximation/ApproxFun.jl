@@ -1,5 +1,5 @@
 include("Segment.jl")
-include("PeriodicInterval.jl")
+include("PeriodicSegment.jl")
 include("Ray.jl")
 include("Circle.jl")
 include("Line.jl")
@@ -12,7 +12,7 @@ include("Curve.jl")
 include("Point.jl")
 
 
-const AffineDomain = Union{Domains.AbstractInterval,Segment,PeriodicInterval,Ray,Line}
+const AffineDomain = Union{Domains.AbstractInterval,Segment,PeriodicSegment,Ray,Line}
 
 
 # These are needed for spaces to auto-convert [a,b] to Interval
@@ -24,7 +24,7 @@ function convert(::Type{PeriodicDomain},d::ClosedInterval)
     elseif isinf(norm(a)) || isinf(norm(b))
         error("PeriodicRay not implemented")
     else
-        PeriodicInterval(d)
+        PeriodicSegment(d)
     end
 end
 
@@ -32,8 +32,8 @@ convert(::Type{Space},d::ClosedInterval) = Space(Domain(d))
 
 #issubset between domains
 
-issubset(a::PeriodicInterval, b::IntervalOrSegment) = Segment(endpoints(a)...)⊆b
-issubset(a::IntervalOrSegment, b::PeriodicInterval) = PeriodicInterval(endpoints(a)...)⊆b
+issubset(a::PeriodicSegment, b::IntervalOrSegment) = Segment(endpoints(a)...)⊆b
+issubset(a::IntervalOrSegment, b::PeriodicSegment) = PeriodicSegment(endpoints(a)...)⊆b
 issubset(a::IntervalOrSegment{T}, b::PiecewiseSegment{T}) where {T<:Real} =
     a⊆Segment(first(b.points),last(b.points))
 issubset(a::IntervalOrSegment, b::Line) = first(a)∈b && last(a)∈b

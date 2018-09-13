@@ -1,8 +1,8 @@
-using ApproxFun, Test, StaticArrays
+using ApproxFun, Test, StaticArrays, SpecialFunctions
     import ApproxFun: testbandedbelowoperator, testbandedoperator, testspace, testtransforms, Vec,
                         maxspace, NoSpace, hasconversion, testfunctional
 
-# @testset "Jacobi" begin
+@testset "Jacobi" begin
     @testset "Basic" begin
         @test ApproxFun.jacobip(0:5,2,0.5,0.1) ≈ [1.,0.975,-0.28031249999999996,-0.8636328125,-0.0022111816406250743,0.7397117980957031]
 
@@ -200,25 +200,19 @@ using ApproxFun, Test, StaticArrays
         @test fp(-0.1) ≈ exp(-0.1)
     end
 
-
-
     @testset "JacobiWeight cumsum bug Issue #557" begin
-x = Fun(0.0..1.0)
-ν = 2
-@time f = x^(ν/2-1) * exp(-x/2) # 0.05s
-@test cumsum(f)' ≈ f
-@test cumsum(f)(1.0) ≈ 0.7869386805747332 # Mathematic
+        x = Fun(0.0..1.0)
+        ν = 2
+        @time f = x^(ν/2-1) * exp(-x/2) # 0.05s
+        @test cumsum(f)' ≈ f
+        @test cumsum(f)(1.0) ≈ 0.7869386805747332 # Mathematic
 
-x = Fun(Ray())
-ν = 2
-@time f = x^(ν/2-1) * exp(-x/2) # 0.05s
-@test cumsum(f)' ≈ f
-@which integrateå(f)
-cumsum(f)' |> space
-@test cumsum(f)(1.0) ≈ 0.7869386805747332
-3
+        x = Fun(Ray())
+        ν = 2
+        @time f = x^(ν/2-1) * exp(-x/2) # 0.05s
+        @test cumsum(f)' ≈ f
+        @test cumsum(f)(1.0) ≈ 0.7869386805747332
     end
-
 
     @testset "Jacobi–Chebyshev conversion tests" begin
         a,b = (Jacobi(-0.5,-0.5), Legendre())
@@ -232,16 +226,10 @@ cumsum(f)' |> space
         @test !hasconversion(a,b)
     end
 
-    @testset "Definite integral tests" begin
-        B = DefiniteIntegral(WeightedJacobi(0,0))
-        testfunctional(B)
-        @test ApproxFun.rowstop(B,1) == 1
-    end
-
     @testset "WeightedLaguerre cumsum" begin
         α = 2.7
         f = Fun(WeightedLaguerre(α), [1.0]);
-        f = Fun(f, JacobiWeight(α,0,Chebyshev(0.0 .. Inf)));
+        f = Fun(f, JacobiWeight(α,0,Chebyshev(Ray())));
         g = integrate(f)
         g(3.0) - cumsum(Fun(x -> f(x), 0..6))(3.0)
     end
@@ -256,4 +244,4 @@ cumsum(f)' |> space
             B*f == sum(Fun(exp,domain(S)))
         end
     end
-# end
+end

@@ -14,7 +14,7 @@ struct LaurentDirichlet{DD,RR} <: Space{DD,RR}
     LaurentDirichlet{DD,RR}(d::DD) where {DD,RR} = new(d)
 end
 LaurentDirichlet(d::Domain) = LaurentDirichlet{typeof(d),complex(eltype(d))}(d)
-LaurentDirichlet() = LaurentDirichlet(PeriodicInterval())
+LaurentDirichlet() = LaurentDirichlet(PeriodicSegment())
 
 spacescompatible(a::LaurentDirichlet,b::LaurentDirichlet) = domainscompatible(a,b)
 
@@ -91,7 +91,7 @@ struct CosDirichlet{DD,RR} <: Space{DD,RR}
 end
 
 CosDirichlet(d::Domain) = CosDirichlet{typeof(d),real(eltype(d))}(d)
-CosDirichlet() = CosDirichlet(PeriodicInterval())
+CosDirichlet() = CosDirichlet(PeriodicSegment())
 
 spacescompatible(a::CosDirichlet,b::CosDirichlet) = domainscompatible(a,b)
 

@@ -14,5 +14,5 @@ DefiniteIntegral(d::PeriodicDomain) = DefiniteIntegral(Laurent(d))
 DefiniteLineIntegral(d::PeriodicDomain) = DefiniteLineIntegral(Laurent(d))
 
 ## Toeplitz
-union_rule(A::Space{<:PeriodicInterval}, B::Space{<:IntervalOrSegment}) =
+union_rule(A::Space{<:PeriodicSegment}, B::Space{<:IntervalOrSegment}) =
     union(Space(Interval(domain(A))), B)

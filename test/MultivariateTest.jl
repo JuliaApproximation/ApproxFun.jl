@@ -78,12 +78,12 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
 
 
     @testset  "Vec segment" begin
-        d=Segment(Vec(0.,0.) , Vec(1.,1.))
-        x=Fun()
-        @test (width(d)*x/2)(0.1)  ≈ (d.b - d.a)*0.1/2
+        d = Segment(Vec(0.,0.) , Vec(1.,1.))
+        x = Fun()
+        @test (ApproxFun.complexlength(d)*x/2)(0.1)  ≈ (d.b - d.a)*0.1/2
         @test ApproxFun.fromcanonical(d,x)(0.1) ≈ (d.b+d.a)/2 + (d.b - d.a)*0.1/2
 
-        x,y = Fun(Vec(0.,0.) .. Vec(2.,1.))
+        x,y = Fun(Segment(Vec(0.,0.) , Vec(2.,1.)))
         @test x(0.2,0.1) ≈ 0.2
         @test y(0.2,0.1) ≈ 0.1
 
@@ -119,7 +119,7 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
     @testset "Multivariate calculus" begin
         ## Sum
         ff = (x,y) -> (x-y)^2*exp(-x^2/2-y^2/2)
-        f=Fun(ff,Domain(-4..4)^2)
+        f=Fun(ff, (-4..4)^2)
         @test f(0.1,0.2) ≈ ff(0.1,0.2)
 
         @test sum(f,1)(0.1) ≈ 2.5162377980828357
@@ -199,53 +199,12 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
         @test y(1.0,0.2) ≈ 0.2
     end
 
-
     @testset "conversion between" begin
         dx = dy = ChebyshevInterval()
-        d = dx*dy
+        d = dx × dy
         x,y=Fun(d)
         @test x(0.1,0.2) ≈ 0.1
         @test y(0.1,0.2) ≈ 0.2
-
-        x,y = Fun(∂(d))
-        x,y = components(x),components(y)
-
-        g = [real(exp(x[1]-1im));0.0y[2];real(exp(x[3]+1im));real(exp(-1+1im*y[4]))]
-        B = [ eye(dx)⊗ldirichlet(dy);
-             ldirichlet(dx)⊗eye(dy);
-             eye(dx)⊗rdirichlet(dy);
-             rneumann(dx)⊗eye(dy)    ]
-
-
-        @test Fun(g[1],rangespace(B)[1])(-0.1,-1.0) ≈ g[1](-0.1,-1.0)
-        @test Fun(g[3],rangespace(B)[3])(-0.1,1.0)  ≈ g[3](-0.1,1.0)
-
-
-        A = [B; Laplacian()]
-
-
-        @test eltype([g;0.0]) == Float64
-        g2 = Fun([g;0.0],rangespace(A))
-        @test eltype(g2) == Float64
-
-        @test cfstype([g;0.0]) == Float64
-        g2 = Fun([g;0.0],rangespace(A))
-        @test cfstype(g2) == Float64
-
-
-        @test g2[1](-0.1,-1.0) ≈ g[1](-0.1,-1.0)
-        @test g2[3](-0.1,1.0)  ≈ g[3](-0.1,1.0)
-
-
-
-        S=WeightedJacobi(1,1)^2
-        L=Laplacian(S)
-        testbandedblockbandedoperator(L)
-
-        ## Bug in Multiplication
-
-        dom = Interval(0.001, 1) * PeriodicInterval(-pi, pi)
-
 
         x,y = Fun(∂(d))
         x,y = components(x),components(y)
@@ -276,7 +235,7 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
     end
 
     @testset "Bug in Multiplication" begin
-        dom = Interval(0.001, 1) * PeriodicInterval(-pi, pi)
+        dom = Interval(0.001, 1) × PeriodicSegment(-pi, pi)
 
         @test blocklengths(Space(dom)) == 2:2:∞
 
@@ -296,14 +255,13 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
 
         testbandedblockbandedoperator(rDr)
     end
+
     @testset "Cheby * Interval" begin
         d = ChebyshevInterval()^2
         x,y = Fun(∂(d))
 
-
         @test ApproxFun.rangetype(Space(∂(d))) == Float64
         @test ApproxFun.rangetype(space(y)) == Float64
-
 
         @test (im*y)(1.0,0.1) ≈ 0.1im
         @test (x+im*y)(1.0,0.1) ≈ 1+0.1im
@@ -340,7 +298,7 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
         @test coefficients(chop(ProductFun(u),10eps())) == zeros(0,1)
 
 
-        d=Domain(-1..1)^2
+        d= (-1..1)^2
         B=[Dirichlet(factor(d,1))⊗I;I⊗ldirichlet(factor(d,2));I⊗rneumann(factor(d,2))]
         Δ=Laplacian(d)
 
@@ -357,11 +315,11 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
     end
 
     @testset "off domain evaluate" begin
-        g = Fun(1, ApproxFun.Vec(0,-1) .. ApproxFun.Vec(π,-1))
+        g = Fun(1, Segment(Vec(0,-1) , Vec(π,-1)))
         @test g(0.1,-1) ≈ 1
         @test g(0.1,1) ≈ 0
 
-        g = Fun(1, PeriodicInterval(ApproxFun.Vec(0,-1) , ApproxFun.Vec(π,-1)))
+        g = Fun(1, PeriodicSegment(Vec(0,-1) , Vec(π,-1)))
         @test g(0.1,-1) ≈ 1
         @test g(0.1,1) ≈ 0
     end

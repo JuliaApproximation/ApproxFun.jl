@@ -227,11 +227,11 @@ end
 # Dirichlet for Squares
 
 
-Dirichlet(S::TensorSpace{Tuple{ChebyshevDirichlet{1,1,Segment{T},R1},
-                                  ChebyshevDirichlet{1,1,Segment{T},R2}}},k) where {T,R1,R2} =
+Dirichlet(S::TensorSpace{<:Tuple{<:ChebyshevDirichlet{1,1,<:IntervalOrSegment{T},R1},
+                                  <:ChebyshevDirichlet{1,1,<:IntervalOrSegment{T},R2}}},k) where {T,R1,R2} =
     k == 0 ? ConcreteDirichlet(S,0) : tensor_Dirichlet(S,k)
 
-Dirichlet(d::ProductDomain{Tuple{Segment{T},Segment{T}}}) where {T<:Real} =
+Dirichlet(d::ProductDomain{<:Tuple{<:IntervalOrSegment{T},<:IntervalOrSegment{T}}}) where {T<:Real} =
     Dirichlet(ChebyshevDirichlet{1,1}(factor(d,1))*ChebyshevDirichlet{1,1}(factor(d,2)))
 
 isblockbanded(::Dirichlet{TensorSpace{Tuple{CD,CD},DD,RR}}) where {CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR} =

@@ -296,7 +296,7 @@ function log(f::Fun{Fourier{D,R},T}) where {T<:Real,D,R}
     else
         # this makes sure differentiate doesn't
         # make the function complex
-        g=log(setdomain(f,PeriodicInterval()))
+        g=log(setdomain(f,PeriodicSegment()))
         setdomain(g,domain(f))
     end
 end

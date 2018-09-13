@@ -32,9 +32,9 @@ end
     @test 0.45-0.65im ∉ Segment()
 
     @test reverseorientation(Arc(1,2,(0.1,0.2))) == Arc(1,2,(0.2,0.1))
-    @test 0.1 ∈ PeriodicInterval(2π,0)
-    @test 100.0 ∈ PeriodicInterval(0,2π)
-    @test -100.0 ∈ PeriodicInterval(0,2π)
+    @test 0.1 ∈ PeriodicSegment(2π,0)
+    @test 100.0 ∈ PeriodicSegment(0,2π)
+    @test -100.0 ∈ PeriodicSegment(0,2π)
 
 
     @test ApproxFun.AnySegment() == ApproxFun.AnySegment()
@@ -43,7 +43,7 @@ end
     @test -10.0 ∈ PeriodicLine()
     @test -10.0+im ∉ PeriodicLine()
 
-    @test ApproxFun.Vec(0,0.5) ∈ PeriodicInterval(ApproxFun.Vec(0.0,0), ApproxFun.Vec(0,1))
+    @test ApproxFun.Vec(0,0.5) ∈ PeriodicSegment(ApproxFun.Vec(0.0,0), ApproxFun.Vec(0,1))
 
     @test ApproxFun.dimension(Domain{Float64}) == 1
     @test ApproxFun.dimension(Segment{Float64}) == 1

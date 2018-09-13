@@ -1,7 +1,7 @@
 
 
 
-canonicaldomain(d::ProductDomain) = ProductDomain(map(canonicaldomain,d.domains))
+canonicaldomain(d::ProductDomain) = ProductDomain(map(canonicaldomain,d.domains)...)
 
 # product domains are their own canonical domain
 for OP in (:fromcanonical,:tocanonical)
@@ -11,9 +11,11 @@ for OP in (:fromcanonical,:tocanonical)
     end
 end
 
-
 nfactors(d::ProductDomain) = length(d.domains)
+factors(d::ProductDomain) = d.domains
 factor(d::ProductDomain,k::Integer) = d.domains[k]
+
+fromcanonical(d::ProductDomain, f::Fun{<:ArraySpace}) = vcat(fromcanonical.(factors(d), vec(f))...)
 
 function pushappendpts!(ret, xx, pts)
     if isempty(pts)

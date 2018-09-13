@@ -133,7 +133,7 @@ function tocanonical end
 abstract type PeriodicDomain{T} <: UnivariateDomain{T} end
 
 
-canonicaldomain(::PeriodicDomain) = PeriodicInterval()
+canonicaldomain(::PeriodicDomain) = PeriodicSegment()
 
 
 points(d::PeriodicDomain{T},n::Integer) where {T} =

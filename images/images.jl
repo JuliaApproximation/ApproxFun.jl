@@ -38,7 +38,7 @@ f = Fun(t->exp(sin(10t)),d)
 B = periodic(d,0)
 uChebyshev = [B;L]\[0.,f]
 
-d = PeriodicInterval([-π,π])
+d = PeriodicSegment([-π,π])
 a = Fun(t-> 1+sin(cos(2t)),d)
 D = Derivative(d)
 L = D + a

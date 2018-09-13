@@ -139,7 +139,7 @@ function integrate(f::Fun{GW}) where GW<:GaussWeight{H} where H<:Hermite
         else
             g = Fun(GaussWeight(Hermite(L), L), f.coefficients[2:end] / -sqrt(L));
             f₀ = Fun(GaussWeight(Hermite(L), L), [f.coefficients[1]]);
-            f₀ = Fun(f₀, Chebyshev(-Inf .. Inf));
+            f₀ = Fun(f₀, Chebyshev(Line()));
             g₀ = integrate(f₀);
             g₀ = g₀ - last(g₀);
             return g + g₀

@@ -309,7 +309,7 @@ function integrate(f::Fun{LW}) where LW <: LaguerreWeight{LL} where LL <: Laguer
         else
             if !isinteger(α) || α == 2
                 if n == 1
-                    f̃ = Fun(f, JacobiWeight(α, 0, Chebyshev(0.0 .. Inf)));
+                    f̃ = Fun(f, JacobiWeight(α, 0, Chebyshev(Ray())));
                     g = integrate(f̃);
                     g = g - last(g)
                 else
@@ -317,7 +317,7 @@ function integrate(f::Fun{LW}) where LW <: LaguerreWeight{LL} where LL <: Laguer
                         Fun(WeightedLaguerre(α + 1), f.coefficients[2:end] ./ (1:n-1))
                     else
                         f₀ = Fun(WeightedLaguerre(α), [f.coefficients[1]]);
-                        f₀ = Fun(f₀, JacobiWeight(α, 0, Chebyshev(0.0 .. Inf)));
+                        f₀ = Fun(f₀, JacobiWeight(α, 0, Chebyshev(Ray())));
                         g₀ = integrate(f₀);
                         g₀ = g₀ - last(g₀);
                         g = Fun(WeightedLaguerre(α + 1), f.coefficients[2:end] ./ (1:n-1));
@@ -326,7 +326,7 @@ function integrate(f::Fun{LW}) where LW <: LaguerreWeight{LL} where LL <: Laguer
                 end
             else
                 if n == 1
-                    f̃ = Fun(f, Chebyshev(0.0 .. Inf));
+                    f̃ = Fun(f, Chebyshev(Ray()));
                     g = integrate(f̃);
                     g = g - last(g)
                 else
@@ -334,7 +334,7 @@ function integrate(f::Fun{LW}) where LW <: LaguerreWeight{LL} where LL <: Laguer
                         Fun(WeightedLaguerre(α + 1), f.coefficients[2:end] ./ (1:n-1))
                     else
                         f₀ = Fun(WeightedLaguerre(α), [f.coefficients[1]]);
-                        f₀ = Fun(f₀, Chebyshev(0.0 .. Inf));
+                        f₀ = Fun(f₀, Chebyshev(Ray()));
                         g₀ = integrate(f₀);
                         g₀ = g₀ - last(g₀);
                         g = Fun(WeightedLaguerre(α + 1), f.coefficients[2:end] ./ (1:n-1));

@@ -114,7 +114,7 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
     end
 
     @testset "Periodic" begin
-        d=PeriodicInterval(0.,2π)
+        d=PeriodicSegment(0.,2π)
         a=Fun(t-> 1+sin(cos(10t)),d)
         D=Derivative(d)
         L=D+a
@@ -128,7 +128,7 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
 
         @test norm(L*u-f) < 100eps()
 
-        d=PeriodicInterval(0.,2π)
+        d=PeriodicSegment(0.,2π)
         a1=Fun(t->sin(cos(t/2)^2),d)
         a0=Fun(t->cos(12sin(t)),d)
         D=Derivative(d)
@@ -209,7 +209,7 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
 
 
         @test norm(ApproxFun.Reverse(Fourier())*Fun(t->cos(cos(t-0.2)-0.1),Fourier()) - Fun(t->cos(cos(-t-0.2)-0.1),Fourier())) < 10eps()
-        @test norm(ApproxFun.ReverseOrientation(Fourier())*Fun(t->cos(cos(t-0.2)-0.1),Fourier()) - Fun(t->cos(cos(t-0.2)-0.1),Fourier(PeriodicInterval(2π,0)))) < 10eps()
+        @test norm(ApproxFun.ReverseOrientation(Fourier())*Fun(t->cos(cos(t-0.2)-0.1),Fourier()) - Fun(t->cos(cos(t-0.2)-0.1),Fourier(PeriodicSegment(2π,0)))) < 10eps()
     end
 
     @testset "Sub-operator re-view bug" begin

@@ -11,7 +11,7 @@ for T in (:CosSpace,:SinSpace)
         end
         $T(d::PeriodicDomain) = $T{typeof(d),real(prectype(d))}(d)
         $T(d) = $T(convert(PeriodicDomain, d))
-        $T() = $T(PeriodicInterval())
+        $T() = $T(PeriodicSegment())
         spacescompatible(a::$T,b::$T) = domainscompatible(a,b)
         hasfasttransform(::$T) = true
         canonicalspace(S::$T) = Fourier(domain(S))
@@ -318,7 +318,7 @@ Fourier(d::PeriodicDomain) = Fourier{typeof(d),real(prectype(d))}(d)
 
 for Typ in (:Laurent,:Fourier)
     @eval begin
-        $Typ() = $Typ(PeriodicInterval())
+        $Typ() = $Typ(PeriodicSegment())
         $Typ(d) = $Typ(convert(PeriodicDomain, d))
 
         hasfasttransform(::$Typ{D,R}) where {D,R} = true
@@ -424,7 +424,7 @@ itransform(sp::Fourier{DD,RR},cfs::AbstractVector) where {DD,RR} = plan_itransfo
 
 
 
-canonicalspace(S::Laurent{DD,RR}) where {DD<:PeriodicInterval,RR} = Fourier(domain(S))
+canonicalspace(S::Laurent{DD,RR}) where {DD<:PeriodicSegment,RR} = Fourier(domain(S))
 canonicalspace(S::Fourier{DD,RR}) where {DD<:Circle,RR} = Laurent(domain(S))
 canonicalspace(S::Laurent{DD,RR}) where {DD<:PeriodicLine,RR} = S
 

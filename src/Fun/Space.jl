@@ -8,7 +8,7 @@ export Space, domainspace, rangespace, maxspace,Space,conversion_type, transform
 # Space maps the Domain to the type R
 # For example, we have
 #   Chebyshev{Interval{Float64}} <: Space{Interval{Float64},Float64}
-#   Laurent{PeriodicInterval{Float64}} <: Space{PeriodicInterval{Float64},ComplexF64}
+#   Laurent{PeriodicSegment{Float64}} <: Space{PeriodicSegment{Float64},ComplexF64}
 #   Fourier{Circle{ComplexF64}} <: Space{Circle{ComplexF64},Float64}
 # Note for now Space doesn't contain any information about the coefficients
 
