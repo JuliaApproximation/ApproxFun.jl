@@ -60,7 +60,6 @@ union(a::Domain, ::EmptyDomain) = a
 
 isempty(::EmptyDomain) = true
 isempty(::Domain) = false
-intersect(a::Domain, b::Domain) = a==b ? a : EmptyDomain()
 
 
 ## Interval Domains

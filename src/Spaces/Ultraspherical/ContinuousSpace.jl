@@ -78,11 +78,16 @@ function *(P::TransformPlan{T,SS,false},vals::AbstractVector{T}) where {T,SS<:Co
         for j=r+1:K
             cfs=transform(ChebyshevDirichlet{1,1}(component(d,j)),
                           vals[r*(k+1)+(j-r-1)*k+1:r*(k+1)+(j-r)*k])
-            if j==1
-                ret[1]=cfs[1]-cfs[2]
+
+            if length(cfs) ≤ 1
+                ret .= cfs
+            else
+                if j==1
+                    ret[1]=cfs[1]-cfs[2]
+                end
+                ret[j+1]=cfs[1]+cfs[2]
+                ret[K+j+1:K:end]=cfs[3:end]
             end
-            ret[j+1]=cfs[1]+cfs[2]
-            ret[K+j+1:K:end]=cfs[3:end]
         end
 
         ret
@@ -118,15 +123,22 @@ end
 coefficients(cfsin::AbstractVector,A::ContinuousSpace,B::PiecewiseSpace) =
     defaultcoefficients(cfsin,A,B)
 
+coefficients(cfsin::AbstractVector,A::ContinuousSpace,B::ContinuousSpace) =
+    default_Fun(Fun(A,cfsin),B).coefficients
+
 
 # We implemnt conversion between continuous space and PiecewiseSpace with Chebyshev dirichlet
-Conversion(ps::PiecewiseSpace{CD,DD,RR},cs::ContinuousSpace) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1,DDD,RRR}}},
-                                                                    DD,RR<:Real} where {DDD,RRR} =
-                ConcreteConversion(ps,cs)
+function Conversion(ps::PiecewiseSpace{CD,DD,RR},cs::ContinuousSpace) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1,DDD,RRR}}},
+                                                                    DD,RR<:Real} where {DDD,RRR}
+    @assert ps == canonicalspace(cs)
+    ConcreteConversion(ps,cs)
+end
 
-Conversion(cs::ContinuousSpace,ps::PiecewiseSpace{CD,DD,RR}) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1,DDD,RRR}}},
-                                                                    DD,RR<:Real} where {DDD,RRR} =
-                ConcreteConversion(cs,ps)
+function Conversion(cs::ContinuousSpace,ps::PiecewiseSpace{CD,DD,RR}) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1,DDD,RRR}}},
+                                                                    DD,RR<:Real} where {DDD,RRR}
+    @assert ps == canonicalspace(cs)
+    ConcreteConversion(cs,ps)
+end
 
 
 bandwidths(C::ConcreteConversion{PiecewiseSpace{CD,DD,RR},CS}) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1,DDD,RRR}}},
@@ -402,3 +414,10 @@ end
 
 union_rule(A::PiecewiseSpace, B::ContinuousSpace) = union(A, convert(PiecewiseSpace, B))
 union_rule(A::ConstantSpace, B::ContinuousSpace) = B
+function union_rule(A::ContinuousSpace{<:Real}, B::ContinuousSpace{<:Real})
+    p_A,p_B = domain(A).points, domain(B).points
+    a,b = minimum(p_A),  maximum(p_A)
+    c,d = minimum(p_B),  maximum(p_B)
+    @assert !isempty((a..b) ∩ (c..d))
+    ContinuousSpace(PiecewiseSegment(sort!(union(p_A, p_B))))
+end

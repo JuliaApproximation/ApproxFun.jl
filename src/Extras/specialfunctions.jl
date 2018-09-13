@@ -51,7 +51,7 @@ function abs(f::Fun)
 end
 
 
-midpoints(d::Segment) = [mean(d)]
+midpoints(d::IntervalOrSegment) = [mean(d)]
 midpoints(d::Union{UnionDomain,PiecewiseSegment}) = mapreduce(midpoints,vcat,components(d))
 
 for OP in (:sign,:angle)

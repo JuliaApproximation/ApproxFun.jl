@@ -46,6 +46,8 @@ AnySegment() = AnySegment(Float64)
 isambiguous(d::Segment) = all(isnan(leftendpoint(d))) && all(isnan(rightendpoint(d)))
 convert(::Type{Segment{T}},::AnyDomain) where {T<:Number} = AnySegment(T)
 convert(::Type{Segment},::AnyDomain) = AnySegment()
+convert(::Type{Interval}, d::Segment{<:Real}) = d.a < d.b ? d.a .. d.b : d.b .. d.a
+Interval(d::Segment) = convert(Interval, d)
 
 
 ## Information
@@ -131,52 +133,13 @@ sqrt(d::Segment)=Segment(sqrt(leftendpoint(d)),sqrt(rightendpoint(d)))
 
 reverseorientation(d::IntervalOrSegment) = Segment(rightendpoint(d),leftendpoint(d))
 
-function intersect(a::Segment{T},b::Segment{V}) where {T<:Real,V<:Real}
-    if first(a) > last(a)
-        intersect(reverseorientation(a),b)
-    elseif first(b) > last(b)
-        intersect(a,reverseorientation(b))
-    elseif first(a) > first(b)
-        intersect(b,a)
-    elseif last(a) <= first(b)
-        EmptyDomain()
-    elseif last(a)>=last(b)
-        b
-    elseif isapprox(first(b),last(a);atol=100eps(promote_type(T,V))/max(arclength(a),arclength(b)))
-        EmptyDomain()
-    else
-        Segment(first(b),last(a))
-    end
-end
+intersect(a::Segment{<:Real}, b::Segment{<:Real}) = intersect(Interval(a), Interval(b))
+intersect(a::AbstractInterval, b::Segment{<:Real}) = intersect(a, Interval(b))
+intersect(a::Segment{<:Real}, b::AbstractInterval) = intersect(Interval(a), b)
+setdiff(a::Segment{<:Real}, b::Segment{<:Real})  = setdiff(Interval(a), Interval(b))
+setdiff(a::AbstractInterval, b::Segment{<:Real})  = setdiff(a, Interval(b))
+setdiff(a::Segment{<:Real}, b::AbstractInterval)  = setdiff(Interval(a), b)
 
-
-function setdiff(a::Segment{T}, b::Segment{V}) where {T<:Real,V<:Real}
-    # ensure a/b are well-ordered
-    if first(a) > last(a)
-        intersect(reverseorientation(a),b)
-    elseif first(b) > last(b)
-        intersect(a,reverseorientation(b))
-    elseif first(a)< first(b)
-        if last(a) <= first(b)
-            a
-        else # first(a) ≤ first(b) ≤last(a)
-            #TODO: setdiff in the middle
-            if last(a) <= last(b)
-            	Segment(first(a),first(b))
-			else  # first(a) ≤ first(b) ≤ last(b) ≤last(a)
-				Segment(first(a),first(b))∪Segment(last(b),last(a))
-			end
-        end
-    else #first(a)>= first(b)
-        if first(a)>=last(b)
-            a
-        elseif last(a) <= last(b)
-            EmptyDomain()
-        else #first(b) < first(a) < last(b) < last(a)
-            Segment(last(b),last(a))
-        end
-    end
-end
 
 
 

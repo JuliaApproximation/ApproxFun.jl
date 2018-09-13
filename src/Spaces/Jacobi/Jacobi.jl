@@ -12,7 +12,7 @@ struct Jacobi{D<:Domain,R} <: PolynomialSpace{D,R}
     Jacobi{D,R}(b,a,d) where {D,R} = new{D,R}(b,a,d)
 end
 Jacobi(b::T,a::T,d::Domain) where {T} =
-    Jacobi{typeof(d),promote_type(T,real(prectype(d)))}(b,a,d)
+    Jacobi{typeof(d),promote_type(T,real(prectype(d)))}(b, a, d)
 Legendre(domain) = Jacobi(0.,0.,domain)
 Legendre() = Legendre(Segment())
 Jacobi(b,a,d::Domain) = Jacobi(promote(b,a)...,d)

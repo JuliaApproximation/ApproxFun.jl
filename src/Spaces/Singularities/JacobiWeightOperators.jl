@@ -131,7 +131,7 @@ function integrate(f::Fun{JacobiWeight{SS,DD,RR,TT}}) where {SS,DD<:IntervalOrSe
     end
 end
 
-function Base.cumsum(f::Fun{JacobiWeight{SS,DD,RR,TT}}) where {SS,DD<:IntervalOrSegment,RR,TT}
+function Base.cumsum(f::Fun{JacobiWeight{SS,DD,RR,TT}}) where {SS,DD<:IntervalOrSegmentDomain,RR,TT}
     g=integrate(f)
     S=space(f)
 
@@ -257,20 +257,20 @@ for (OPrule,OP) in ((:maxspace_rule,:maxspace),(:union_rule,:union))
             end
             NoSpace()
         end
-        $OPrule(A::JacobiWeight,B::Space{D}) where {D<:IntervalOrSegment} = $OPrule(A,JacobiWeight(0.,0.,B))
+        $OPrule(A::JacobiWeight,B::Space{D}) where {D<:IntervalOrSegmentDomain} = $OPrule(A,JacobiWeight(0.,0.,B))
     end
 end
 
 
 for FUNC in (:hasconversion,:isconvertible)
     @eval begin
-        $FUNC(A::JacobiWeight{S1,D},B::JacobiWeight{S2,D}) where {S1,S2,D<:IntervalOrSegment} =
+        $FUNC(A::JacobiWeight{S1,D},B::JacobiWeight{S2,D}) where {S1,S2,D<:IntervalOrSegmentDomain} =
             isapproxinteger(A.β-B.β) &&
             isapproxinteger(A.α-B.α) && A.β ≥ B.β && A.α ≥ B.α && $FUNC(A.space,B.space)
 
-        $FUNC(A::JacobiWeight{S,D},B::Space{D}) where {S,D<:IntervalOrSegment} =
+        $FUNC(A::JacobiWeight{S,D},B::Space{D}) where {S,D<:IntervalOrSegmentDomain} =
             $FUNC(A,JacobiWeight(0.,0.,B))
-        $FUNC(B::Space{D},A::JacobiWeight{S,D}) where {S,D<:IntervalOrSegment} =
+        $FUNC(B::Space{D},A::JacobiWeight{S,D}) where {S,D<:IntervalOrSegmentDomain} =
             $FUNC(JacobiWeight(0.,0.,B),A)
     end
 end
@@ -287,7 +287,7 @@ function conversion_rule(A::JacobiWeight,B::JacobiWeight)
     end
 end
 
-conversion_rule(A::JacobiWeight,B::Space{D}) where {D<:IntervalOrSegment} = conversion_type(A,JacobiWeight(0,0,B))
+conversion_rule(A::JacobiWeight,B::Space{D}) where {D<:IntervalOrSegmentDomain} = conversion_type(A,JacobiWeight(0,0,B))
 
 
 # override defaultConversion instead of Conversion to avoid ambiguity errors

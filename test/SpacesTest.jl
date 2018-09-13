@@ -1,5 +1,7 @@
-using ApproxFun, SpecialFunctions, LinearAlgebra, Domains, Test
-    import ApproxFun: ChebyshevDirichlet, Ultraspherical, PiecewiseSegment, ContinuousSpace, space,
+using ApproxFun, SpecialFunctions, LinearAlgebra, Test
+    import Domains
+    import Domains: UnionDomain
+    import ApproxFun: ChebyshevDirichlet, Ultraspherical, PiecewiseSegment, ContinuousSpace, space, SpaceOperator,
                         testspace, testbandedoperator, testraggedbelowoperator, testcalculus, testtransforms
 
 @testset "Spaces" begin
@@ -26,138 +28,37 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Domains, Test
         @test norm(([B;L]\[[1.,0],0])-([Dirichlet(d);L]\[[1.,0],0])) <10eps()
     end
 
-@testset "PiecewiseSpace" begin
-x = Fun(identity,UnionDomain(-1..0, 0..1))
-sp=space(x)
-testtransforms(sp;minpoints=2)
+    @testset "PiecewiseSpace" begin
+        x = Fun(identity,UnionDomain(-1..0, 0..1))
+        sp=space(x)
+        testtransforms(sp;minpoints=2)
 
-D = Derivative(sp)
-testbandedoperator(D)
+        D = Derivative(sp)
+        testbandedoperator(D)
 
-B = [Dirichlet(sp); continuity(sp,0:1)]
-u = [B; D^2] \ [[1,0],zeros(2),0];
-u2 = [Dirichlet();Derivative(Chebyshev())^2] \ [[1.,0],0]
-@test u(0.) ≈ u2(0.)
+        B = [Dirichlet(sp); continuity(sp,0:1)]
+        u = [B; D^2] \ [[1,0],zeros(2),0];
+        u2 = [Dirichlet();Derivative(Chebyshev())^2] \ [[1.,0],0]
+        @test u(0.) ≈ u2(0.)
 
-x = Fun(identity, UnionDomain(-10..0, 0..1, 1..15))
-sp=space(x)
-D=Derivative(sp)
-B=Dirichlet(sp)
+        x = Fun(identity, UnionDomain(-10..0, 0..1, 1..15))
+        sp=space(x)
+        D=Derivative(sp)
+        B=Dirichlet(sp)
 
-u=[B;
-    continuity(sp,0:1);
-    D^2-x]\[[airyai(-10.),0],zeros(4),0];
+        u=[B;
+            continuity(sp,0:1);
+            D^2-x]\[[airyai(-10.),0],zeros(4),0];
 
-@test u(0.) ≈ airyai(0.)
+        @test u(0.) ≈ airyai(0.)
 
-s=Fun(sin,-2..2)|>abs
-c=Fun(cos,-2..2)|>abs
-sc=Fun(x -> abs(sin(x))+abs(cos(x)), UnionDomain(-2..(-π/2), (-π/2)..0, 0..(π/2), (π/2)..2))
-@test norm(sc-(c+s))<100eps()
-
-intersect(0..1 , 2..2.5)
-a,b = domain(ApproxFun.canonicalspace(c)),domain(ApproxFun.canonicalspace(s))
-
-    d1, m = (a,component(b,1))
-    T = float(promote_type(eltype(d1), eltype(m)))
-    ret=d1.domains
-
-    for k=length(ret):-1:1
-        global ret,m
-        it=intersect(ret[k],m)
-        @show it
-        if arclength(it) ≠ 0
-            sa=setdiff(ret[k],it)
-            @show m, it
-            m=setdiff(m,it)
-            @show m
-            if arclength(sa) ≤ 10eps(T)
-                ret = [ret[1:k-1]...; it; ret[k+1:end]...]
-            else
-                ret = [ret[1:k-1]...; sa; it; ret[k+1:end]...]
-            end
-            if arclength(m) ≤ 10eps(T)
-                break
-            end
-        end
-    end
-    if !isempty(m)
-        ret = [ret...; m]
+        s=Fun(sin,-2..2)|>abs
+        c=Fun(cos,-2..2)|>abs
+        sc=Fun(x -> abs(sin(x))+abs(cos(x)), ContinuousSpace(PiecewiseSegment([-2,(-π/2),0,π/2,2])))
+        @test norm(sc-(c+s))<100eps()
     end
 
-    UnionDomain(sort!(ret,by=first))
-ret=d1.domains
-
-    k=3
-        global ret,m
-        it=intersect(ret[k],m)
-        if arclength(it) ≠ 0
-            sa=setdiff(ret[k],it)
-            m=setdiff(m,it)
-            if arclength(sa) ≤ eps(T)
-                ret = [ret[1:k-1]...; it; ret[k+1:end]...]
-            else
-                ret = [ret[1:k-1]...; sa; it; ret[k+1:end]...]
-            end
-            if arclength(m) == 0
-                # break
-            end
-        end
-        k=2
-            global ret,m
-            it=intersect(ret[k],m)
-            if arclength(it) ≤ eps()
-                sa=setdiff(ret[k],it)
-                m=setdiff(m,it)
-                if arclength(sa) ≤ eps(T)
-                    ret = [ret[1:k-1]...; it; ret[k+1:end]...]
-                else
-                    ret = [ret[1:k-1]...; sa; it; ret[k+1:end]...]
-                end
-                if arclength(m) == 0
-                    # break
-                end
-            end
-        ret
-        k=1
-            global ret,m
-            it=intersect(ret[k],m)
-            if arclength(it) ≤ eps()
-                sa=setdiff(ret[k],it)
-                m=setdiff(m,it)
-                if arclength(sa) ≤ eps(T)
-                    ret = [ret[1:k-1]...; it; ret[k+1:end]...]
-                else
-                    ret = [ret[1:k-1]...; sa; it; ret[k+1:end]...]
-                end
-                if arclength(m) == 0
-                    # break
-                end
-            end
-        ret
-# end
-arclength(m.domains[2]) < eps()
-if !isempty(m)
-    ret = [ret...; m]
-end
-
-UnionDomain(sort!(ret,by=first))
-
-
-d1
-
-length(ret)
-UnionDomain(sort!(ret,by=first))
-
-
-component(b,1)
-
-union(space(c), space(s))
-(c+s)
-
-end
-
-@testset "max/min creates breakpoints" begin
+    @testset "max/min creates breakpoints" begin
         x = Fun()
         g = 4*(x-0.2)
         f = max(-1,g)
@@ -333,7 +234,6 @@ end
         @test exp(x)(1+a*0.1+0.1^2+b*0.1^3) ≈ exp(1+a*0.1+0.1^2+b*0.1^3)
     end
 
-
     @testset "ChebyshevDirichlet multiplication" begin
         S=ChebyshevDirichlet()
         x=Fun()
@@ -343,41 +243,31 @@ end
         @test Integral(S,1)*Fun(S,[1.,2.,3.]) ≈ integrate(Fun(Fun(S,[1.,2.,3.]),Chebyshev()))
     end
 
+    @testset "QuotientSpace" begin
+        for (bcs,ret) in ((Dirichlet(Chebyshev()),[1 -1 0 0 0;1 1 0 0 0]),
+                          (Neumann(Chebyshev()),[0 1 -4 0 0;0 1 4 0 0]),
+                          ([DefiniteIntegral(Chebyshev());SpaceOperator(BasisFunctional(2),Chebyshev(),ConstantSpace())],[2 0 0 0 0;0 1 0 0 0]),
+                          (vcat(bvp(Chebyshev(),4)...),[1 -1 1 -1 0;0 1 -4 9 0;1 1 1 1 0;0 1 4 9 0]))
+            QS = QuotientSpace(bcs)
+            C = Conversion(QS, QS.space)
 
-
-    ### QuotientSpace test
-
-    import ApproxFun: SpaceOperator
-
-    for (bcs,ret) in ((Dirichlet(Chebyshev()),[1 -1 0 0 0;1 1 0 0 0]),
-                      (Neumann(Chebyshev()),[0 1 -4 0 0;0 1 4 0 0]),
-                      ([DefiniteIntegral(Chebyshev());SpaceOperator(BasisFunctional(2),Chebyshev(),ConstantSpace())],[2 0 0 0 0;0 1 0 0 0]),
-                      (vcat(bvp(Chebyshev(),4)...),[1 -1 1 -1 0;0 1 -4 9 0;1 1 1 1 0;0 1 4 9 0]))
-        QS = QuotientSpace(bcs)
-        C = Conversion(QS, QS.space)
-
-        norm((bcs*C)[1:size(bcs, 1),1:5] - ret) < 1000eps()
+            norm((bcs*C)[1:size(bcs, 1),1:5] - ret) < 1000eps()
+        end
     end
 
+    @testset "Union of ChebyshevDirichlet" begin
+        dom = UnionDomain(0..1, 2..3)
+        @test components(union(JacobiWeight.(-0.5,-0.5,ChebyshevDirichlet{1,1}.(components(dom)))...)) ==
+            (JacobiWeight.(-0.5,-0.5,ChebyshevDirichlet{1,1}.(components(dom)))...,)
+    end
 
+    @testset "Ultraspherical special functions" begin
+        x = Fun(Ultraspherical(2,0..1))
+        sqrt(x)(0.1) ≈ sqrt(0.1)
 
-    ## Check union of ChebyshevDirichlet
-
-
-    dom = Domain(0..1) ∪ Domain(2..3)
-    @test components(union(JacobiWeight.(-0.5,-0.5,ChebyshevDirichlet{1,1}.(components(dom)))...)) ==
-        (JacobiWeight.(-0.5,-0.5,ChebyshevDirichlet{1,1}.(components(dom)))...,)
-
-
-
-    ## Ultraspherical special functions
-
-    x = Fun(Ultraspherical(2,0..1))
-    sqrt(x)(0.1) ≈ sqrt(0.1)
-
-    f = Fun(x->x*exp(x),Ultraspherical(1,0..1))
-    sqrt(f(0.1)) ≈ sqrt(f)(0.1)
-
+        f = Fun(x->x*exp(x),Ultraspherical(1,0..1))
+        sqrt(f(0.1)) ≈ sqrt(f)(0.1)
+    end
 
     @testset "Fast Ultraspherical*Chebyshev" begin
         f = Fun(exp, Ultraspherical(1))
@@ -417,12 +307,14 @@ end
         @test angle(f)(2.0) ≈ 0
     end
 
-    x = Fun(Domain(0..1) ∪ Domain(2..3))
-    @test length(jumplocations(sign(x))) == 0
+    @testset "Jump Locations" begin
+        x = Fun(UnionDomain(0..1, 2..3))
+        @test length(jumplocations(sign(x))) == 0
 
-    x = Fun(Chebyshev(-1..1))
-    @test length(jumplocations(x)) == 0
-    @test all(jumplocations(sign(x) + sign(x+0.2)) .≈ [-0.2, 0])
+        x = Fun(Chebyshev(-1..1))
+        @test length(jumplocations(x)) == 0
+        @test all(jumplocations(sign(x) + sign(x+0.2)) .≈ [-0.2, 0])
+    end
 
     @testset "one for SumSpace" begin
         S = Jacobi(0,1) ⊕ JacobiWeight(1/3,0,Jacobi(1/3,2/3)) ⊕ JacobiWeight(2/3,0,Jacobi(2/3,1/3))
@@ -439,14 +331,18 @@ end
         H = ApproxFun.HeavisideSpace([-1.0,0.0,1.0])
         C = ApproxFun.ContinuousSpace(ApproxFun.PiecewiseSegment([-1.0,0,1]))
         S = H + C
-        P = Ultraspherical(1,-1.0..0.0) ∪ Ultraspherical(1,0.0..1.0)
+        P = Ultraspherical(1,Segment(-1.0,0.0)) ∪ Ultraspherical(1,Segment(0.0,1.0))
         f = Fun(S, randn(100))
         @test f(0.1) ≈ Fun(f, P)(0.1)
 
-        @test Conversion(S,P)[1,1]==1.0
-        @test Conversion(S,P)[1,2]==0.5
-        @test rangespace(Conversion(S,P))==Ultraspherical(1,-1.0..0.0) ∪ Ultraspherical(1,0.0..1.0)
-        @test domainspace(Conversion(S,P))==ApproxFun.SumSpace(ApproxFun.HeavisideSpace([-1.0,0.0,1.0]),ApproxFun.ContinuousSpace(ApproxFun.PiecewiseSegment([-1.0,0,1])))
+
+
+        @test Conversion(S,P)[1,1] == 1.0
+        @test Conversion(S,P)[1,2] == 0.5
+        @test rangespace(Conversion(S,P)) == Ultraspherical(1,Segment(-1.0,0.0)) ∪ Ultraspherical(1,Segment(0.0,1.0))
+        @test domainspace(Conversion(S,P)) ==
+            ApproxFun.SumSpace(ApproxFun.HeavisideSpace([-1.0,0.0,1.0]),
+                    ApproxFun.ContinuousSpace(ApproxFun.PiecewiseSegment([-1.0,0,1])))
 
         D = ApproxFun.DiracSpace([-1.0,0.0,1.0])
         S2 = ApproxFun.SumSpace(D , P)
