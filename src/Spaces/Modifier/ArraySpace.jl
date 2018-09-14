@@ -256,6 +256,8 @@ pieces(f::Fun{<:ArraySpace}) = [piece(f,k) for k=1:npieces(f)]
 
 ## TODO: This is a hack to get tests working
 
+fromcanonical(d::ProductDomain, f::Fun{<:ArraySpace}) = vcat(fromcanonical.(factors(d), vec(f))...)
+
 function coefficients(f::AbstractVector,sp::ArraySpace{<:ConstantSpace{AnyDomain}},ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R}
     @assert length(ts.spaces) == 2
 

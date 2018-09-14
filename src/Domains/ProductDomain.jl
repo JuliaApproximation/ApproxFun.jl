@@ -15,8 +15,6 @@ nfactors(d::ProductDomain) = length(d.domains)
 factors(d::ProductDomain) = d.domains
 factor(d::ProductDomain,k::Integer) = d.domains[k]
 
-fromcanonical(d::ProductDomain, f::Fun{<:ArraySpace}) = vcat(fromcanonical.(factors(d), vec(f))...)
-
 function pushappendpts!(ret, xx, pts)
     if isempty(pts)
         push!(ret,Vec(xx...))

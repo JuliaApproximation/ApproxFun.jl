@@ -9,7 +9,7 @@ using ApproxFun, Test, DualNumbers
         @test Fun(h->Fun(exp,Segment(1.0+h,2.0)).coefficients[1],0..1)'(0.) ≈ DualNumbers.epsilon(f.coefficients[1])
 
 
-        ud=let d=dual(0.0,1.0)..1.0
+        ud=let d= Segment(dual(0.0,1.0),1.0)
             B = ldirichlet(d)
             D = Derivative(d)
             a = Fun(exp,d)
@@ -17,7 +17,7 @@ using ApproxFun, Test, DualNumbers
             u(0.5)
         end
 
-        u0=let d=0.0..1.0
+        u0=let d= Segment(0.0,1.0)
             B = ldirichlet(d)
             D = Derivative(d)
             a = Fun(exp,d)
@@ -25,7 +25,7 @@ using ApproxFun, Test, DualNumbers
             u(0.5)
         end
         h=0.00001
-        uh=let d=h..1.0
+        uh=let d= Segment(h,1.0)
             B = ldirichlet(d)
             D = Derivative(d)
             a = Fun(exp,d)
@@ -35,7 +35,7 @@ using ApproxFun, Test, DualNumbers
 
         @test absdual(ud - dual(u0,(uh-u0)/h)) ≤ h
 
-        let d=0.0..1.0
+        let d=Segment(0.0,1.0)
             B = ldirichlet(d)
             D = Derivative(d)
             a = Fun(exp,d)
@@ -47,7 +47,7 @@ using ApproxFun, Test, DualNumbers
     end
 
     @testset "Eig test #336" begin
-        d = Interval(0.,π)
+        d = 0..π
         A=Derivative(d)^2
         λ=eigvals(Dirichlet(d),A,100)
         @test sort(λ)[end-5:end] ≈ -(-6:-1).^2
