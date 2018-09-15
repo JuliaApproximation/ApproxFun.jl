@@ -29,7 +29,7 @@ using ApproxFun, LinearAlgebra, Test
 end
 
 @testset "Domain" begin
-    @test 0.45-0.65im ∉ Segment()
+    @test 0.45-0.65im ∉ Segment(-1,1)
 
     @test reverseorientation(Arc(1,2,(0.1,0.2))) == Arc(1,2,(0.2,0.1))
     @test 0.1 ∈ PeriodicSegment(2π,0)

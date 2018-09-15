@@ -69,8 +69,7 @@ abstract type AbstractSegment{T} <: SegmentDomain{T} end
 const IntervalOrSegment{T} = Union{AbstractInterval{T}, AbstractSegment{T}}
 const IntervalOrSegmentDomain{T} = Union{AbstractInterval{T}, SegmentDomain{T}}
 
-canonicaldomain(d::AbstractInterval) = ChebyshevInterval{real(prectype(d))}()
-canonicaldomain(d::SegmentDomain) = Segment{real(prectype(d))}()
+canonicaldomain(d::IntervalOrSegmentDomain) = ChebyshevInterval{real(prectype(d))}()
 
 isapprox(a::Domain,b::Domain) = a==b
 domainscompatible(a,b) = domainscompatible(domain(a),domain(b))

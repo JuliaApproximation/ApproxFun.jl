@@ -414,10 +414,21 @@ end
 
 union_rule(A::PiecewiseSpace, B::ContinuousSpace) = union(A, convert(PiecewiseSpace, B))
 union_rule(A::ConstantSpace, B::ContinuousSpace) = B
+
+function approx_union(a::AbstractVector{T}, b::AbstractVector{V}) where {T,V}
+    ret = sort!(union(a,b))
+    for k in length(ret)-1:-1:1
+        isapprox(ret[k] , ret[k+1]; atol=10eps()) && deleteat!(ret, k+1)
+    end
+    ret
+end
+
+
+
 function union_rule(A::ContinuousSpace{<:Real}, B::ContinuousSpace{<:Real})
     p_A,p_B = domain(A).points, domain(B).points
     a,b = minimum(p_A),  maximum(p_A)
     c,d = minimum(p_B),  maximum(p_B)
     @assert !isempty((a..b) ∩ (c..d))
-    ContinuousSpace(PiecewiseSegment(sort!(union(p_A, p_B))))
+    ContinuousSpace(PiecewiseSegment(approx_union(p_A, p_B)))
 end

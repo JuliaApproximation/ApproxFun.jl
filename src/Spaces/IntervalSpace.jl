@@ -5,8 +5,8 @@ export continuity
 Space(d::IntervalOrSegment) = Chebyshev(d)
 Space(d::FullSpace{<:Real}) = Chebyshev(Line())
 
-Fun(::typeof(identity), d::Segment{T}) where {T<:Number} =
-    Fun(Chebyshev(d), T[(rightendpoint(d)+leftendpoint(d))/2, complexlength(d)/2])
+Fun(::typeof(identity), d::IntervalOrSegment{T}) where {T<:Number} =
+    Fun(Chebyshev(d), [mean(d), complexlength(d)/2])
 
 
 ## Calculus

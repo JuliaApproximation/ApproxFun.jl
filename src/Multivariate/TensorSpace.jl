@@ -564,7 +564,7 @@ coefficientmatrix(f::Fun{<:AbstractProductSpace}) = totensor(space(f),f.coeffici
 
 
 #TODO: Implement
-# function ∂(d::TensorSpace{Segment{Float64}})
+# function ∂(d::TensorSpace{<:IntervalOrSegment{Float64}})
 #     @assert length(d.spaces) ==2
 #     PiecewiseSpace([d[1].a+im*d[2],d[1].b+im*d[2],d[1]+im*d[2].a,d[1]+im*d[2].b])
 # end
@@ -595,7 +595,7 @@ isconvertible(sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:Bivariat
 #     f[1]*ones(ts).coefficients
 
 #
-# function coefficients(f::AbstractVector,sp::Space{Segment{Vec{2,TT}}},ts::TensorSpace{Tuple{S,V},D,R}) where {S,V<:ConstantSpace,D<:BivariateDomain,R,TT} where {T<:Number}
+# function coefficients(f::AbstractVector,sp::Space{IntervalOrSegment{Vec{2,TT}}},ts::TensorSpace{Tuple{S,V},D,R}) where {S,V<:ConstantSpace,D<:BivariateDomain,R,TT} where {T<:Number}
 #     a = domain(sp)
 #     b = domain(ts)
 #     # make sure we are the same domain. This will be replaced by isisomorphic

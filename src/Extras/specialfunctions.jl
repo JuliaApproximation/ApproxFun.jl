@@ -239,55 +239,51 @@ log(f::Fun) = cumsum(differentiate(f)/f)+log(first(f))
 
 # project first to [-1,1] to avoid issues with
 # complex derivative
-function log(f::Fun{US}) where US<:Union{Ultraspherical,Chebyshev}
-    if domain(f)==Segment()
-        r = sort(roots(f))
-        #TODO divideatroots
-        @assert length(r) <= 2
+function log(f::Fun{<:PolynomialSpace{<:ChebyshevInterval}})
+    r = sort(roots(f))
+    #TODO divideatroots
+    @assert length(r) <= 2
 
-        if length(r) == 0
-            cumsum(differentiate(f)/f)+log(first(f))
-        elseif length(r) == 1
-            @assert isapprox(abs(r[1]),1)
+    if length(r) == 0
+        cumsum(differentiate(f)/f)+log(first(f))
+    elseif length(r) == 1
+        @assert isapprox(abs(r[1]),1)
 
-            if isapprox(r[1],1.)
-                g=divide_singularity(true,f)
-                lg=Fun(LogWeight(0.,1.,Chebyshev()),[1.])
-                if isapprox(g,1.)  # this means log(g)~0
-                    lg
-                else # log((1-x)) + log(g)
-                    lg⊕log(g)
-                end
-            else
-                g=divide_singularity(false,f)
-                lg=Fun(LogWeight(1.,0.,Chebyshev()),[1.])
-                if isapprox(g,1.)  # this means log(g)~0
-                    lg
-                else # log((1+x)) + log(g)
-                    lg⊕log(g)
-                end
-           end
+        if isapprox(r[1],1.)
+            g=divide_singularity(true,f)
+            lg=Fun(LogWeight(0.,1.,Chebyshev()),[1.])
+            if isapprox(g,1.)  # this means log(g)~0
+                lg
+            else # log((1-x)) + log(g)
+                lg⊕log(g)
+            end
         else
-            @assert isapprox(r[1],-1)
-            @assert isapprox(r[2],1)
-
-            g=divide_singularity(f)
-            lg=Fun(LogWeight(1.,1.,Chebyshev()),[1.])
+            g=divide_singularity(false,f)
+            lg=Fun(LogWeight(1.,0.,Chebyshev()),[1.])
             if isapprox(g,1.)  # this means log(g)~0
                 lg
             else # log((1+x)) + log(g)
                 lg⊕log(g)
             end
-        end
+       end
     else
-        # this makes sure differentiate doesn't
-        # make the function complex
-        g=log(setdomain(f,Segment()))
-        setdomain(g,domain(f))
+        @assert isapprox(r[1],-1)
+        @assert isapprox(r[2],1)
+
+        g=divide_singularity(f)
+        lg=Fun(LogWeight(1.,1.,Chebyshev()),[1.])
+        if isapprox(g,1.)  # this means log(g)~0
+            lg
+        else # log((1+x)) + log(g)
+            lg⊕log(g)
+        end
     end
 end
 
-log(f::Fun{<:PolynomialSpace{<:IntervalOrSegment}}) = log(Fun(f, Chebyshev))
+function log(f::Fun{<:PolynomialSpace{<:IntervalOrSegment}})
+    g = log(setdomain(f, ChebyshevInterval()))
+    setdomain(g, domain(f))
+end
 
 
 function log(f::Fun{Fourier{D,R},T}) where {T<:Real,D,R}
@@ -358,12 +354,8 @@ end
 
 # JacobiWeight explodes, we want to ensure the solution incorporates the fact
 # that exp decays rapidly
-function exp(f::Fun{JW}) where JW<:JacobiWeight
-    if !isa(domain(f),Segment)
-        # project first to get better derivative behaviour
-        return setdomain(exp(setdomain(f,Segment())),domain(f))
-    end
-
+exp(f::Fun{<:JacobiWeight}) = setdomain(exp(setdomain(f, ChebyshevInterval())), domain(f))
+function exp(f::Fun{<:JacobiWeight{<:Any,<:ChebyshevInterval}})
     S=space(f)
     q=Fun(S.space,f.coefficients)
     if isapprox(S.α,0.) && isapprox(S.β,0.)

@@ -147,17 +147,17 @@ end
 ## Operators
 
 
-function jacobiweightDerivative(S::JacobiWeight{SS,DDD}) where {SS,DDD<:IntervalOrSegment}
+function jacobiweightDerivative(S::JacobiWeight{<:Any,<:IntervalOrSegment})
+    d = domain(S)
+    # map to canonical
+    Mp=fromcanonicalD(d,leftendpoint(d))
+    DD=jacobiweightDerivative(setdomain(S,ChebyshevInterval()))
+
+    return DerivativeWrapper(SpaceOperator(DD.op.op,S,setdomain(rangespace(DD),d))/Mp,1)
+end
+
+function jacobiweightDerivative(S::JacobiWeight{<:Any,<:ChebyshevInterval})
     d=domain(S)
-
-    if d!=Segment()
-        # map to canonical
-        Mp=fromcanonicalD(d,leftendpoint(d))
-        DD=jacobiweightDerivative(setdomain(S,Segment()))
-
-        return DerivativeWrapper(SpaceOperator(DD.op.op,S,setdomain(rangespace(DD),d))/Mp,1)
-    end
-
 
     if S.β==S.α==0
         DerivativeWrapper(SpaceOperator(Derivative(S.space),S,JacobiWeight(0.,0.,rangespace(Derivative(S.space)))),1)

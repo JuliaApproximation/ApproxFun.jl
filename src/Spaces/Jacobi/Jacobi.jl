@@ -14,10 +14,10 @@ end
 Jacobi(b::T,a::T,d::Domain) where {T} =
     Jacobi{typeof(d),promote_type(T,real(prectype(d)))}(b, a, d)
 Legendre(domain) = Jacobi(0.,0.,domain)
-Legendre() = Legendre(Segment())
+Legendre() = Legendre(ChebyshevInterval())
 Jacobi(b,a,d::Domain) = Jacobi(promote(b,a)...,d)
 Jacobi(b,a,d) = Jacobi(b,a,Domain(d))
-Jacobi(b,a) = Jacobi(b,a,Segment())
+Jacobi(b,a) = Jacobi(b,a,ChebyshevInterval())
 Jacobi(A::Ultraspherical) = Jacobi(order(A)-0.5,order(A)-0.5,domain(A))
 Jacobi(A::Chebyshev) = Jacobi(-0.5,-0.5,domain(A))
 
@@ -124,13 +124,11 @@ for op in (:(one),:(Base.zeros))
     @eval ($op)(S::Jacobi) = Fun(S,fill($op(Float64),1))
 end
 
+Fun(::typeof(identity), J::Jacobi{<:ChebyshevInterval}) =
+    Fun(J,[(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)])
 function Fun(::typeof(identity), J::Jacobi)
-    if domain(J)==Segment()
-        Fun(J,[(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)])
-    else
-        d=domain(J)
-        complexlength(d)/2*(Fun(J,[(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)])+1.)+first(d)
-    end
+    d=domain(J)
+    complexlength(d)/2*(Fun(J,[(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)])+1.)+first(d)
 end
 
 

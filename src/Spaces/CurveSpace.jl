@@ -24,24 +24,24 @@ Fun(::typeof(identity), d::Space{<:Curve}) = Fun(setdomain(space(domain(d).curve
 #
 export Bernstein, Bézier
 
-struct Bernstein{order,T,R} <: Space{T,R}
-    domain::Segment{T}
-    Bernstein{order,T,R}(d) where {order,T,R} = new(d)
-    Bernstein{order,T,R}() where {order,T,R} = new(Segment{T}())
+struct Bernstein{order,D,R} <: Space{D,R}
+    domain::D
+    Bernstein{order,D,R}(d) where {order,D,R} = new(d)
+    Bernstein{order,D,R}() where {order,D,R} = new(convert(D, ChebyshevInterval()))
 end
 
 const Bézier = Bernstein # option+e e gives é
 
-Bernstein{O}() where {O} = Bernstein{O,Float64,Float64}()
-Bernstein{O}(d::Domain) where {O} = Bernstein{O,eltype(d),real(prectype(d))}(d)
+Bernstein{O}() where {O} = Bernstein{O,ChebyshevInterval{Float64},Float64}()
+Bernstein{O}(d::Domain) where {O} = Bernstein{O,typeof(d),real(prectype(d))}(d)
 
 order(::Bernstein{O}) where {O} = O
-order(::Type{Bernstein{O,T,R}}) where {O,T,R} = O
+order(::Type{Bernstein{O,D,R}}) where {O,D,R} = O
 dimension(::Bernstein{O}) where {O} = O+1
-dimension(::Type{Bernstein{O,T,R}}) where {O,T,R} = O+1
+dimension(::Type{Bernstein{O,D,R}}) where {O,D,R} = O+1
 
 canonicalspace(B::Bernstein) = Chebyshev(domain(B))
-canonicaldomain(B::Bernstein{O,T}) where {O,T} = Segment{T}()
+canonicaldomain(B::Bernstein{O,T}) where {O,T} = ChebyshevInterval{T}()
 
 spacescompatible(a::Bernstein{O,T},b::Bernstein{O,T}) where {O,T}=domainscompatible(a,b)
 

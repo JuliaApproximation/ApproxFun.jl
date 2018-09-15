@@ -12,8 +12,11 @@ can be easily resolved.
 """
 struct Chebyshev{D<:Domain,R} <: PolynomialSpace{D,R}
     domain::D
-    Chebyshev{D,R}(d) where {D,R} = new(d)
-    Chebyshev{D,R}() where {D,R} = new(Segment())
+    function Chebyshev{D,R}(d) where {D,R}
+        isempty(d) && throw(ArgumentError("Domain cannot be empty"))
+        new(d)
+    end
+    Chebyshev{D,R}() where {D,R} = new(convert(D, ChebyshevInterval()))
 end
 
 Chebyshev(d::Domain) = Chebyshev{typeof(d),real(prectype(d))}(d)
@@ -34,9 +37,9 @@ function Space(d::AbstractInterval)
 end
 
 
-setdomain(S::Chebyshev,d::Domain) = Chebyshev(d)
+setdomain(S::Chebyshev, d::Domain) = Chebyshev(d)
 
-ones(::Type{T},S::Chebyshev) where {T<:Number} = Fun(S,fill(one(T),1))
+ones(::Type{T}, S::Chebyshev) where {T<:Number} = Fun(S,fill(one(T),1))
 ones(S::Chebyshev) = Fun(S,fill(1.0,1))
 
 function Base.first(f::Fun{<:Chebyshev})
@@ -61,7 +64,7 @@ plan_itransform(::Chebyshev,cfs::AbstractVector) = plan_ichebyshevtransform(cfs)
 
 ## Evaluation
 
-clenshaw(sp::Chebyshev,c::AbstractVector,x::AbstractArray) =
+clenshaw(sp::Chebyshev, c::AbstractVector, x::AbstractArray) =
     clenshaw(c,x,ClenshawPlan(promote_type(eltype(c),eltype(x)),sp,length(c),length(x)))
 
 function clenshaw(::Chebyshev,c::AbstractVector,x)
@@ -245,14 +248,13 @@ function squarepoints(::Type{T}, N) where T
     ret
 end
 
+points(S::TensorSpace{<:Tuple{<:Chebyshev{<:ChebyshevInterval},<:Chebyshev{<:ChebyshevInterval}}}, N) =
+    squarepoints(real(prectype(D)), N)
+
 function points(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},N) where {D,R}
     T = real(prectype(D))
     pts = squarepoints(T, N)
-
-    d = domain(S)
-    if d ≠ Segment()^2
-        pts .= fromcanonical.(Ref(d),pts)
-    end
+    pts .= fromcanonical.(Ref(domain(S)), pts)
     pts
 end
 
@@ -271,7 +273,7 @@ itransform(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVecto
 
 #TODO: adaptive
 for op in (:(Base.sin),:(Base.cos))
-    @eval ($op)(f::ProductFun{S,V}) where {S<:Chebyshev,V<:Chebyshev} =
+    @eval ($op)(f::ProductFun{<:Chebyshev,<:Chebyshev}) =
         ProductFun(chebyshevtransform($op.(values(f))),space(f))
 end
 

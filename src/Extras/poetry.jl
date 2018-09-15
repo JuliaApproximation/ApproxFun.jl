@@ -3,7 +3,7 @@
 #####
 
 
-export chebyshevt,chebyshevu,legendre,∫,⨜,⨍,∇,Δ,ChebyshevWeight,𝕀,ℝ,𝕌,𝒟
+export chebyshevt, chebyshevu, legendre, ∫, ⨜, ⨍, ChebyshevWeight, 𝕀, ℝ, 𝕌, 𝒟
 
 ## Constructors
 
@@ -13,18 +13,17 @@ Fun(d::Space) = Fun(identity,d)
 
 ## Chebyshev & Legendre polynomials
 
-chebyshevt(n::Int,d::Segment{T}) where {T<:Number} = Fun(Chebyshev(d),[zeros(T,n);one(T)])
-chebyshevu(n::Int,d::Segment{T}) where {T<:Number} =
+chebyshevt(n::Int,d::IntervalOrSegment{T}) where {T<:Number} = Fun(Chebyshev(d),[zeros(T,n);one(T)])
+chebyshevu(n::Int,d::IntervalOrSegment{T}) where {T<:Number} =
     mod(n,2) == 1 ? Fun(Chebyshev(d),interlace(zeros(T,div(n+2,2)),2fill(one(T),div(n+2,2)))) :
                     Fun(Chebyshev(d),interlace(2fill(one(T),div(n+2,2)),zeros(T,div(n+2,2)))[1:n+1]-[one(T);zeros(T,n)])
-legendre(n::Int,d::Segment{T}) where {T<:Number} = Fun(Legendre(d),[zeros(T,n);one(T)])
+legendre(n::Int,d::IntervalOrSegment{T}) where {T<:Number} = Fun(Legendre(d),[zeros(T,n);one(T)])
 
 for poly in (:chebyshevt,:chebyshevu,:legendre)
     @eval begin
-        $poly(n::Int,a::T,b::T) where {T<:Number} = $poly(n,Segment(a,b))
-        $poly(::Type{T},n::Int) where {T<:Number} = $poly(n,Segment{T}())
+        $poly(::Type{T}, n::Int) where {T<:Number} = $poly(n,ChebyshevInterval{T}())
         $poly(n::Int) = $poly(Float64,n)
-        $poly(n::AbstractRange,d::Segment{T}) where {T<:Number} = map(i->$poly(i,d),n)
+        $poly(n::AbstractRange, d::IntervalOrSegment{T}) where {T<:Number} = map(i->$poly(i,d),n)
     end
 end
 

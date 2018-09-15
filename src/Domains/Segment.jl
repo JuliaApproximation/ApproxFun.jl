@@ -16,19 +16,16 @@ are real and `a < b`, then this is is equivalent to an `Interval(a,b)`.
 struct Segment{T} <: AbstractSegment{T}
 	a::T
 	b::T
-	Segment{T}() where {T} = new{T}(-one(T),one(T))
 	Segment{T}(a,b) where {T} = new{T}(a,b)
 end
 
-
-Segment() = Segment{Float64}()
-Segment(a::Complex{IT1},b::Complex{IT2}) where {IT1<:Integer,IT2<:Integer} =
-	Segment(ComplexF64(a),ComplexF64(b)) #convenience method
-Segment(a::Integer,b::Integer) = Segment(Float64(a),Float64(b)) #convenience method
-Segment(a::Complex{IT},b) where {IT<:Integer} = Segment(ComplexF64(a),b) #convenience method
-Segment(a,b::Complex{IT}) where {IT<:Integer} = Segment(a,ComplexF64(b)) #convenience method
-Segment(a,b) = Segment{promote_type(typeof(a),typeof(b))}(a,b)
-Segment(a::Tuple,b::Tuple) = Segment(Vec(a...),Vec(b...))
+Segment(a::Complex{IT1}, b::Complex{IT2}) where {IT1<:Integer,IT2<:Integer} =
+	Segment(ComplexF64(a), ComplexF64(b)) #convenience method
+Segment(a::Integer, b::Integer) = Segment(Float64(a),Float64(b)) #convenience method
+Segment(a::Complex{IT}, b) where {IT<:Integer} = Segment(ComplexF64(a),b) #convenience method
+Segment(a, b::Complex{IT}) where {IT<:Integer} = Segment(a,ComplexF64(b)) #convenience method
+Segment(a, b) = Segment{promote_type(typeof(a),typeof(b))}(a,b)
+Segment(a::Tuple, b::Tuple) = Segment(Vec(a...),Vec(b...))
 
 
 convert(::Type{Domain{T}}, d::Segment) where {T<:Number} = Segment{T}(leftendpoint(d),rightendpoint(d))

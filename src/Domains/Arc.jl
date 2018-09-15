@@ -101,7 +101,7 @@ end
 
 
 # allow exp(im*Segment(0,1)) for constructing arc
-function exp(d::Segment{CMP}) where CMP<:Complex
+function exp(d::IntervalOrSegment{<:Complex})
     @assert isapprox(real(leftendpoint(d)),0) && isapprox(real(rightendpoint(d)),0)
     Arc(0,1,(imag(leftendpoint(d)),imag(rightendpoint(d))))
 end

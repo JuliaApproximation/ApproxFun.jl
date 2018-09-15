@@ -107,7 +107,7 @@ DiracDelta()=DiracDelta(0.)
 KroneckerDelta(x::Number) = Fun(PointSpace(x),[1.])
 KroneckerDelta() = KroneckerDelta(0.)
 
-function Base.cumsum(f::Fun{S},d::Segment{T}) where {S<:DiracSpace,T<:Real}
+function Base.cumsum(f::Fun{S},d::IntervalOrSegment{T}) where {S<:DiracSpace,T<:Real}
     pts=space(f).points
     @assert pts ==sort(pts)
     cfs=cumsum(f.coefficients)
