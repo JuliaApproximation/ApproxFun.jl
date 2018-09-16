@@ -249,26 +249,26 @@ function squarepoints(::Type{T}, N) where T
 end
 
 points(S::TensorSpace{<:Tuple{<:Chebyshev{<:ChebyshevInterval},<:Chebyshev{<:ChebyshevInterval}}}, N) =
-    squarepoints(real(prectype(D)), N)
+    squarepoints(real(prectype(S)), N)
 
-function points(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},N) where {D,R}
-    T = real(prectype(D))
+function points(S::TensorSpace{<:Tuple{<:Chebyshev,<:Chebyshev}},N)
+    T = real(prectype(S))
     pts = squarepoints(T, N)
     pts .= fromcanonical.(Ref(domain(S)), pts)
     pts
 end
 
-plan_transform(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector) where {D,R} =
+plan_transform(S::TensorSpace{<:Tuple{<:Chebyshev,<:Chebyshev}},v::AbstractVector) =
     plan_paduatransform!(v,Val{false})
 
-transform(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector,
-        plan=plan_transform(S,v)) where {D,R} = plan*copy(v)
+transform(S::TensorSpace{<:Tuple{<:Chebyshev,<:Chebyshev}},v::AbstractVector,
+        plan=plan_transform(S,v)) = plan*copy(v)
 
-plan_itransform(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector) where {D,R} =
+plan_itransform(S::TensorSpace{<:Tuple{<:Chebyshev,<:Chebyshev}},v::AbstractVector) =
      plan_ipaduatransform!(eltype(v),sum(1:nblocks(Fun(S,v))),Val{false})
 
-itransform(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector,
-         plan=plan_itransform(S,v)) where {D,R} = plan*pad(v,sum(1:nblocks(Fun(S,v))))
+itransform(S::TensorSpace{<:Tuple{<:Chebyshev,<:Chebyshev}},v::AbstractVector,
+         plan=plan_itransform(S,v)) = plan*pad(v,sum(1:nblocks(Fun(S,v))))
 
 
 #TODO: adaptive

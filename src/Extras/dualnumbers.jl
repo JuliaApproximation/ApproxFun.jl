@@ -6,11 +6,11 @@ DualNumbers.realpart(f::Fun{S,T}) where {S,T<:Dual} = Fun(space(f),realpart(coef
 DualNumbers.dualpart(f::Fun{S,T}) where {S,T<:Dual} = Fun(space(f),dualpart(coefficients(f)))
 
 
-DualNumbers.realpart(d::Segment{DD}) where {DD<:Dual} = Segment(realpart(leftendpoint(d)),realpart(rightendpoint(d)))
+DualNumbers.realpart(d::Segment{<:Dual}) = Segment(realpart(leftendpoint(d)),realpart(rightendpoint(d)))
 
-indomain(x::Number,d::Segment{DD}) where {DD<:Dual} = in(x,realpart(d))
-indomain(x::Dual,d::Segment{DD}) where {DD<:Dual} = in(realpart(x),realpart(d))
-
+indomain(x::Number, d::Segment{<:Dual}) = in(x,realpart(d))
+indomain(x::Dual, d::Segment{<:Dual}) = in(realpart(x),realpart(d))
+isempty(d::Segment{<:Dual}) = isempty(realpart(d))
 
 
 # for QR Factorization.  These have been submitted to DualNumbers

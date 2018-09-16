@@ -67,7 +67,7 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
         @test norm(max(x,x)-x)<100eps()
         @test norm(min(x,x)-x)<100eps()
 
-        f3=Fun(x->x<-0.05 ? -1.0 : (x<0.45 ? 4*(x-.2) : 1),Domain(-1..1) \ [-0.05,0.45])
+        f3=Fun(x->x<-0.05 ? -1.0 : (x<0.45 ? 4*(x-.2) : 1), (-1..1) \ [-0.05,0.45])
         @test norm(f2.(range(-1,stop=1,length=10))-f3.(range(-1,stop=1,length=10))) < 4eps()
     end
 
