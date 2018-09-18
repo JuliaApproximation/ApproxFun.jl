@@ -221,8 +221,12 @@ differentiate(f::Fun{Chebyshev{D,R}}) where {D<:Segment,R} =
 
 ## Multivariate
 
+# determine correct parameter to have at least
+# N point
+_padua_length(N) = Int(cld(-3+sqrt(1+8N),2))
+
 function squarepoints(::Type{T}, N) where T
-    pts = paduapoints(T,Int(cld(-3+sqrt(1+8N),2)))
+    pts = paduapoints(T, _padua_length(N))
     n = size(pts,1)
     ret = Array{Vec{2,T}}(undef, n)
     @inbounds for k=1:n
