@@ -33,7 +33,7 @@ coefficients(cfs::AbstractVector,::SequenceSpace) = cfs  # all vectors are conve
 
 # setup conversions for spaces that contain constants
 macro containsconstants(SP)
-    quote
+    esc(quote
         ApproxFun.union_rule(A::(ApproxFun.ConstantSpace),B::$SP) = B
         Base.promote_rule(A::Type{<:(ApproxFun.ConstantSpace)},B::Type{<:($SP)}) = B
 
@@ -43,7 +43,7 @@ macro containsconstants(SP)
         Base.promote_rule(::Type{ApproxFun.Fun{S,V,VV}},
         ::Type{Fun{ApproxFun.ConstantSpace{ApproxFun.AnyDomain},T,VT}}) where {T,S<:$SP,V,VV,VT} =
             ApproxFun.VFun{S,promote_type(V,T)}
-    end
+    end)
 end
 
 

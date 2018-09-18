@@ -103,9 +103,10 @@ function lastindex(A::Operator, n::Integer)
     elseif isinf(size(A,2)) || isinf(size(A,1))
         ∞
     else
-        size(A,1)*size(A,2)
+        size(A,1)
     end
 end
+lastindex(A::Operator) = size(A,1)*size(A,2)
 
 Base.ndims(::Operator) = 2
 
@@ -280,6 +281,7 @@ function bandedblockbanded_colstart(A::Operator, i::Integer)
 end
 
 function bandedblockbanded_colstop(A::Operator, i::Integer)
+    i ≤ 0 && return 0
     ds = domainspace(A)
     rs = rangespace(A)
     B = block(ds,i)

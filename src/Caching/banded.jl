@@ -9,27 +9,27 @@ end
 
 ## Grow cached operator
 
-
-function resizedata!(B::CachedOperator{T,<:BandedMatrix{T}},n::Integer,::Colon) where T<:Number
+function resizedata!(B::CachedOperator{T,<:BandedMatrix{T}},n::Integer,m_in::Integer) where T<:Number
+    m = max(m_in,n+B.data.u)
     N,M = size(B)
     n = min(n, N)
 
     if n > B.datasize[1]
-        pad!(B.data,min(N,2n),:)
+        pad!(B.data,min(N,2n),m)
 
         kr=B.datasize[1]+1:n
         jr=max(B.datasize[1]+1-B.data.l,1):min(n+B.data.u,M)
         BLAS.axpy!(1.0,view(B.op,kr,jr),view(B.data,kr,jr))
 
-        B.datasize = (n,n+B.data.u)
+        B.datasize = (n,m)
     end
 
     B
 end
 
-resizedata!(B::CachedOperator{T,<:BandedMatrix{T}},n::Integer,m::Integer) where {T<:Number} =
-    resizedata!(B,n,:)
 
+resizedata!(B::CachedOperator{T,<:BandedMatrix{T}},n::Integer,::Colon) where T<:Number =
+    resizedata!(B, n, n+B.data.u)
 
 ## Grow QR
 

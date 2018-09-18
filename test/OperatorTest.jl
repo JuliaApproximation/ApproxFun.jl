@@ -312,4 +312,13 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
         M = Multiplication(x, JacobiWeight(0,0,Chebyshev()))
         @test exp(M).f == Multiplication(exp(x), Chebyshev()).f
     end
+
+    @testset "lastindex" begin
+        Z = Operator(I,Chebyshev())
+        S = view(Z,1:10,1:10)
+        @et lastindex(S,1) == lastindex(S,2) == 10
+        @test lastindex(S) == 100
+        @test S[end,end] ≈ 1
+        @test S[end-1,end] ≈ 0
+    end
 end

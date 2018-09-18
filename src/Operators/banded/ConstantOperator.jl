@@ -153,5 +153,8 @@ convert(::Type{T},S::SpaceOperator) where {T<:Number} = convert(T,S.op)
 ## Special case for ZeroOperator
 for TYP in (:RaggedMatrix,:Matrix,:BandedMatrix,
             :BlockBandedMatrix,:BandedBlockBandedMatrix)
-    @eval $TYP(S::SubOperator{T,ZO}) where {T,ZO<:ZeroOperator} = $TYP(Zeros, S)
+    @eval begin
+        $TYP(S::SubOperator{T,ZO}) where {T,ZO<:ZeroOperator} = $TYP(Zeros, S)
+        $TYP(S::SubOperator{T,ZO,NTuple{2,UnitRange{Int}}}) where {T,ZO<:ZeroOperator} = $TYP(Zeros, S)
+    end
 end
