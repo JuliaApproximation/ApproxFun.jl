@@ -50,6 +50,12 @@ function canonicalspace(S::Jacobi)
     end
 end
 
+reverseorientation(S::Jacobi) = Jacobi(S.a, S.b, reverseorientation(domain(S)))
+ReverseOrientation(S::Jacobi) = ReverseOrientationWrapper(NegateEven(S,reverseorientation(S)))
+reverseorientation(f::Fun{<:Jacobi}) =
+    Fun(reverseorientation(space(f)), alternatesign!(copy(f.coefficients)))
+
+
 #####
 # jacobirecA/B/C is from dlmf:
 # p_{n+1} = (A_n x + B_n)p_n - C_n p_{n-1}

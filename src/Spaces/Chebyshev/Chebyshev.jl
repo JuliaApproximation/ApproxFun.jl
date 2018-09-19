@@ -279,7 +279,7 @@ end
 
 
 
-reverseorientation(f::Fun{C}) where {C<:Chebyshev} =
+reverseorientation(f::Fun{<:Chebyshev}) =
     Fun(Chebyshev(reverseorientation(domain(f))),alternatesign!(copy(f.coefficients)))
 
 

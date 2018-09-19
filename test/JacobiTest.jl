@@ -214,7 +214,7 @@ using ApproxFun, Test, StaticArrays, SpecialFunctions
         @test cumsum(f)(1.0) ≈ 0.7869386805747332
     end
 
-    @testset "Jacobi–Chebyshev conversion tests" begin
+    @testset "Jacobi–Chebyshev conversion" begin
         a,b = (Jacobi(-0.5,-0.5), Legendre())
         @test maxspace(a,b) == NoSpace()
         @test union(a,b) == a
@@ -234,7 +234,7 @@ using ApproxFun, Test, StaticArrays, SpecialFunctions
         g(3.0) - cumsum(Fun(x -> f(x), 0..6))(3.0)
     end
 
-    @testset "Definite integral tests" begin
+    @testset "Definite integral" begin
         for S in (WeightedJacobi(0,0), JacobiWeight(0,0, Legendre(1.1..2.3)), Legendre())
             B = DefiniteIntegral(S)
             testfunctional(B)
@@ -243,5 +243,13 @@ using ApproxFun, Test, StaticArrays, SpecialFunctions
             f = Fun(exp, S)
             B*f == sum(Fun(exp,domain(S)))
         end
+    end
+
+    @testset "Reverse orientation" begin
+        S = Jacobi(0.1,0.2)
+        f = Fun(S, randn(10))
+        @test f(0.1) ≈ (ApproxFun.ReverseOrientation(S)*f)(0.1) ≈ ApproxFun.reverseorientation(f)(0.1)
+        @test rangespace(ApproxFun.ReverseOrientation(S)) == space(ApproxFun.reverseorientation(f)) ==
+                    Jacobi(0.2,0.1,Segment(1,-1))
     end
 end

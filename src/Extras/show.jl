@@ -54,7 +54,9 @@ for typ in ("Chebyshev","Fourier","Laurent","Taylor","SinSpace","CosSpace")
     end
 end
 
-function show(io::IO,S::Ultraspherical)
+
+
+function show(io::IO, S::Ultraspherical)
     print(io,"Ultraspherical($(order(S)),")
     show(io,domain(S))
     print(io,")")
@@ -66,6 +68,11 @@ function show(io::IO,S::Jacobi)
     print(io,")")
 end
 
+
+show(io::IO, S::Chebyshev{<:ChebyshevInterval}) = print(io, "Chebyshev()")
+show(io::IO, S::Ultraspherical{<:ChebyshevInterval}) = print(io, "Ultraspherical($(order(S)))")
+show(io::IO, S::Jacobi{<:ChebyshevInterval}) =
+    S.a == S.b == 0 ? print(io,"Legendre()") : print(io,"Jacobi($(S.b),$(S.a))")
 
 
 function show(io::IO,s::JacobiWeight)
