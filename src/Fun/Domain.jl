@@ -83,8 +83,8 @@ points(d::IntervalOrSegmentDomain{T},n::Integer; kind::Int=1) where {T} =
 bary(v::AbstractVector{Float64},d::IntervalOrSegmentDomain,x::Float64) = bary(v,tocanonical(d,x))
 
 #TODO consider moving these
-first(d::IntervalOrSegmentDomain{T}) where {T} = fromcanonical(d,-one(T))
-last(d::IntervalOrSegmentDomain{T}) where {T} = fromcanonical(d,one(T))
+first(d::IntervalOrSegmentDomain{T}) where {T} = fromcanonical(d,-one(eltype(T)))
+last(d::IntervalOrSegmentDomain{T}) where {T} = fromcanonical(d,one(eltype(T)))
 
 indomain(x,::AnyDomain) = true
 function indomain(x,d::SegmentDomain)
