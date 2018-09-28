@@ -123,14 +123,14 @@ end
 
 
 function pad(f::ProductFun{S,V,SS,T},n::Integer,m::Integer) where {S,V,SS,T}
-    ret=Array{VFun{S,T}}(m)
+    ret=Array{VFun{S,T}}(undef, m)
     cm=min(length(f.coefficients),m)
     for k=1:cm
         ret[k]=pad(f.coefficients[k],n)
     end
 
     for k=cm+1:m
-        ret[k]=zero(T,columnspace(f,k))
+        ret[k] = zeros(columnspace(f,k))
     end
     ProductFun{S,V,SS,T}(ret,f.space)
 end
@@ -140,7 +140,7 @@ function pad!(f::ProductFun{S,V,SS,T},::Colon,m::Integer) where {S,V,SS,T}
     resize!(f.coefficients,m)
 
     for k=cm+1:m
-        f.coefficients[k]=zero(T,columnspace(f,k))
+        f.coefficients[k]=zeros(columnspace(f,k))
     end
     f
 end

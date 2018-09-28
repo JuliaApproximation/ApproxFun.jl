@@ -68,13 +68,13 @@ for TYP in (:ConcreteLeftIntegral,:ConcreteRightIntegral)
 end
 
 
-jacobi_frac_getindex(d::Segment,α,μ,k::Integer,j::Integer) =
+jacobi_frac_getindex(d::IntervalOrSegment,α,μ,k::Integer,j::Integer) =
     jacobi_frac_getindex((arclength(d)/2)^μ,α,μ,k,j)
 jacobi_frac_getindex(c::Number,α,μ,k::Integer,j::Integer) =
     k==j ? c*exp(lgamma(α+k)-lgamma(α+μ+k)) : zero(promote_type(typeof(c),typeof(α),typeof(μ)))
 
 
-# jacobi_frac_addentries!(d::Segment,α,μ,A,kr::UnitRange)=
+# jacobi_frac_addentries!(d::IntervalOrSegment,α,μ,A,kr::UnitRange)=
 #     jacobi_frac_addentries!((arclength(d)/2)^μ,α,μ,A,kr)
 # function jacobi_frac_addentries!(c::Number,α,μ,A,kr::UnitRange)
 #     γ=c*gamma(α+1)/gamma(α+1+μ)
