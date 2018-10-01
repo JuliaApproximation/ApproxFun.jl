@@ -4,6 +4,7 @@ import Base: chop
 # Used for spaces not defined yet
 struct UnsetNumber <: Number  end
 promote_rule(::Type{UnsetNumber},::Type{N}) where {N<:Number} = N
+promote_rule(::Type{Bool}, ::Type{UnsetNumber}) = Bool
 
 # Test the number of arguments a function takes
 hasnumargs(f,k) = applicable(f,zeros(k)...)

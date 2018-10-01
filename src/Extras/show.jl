@@ -70,7 +70,7 @@ end
 
 
 show(io::IO, S::Chebyshev{<:ChebyshevInterval}) = print(io, "Chebyshev()")
-show(io::IO, S::Ultraspherical{<:ChebyshevInterval}) = print(io, "Ultraspherical($(order(S)))")
+show(io::IO, S::Ultraspherical{<:Any,<:ChebyshevInterval}) = print(io, "Ultraspherical($(order(S)))")
 show(io::IO, S::Jacobi{<:ChebyshevInterval}) =
     S.a == S.b == 0 ? print(io,"Legendre()") : print(io,"Jacobi($(S.b),$(S.a))")
 
@@ -180,7 +180,7 @@ end
 ## Operator
 
 summary(B::Operator) =
-    string(typeof(B).name.name)*":"*string(domainspace(B))*"→"*string(rangespace(B))
+    string(typeof(B).name.name)*" : "*string(domainspace(B))*" → "*string(rangespace(B))
 
 struct PrintShow
     str
