@@ -20,7 +20,7 @@ ProductDomain(d::Tuple) =
     ProductDomain{typeof(d),Vec{length(d),mapreduce(eltype,promote_type,d)}}(d)
 
 issubset(a::ProductDomain,b::ProductDomain) =
-  length(a) == length(b) && all(issubset(a.domains[i],b.domains[i]) for i in eachindex(a.domains))
+  length(a.domains) == length(b.domains) && all(issubset(a.domains[i],b.domains[i]) for i in eachindex(a.domains))
 
 
 canonicaldomain(d::ProductDomain) = ProductDomain(map(canonicaldomain,d.domains))
