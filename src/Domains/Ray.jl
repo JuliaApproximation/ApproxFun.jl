@@ -60,7 +60,7 @@ convert(::Type{Ray{a,T}},::AnyDomain) where {a,T<:Number} = Ray{a,T}(NaN,true)
 convert(::Type{IT},::AnyDomain) where {IT<:Ray} = Ray(NaN,NaN)
 
 
-
+isempty(::Ray) = false
 
 ## Map interval
 

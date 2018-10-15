@@ -78,7 +78,7 @@ function integrate(f::Fun{CS}) where CS<:CosSpace
         else
             d=domain(f)
             @assert isa(d,PeriodicSegment)
-            x=Fun(identity,first(d)..last(d))
+            x=Fun(identity, Interval(d))
             (f.coefficients[1]*x)⊕integrate(Fun(f,space(f)|(2:∞)))
         end
     end

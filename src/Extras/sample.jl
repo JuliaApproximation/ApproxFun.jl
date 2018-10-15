@@ -196,7 +196,7 @@ function sample(f::LowRankFun,n::Integer)
     [rx ry]
 end
 
-function sample(f::LowRankFun{C,C,TensorSpace{Tuple{C,C},DD,RR},Float64},n::Integer) where {C<:Chebyshev,DD<:BivariateDomain,RR<:Real}
+function sample(f::LowRankFun{C,C,TensorSpace{Tuple{C,C},DD,RR},Float64},n::Integer) where {C<:Chebyshev,DD<:Domain2d,RR<:Real}
     ry=sample(sum(f,1),n)
     fA=evaluate.(f.A,ry')
     CB=coefficientmatrix(f.B)

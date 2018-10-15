@@ -218,7 +218,7 @@ end
 # Default is just try solving ODE
 function ^(f::Fun{S,T},β) where {S,T}
     A=Derivative()-β*differentiate(f)/f
-    B=Evaluation(first(domain(f)))
+    B=Evaluation(leftendpoint(domain(f)))
     [B;A]\[first(f)^β;0]
 end
 
@@ -305,8 +305,8 @@ atan(f::Fun)=cumsum(f'/(1+f^2))+atan(first(f))
 # condition in calculating secial functions
 function specialfunctionnormalizationpoint(op,growth,f)
     g=chop(growth(f),eps(cfstype(f)))
-    xmin = isempty(g.coefficients) ? first(domain(g)) : argmin(g)
-    xmax = isempty(g.coefficients) ? last(domain(g)) : argmax(g)
+    xmin = isempty(g.coefficients) ? leftendpoint(domain(g)) : argmin(g)
+    xmax = isempty(g.coefficients) ? rightendpoint(domain(g)) : argmax(g)
     opfxmin,opfxmax = op(f(xmin)),op(f(xmax))
     opmax = maximum(abs,(opfxmin,opfxmax))
     if abs(opfxmin) == opmax xmax,opfxmax = xmin,opfxmin end
@@ -431,8 +431,8 @@ for (op,ODE,RHS,growth) in ((:(erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
             f=setcanonicaldomain(fin)
 
             g=chop($growth(f),eps(T))
-            xmin = isempty(g.coefficients) ? first(domain(g)) : argmin(g)
-            xmax = isempty(g.coefficients) ? last(domain(g)) : argmax(g)
+            xmin = isempty(g.coefficients) ? leftendpoint(domain(g)) : argmin(g)
+            xmax = isempty(g.coefficients) ? rightendpoint(domain(g)) : argmax(g)
             opfxmin,opfxmax = $op(f(xmin)),$op(f(xmax))
             opmax = maximum(abs,(opfxmin,opfxmax))
             while opmax≤10eps(T) || abs(f(xmin)-f(xmax))≤10eps(T)
@@ -469,8 +469,8 @@ for (op,ODE,RHS,growth) in ((:(hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^
             f=setcanonicaldomain(fin)
 
             g=chop($growth(f),eps(T))
-            xmin = isempty(g.coefficients) ? first(domain(g)) : argmin(g)
-            xmax = isempty(g.coefficients) ? last(domain(g)) : argmax(g)
+            xmin = isempty(g.coefficients) ? leftendpoint(domain(g)) : argmin(g)
+            xmax = isempty(g.coefficients) ? rightendpoint(domain(g)) : argmax(g)
             opfxmin,opfxmax = $op(ν,f(xmin)),$op(ν,f(xmax))
             opmax = maximum(abs,(opfxmin,opfxmax))
             while opmax≤10eps(T) || abs(f(xmin)-f(xmax))≤10eps(T)
@@ -592,13 +592,13 @@ for op in (:(<=),:(>=))
             if length(rts)==0
                 $op(first(f),c)
             elseif length(rts)==1
-                if isapprox(rts[1],first(domain(f))) || isapprox(rts[1],last(domain(f)))
+                if isapprox(rts[1],leftendpoint(domain(f))) || isapprox(rts[1],rightendpoint(domain(f)))
                     $op(f(fromcanonical(f,0.)),c)
                 else
                     error("Implement for mid roots")
                 end
             elseif length(rts)==2
-                if isapprox(rts[1],first(domain(f))) && isapprox(rts[2],last(domain(f)))
+                if isapprox(rts[1],leftendpoint(domain(f))) && isapprox(rts[2],rightendpoint(domain(f)))
                     $op(f(fromcanonical(f,0.)),c)
                 else
                     error("Implement for mid roots")
@@ -612,13 +612,13 @@ for op in (:(<=),:(>=))
             if length(rts)==0
                 $op(c,first(f))
             elseif length(rts)==1
-                if isapprox(rts[1],first(domain(f))) || isapprox(rts[1],first(domain(f)))
+                if isapprox(rts[1],leftendpoint(domain(f))) || isapprox(rts[1],leftendpoint(domain(f)))
                     $op(c,f(fromcanonical(f,0.)))
                 else
                     error("Implement for mid roots")
                 end
             elseif length(rts)==2
-                if isapprox(rts[1],first(domain(f))) && isapprox(rts[2],first(domain(f)))
+                if isapprox(rts[1],leftendpoint(domain(f))) && isapprox(rts[2],leftendpoint(domain(f)))
                     $op(c,f(fromcanonical(f,0.)))
                 else
                     error("Implement for mid roots")
@@ -655,7 +655,7 @@ for OP in (:abs,:sign,:log,:angle)
             Fun(map($OP,components(f)),PiecewiseSpace)
         $OP(f::Fun{<:ContinuousSpace{<:Any,<:Real},<:Real}) =
             Fun(map($OP,components(f)),PiecewiseSpace)
-        $OP(f::Fun{<:PiecewiseSpace{<:Any,<:UnivariateDomain}}) =
+        $OP(f::Fun{<:PiecewiseSpace{<:Any,<:Domain1d}}) =
             Fun(map($OP,components(f)),PiecewiseSpace)
     end
 end
@@ -681,10 +681,10 @@ function jumplocations(f::Fun{S}) where{S<:Union{PiecewiseSpace,ContinuousSpace}
     dc = components(d)
     fc = components(f)
 
-    isjump = isapprox.(first.(dc[2:end]), last.(dc[1:end-1]), rtol=dtol) .&
+    isjump = isapprox.(leftendpoint.(dc[2:end]), rightendpoint.(dc[1:end-1]), rtol=dtol) .&
            .!isapprox.(first.(fc[2:end]), last.(fc[1:end-1]), rtol=ftol)
 
-    locs = last.(dc[1:end-1])
+    locs = rightendpoint.(dc[1:end-1])
     locs[isjump]
 end
 

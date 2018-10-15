@@ -77,7 +77,7 @@ for (BF,FF) in ((BigFloat,Float64),(Complex{BigFloat},ComplexF64))
             throw(ArgumentError("Tried to take roots of a zero function."))
         end
 
-        hscale = maximum( [abs(first(d)), abs(last(d))] )
+        hscale = maximum( [abs(leftendpoint(d)), abs(rightendpoint(d))] )
         htol = eps(2000.)*max(hscale, 1)  # TODO: choose tolerance better
 
         # calculate Flaot64 roots
@@ -106,7 +106,7 @@ function roots( f::Fun{C,TT} ) where {C<:Chebyshev,TT<:Union{Float64,ComplexF64}
     c = f.coefficients
     vscale = maximum(abs,values(f))
 
-    hscale = max(abs(first(d)), abs(last(d)) )
+    hscale = max(abs(leftendpoint(d)), abs(rightendpoint(d)) )
     htol = eps(2000.)*max(hscale, 1)  # TODO: choose tolerance better
 
 
@@ -272,7 +272,7 @@ end
 
 for op in (:(maximum),:(minimum),:(extrema))
     @eval function $op(f::Fun{S,T}) where {S<:RealSpace,T<:Real}
-        pts = iszero(f') ? [first(domain(f))] : extremal_args(f)
+        pts = iszero(f') ? [leftendpoint(domain(f))] : extremal_args(f)
 
         $op(f.(pts))
     end
@@ -281,7 +281,7 @@ end
 for op in (:(maximum),:(minimum))
     @eval begin
         function $op(::typeof(abs), f::Fun{S,T}) where {S<:RealSpace,T<:Real}
-            pts = iszero(f') ? [first(domain(f))] : extremal_args(f)
+            pts = iszero(f') ? [leftendpoint(domain(f))] : extremal_args(f)
             $op(f.(pts))
         end
         function $op(::typeof(abs), f::Fun)
@@ -314,7 +314,7 @@ for op in (:(argmax),:(argmin))
     @eval begin
         function $op(f::Fun{S,T}) where {S<:RealSpace,T<:Real}
             # need to check for zero as extremal_args is not defined otherwise
-            iszero(f) && return first(domain(f))
+            iszero(f) && return leftendpoint(domain(f))
             # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
             # the extra real avoids issues with complex round-off
@@ -323,7 +323,7 @@ for op in (:(argmax),:(argmin))
 
         function $op(f::Fun{S,T}) where {S,T}
             # need to check for zero as extremal_args is not defined otherwise
-            iszero(f) && return first(domain(f))
+            iszero(f) && return leftendpoint(domain(f))
             # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
             fp=f.(pts)
@@ -446,10 +446,10 @@ function roots(f::Fun{S,T}) where {S<:JacobiWeight,T}
     d=domain(sp)
     rts=roots(Fun(sp.space,f.coefficients))
     if sp.β > 0
-        rts=[first(d);rts]
+        rts=[leftendpoint(d);rts]
     end
     if sp.α > 0
-        rts=[rts;last(d)]
+        rts=[rts;rightendpoint(d)]
     end
     rts
 end

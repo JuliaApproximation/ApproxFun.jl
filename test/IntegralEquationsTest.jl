@@ -96,7 +96,7 @@ using ApproxFun, IntervalSets, Random, Test
 
     d = exp(im*Segment(0.1,0.2))
     x = Fun(d)
-    @time w=1/(sqrt(abs(first(d)-x))*sqrt(abs(last(d)-x)))
+    @time w=1/(sqrt(abs(leftendpoint(d)-x))*sqrt(abs(rightendpoint(d)-x)))
 
     @test linesum(w) ≈ DefiniteLineIntegral()*w
 

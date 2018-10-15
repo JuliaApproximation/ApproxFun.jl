@@ -5,20 +5,7 @@ export chebyshevpoints, fourierpoints, isambiguous, arclength
 export components, component, ncomponents
 
 
-# T is the numeric type used to represent the domain
-# For d-dimensional domains, it is Vec{d,T}
 
-const UnivariateDomain{T} = Domain{T} where {T<:Number}
-const BivariateDomain{T} = Domain{Vec{2,T}} where {T<:Number}
-
-struct DomainStyle <: BroadcastStyle end
-
-
-dimension(::Type{Domain{TT}}) where TT<:Number = 1
-dimension(::Type{Domain{Vec{d,T}}}) where {T,d} = d
-dimension(::Type{DT}) where {DT<:Domain} = dimension(supertype(DT))
-
-dimension(d::Domain) = dimension(typeof(d))
 
 # add indexing for all spaces, not just DirectSumSpace
 # mimicking scalar vs vector
@@ -39,6 +26,8 @@ arclength(::AnyDomain) = NaN
 arclength(::EmptyDomain) = false
 arclength(::Domains.EmptySpace) = false
 
+isempty(::AnyDomain) = false
+
 reverseorientation(a::Union{AnyDomain,EmptyDomain}) = a
 
 canonicaldomain(a::Union{AnyDomain,EmptyDomain}) = a
@@ -56,22 +45,18 @@ union(::EmptyDomain, a::Domain) = a
 union(a::Domain, ::EmptyDomain) = a
 
 ##General routines
-
-
 isempty(::EmptyDomain) = true
-isempty(::Domain) = false
 
 
 ## Interval Domains
 
-abstract type SegmentDomain{T} <: UnivariateDomain{T} end
+abstract type SegmentDomain{T} <: Domain{T} end
 abstract type AbstractSegment{T} <: SegmentDomain{T} end
 const IntervalOrSegment{T} = Union{AbstractInterval{T}, AbstractSegment{T}}
 const IntervalOrSegmentDomain{T} = Union{AbstractInterval{T}, SegmentDomain{T}}
 
 canonicaldomain(d::IntervalOrSegmentDomain) = ChebyshevInterval{real(prectype(d))}()
 
-isapprox(a::Domain,b::Domain) = a==b
 domainscompatible(a,b) = domainscompatible(domain(a),domain(b))
 domainscompatible(a::Domain,b::Domain) = isambiguous(a) || isambiguous(b) ||
                     isapprox(a,b)
@@ -83,8 +68,8 @@ points(d::IntervalOrSegmentDomain{T},n::Integer; kind::Int=1) where {T} =
 bary(v::AbstractVector{Float64},d::IntervalOrSegmentDomain,x::Float64) = bary(v,tocanonical(d,x))
 
 #TODO consider moving these
-first(d::IntervalOrSegmentDomain{T}) where {T} = fromcanonical(d,-one(eltype(T)))
-last(d::IntervalOrSegmentDomain{T}) where {T} = fromcanonical(d,one(eltype(T)))
+leftendpoint(d::IntervalOrSegmentDomain{T}) where {T} = fromcanonical(d,-one(eltype(T)))
+rightendpoint(d::IntervalOrSegmentDomain{T}) where {T} = fromcanonical(d,one(eltype(T)))
 
 indomain(x,::AnyDomain) = true
 function indomain(x,d::SegmentDomain)
@@ -129,7 +114,7 @@ function tocanonical end
 
 ###### Periodic domains
 
-abstract type PeriodicDomain{T} <: UnivariateDomain{T} end
+abstract type PeriodicDomain{T} <: Domain{T} end
 
 
 canonicaldomain(::PeriodicDomain) = PeriodicSegment()
@@ -206,7 +191,7 @@ checkpoints(d::PeriodicDomain) = fromcanonical.(Ref(d),[1.223972,3.14,5.83273484
 
 ## boundary
 
-boundary(d::SegmentDomain) = [first(d),last(d)] #TODO: Points domain
+boundary(d::SegmentDomain) = [leftendpoint(d),rightendpoint(d)] #TODO: Points domain
 boundary(d::PeriodicDomain) = EmptyDomain()
 
 

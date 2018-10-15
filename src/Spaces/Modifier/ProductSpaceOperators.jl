@@ -34,8 +34,8 @@ function continuity(sp::PiecewiseSpace,order::Integer)
     B=zeros(Operator{prectype(sp)},m-1,m)
 
     for k=1:m-1
-        B[k,k] = Evaluation(component(sp,k),last,order)
-        B[k,k+1] = -Evaluation(component(sp,k+1),first,order)
+        B[k,k] = Evaluation(component(sp,k),rightendpoint,order)
+        B[k,k+1] = -Evaluation(component(sp,k+1),leftendpoint,order)
     end
 
     InterlaceOperator(B,PiecewiseSpace,ArraySpace)

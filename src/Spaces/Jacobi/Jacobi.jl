@@ -134,7 +134,7 @@ Fun(::typeof(identity), J::Jacobi{<:ChebyshevInterval}) =
     Fun(J,[(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)])
 function Fun(::typeof(identity), J::Jacobi)
     d=domain(J)
-    complexlength(d)/2*(Fun(J,[(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)])+1.)+first(d)
+    complexlength(d)/2*(Fun(J,[(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)])+1.)+leftendpoint(d)
 end
 
 

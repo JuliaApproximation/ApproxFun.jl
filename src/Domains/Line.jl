@@ -59,6 +59,7 @@ convert(::Type{IT},::AnyDomain) where {IT<:Line}=Line(NaN,NaN)
 
 ##TODO non-1 alpha,beta
 
+isempty(::Line) = false
 
 function line_tocanonical(α,β,x)
     @assert α==β==-1. || α==β==-.5

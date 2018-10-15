@@ -1,4 +1,4 @@
-struct PiecewiseSegment{T} <: UnivariateDomain{T}
+struct PiecewiseSegment{T} <: Domain{T}
     points::Vector{T}
     PiecewiseSegment{T}(d::Vector{T}) where {T} = new{T}(d)
 end

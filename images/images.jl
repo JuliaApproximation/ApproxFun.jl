@@ -58,7 +58,7 @@ d = domain(f)
 x = ApproxFun.sample(f,10000)
 plot(f/sum(f);legend=false,grid=false)                           # Requires Gadfly or PyPlot
 histogram!(x;normed=true,nbins=100)
-xlims!(first(d),last(d));ylims!(0.0,0.18);xlabel!("\$x\$");ylabel!("Density")
+xlims!(leftendpoint(d),rightendpoint(d));ylims!(0.0,0.18);xlabel!("\$x\$");ylabel!("Density")
 PyPlot.savefig("Sample.png",dpi=300)
 
 println("Fourth image done")

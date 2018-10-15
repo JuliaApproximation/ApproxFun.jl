@@ -57,7 +57,7 @@ Interval(d::Segment) = convert(Interval, d)
 
 isempty(d::Segment) = isapprox(leftendpoint(d), rightendpoint(d); atol=200eps(eltype(d)))
 
-issubset(a::Segment,b::Segment) = first(a)∈b && last(a)∈b
+issubset(a::Segment,b::Segment) = leftendpoint(a)∈b && rightendpoint(a)∈b
 
 
 
@@ -144,6 +144,7 @@ setdiff(a::Segment{<:Real}, b::AbstractInterval)  = setdiff(Interval(a), b)
 
 
 ## sort
-isless(d1::Segment{T1},d2::Segment{T2}) where {T1<:Real,T2<:Real}=d1≤first(d2)&&d1≤last(d2)
-isless(d1::Segment{T},x::Real) where {T<:Real}=first(d1)≤x && last(d1)≤x
-isless(x::Real,d1::Segment{T}) where {T<:Real}=x≤first(d1) && x≤last(d1)
+isless(d1::Segment{T1},d2::Segment{T2}) where {T1<:Real,T2<:Real} =
+    d1 ≤ leftendpoint(d2) && d1 ≤ rightendpoint(d2)
+isless(d1::Segment{T},x::Real) where {T<:Real}=leftendpoint(d1) ≤ x && rightendpoint(d1) ≤ x
+isless(x::Real,d1::Segment{T}) where {T<:Real}=x≤leftendpoint(d1) && x≤rightendpoint(d1)

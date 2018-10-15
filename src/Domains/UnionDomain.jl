@@ -24,8 +24,8 @@ arclength(d::UnionDomain) = mapreduce(arclength,+,d.domains)
 
 reverseorientation(d::UnionDomain) = UnionDomain(reverse(map(reverseorientation,d.domains)))
 
-Base.first(d::UnionDomain) = first(first(elements(d)))
-Base.last(d::UnionDomain) = last(last(elements(d)))
+leftendpoint(d::UnionDomain) = leftendpoint(first(elements(d)))
+rightendpoint(d::UnionDomain) = rightendpoint(last(elements(d)))
 
 # determine the number of points per piece
 function components_npoints(d, n::Int)
@@ -68,7 +68,7 @@ function Base.merge(d1::UnionDomain,m::IntervalOrSegment)
         ret = [ret...; m]
     end
 
-    UnionDomain(sort!(ret,by=first))
+    UnionDomain(sort!(ret,by=leftendpoint))
 end
 
 function merge(d1::UnionDomain,d2::UnionDomain)

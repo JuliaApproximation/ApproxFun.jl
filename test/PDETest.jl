@@ -95,7 +95,7 @@ using ApproxFun, LinearAlgebra, Test
     end
 
     @testset "Schrodinger" begin
-        dx=Interval(0.,1.); dt=Interval(0.0,0.001)
+        dx=0..1; dt=0.0..0.001
         C=Conversion(Chebyshev(dx)*Ultraspherical(1,dt),Ultraspherical(2,dx)*Ultraspherical(1,dt))
         testbandedblockbandedoperator(C)
         testbandedblockbandedoperator(Operator{ComplexF64}(C))

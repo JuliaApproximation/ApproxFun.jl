@@ -164,7 +164,7 @@ using ApproxFun, IntervalSets, SpecialFunctions, LinearAlgebra, Random, Test
         d=Curve(Fun(x->1+a*x+b*x^2))
 
         x=Fun(d)
-        w=sqrt(abs(first(d)-x))*sqrt(abs(last(d)-x))
+        w=sqrt(abs(leftendpoint(d)-x))*sqrt(abs(rightendpoint(d)-x))
 
         @test sum(w/(x-2.))/(2π*im) ≈ (-4.722196879007759+2.347910413861846im)
         @test linesum(w*log(abs(x-2.)))/π ≈ (88.5579588360686)

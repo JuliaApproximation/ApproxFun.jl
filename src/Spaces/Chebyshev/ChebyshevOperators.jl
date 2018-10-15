@@ -13,9 +13,9 @@ recγ(::Type{T},::Chebyshev,k) where {T} = one(T)/2   # one(T) ensures we get co
 
 ## Evaluation
 
-Evaluation(S::Chebyshev,x::typeof(first),o::Integer) =
+Evaluation(S::Chebyshev,x::typeof(leftendpoint),o::Integer) =
     ConcreteEvaluation(S,x,o)
-Evaluation(S::Chebyshev,x::typeof(last),o::Integer) =
+Evaluation(S::Chebyshev,x::typeof(rightendpoint),o::Integer) =
     ConcreteEvaluation(S,x,o)
 
 Evaluation(S::Chebyshev,x::Number,o::Integer) =
@@ -38,7 +38,7 @@ function evaluatechebyshev(n::Integer,x::T) where T<:Number
 end
 
 
-function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(first)},j::Integer) where {DD<:IntervalOrSegment,RR}
+function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(leftendpoint)},j::Integer) where {DD<:IntervalOrSegment,RR}
     T=eltype(op)
     if op.order == 0
         ifelse(isodd(j),  # right rule
@@ -50,7 +50,7 @@ function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(first)},j::Inte
     end
 end
 
-function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(last)},j::Integer) where {DD<:IntervalOrSegment,RR}
+function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(rightendpoint)},j::Integer) where {DD<:IntervalOrSegment,RR}
     T=eltype(op)
     if op.order == 0
         one(T)
@@ -60,7 +60,7 @@ function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(last)},j::Integ
     end
 end
 
-function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(first)},k::AbstractRange) where {DD<:IntervalOrSegment,RR}
+function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(leftendpoint)},k::AbstractRange) where {DD<:IntervalOrSegment,RR}
     T=eltype(op)
     x = op.x
     d = domain(op)
@@ -86,7 +86,7 @@ function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(first)},k::Abst
 end
 
 
-function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(last)},k::AbstractRange) where {DD<:IntervalOrSegment,RR}
+function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(rightendpoint)},k::AbstractRange) where {DD<:IntervalOrSegment,RR}
     T=eltype(op)
     x = op.x
     d = domain(op)
@@ -126,8 +126,7 @@ function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},M,OT,T},
 end
 
 function Dirichlet(S::Chebyshev,order)
-    order == 0 && return ConcreteDirichlet(S,ArraySpace([ConstantSpace(Point(first(domain(S)))),
-                                                         ConstantSpace(Point(last(domain(S))))]),0)
+    order == 0 && return ConcreteDirichlet(S,ArraySpace([ConstantSpace.(Point.(endpoints(domain(S))))...]),0)
     default_Dirichlet(S,order)
 end
 

@@ -1,4 +1,4 @@
-using ApproxFun, SpecialFunctions, Test
+using ApproxFun, SpecialFunctions, LinearAlgebra, Test
 
 
 
@@ -13,7 +13,7 @@ using ApproxFun, SpecialFunctions, Test
         @test atan.(f,1)(0.1) ≈ atan(f(0.1),1)
         @test atan.(f,f)(0.1) ≈ atan(f(0.1),f(0.1))
     end
-    
+
     @testset  "triplet with mixed scalar-fun" begin
         f = Fun(exp)
         @test ((a,b,c) -> exp(a +b+c)).(f,2.0,f) ≈ exp(2f + 2.0)

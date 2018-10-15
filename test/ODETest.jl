@@ -179,7 +179,7 @@ using ApproxFun, SpecialFunctions, Test
         ν=100.
         L=(x^2*𝒟^2) + x*𝒟 + (x^2 - ν^2)   # our differential operator
 
-        @time u=[B;L]\[[besselj(ν,first(d)),besselj(ν,last(d))],0.]
+        @time u=[B;L]\[[besselj(ν,leftendpoint(d)),besselj(ν,rightendpoint(d))],0.]
         @test ≈(u(1900.),besselj(ν,1900.);atol=1000eps())
     end
 

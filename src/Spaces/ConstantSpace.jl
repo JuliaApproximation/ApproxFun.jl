@@ -114,7 +114,7 @@ union_rule(A::ConstantSpace,B::Space) = ConstantSpace(domain(B))⊕B
 ## Special Multiplication and Conversion for constantspace
 
 #  TODO: this is a special work around but really we want it to be blocks
-Conversion(a::ConstantSpace,b::Space{D}) where {D<:BivariateDomain} = ConcreteConversion{typeof(a),typeof(b),
+Conversion(a::ConstantSpace,b::Space{D}) where {D<:Domain2d} = ConcreteConversion{typeof(a),typeof(b),
         promote_type(real(prectype(a)),real(prectype(b)))}(a,b)
 
 Conversion(a::ConstantSpace,b::Space) = ConcreteConversion(a,b)
@@ -130,10 +130,10 @@ end
 
 
 coefficients(f::AbstractVector,sp::ConstantSpace{Segment{Vec{2,TT}}},
-             ts::TensorSpace{SV,DD}) where {TT,SV,DD<:BivariateDomain} =
+             ts::TensorSpace{SV,DD}) where {TT,SV,DD<:Domain2d} =
     f[1]*ones(ts).coefficients
 coefficients(f::AbstractVector,sp::ConstantSpace{<:Domain{<:Number}},
-             ts::TensorSpace{SV,DD}) where {TT,SV,DD<:BivariateDomain} =
+             ts::TensorSpace{SV,DD}) where {TT,SV,DD<:Domain2d} =
     f[1]*ones(ts).coefficients
 coefficients(f::AbstractVector, sp::ConstantSpace{<:Domain{<:Number}}, ts::Space) =
     f[1]*ones(ts).coefficients

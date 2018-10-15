@@ -258,7 +258,7 @@ pieces(f::Fun{<:ArraySpace}) = [piece(f,k) for k=1:npieces(f)]
 
 fromcanonical(d::ProductDomain, f::Fun{<:ArraySpace}) = vcat(fromcanonical.(factors(d), vec(f))...)
 
-function coefficients(f::AbstractVector,sp::ArraySpace{<:ConstantSpace{AnyDomain}},ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R}
+function coefficients(f::AbstractVector,sp::ArraySpace{<:ConstantSpace{AnyDomain}},ts::TensorSpace{SV,D,R}) where {SV,D<:Domain2d,R}
     @assert length(ts.spaces) == 2
 
     if ts.spaces[1] isa ArraySpace
@@ -278,14 +278,14 @@ ArraySpace(sp::TensorSpace{Tuple{S1,S2}}) where {S1<:Space{D,R},S2} where {D,R<:
 ArraySpace(sp::TensorSpace{Tuple{S1,S2}},k...) where {S1,S2<:Space{D,R}} where {D,R<:AbstractArray} =
     ArraySpace(map(a -> sp.spaces[1] ⊗ a, sp.spaces[2]))
 
-function coefficients(f::AbstractVector, a::VectorSpace, b::TensorSpace{Tuple{S1,S2},<:BivariateDomain}) where {S1<:Space{D,R},S2} where {D,R<:AbstractArray}
+function coefficients(f::AbstractVector, a::VectorSpace, b::TensorSpace{Tuple{S1,S2},<:Domain2d}) where {S1<:Space{D,R},S2} where {D,R<:AbstractArray}
     if size(a) ≠ size(b)
         throw(DimensionMismatch("dimensions must match"))
     end
     interlace(map(coefficients,Fun(a,f),b),ArraySpace(b))
 end
 
-function coefficients(f::AbstractVector, a::VectorSpace, b::TensorSpace{Tuple{S1,S2},<:BivariateDomain}) where {S1,S2<:Space{D,R}} where {D,R<:AbstractArray}
+function coefficients(f::AbstractVector, a::VectorSpace, b::TensorSpace{Tuple{S1,S2},<:Domain2d}) where {S1,S2<:Space{D,R}} where {D,R<:AbstractArray}
     if size(a) ≠ size(b)
         throw(DimensionMismatch("dimensions must match"))
     end

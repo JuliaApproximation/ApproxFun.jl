@@ -48,7 +48,7 @@ end
 
 ## Construction in a TensorSpace via a Vector of Funs
 
-function LowRankFun(X::Vector{VFun{S,T}},d::TensorSpace{SV,DD}) where {S,T,DD<:BivariateDomain,SV}
+function LowRankFun(X::Vector{VFun{S,T}},d::TensorSpace{SV,DD}) where {S,T,DD<:Domain2d,SV}
     @assert d[1] == space(X[1])
     LowRankFun(X,d[2])
 end
@@ -190,7 +190,7 @@ end
 
 ## Construction via TensorSpaces and ProductDomains
 
-LowRankFun(f::Function,S::TensorSpace{SV,DD,RR};kwds...) where {SV,DD<:BivariateDomain,RR} =
+LowRankFun(f::Function,S::TensorSpace{SV,DD,RR};kwds...) where {SV,DD<:Domain2d,RR} =
     LowRankFun(dynamic(f),factor(S,1),factor(S,2);kwds...)
 LowRankFun(f::Function,dx::Domain,dy::Domain;kwds...) =
     LowRankFun(dynamic(f),Space(dx),Space(dy);kwds...)

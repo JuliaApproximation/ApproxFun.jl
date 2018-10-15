@@ -24,7 +24,8 @@ Curve(exp(im*x))  # represents an arc
 const Curve{S,T} = Union{IntervalCurve{S,T},PeriodicCurve{S,T}}
 
 
-==(a::Curve,b::Curve)=a.curve==b.curve
+==(a::Curve, b::Curve) = a.curve == b.curve
+isempty(::Curve) = false
 
 for TYP in (:IntervalCurve,:PeriodicCurve)
     @eval points(c::$TYP,n::Integer) = c.curve.(points(domain(c.curve),n))

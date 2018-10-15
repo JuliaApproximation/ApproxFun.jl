@@ -88,10 +88,10 @@ function Base.setdiff(d::AffineDomain,ptsin::UnionDomain{AS}) where {AS <: Abstr
     pts=Number.(elements(ptsin))
     isempty(pts) && return d
     tol=sqrt(eps(arclength(d)))
-    da=first(d)
+    da=leftendpoint(d)
     isapprox(da,pts[1];atol=tol) && popfirst!(pts)
     isempty(pts) && return d
-    db=last(d)
+    db=rightendpoint(d)
     isapprox(db,pts[end];atol=tol) && pop!(pts)
 
     sort!(pts)
@@ -112,7 +112,7 @@ end
 
 function Base.setdiff(d::SegmentDomain,p::Point)
     x = Number(p)
-    (x ∉ d || x ≈ first(d) || x ≈ last(d)) && return d
+    (x ∉ d || x ≈ leftendpoint(d) || x ≈ rightendpoint(d)) && return d
     DifferenceDomain(d,p)
 end
 

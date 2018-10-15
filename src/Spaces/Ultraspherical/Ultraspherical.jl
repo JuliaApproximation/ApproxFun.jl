@@ -102,8 +102,8 @@ end
 
 Base.last(f::Fun{Ultraspherical{Int,D,R}}) where {D,R} = reduce(+,coefficients(f,Chebyshev))
 
-Base.first(f::Fun{Ultraspherical{O,D,R}}) where {O,D,R} = f(first(domain(f)))
-Base.last(f::Fun{Ultraspherical{O,D,R}}) where {O,D,R} = f(last(domain(f)))
+Base.first(f::Fun{Ultraspherical{O,D,R}}) where {O,D,R} = f(leftendpoint(domain(f)))
+Base.last(f::Fun{Ultraspherical{O,D,R}}) where {O,D,R} = f(rightendpoint(domain(f)))
 
 Fun(::typeof(identity), d::Ultraspherical) = Fun(Fun(identity, domain(d)),d)
 

@@ -94,7 +94,7 @@ function splitbernstein(f::AbstractVector,S::Bernstein,z)
         β1[order(S)+2-i] = β[1]
         β2[i] = β[i]
     end
-    Fun(PiecewiseSpace(Bernstein{order(S)}(Segment(first(domain(S)),z)),Bernstein{order(S)}(Segment(z,last(domain(S))))),
+    Fun(PiecewiseSpace(Bernstein{order(S)}(Segment(leftendpoint(domain(S)),z)),Bernstein{order(S)}(Segment(z,rightendpoint(domain(S))))),
         interlace(β1,β2))
 end
 
