@@ -35,6 +35,8 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
         testbandedoperator(A)
 
         @test norm(A\Fun(x.*f,rangespace(A))-(x.*f)) < 100eps()
+
+        @test (I : Chebyshev() → Chebyshev()) * Fun() ≈ Fun()
     end
 
     @testset "Derivative" begin
