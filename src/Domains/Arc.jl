@@ -46,6 +46,8 @@ convert(::Type{Arc{T,V}},::AnyDomain) where {T<:Number,V<:Real} =
 convert(::Type{IT},::AnyDomain) where {IT<:Arc} =
     Arc(NaN,NaN,(NaN,NaN))
 
+isempty(d::Arc) = false
+
 reverseorientation(a::Arc) = Arc(a.center,a.radius,reverse(a.angles))
 
 arclength(d::Arc) = d.radius*(d.angles[2]-d.angles[1])

@@ -217,8 +217,8 @@ evaluate(f::Fun,x,y,z...) = evaluate(f.coefficients,f.space,Vec(x,y,z...))
 
 dynamic(f::Fun) = f # Fun's are already dynamic in that they compile by type
 
-for op in (:(first),:(last))
-    @eval $op(f::Fun{S,T}) where {S,T} = f($op(domain(f)))
+for (op,dop) in ((:first,:leftendpoint),(:last,:rightendpoint))
+    @eval $op(f::Fun{S,T}) where {S,T} = f($dop(domain(f)))
 end
 
 

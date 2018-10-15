@@ -36,8 +36,8 @@ issubset(a::PeriodicSegment, b::IntervalOrSegment) = Segment(endpoints(a)...)⊆
 issubset(a::IntervalOrSegment, b::PeriodicSegment) = PeriodicSegment(endpoints(a)...)⊆b
 issubset(a::IntervalOrSegment{T}, b::PiecewiseSegment{T}) where {T<:Real} =
     a⊆Segment(first(b.points),last(b.points))
-issubset(a::IntervalOrSegment, b::Line) = first(a)∈b && last(a)∈b
-issubset(a::Ray{angle}, b::Line{angle}) where angle = first(a) ∈ b
+issubset(a::IntervalOrSegment, b::Line) = leftendpoint(a)∈b && rightendpoint(a)∈b
+issubset(a::Ray{angle}, b::Line{angle}) where angle = leftendpoint(a) ∈ b
 issubset(a::Ray{true}, b::Line{false}) = true
 issubset(a::Ray{false}, b::Line{true}) = true
 
@@ -59,20 +59,20 @@ union(b::Line,a::Union{Interval,Segment,Ray}) = union(a,b)
 
 function setdiff(b::Line,a::Segment)
     @assert a ⊆ b
-    if first(a)>last(a)
+    if leftendpoint(a)>rightendpoint(a)
         b\reverseorientation(a)
     else
-        Ray([first(b),first(a)]) ∪ Ray([last(a),last(b)])
+        Ray([leftendpoint(b),leftendpoint(a)]) ∪ Ray([rightendpoint(a),rightendpoint(b)])
     end
 end
 
 function setdiff(b::Segment,a::Point)
     if !(a ⊆ b)
         b
-    elseif first(b) == a.x  || last(b) == a.x
+    elseif leftendpoint(b) == a.x  || rightendpoint(b) == a.x
         b
     else
-        Segment(first(b),a.x) ∪ Segment(a.x,last(b))
+        Segment(leftendpoint(b),a.x) ∪ Segment(a.x,rightendpoint(b))
     end
 end
 

@@ -208,7 +208,6 @@ using ApproxFun, IntervalSets, SpecialFunctions, LinearAlgebra, Random, Test
 
         @test g(2.3) ≈ 2.3
 
-
         h = a + Fun(2..3)
 
         # for some reason this test is broken only on Travis
@@ -307,7 +306,6 @@ using ApproxFun, IntervalSets, SpecialFunctions, LinearAlgebra, Random, Test
         Cf=C*f
         @test Cf(0.1) ≈ f(0.1)
     end
-
 
     @testset "Derivative operator for HeavisideSpace" begin
         H = HeavisideSpace([-1.0,0.0,1.0])
