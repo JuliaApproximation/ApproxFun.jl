@@ -621,7 +621,7 @@ zero(::Type{Operator{T}}) where {T<:Number} = ZeroOperator(T)
 zero(::Type{O}) where {O<:Operator} = ZeroOperator(eltype(O))
 
 
-
+Operator(L::UniformScaling) = ConstantOperator(L, UnsetSpace())
 Operator(L::UniformScaling, s::Space) = ConstantOperator(L, s)
 Operator(L::UniformScaling{Bool}, s::Space) = L.λ ? IdentityOperator(s) : ZeroOperator(s)
 Operator(L::UniformScaling, d::Domain) = Operator(L, Space(d))
