@@ -369,4 +369,9 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
 
         @test norm(uFourier-uChebyshev) ≤ 100eps()
     end
+
+    @testset "#616" begin
+        x, D = Fun(), Derivative(Chebyshev())
+        @test (D*Multiplication(x)*D)*x ≈ 1
+    end
 end

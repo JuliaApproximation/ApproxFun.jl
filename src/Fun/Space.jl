@@ -108,6 +108,8 @@ canonicaldomain(S::Space) = canonicaldomain(domain(S))
 # This is used in place of == to support AnyDomain
 spacescompatible(f::D,g::D) where D<:Space = error("Override spacescompatible for "*string(D))
 spacescompatible(::UnsetSpace,::UnsetSpace) = true
+spacescompatible(::UnsetSpace,::Space) = true
+spacescompatible(::Space,::UnsetSpace) = true
 spacescompatible(::NoSpace,::NoSpace) = true
 spacescompatible(f,g) = false
 ==(A::Space,B::Space) = spacescompatible(A,B) && domain(A)==domain(B)
