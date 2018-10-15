@@ -28,7 +28,7 @@ JacobiWeight{S,DD,RR,T}(β,α,space::Space) where {S,DD,RR,T} =
     JacobiWeight{S,DD,RR,T}(convert(T,β)::T, convert(T,α)::T, convert(S,space)::S)
 
 JacobiWeight(a::Number, b::Number, d::Space) =
-    JacobiWeight{typeof(d),domaintype(d),rangetype(d),promote_type(eltype(a),eltype(b))}(a,b,d)
+    JacobiWeight{typeof(d),domaintype(d),rangetype(d),promote_type(eltype(a),eltype(b),prectype(d))}(a,b,d)
 JacobiWeight(β::Number, α::Number, d::JacobiWeight) =  JacobiWeight(β+d.β,α+d.α,d.space)
 JacobiWeight(a::Number, b::Number, d::IntervalDomain) = JacobiWeight(a,b,Space(d))
 JacobiWeight(a::Number, b::Number, d) = JacobiWeight(a,b,Space(d))

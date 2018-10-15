@@ -369,4 +369,9 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
 
         @test norm(uFourier-uChebyshev) ≤ 100eps()
     end
+
+    @testset "#617" begin
+        S = JacobiWeight(1,1,Jacobi(1,1))
+        @test isa(S.α, Float64)
+    end
 end
