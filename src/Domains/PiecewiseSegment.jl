@@ -12,8 +12,8 @@ function PiecewiseSegment(pcsin::AbstractVector{IT}) where IT<:IntervalOrSegment
     while successful
         successful=false
         for k=1:length(pcs)
-            if first(pcs[k])==last(p)
-                push!(p,last(pcs[k]))
+            if leftendpoint(pcs[k]) == last(p)
+                push!(p,rightendpoint(pcs[k]))
                 deleteat!(pcs,k)
                 successful=true
                 break
@@ -39,12 +39,12 @@ for OP in (:arclength,:complexlength)
 end
 
 
-isperiodic(d::PiecewiseSegment) = first(d.points)==last(d.points)
+isperiodic(d::PiecewiseSegment) = first(d.points) == last(d.points)
 
 reverseorientation(d::PiecewiseSegment) = PiecewiseSegment(reverse(d.points))
 
-isambiguous(d::PiecewiseSegment)=isempty(d.points)
-convert(::Type{PiecewiseSegment{T}},::AnyDomain) where {T<:Number}=PiecewiseSegment{T}([])
+isambiguous(d::PiecewiseSegment) = isempty(d.points)
+convert(::Type{PiecewiseSegment{T}},::AnyDomain) where {T<:Number} = PiecewiseSegment{T}([])
 convert(::Type{IT},::AnyDomain) where {IT<:PiecewiseSegment}=PiecewiseSegment(Float64[])
 
 
@@ -61,9 +61,8 @@ end
 rand(d::PiecewiseSegment) = rand(d[rand(1:ncomponents(d))])
 checkpoints(d::PiecewiseSegment{T}) where {T} = mapreduce(checkpoints,union,components(d))
 
-for OP in (:(first),:(last))
-    @eval $OP(d::PiecewiseSegment) = $OP(d.points)
-end
+leftendpoint(d::PiecewiseSegment) = first(d.points)
+rightendpoint(d::PiecewiseSegment) = last(d.points)
 
 
 # Comparison with UnionDomain
