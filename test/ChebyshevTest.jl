@@ -4,6 +4,7 @@ using ApproxFun, LinearAlgebra, Test
 @testset "Chebyshev" begin
     @test Fun(x->4).coefficients == [4.0]
     @test Fun(4).coefficients == [4.0]
+    @test dot(Fun(), Fun()) ≈ 2/3
 
     ef = Fun(exp)
     @test ef(0.1) ≈ exp(0.1)
