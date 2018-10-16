@@ -307,4 +307,27 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
         M = Multiplication(x, JacobiWeight(0,0,Chebyshev()))
         @test exp(M).f == Multiplication(exp(x), Chebyshev()).f
     end
+
+    @testset "Transpose" begin
+        let S = Chebyshev()
+            u, v = Fun(S, randn(8)), Fun(S, randn(8))
+            M = Multiplication(Fun(S, randn(8))) : S → S
+            @test dot(u, M*v) ≈ dot(v, M*u)
+            @test M*u ≈ M'*u
+        end
+        let S = JacobiWeight(1.,1.,Jacobi(1.,1.))
+            u, v = Fun(S, randn(8)), Fun(S, randn(8))
+            M = Multiplication(Fun(S, randn(8))) : S → S
+            @test dot(u, M*v) ≈ dot(v, M*u)
+            @test M*u ≈ M'*u
+        end
+        let S = JacobiWeight(2.,2.,Jacobi(1,1))
+            u, v = Fun(S, randn(8)), Fun(S, randn(8))
+            M = -Derivative(S)^2
+            @test dot(u, -v'') ≈ dot(-u'', v)
+            @test dot(u, M*v) ≈ dot(v, M*u)
+            @test M*u ≈ M'*u
+        end
+    end
+
 end
