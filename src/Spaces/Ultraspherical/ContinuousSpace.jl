@@ -227,25 +227,22 @@ end
 # Dirichlet for Squares
 
 
-Dirichlet(S::TensorSpace{<:Tuple{<:ChebyshevDirichlet{1,1,<:IntervalOrSegment{T},R1},
-                                  <:ChebyshevDirichlet{1,1,<:IntervalOrSegment{T},R2}}},k) where {T,R1,R2} =
-    k == 0 ? ConcreteDirichlet(S,0) : tensor_Dirichlet(S,k)
+const TensorChebyshevDirichlet = TensorSpace{<:Tuple{<:ChebyshevDirichlet{1,1,<:IntervalOrSegment},
+                                  <:ChebyshevDirichlet{1,1,<:IntervalOrSegment}}}
 
-Dirichlet(d::ProductDomain{<:Tuple{<:IntervalOrSegment{T},<:IntervalOrSegment{T}}}) where {T<:Real} =
+Dirichlet(S::TensorChebyshevDirichlet,k) = k == 0 ? ConcreteDirichlet(S,0) : tensor_Dirichlet(S,k)
+
+Dirichlet(d::ProductDomain{<:Tuple{<:IntervalOrSegment,<:IntervalOrSegment}}) =
     Dirichlet(ChebyshevDirichlet{1,1}(factor(d,1))*ChebyshevDirichlet{1,1}(factor(d,2)))
 
-isblockbanded(::Dirichlet{TensorSpace{Tuple{CD,CD},DD,RR}}) where {CD<:ChebyshevDirichlet,DD<:Domain2d,RR} =
-    true
+isblockbanded(::Dirichlet{<:TensorChebyshevDirichlet}) = true
 
-blockbandwidths(::Dirichlet{TensorSpace{Tuple{CD,CD},DD,RR}}) where {CD<:ChebyshevDirichlet,DD<:Domain2d,RR} =
-    (0,2)
+blockbandwidths(::Dirichlet{<:TensorChebyshevDirichlet}) = (0,2)
 
-colstop(B::Dirichlet{TensorSpace{Tuple{CD,CD},DD,RR}},j::Integer) where {CD<:ChebyshevDirichlet,DD<:Domain2d,RR} =
-    j ≤ 3 ? 4 : 4(block(domainspace(B),j).n[1]-1)
+colstop(B::Dirichlet{<:TensorChebyshevDirichlet}, j::Integer) = j ≤ 3 ? 4 : 4(block(domainspace(B),j).n[1]-1)
 
 
-function getindex(B::ConcreteDirichlet{TensorSpace{Tuple{CD,CD},DD,RR}},
-k::Integer,j::Integer) where {CD<:ChebyshevDirichlet,DD<:Domain2d,RR}
+function getindex(B::ConcreteDirichlet{<:TensorChebyshevDirichlet}, k::Integer,j::Integer)
     T = eltype(B)
     ds = domainspace(B)
     rs = rangespace(B)
@@ -291,9 +288,8 @@ k::Integer,j::Integer) where {CD<:ChebyshevDirichlet,DD<:Domain2d,RR}
 end
 
 
-function BlockBandedMatrix(S::SubOperator{T,ConcreteDirichlet{TensorSpace{Tuple{CD,CD},DD,RR},
-                                                    CSP,TT},
-                                Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,CD<:ChebyshevDirichlet,DD<:Domain2d,RR,CSP,TT}
+function BlockBandedMatrix(S::SubOperator{T,<:ConcreteDirichlet{<:TensorChebyshevDirichlet},
+                                Tuple{UnitRange{Int},UnitRange{Int}}}) where {T}
     P=parent(S)
     ret=BlockBandedMatrix(Zeros, S)
     kr,jr=parentindices(S)

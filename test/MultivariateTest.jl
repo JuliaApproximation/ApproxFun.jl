@@ -1,6 +1,8 @@
 using ApproxFun, LinearAlgebra, SpecialFunctions, Test
     import ApproxFun: testbandedblockbandedoperator, testraggedbelowoperator, factor, Block, cfstype,
-                        blocklengths, block, tensorizer, Vec, ArraySpace, ∞
+                        blocklengths, block, tensorizer, Vec, ArraySpace, ∞,
+                        testblockbandedoperator
+
 
 @testset "Multivariate" begin
     @testset "Square" begin
@@ -322,5 +324,13 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
         g = Fun(1, PeriodicSegment(Vec(0,-1) , Vec(π,-1)))
         @test g(0.1,-1) ≈ 1
         @test g(0.1,1) ≈ 0
+    end
+
+
+    @testset "Dirichlet" begin
+        testblockbandedoperator(Dirichlet((0..1)^2))
+        testblockbandedoperator(Dirichlet((0..1) × (0.0 .. 1)))
+        testraggedbelowoperator(Dirichlet(Chebyshev()^2))
+        testraggedbelowoperator(Dirichlet(Chebyshev(0..1) * Chebyshev(0.0..1)))
     end
 end
