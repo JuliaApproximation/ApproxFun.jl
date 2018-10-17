@@ -123,7 +123,7 @@ function backend_testinfoperator(A)
     @test isinf(size(A,1))
     @test isinf(size(A,2))
     B=A[1:5,1:5]
-    eltype(B) == eltype(A)
+    @test eltype(B) == eltype(A)
 
     for k=1:5,j=1:5
         @test B[k,j] ≈ A[k,j]
