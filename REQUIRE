@@ -7,7 +7,7 @@ BandedMatrices 0.5.1
 ToeplitzMatrices 0.4
 Calculus 0.1.15
 DomainSets 0.0.1
-IntervalSets 0.2
+IntervalSets 0.3.1
 StaticArrays 0.8.3
 BlockArrays 0.4.1
 BlockBandedMatrices 0.1
