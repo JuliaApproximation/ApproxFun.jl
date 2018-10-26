@@ -6,7 +6,7 @@ DualNumbers 0.4
 BandedMatrices 0.5.1
 ToeplitzMatrices 0.4
 Calculus 0.1.15
-Domains
+DomainSets 0.0.1
 IntervalSets 0.2
 StaticArrays 0.8.3
 BlockArrays 0.4.1
@@ -16,6 +16,6 @@ FFTW 0.2.4
 SpecialFunctions 0.7
 LowRankApprox 0.1.4
 FillArrays 0.1
-InfiniteArrays
+InfiniteArrays 0.0.2
 LazyArrays 0.1
 DSP 0.5.1
