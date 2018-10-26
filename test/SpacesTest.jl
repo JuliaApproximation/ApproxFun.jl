@@ -1,6 +1,6 @@
 using ApproxFun, SpecialFunctions, LinearAlgebra, Test
-    import Domains
-    import Domains: UnionDomain
+    import DomainSets
+    import DomainSets: UnionDomain
     import ApproxFun: ChebyshevDirichlet, Ultraspherical, PiecewiseSegment, ContinuousSpace, space, SpaceOperator,
                         testspace, testbandedoperator, testraggedbelowoperator, testcalculus, testtransforms
 

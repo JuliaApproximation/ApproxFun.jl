@@ -12,7 +12,7 @@ include("Curve.jl")
 include("Point.jl")
 
 
-const AffineDomain = Union{Domains.AbstractInterval,Segment,PeriodicSegment,Ray,Line}
+const AffineDomain = Union{AbstractInterval,Segment,PeriodicSegment,Ray,Line}
 
 
 # These are needed for spaces to auto-convert [a,b] to Interval
