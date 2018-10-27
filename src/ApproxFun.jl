@@ -2,13 +2,13 @@ __precompile__()
 
 module ApproxFun
     using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers,
-            BlockArrays, BandedMatrices, BlockBandedMatrices, Domains, IntervalSets,
+            BlockArrays, BandedMatrices, BlockBandedMatrices, DomainSets, IntervalSets,
             SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions, DSP,
             LinearAlgebra, LowRankApprox, SparseArrays, FillArrays, InfiniteArrays #, Arpack
     import StaticArrays, ToeplitzMatrices, Calculus
 
 
-import Domains: Domain, indomain, UnionDomain, ProductDomain, FullSpace, Point, elements, DifferenceDomain,
+import DomainSets: Domain, indomain, UnionDomain, ProductDomain, FullSpace, Point, elements, DifferenceDomain,
             Interval, ChebyshevInterval, boundary, ∂, rightendpoint, leftendpoint,
             dimension, Domain1d, Domain2d
 

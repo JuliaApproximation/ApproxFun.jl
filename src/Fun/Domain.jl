@@ -24,7 +24,7 @@ dimension(::AnyDomain) = 1
 complexlength(::AnyDomain) = NaN
 arclength(::AnyDomain) = NaN
 arclength(::EmptyDomain) = false
-arclength(::Domains.EmptySpace) = false
+arclength(::DomainSets.EmptySpace) = false
 
 isempty(::AnyDomain) = false
 
@@ -48,7 +48,7 @@ union(a::Domain, ::EmptyDomain) = a
 isempty(::EmptyDomain) = true
 
 
-## Interval Domains
+## Interval DomainSets
 
 abstract type SegmentDomain{T} <: Domain{T} end
 abstract type AbstractSegment{T} <: SegmentDomain{T} end
