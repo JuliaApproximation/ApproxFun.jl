@@ -111,13 +111,13 @@ include("hermitetransform.jl")
 function Multiplication(f::Fun{H}, S::GaussWeight{H}) where H<:Hermite
     M = Multiplication(f, S.space)
     rs = rangespace(M)
-    MultiplicationWrapper(f, SpaceOperator(M, S, GaussWeight(rs, rs.L)))
+    MultiplicationWrapper(f, SpaceOperator(M, S, GaussWeight(rs, S.L)))
 end
 
 function Multiplication(f::Fun{GaussWeight{H,T}}, S::Hermite) where {H<:Hermite,T}
     M = Multiplication(Fun(space(f).space, f.coefficients), S)
     rs = rangespace(M)
-    MultiplicationWrapper(f, SpaceOperator(M, S, GaussWeight(rs, rs.L)))
+    MultiplicationWrapper(f, SpaceOperator(M, S, GaussWeight(rs, space(f).L)))
 end
 
 
