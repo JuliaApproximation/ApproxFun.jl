@@ -1,7 +1,7 @@
-points(H::Hermite,n)=gausshermite(n)[1]
+points(H::Hermite,n) = gausshermite(n)[1] ./ sqrt.(H.L)
 
 plan_transform(H::Hermite,v::AbstractVector) = TransformPlan(H,gausshermite(length(v)),Val{false})
-plan_itransform(H::Hermite,cfs::AbstractVector) = ITransformPlan(H,points(H,length(cfs)),Val{false})
+plan_itransform(H::Hermite,cfs::AbstractVector) = ITransformPlan(H,points(Hermite(),length(cfs)),Val{false})
 
 
 
@@ -13,4 +13,4 @@ function *(P::TransformPlan{T,H,false},vals::AbstractVector) where {T,H<:Hermite
 end
 
 *(P::ITransformPlan{T,H,false},cfs::AbstractVector) where {T,H<:Hermite} =
-    hermitep.((0:length(cfs)-1)',tocanonical(P.space, P.plan))*cfs
+    hermitep.((0:length(cfs)-1)',P.plan)*cfs

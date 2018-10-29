@@ -2,8 +2,8 @@
 
 
 function pad!(A::BandedMatrix,n,m)
-    A.data=pad(A.data,size(A.data,1),m)
-    A.m=n
+    A.data = pad(A.data,size(A.data,1),m)
+    A.raxis = Base.OneTo(n)
     A
 end
 
