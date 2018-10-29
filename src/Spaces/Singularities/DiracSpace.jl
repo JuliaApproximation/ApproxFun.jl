@@ -144,17 +144,17 @@ end
 
 function Multiplication(f::Fun{PS}, PS2::PointSpace) where PS<:PointSpace
     @assert space(f).points==PS2.points
-    FiniteOperator(diagm(values(f)),PS2,PS2)
+    FiniteOperator(Diagonal(values(f)),PS2,PS2)
 end
 
 function Multiplication(f::Fun{PS}, DS::DiracSpace) where PS<:PointSpace
     @assert space(f).points==DS.points
-    FiniteOperator(diagm(values(f)),DS,DS)
+    FiniteOperator(Diagonal(values(f)),DS,DS)
 end
 
 function Multiplication(f::Fun{DS}, PS::PointSpace) where DS<:DiracSpace
     @assert space(f).points==PS.points
-    FiniteOperator(diagm(coefficient(f,:)),PS,space(f))
+    FiniteOperator(Diagonal(coefficient(f,:)),PS,space(f))
 end
 
 function coefficienttimes(f::Fun{PS}, g::Fun{DS}) where {PS<:PointSpace,DS<:DiracSpace}
