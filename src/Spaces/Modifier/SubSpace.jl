@@ -175,6 +175,7 @@ end
 
 function subspace_coefficients(v::AbstractVector,dropsp::SubSpace,sp::Space)
     if sp==dropsp.space
+        isempty(v) && return v
         ret = zeros(eltype(v),dropsp.indexes[length(v)])
         for k = eachindex(v)
             ret[dropsp.indexes[k]] = v[k]

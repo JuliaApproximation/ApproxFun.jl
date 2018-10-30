@@ -476,6 +476,10 @@ macro wrappergetindex(Wrap)
             OP.op[k...]::eltype(OP)
 
         Base.getindex(OP::$Wrap,k::Union{Number,AbstractArray,Colon}...) = OP.op[k...]
+        Base.getindex(OP::$Wrap,k::ApproxFun.InfRanges, j::ApproxFun.InfRanges) = view(OP, k, j)
+        Base.getindex(OP::$Wrap,k::ApproxFun.InfRanges, j::Colon) = view(OP, k, j)
+        Base.getindex(OP::$Wrap,k::Colon, j::ApproxFun.InfRanges) = view(OP, k, j)
+        Base.getindex(OP::$Wrap,k::Colon, j::Colon) = view(OP, k, j)
 
         BLAS.axpy!(α,P::ApproxFun.SubOperator{T,OP},A::AbstractMatrix) where {T,OP<:$Wrap} =
             ApproxFun.unwrap_axpy!(α,P,A)

@@ -218,6 +218,11 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
         @test parent(S) == D
         @test parentindices(S) == (3:4,2:4)
         @test bandwidths(S)  == (-2,2)
+
+        DS=JacobiWeight(1,1,Jacobi(1,1))
+        D=Derivative(DS)[2:end,:]
+        @test domainspace(D) == DS | (1:∞)
+        testbandedoperator(D)
     end
 
     @testset "Sub-operators" begin
