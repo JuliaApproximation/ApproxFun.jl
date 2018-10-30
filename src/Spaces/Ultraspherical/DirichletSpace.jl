@@ -6,7 +6,7 @@ export ChebyshevDirichlet
 struct ChebyshevDirichlet{left,right,D,R} <: PolynomialSpace{D,R}
     domain::D
     ChebyshevDirichlet{left,right,D,R}(d) where {left,right,D,R} = new(d)
-    ChebyshevDirichlet{left,right,D,R}() where {left,right,D,R} = new(D())
+    ChebyshevDirichlet{left,right,D,R}() where {left,right,D,R} = new(convert(D, ChebyshevInterval()))
 end
 
 for TYP in (:Number,:AbstractArray,:Vec,:Fun)
@@ -14,18 +14,18 @@ for TYP in (:Number,:AbstractArray,:Vec,:Fun)
         evaluate(Fun(Fun(S,f),canonicalspace(S)),x)
 end
 ChebyshevDirichlet{l,r}() where {l,r} =
-    ChebyshevDirichlet{l,r,Segment{Float64},Float64}()
+    ChebyshevDirichlet{l,r,ChebyshevInterval{Float64},Float64}()
 ChebyshevDirichlet{l,r}(d::Domain) where {l,r} =
     ChebyshevDirichlet{l,r,typeof(d),real(prectype(d))}(d)
 
 spacescompatible(a::ChebyshevDirichlet{l,r,D,R},b::ChebyshevDirichlet{l,r,D,R}) where {l,r,D,R} =
     domainscompatible(a,b)
 
-ChebyshevDirichlet() = ChebyshevDirichlet{1,1,Segment{Float64},Float64}()
+ChebyshevDirichlet() = ChebyshevDirichlet{1,1,ChebyshevInterval{Float64},Float64}()
 ZeroChebyshevDirichlet(d) =
-    ChebyshevDirichlet{1,1,Segment{Float64}}(d)|(3:∞)
+    ChebyshevDirichlet{1,1,ChebyshevInterval{Float64}}(d)|(3:∞)
 ZeroChebyshevDirichlet() =
-    ChebyshevDirichlet{1,1,Segment{Float64}}()|(3:∞)
+    ChebyshevDirichlet{1,1,ChebyshevInterval{Float64}}()|(3:∞)
 
 canonicalspace(S::ChebyshevDirichlet) = Chebyshev(domain(S))
 

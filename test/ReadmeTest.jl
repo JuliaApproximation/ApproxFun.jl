@@ -101,7 +101,7 @@ using ApproxFun, SpecialFunctions, Test
 
 
     @testset "PDE" begin
-        d = Interval()^2                            # Defines a rectangle
+        d = ChebyshevInterval()^2                            # Defines a rectangle
 
         # @time u = \([Dirichlet(d);Laplacian(d)+100I],
         #                     [ones(∂(d));0.];tolerance=1E-10)      # First four entries of rhs are

@@ -26,7 +26,7 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
                                               0.0 0.0  0.3333333333333333 0.0 -0.2
                                               0.0 0.0  0.0                0.25 0.0
                                               0.0 0.0  0.0                0.0  0.2]
-        d=Interval()
+        d=ChebyshevInterval()
         A=Conversion(Chebyshev(d),Ultraspherical(2,d))
         x = Fun()
         f=Fun(exp)
@@ -42,8 +42,8 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
         d=Interval(-10.,5.);
         S=Chebyshev(d)
 
-        @test norm(Fun(Fun(Fun(exp,S),Ultraspherical(2,d)),S)-Fun(exp,S)) < 100eps()
 
+        @test norm(Fun(Fun(Fun(exp,S),Ultraspherical(2,d)),S)-Fun(exp,S)) < 100eps()
 
         @test copy(view(Derivative(Ultraspherical(1)),1:2,1:2))[1,2] ≈ Derivative(Ultraspherical(1))[1,2]
         @test exp(0.1) ≈ (Derivative()*Fun(exp,Ultraspherical(1)))(0.1)
@@ -114,7 +114,7 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
     end
 
     @testset "Periodic" begin
-        d=PeriodicInterval(0.,2π)
+        d=PeriodicSegment(0.,2π)
         a=Fun(t-> 1+sin(cos(10t)),d)
         D=Derivative(d)
         L=D+a
@@ -128,7 +128,7 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
 
         @test norm(L*u-f) < 100eps()
 
-        d=PeriodicInterval(0.,2π)
+        d=PeriodicSegment(0.,2π)
         a1=Fun(t->sin(cos(t/2)^2),d)
         a0=Fun(t->cos(12sin(t)),d)
         D=Derivative(d)
@@ -154,7 +154,7 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
     end
 
     @testset "Mixed" begin
-        d = Interval()
+        d = ChebyshevInterval()
         D = Derivative(d)
         x = Fun(identity,d)
         A = D*(x*D)
@@ -205,11 +205,11 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
         testbandedoperator(ApproxFun.ReverseOrientation(Chebyshev()))
 
         @test ApproxFun.Reverse(Chebyshev())*Fun(exp) ≈ Fun(x->exp(-x))
-        @test ApproxFun.ReverseOrientation(Chebyshev())*Fun(exp) ≈ Fun(exp,1..(-1))
+        @test ApproxFun.ReverseOrientation(Chebyshev())*Fun(exp) ≈ Fun(exp,Segment(1,-1))
 
 
         @test norm(ApproxFun.Reverse(Fourier())*Fun(t->cos(cos(t-0.2)-0.1),Fourier()) - Fun(t->cos(cos(-t-0.2)-0.1),Fourier())) < 10eps()
-        @test norm(ApproxFun.ReverseOrientation(Fourier())*Fun(t->cos(cos(t-0.2)-0.1),Fourier()) - Fun(t->cos(cos(t-0.2)-0.1),Fourier(PeriodicInterval(2π,0)))) < 10eps()
+        @test norm(ApproxFun.ReverseOrientation(Fourier())*Fun(t->cos(cos(t-0.2)-0.1),Fourier()) - Fun(t->cos(cos(t-0.2)-0.1),Fourier(PeriodicSegment(2π,0)))) < 10eps()
     end
 
     @testset "Sub-operator re-view bug" begin
@@ -311,5 +311,14 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
 
         M = Multiplication(x, JacobiWeight(0,0,Chebyshev()))
         @test exp(M).f == Multiplication(exp(x), Chebyshev()).f
+    end
+
+    @testset "lastindex" begin
+        Z = Operator(I,Chebyshev())
+        S = view(Z,1:10,1:10)
+        @test lastindex(S,1) == lastindex(S,2) == 10
+        @test lastindex(S) == 100
+        @test S[end,end] ≈ 1
+        @test S[end-1,end] ≈ 0
     end
 end

@@ -1,45 +1,18 @@
 
 
-export Domain, IntervalDomain, PeriodicDomain, tocanonical, fromcanonical, fromcanonicalD, ∂
+export Domain, SegmentDomain, PeriodicDomain, tocanonical, fromcanonical, fromcanonicalD, ∂
 export chebyshevpoints, fourierpoints, isambiguous, arclength
 export components, component, ncomponents
 
 
-# T is the numeric type used to represent the domain
-# For d-dimensional domains, it is Vec{d,T}
 
-abstract type Domain{T} end
-const UnivariateDomain{T} = Domain{T} where {T<:Number}
-const BivariateDomain{T} = Domain{Vec{2,T}} where {T<:Number}
-
-struct DomainStyle <: BroadcastStyle end
-
-BroadcastStyle(::Type{<:Domain}) = DomainStyle()
-BroadcastStyle(A::AbstractArrayStyle, ::DomainStyle)  = A
-BroadcastStyle(::DomainStyle, A::AbstractArrayStyle)  = A
-
-Base.broadcast_axes(::Type{<:Domain}, A) = axes(A)
-Base.broadcastable(x::Domain) = x
-
-eltype(::Domain{T}) where T = T
-eltype(::Type{D}) where D<:Domain{T} where T = T
-isreal(::Domain{T}) where T<:Real = true
-isreal(::Domain{T}) where T = false
-
-copy(d::Domain) = d  # all domains are immutable
-
-dimension(::Type{Domain{TT}}) where TT<:Number = 1
-dimension(::Type{Domain{Vec{d,T}}}) where {T,d} = d
-dimension(::Type{DT}) where {DT<:Domain} = dimension(supertype(DT))
-
-dimension(d::Domain) = dimension(typeof(d))
 
 # add indexing for all spaces, not just DirectSumSpace
 # mimicking scalar vs vector
 
 # prectype gives the precision, including for Vec
-prectype(d::Domain) = eltype(eltype(d))
-prectype(::Type{D}) where {D<:Domain} = eltype(eltype(D))
+prectype(::Type{D}) where {D<:Domain} = float(eltype(eltype(D)))
+prectype(d::Domain) = prectype(typeof(d))
 
 #TODO: bivariate AnyDomain
 struct AnyDomain <: Domain{UnsetNumber} end
@@ -50,48 +23,56 @@ dimension(::AnyDomain) = 1
 
 complexlength(::AnyDomain) = NaN
 arclength(::AnyDomain) = NaN
+arclength(::EmptyDomain) = false
+arclength(::DomainSets.EmptySpace) = false
 
-reverse(a::Union{AnyDomain,EmptyDomain}) = a
+isempty(::AnyDomain) = false
+
+reverseorientation(a::Union{AnyDomain,EmptyDomain}) = a
 
 canonicaldomain(a::Union{AnyDomain,EmptyDomain}) = a
 
-in(x::Domain,::EmptyDomain) = false
+indomain(x::Domain,::EmptyDomain) = false
+
+convert(::Type{Domain{T}}, ::AnyDomain) where T = Domain(T)
+
+
+union(::AnyDomain, d::Domain) = d
+union(d::Domain, ::AnyDomain) = d
+
+union(::EmptyDomain, ::EmptyDomain) = EmptyDomain()
+union(::EmptyDomain, a::Domain) = a
+union(a::Domain, ::EmptyDomain) = a
 
 ##General routines
-
-
 isempty(::EmptyDomain) = true
-isempty(::Domain) = false
-intersect(a::Domain,b::Domain) = a==b ? a : EmptyDomain()
 
 
-# TODO: throw error for override
-setdiff(a::Domain,b) = a == b ? EmptyDomain() : a
-\(a::Domain,b) = setdiff(a,b)
+## Interval DomainSets
 
-## Interval Domains
+abstract type SegmentDomain{T} <: Domain{T} end
+abstract type AbstractSegment{T} <: SegmentDomain{T} end
+const IntervalOrSegment{T} = Union{AbstractInterval{T}, AbstractSegment{T}}
+const IntervalOrSegmentDomain{T} = Union{AbstractInterval{T}, SegmentDomain{T}}
 
-abstract type IntervalDomain{T} <: UnivariateDomain{T} end
+canonicaldomain(d::IntervalOrSegmentDomain) = ChebyshevInterval{real(prectype(d))}()
 
-canonicaldomain(d::IntervalDomain) = Segment{real(prectype(d))}()
-
-isapprox(a::Domain,b::Domain) = a==b
 domainscompatible(a,b) = domainscompatible(domain(a),domain(b))
 domainscompatible(a::Domain,b::Domain) = isambiguous(a) || isambiguous(b) ||
                     isapprox(a,b)
 
 ##TODO: Should fromcanonical be fromcanonical!?
 
-points(d::IntervalDomain{T},n::Integer;kind::Int=1) where {T} =
-    fromcanonical.(Ref(d), chebyshevpoints(real(eltype(T)),n;kind=kind))  # eltype to handle point
-bary(v::AbstractVector{Float64},d::IntervalDomain,x::Float64) = bary(v,tocanonical(d,x))
+points(d::IntervalOrSegmentDomain{T},n::Integer; kind::Int=1) where {T} =
+    fromcanonical.(Ref(d), chebyshevpoints(float(real(eltype(T))), n; kind=kind))  # eltype to handle point
+bary(v::AbstractVector{Float64},d::IntervalOrSegmentDomain,x::Float64) = bary(v,tocanonical(d,x))
 
 #TODO consider moving these
-first(d::IntervalDomain{T}) where {T} = fromcanonical(d,-one(T))
-last(d::IntervalDomain{T}) where {T} = fromcanonical(d,one(T))
+leftendpoint(d::IntervalOrSegmentDomain{T}) where {T} = fromcanonical(d,-one(eltype(T)))
+rightendpoint(d::IntervalOrSegmentDomain{T}) where {T} = fromcanonical(d,one(eltype(T)))
 
-in(x,::AnyDomain) = true
-function in(x,d::IntervalDomain)
+indomain(x,::AnyDomain) = true
+function indomain(x,d::SegmentDomain)
     T=float(real(prectype(d)))
     y=tocanonical(d,x)
     ry=real(y)
@@ -133,10 +114,10 @@ function tocanonical end
 
 ###### Periodic domains
 
-abstract type PeriodicDomain{T} <: UnivariateDomain{T} end
+abstract type PeriodicDomain{T} <: Domain{T} end
 
 
-canonicaldomain(::PeriodicDomain) = PeriodicInterval()
+canonicaldomain(::PeriodicDomain) = PeriodicSegment()
 
 
 points(d::PeriodicDomain{T},n::Integer) where {T} =
@@ -145,8 +126,7 @@ points(d::PeriodicDomain{T},n::Integer) where {T} =
 fourierpoints(n::Integer) = fourierpoints(Float64,n)
 fourierpoints(::Type{T},n::Integer) where {T<:Number} = convert(T,π)*collect(0:2:2n-2)/n
 
-
-function in(x,d::PeriodicDomain{T}) where T
+function indomain(x, d::PeriodicDomain{T}) where T
     y=tocanonical(d,x)
     if !isapprox(fromcanonical(d,y),x)
         return false
@@ -178,9 +158,6 @@ ones(d::Domain) = ones(prectype(d),Space(d))
 zeros(d::Domain) = zeros(prectype(d),Space(d))
 
 
-
-
-
 function commondomain(P::AbstractVector)
     ret = AnyDomain()
 
@@ -203,29 +180,19 @@ commondomain(P::AbstractVector,g) = commondomain([P;g])
 domain(::Number) = AnyDomain()
 
 
-
-
 ## rand
 
 
-rand(d::IntervalDomain,k...) = fromcanonical.(Ref(d),2rand(k...)-1)
+rand(d::IntervalOrSegmentDomain,k...) = fromcanonical.(Ref(d),2rand(k...)-1)
 rand(d::PeriodicDomain,k...) = fromcanonical.(Ref(d),2π*rand(k...)-π)
 
-checkpoints(d::IntervalDomain) = fromcanonical.(Ref(d),[-0.823972,0.01,0.3273484])
+checkpoints(d::IntervalOrSegmentDomain) = fromcanonical.(Ref(d),[-0.823972,0.01,0.3273484])
 checkpoints(d::PeriodicDomain) = fromcanonical.(Ref(d),[1.223972,3.14,5.83273484])
 
 ## boundary
 
-"""
-    ∂(d::Domain)
-
-returns the boundary of `d`.  For example, the boundary of a `Disk()`
-is a `Circle()`, and the boundary of `Interval()^2` is a piecewise interval
-that sketches the boundary of a rectangle.
-"""
-∂(d::Domain) = EmptyDomain()   # This is meant to be overriden
-∂(d::IntervalDomain) = [first(d),last(d)] #TODO: Points domain
-∂(d::PeriodicDomain) = EmptyDomain()
+boundary(d::SegmentDomain) = [leftendpoint(d),rightendpoint(d)] #TODO: Points domain
+boundary(d::PeriodicDomain) = EmptyDomain()
 
 
 

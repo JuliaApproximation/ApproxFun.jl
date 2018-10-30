@@ -224,7 +224,7 @@ tensor_eval_type(_,::Type{Vector{Any}}) = Vector{Any}
 
 
 TensorSpace(sp::Tuple) =
-    TensorSpace{typeof(sp),typeof(mapreduce(domain,*,sp)),
+    TensorSpace{typeof(sp),typeof(mapreduce(domain,×,sp)),
                 mapreduce(rangetype,(a,b)->tensor_eval_type(a,b),sp)}(sp)
 
 
@@ -246,8 +246,10 @@ TensorSpace(A::ProductDomain) = TensorSpace(tuple(map(Space,A.domains)...))
 ⊗(A::Space,B::TensorSpace) = TensorSpace(A,B.spaces...)
 ⊗(A::Space,B::Space) = TensorSpace(A,B)
 
-domain(f::TensorSpace) = mapreduce(domain,*,f.spaces)
+domain(f::TensorSpace) = mapreduce(domain,×,f.spaces)
 Space(sp::ProductDomain) = TensorSpace(sp)
+
+setdomain(sp::TensorSpace, d::ProductDomain) = TensorSpace(setdomain.(factors(sp), factors(d)))
 
 *(A::Space, B::Space) = A⊗B
 ^(A::Space, p::Integer) = p == 1 ? A : A*A^(p-1)
@@ -299,12 +301,12 @@ struct ProductSpace{S<:Space,V<:Space,D,R} <: AbstractProductSpace{Tuple{S,V},D,
 end
 
 ProductSpace(spacesx::Vector,spacey) =
-    ProductSpace{eltype(spacesx),typeof(spacey),typeof(mapreduce(domain,*,sp)),
+    ProductSpace{eltype(spacesx),typeof(spacey),typeof(mapreduce(domain,×,sp)),
                 mapreduce(s->eltype(domain(s)),promote_type,sp)}(spacesx,spacey)
 
 # TODO: This is a weird definition
 ⊗(A::Vector{S},B::Space) where {S<:Space} = ProductSpace(A,B)
-domain(f::ProductSpace) = domain(f.spacesx[1])*domain(f.spacesy)
+domain(f::ProductSpace) = domain(f.spacesx[1])×domain(f.spacesy)
 
 
 nfactors(d::AbstractProductSpace) = length(d.spaces)
@@ -466,7 +468,7 @@ end
 
 ## points
 
-points(d::Union{BivariateDomain,BivariateSpace},n,m) = points(d,n,m,1),points(d,n,m,2)
+points(d::Union{Domain2d,BivariateSpace},n,m) = points(d,n,m,1),points(d,n,m,2)
 
 function points(d::BivariateSpace,n,m,k)
     ptsx=points(columnspace(d,1),n)
@@ -528,7 +530,7 @@ for OP in (:block,:blockstart,:blockstop)
 end
 
 function points(sp::TensorSpace,n)
-    pts=Array{eltype(domain(sp))}(undef,0)
+    pts=Array{float(eltype(domain(sp)))}(undef,0)
     a,b = sp.spaces
     if isfinite(dimension(a)) && isfinite(dimension(b))
         N,M=dimension(a),dimension(b)
@@ -562,7 +564,7 @@ coefficientmatrix(f::Fun{<:AbstractProductSpace}) = totensor(space(f),f.coeffici
 
 
 #TODO: Implement
-# function ∂(d::TensorSpace{Segment{Float64}})
+# function ∂(d::TensorSpace{<:IntervalOrSegment{Float64}})
 #     @assert length(d.spaces) ==2
 #     PiecewiseSpace([d[1].a+im*d[2],d[1].b+im*d[2],d[1]+im*d[2].a,d[1]+im*d[2].b])
 # end
@@ -584,16 +586,16 @@ union_rule(a::TensorSpace,b::TensorSpace) = TensorSpace(map(union,a.spaces,b.spa
 #      (domain(ts)[2] == Point(0.0) && isconvertible(sp,ts.spaces[1])))
 #  end
 
-isconvertible(sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R} = length(ts.spaces) == 2 &&
+isconvertible(sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:Domain2d,R} = length(ts.spaces) == 2 &&
     ((domain(ts)[1] == Point(0.0) && isconvertible(sp,ts.spaces[2])) ||
      (domain(ts)[2] == Point(0.0) && isconvertible(sp,ts.spaces[1])))
 
 
-# coefficients(f::AbstractVector,sp::ConstantSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R} =
+# coefficients(f::AbstractVector,sp::ConstantSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:Domain2d,R} =
 #     f[1]*ones(ts).coefficients
 
 #
-# function coefficients(f::AbstractVector,sp::Space{Segment{Vec{2,TT}}},ts::TensorSpace{Tuple{S,V},D,R}) where {S,V<:ConstantSpace,D<:BivariateDomain,R,TT} where {T<:Number}
+# function coefficients(f::AbstractVector,sp::Space{IntervalOrSegment{Vec{2,TT}}},ts::TensorSpace{Tuple{S,V},D,R}) where {S,V<:ConstantSpace,D<:Domain2d,R,TT} where {T<:Number}
 #     a = domain(sp)
 #     b = domain(ts)
 #     # make sure we are the same domain. This will be replaced by isisomorphic
@@ -604,7 +606,7 @@ isconvertible(sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:Bivariat
 # end
 
 
-function coefficients(f::AbstractVector,sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R}
+function coefficients(f::AbstractVector,sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:Domain2d,R}
     @assert length(ts.spaces) == 2
 
     if factor(domain(ts),1) == Point(0.0)
@@ -617,7 +619,7 @@ function coefficients(f::AbstractVector,sp::UnivariateSpace,ts::TensorSpace{SV,D
 end
 
 
-function isconvertible(sp::Space{Segment{Vec{2,TT}}},ts::TensorSpace{SV,D,R}) where {TT,SV,D<:BivariateDomain,R}
+function isconvertible(sp::Space{Segment{Vec{2,TT}}},ts::TensorSpace{SV,D,R}) where {TT,SV,D<:Domain2d,R}
     d1 = domain(sp)
     d2 = domain(ts)
     if length(ts.spaces) ≠ 2
@@ -636,7 +638,7 @@ end
 
 
 function coefficients(f::AbstractVector,sp::Space{Segment{Vec{2,TT}}},
-                            ts::TensorSpace{SV,D,R}) where {TT,SV,D<:BivariateDomain,R}
+                            ts::TensorSpace{SV,D,R}) where {TT,SV,D<:Domain2d,R}
     @assert length(ts.spaces) == 2
     d1 = domain(sp)
     d2 = domain(ts)

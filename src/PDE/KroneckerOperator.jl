@@ -252,7 +252,7 @@ Base.transpose(S::ConstantTimesOperator) = sp.c*transpose(S.op)
 ### Calculus
 
 #TODO: general dimension
-function Derivative(S::TensorSpace{SV,DD},order::Vector{Int}) where {SV,DD<:BivariateDomain}
+function Derivative(S::TensorSpace{SV,DD},order::Vector{Int}) where {SV,DD<:Domain2d}
     @assert length(order)==2
     if order[1]==0
         Dy=Derivative(S.spaces[2],order[2])

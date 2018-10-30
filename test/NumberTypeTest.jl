@@ -23,7 +23,7 @@ using ApproxFun, Test
     end
 
     @testset "BigFloat roots" begin
-        a = Fun(Segment{BigFloat}(),BigFloat[1,2,3])
+        a = Fun(ChebyshevInterval{BigFloat}(),BigFloat[1,2,3])
         # 12 is some bound on how accurately the polynomial can be evaluated
         # near its roots, where its evaluation is ill-conditioned
         @test norm(a.(roots(a))) ≤ 12eps(BigFloat)

@@ -1,19 +1,19 @@
 using ApproxFun, LinearAlgebra, SpecialFunctions, Test
     import ApproxFun: testbandedblockbandedoperator, testraggedbelowoperator, factor, Block, cfstype,
-                        blocklengths, block, tensorizer, Vec, ArraySpace, ∞
+                        blocklengths, block, tensorizer, Vec, ArraySpace, ∞,
+                        testblockbandedoperator
+
 
 @testset "Multivariate" begin
     @testset "Square" begin
-        S = Space(Interval()^2)
-
+        S = Space(ChebyshevInterval()^2)
         @test @inferred(blocklengths(S)) ≡ Base.OneTo(∞)
-        block(tensorizer(S), 1)
 
         @test block(tensorizer(S), 1) == Block(1)
 
         @time for k=0:5,j=0:5
             ff=(x,y)->cos(k*acos(x))*cos(j*acos(y))
-            f=Fun(ff,Interval()^2)
+            f=Fun(ff,ChebyshevInterval()^2)
             @test f(0.1,0.2) ≈ ff(0.1,0.2)
         end
 
@@ -30,22 +30,21 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
             @test f(0.1,0.2) ≈ ff(0.1,0.2)
         end
 
-
         ## Try constructor variants
 
         ff=(x,y)->exp(-10(x+.2)^2-20(y-.1)^2)*cos(x*y)
         gg=x->exp(-10(x[1]+.2)^2-20(x[1]-.1)^2)*cos(x[1]*x[2])
-        f=Fun(ff,Interval()^2,10000)
+        f=Fun(ff,ChebyshevInterval()^2,10000)
         @test f(0.,0.) ≈ ff(0.,0.)
 
-        f=Fun(gg,Interval()^2,10000)
+
+        f=Fun(gg,ChebyshevInterval()^2,10000)
         @test f(0.,0.) ≈ ff(0.,0.)
 
-        f=Fun(ff,Interval()^2)
+        f=Fun(ff,ChebyshevInterval()^2)
         @test f(0.,0.) ≈ ff(0.,0.)
-        f=Fun(gg,Interval()^2)
+        f=Fun(gg,ChebyshevInterval()^2)
         @test f(0.,0.) ≈ ff(0.,0.)
-
 
         f=Fun(ff)
         @test f(0.,0.) ≈ ff(0.,0.)
@@ -81,12 +80,12 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
 
 
     @testset  "Vec segment" begin
-        d=Domain(Vec(0.,0.) .. Vec(1.,1.))
-        x=Fun()
-        @test ((d.b - d.a)x/2)(0.1)  ≈ (d.b - d.a)*0.1/2
+        d = Segment(Vec(0.,0.) , Vec(1.,1.))
+        x = Fun()
+        @test (ApproxFun.complexlength(d)*x/2)(0.1)  ≈ (d.b - d.a)*0.1/2
         @test ApproxFun.fromcanonical(d,x)(0.1) ≈ (d.b+d.a)/2 + (d.b - d.a)*0.1/2
 
-        x,y = Fun(Vec(0.,0.) .. Vec(2.,1.))
+        x,y = Fun(Segment(Vec(0.,0.) , Vec(2.,1.)))
         @test x(0.2,0.1) ≈ 0.2
         @test y(0.2,0.1) ≈ 0.1
 
@@ -122,7 +121,7 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
     @testset "Multivariate calculus" begin
         ## Sum
         ff = (x,y) -> (x-y)^2*exp(-x^2/2-y^2/2)
-        f=Fun(ff,Domain(-4..4)^2)
+        f=Fun(ff, (-4..4)^2)
         @test f(0.1,0.2) ≈ ff(0.1,0.2)
 
         @test sum(f,1)(0.1) ≈ 2.5162377980828357
@@ -170,7 +169,7 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
     end
 
     @time @testset "x,y constructors" begin
-        d=Interval()^2
+        d=ChebyshevInterval()^2
 
         sp = ArraySpace(d,2)
         @test blocklengths(sp) == 2:2:∞
@@ -203,8 +202,11 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
     end
 
     @testset "conversion between" begin
-        dx = dy = Interval()
-        d = dx*dy
+        dx = dy = ChebyshevInterval()
+        d = dx × dy
+        x,y=Fun(d)
+        @test x(0.1,0.2) ≈ 0.1
+        @test y(0.1,0.2) ≈ 0.2
 
         x,y = Fun(∂(d))
         x,y = components(x),components(y)
@@ -226,7 +228,6 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
         g2 = Fun([g;0.0],rangespace(A))
         @test cfstype(g2) == Float64
 
-
         @test g2[1](-0.1,-1.0) ≈ g[1](-0.1,-1.0)
         @test g2[3](-0.1,1.0)  ≈ g[3](-0.1,1.0)
 
@@ -236,7 +237,7 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
     end
 
     @testset "Bug in Multiplication" begin
-        dom = Interval(0.001, 1) * PeriodicInterval(-pi, pi)
+        dom = Interval(0.001, 1) × PeriodicSegment(-pi, pi)
 
         @test blocklengths(Space(dom)) == 2:2:∞
 
@@ -256,14 +257,13 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
 
         testbandedblockbandedoperator(rDr)
     end
-    @testset "Cheby * Interval" begin
-        d = Interval()^2
-        x,y = Fun(∂(d))
 
+    @testset "Cheby * Interval" begin
+        d = ChebyshevInterval()^2
+        x,y = Fun(∂(d))
 
         @test ApproxFun.rangetype(Space(∂(d))) == Float64
         @test ApproxFun.rangetype(space(y)) == Float64
-
 
         @test (im*y)(1.0,0.1) ≈ 0.1im
         @test (x+im*y)(1.0,0.1) ≈ 1+0.1im
@@ -300,7 +300,7 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
         @test coefficients(chop(ProductFun(u),10eps())) == zeros(0,1)
 
 
-        d=Domain(-1..1)^2
+        d= (-1..1)^2
         B=[Dirichlet(factor(d,1))⊗I;I⊗ldirichlet(factor(d,2));I⊗rneumann(factor(d,2))]
         Δ=Laplacian(d)
 
@@ -317,12 +317,20 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
     end
 
     @testset "off domain evaluate" begin
-        g = Fun(1, ApproxFun.Vec(0,-1) .. ApproxFun.Vec(π,-1))
+        g = Fun(1, Segment(Vec(0,-1) , Vec(π,-1)))
         @test g(0.1,-1) ≈ 1
         @test g(0.1,1) ≈ 0
 
-        g = Fun(1, PeriodicInterval(ApproxFun.Vec(0,-1) , ApproxFun.Vec(π,-1)))
+        g = Fun(1, PeriodicSegment(Vec(0,-1) , Vec(π,-1)))
         @test g(0.1,-1) ≈ 1
         @test g(0.1,1) ≈ 0
+    end
+
+
+    @testset "Dirichlet" begin
+        testblockbandedoperator(Dirichlet((0..1)^2))
+        testblockbandedoperator(Dirichlet((0..1) × (0.0 .. 1)))
+        testraggedbelowoperator(Dirichlet(Chebyshev()^2))
+        testraggedbelowoperator(Dirichlet(Chebyshev(0..1) * Chebyshev(0.0..1)))
     end
 end

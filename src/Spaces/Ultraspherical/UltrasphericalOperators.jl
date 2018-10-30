@@ -43,13 +43,13 @@ end
 ## Derivative
 
 
-#Derivative(k::Integer,d::IntervalDomain)=Derivative(k-1:k,d)
-#Derivative(d::IntervalDomain)=Derivative(1,d)
+#Derivative(k::Integer,d::IntervalOrSegment)=Derivative(k-1:k,d)
+#Derivative(d::IntervalOrSegment)=Derivative(1,d)
 
 
-Derivative(sp::Ultraspherical{LT,DD},m::Integer) where {LT,DD<:Segment} =
+Derivative(sp::Ultraspherical{LT,DD},m::Integer) where {LT,DD<:IntervalOrSegment} =
     ConcreteDerivative(sp,m)
-function Integral(sp::Ultraspherical{LT,DD},m::Integer) where {LT,DD<:Segment}
+function Integral(sp::Ultraspherical{LT,DD},m::Integer) where {LT,DD<:IntervalOrSegment}
     λ = order(sp)
     if m ≤ λ
         ConcreteIntegral(sp,m)
@@ -60,21 +60,22 @@ function Integral(sp::Ultraspherical{LT,DD},m::Integer) where {LT,DD<:Segment}
 end
 
 
-rangespace(D::ConcreteDerivative{Ultraspherical{LT,DD,RR}}) where {LT,DD<:Segment,RR} =
+rangespace(D::ConcreteDerivative{Ultraspherical{LT,DD,RR}}) where {LT,DD<:IntervalOrSegment,RR} =
     Ultraspherical(order(domainspace(D))+D.order,domain(D))
-bandwidths(D::ConcreteDerivative{Ultraspherical{LT,DD,RR}}) where {LT,DD<:Segment,RR} = -D.order,D.order
-bandwidths(D::ConcreteIntegral{Ultraspherical{LT,DD,RR}}) where {LT,DD<:Segment,RR} = D.order,-D.order
-Base.stride(D::ConcreteDerivative{Ultraspherical{LT,DD,RR}}) where {LT,DD<:Segment,RR} = D.order
+
+bandwidths(D::ConcreteDerivative{Ultraspherical{LT,DD,RR}}) where {LT,DD<:IntervalOrSegment,RR} = -D.order,D.order
+bandwidths(D::ConcreteIntegral{Ultraspherical{LT,DD,RR}}) where {LT,DD<:IntervalOrSegment,RR} = D.order,-D.order
+Base.stride(D::ConcreteDerivative{Ultraspherical{LT,DD,RR}}) where {LT,DD<:IntervalOrSegment,RR} = D.order
 
 
 function getindex(D::ConcreteDerivative{Ultraspherical{TT,DD,RR},K,T},
-               k::Integer,j::Integer) where {TT,DD<:Segment,RR,K,T}
+               k::Integer,j::Integer) where {TT,DD<:IntervalOrSegment,RR,K,T}
     m=D.order
     d=domain(D)
     λ=order(domainspace(D))
 
     if j==k+m
-        convert(T,(pochhammer(one(T)*λ,m)*(4/(d.b-d.a)).^m))
+        convert(T,(pochhammer(one(T)*λ,m)*(4/complexlength(d)).^m))
     else
         zero(T)
     end
@@ -83,17 +84,14 @@ end
 
 ## Integral
 
-linesum(f::Fun{Ultraspherical{LT,DD,RR}}) where {LT,DD<:Segment,RR} =
+linesum(f::Fun{Ultraspherical{LT,DD,RR}}) where {LT,DD<:IntervalOrSegment,RR} =
     sum(setcanonicaldomain(f))*arclength(d)/2
 
 
-
-
-
-rangespace(D::ConcreteIntegral{Ultraspherical{LT,DD,RR}}) where {LT,DD<:Segment,RR} =
+rangespace(D::ConcreteIntegral{Ultraspherical{LT,DD,RR}}) where {LT,DD<:IntervalOrSegment,RR} =
     order(domainspace(D)) == 1 ? Chebyshev(domain(D)) : Ultraspherical(order(domainspace(D))-D.order,domain(D))
 
-function getindex(Q::ConcreteIntegral{Ultraspherical{LT,DD,RR}},k::Integer,j::Integer) where {LT,DD<:Segment,RR}
+function getindex(Q::ConcreteIntegral{Ultraspherical{LT,DD,RR}},k::Integer,j::Integer) where {LT,DD<:IntervalOrSegment,RR}
     T=eltype(Q)
     m=Q.order
     d=domain(Q)
@@ -101,10 +99,10 @@ function getindex(Q::ConcreteIntegral{Ultraspherical{LT,DD,RR}},k::Integer,j::In
     @assert m<=λ
 
     if λ == 1 && k==j+1
-        C = (d.b-d.a)/2
+        C = complexlength(d)/2
         convert(T,C./(k-1))
     elseif λ > 1 && k==j+m
-        convert(T,pochhammer(one(T)*λ,-m)*((d.b-d.a)/4)^m)
+        convert(T,pochhammer(one(T)*λ,-m)*(complexlength(d)/4)^m)
     else
         zero(T)
     end
@@ -203,19 +201,19 @@ function getindex(M::ConcreteConversion{Ultraspherical{LT,DD,RR},Ultraspherical{
 end
 
 
-bandwidths(C::ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR}}) where {DD,RR} = 0,2  # order == 1
-bandwidths(C::ConcreteConversion{Ultraspherical{Int,DD,RR},Ultraspherical{Int,DD,RR}}) where {DD,RR} = 0,2
+bandwidths(C::ConcreteConversion{<:Chebyshev,<:Ultraspherical{Int}}) = 0,2  # order == 1
+bandwidths(C::ConcreteConversion{<:Ultraspherical{Int},<:Ultraspherical{Int}}) = 0,2
 
-bandwidths(C::ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{LT,DD,RR}}) where {LT,DD,RR} =
+bandwidths(C::ConcreteConversion{<:Chebyshev,<:Ultraspherical}) =
     0,order(rangespace(C))==1 ? 2 : ∞
-bandwidths(C::ConcreteConversion{Ultraspherical{LT,DD,RR},Chebyshev{DD,RR}}) where {LT,DD,RR} =
+bandwidths(C::ConcreteConversion{<:Ultraspherical,<:Chebyshev}) =
     0,order(domainspace(C))==1 ? 2 : ∞
 
-bandwidths(C::ConcreteConversion{Ultraspherical{LT1,DD,RR},Ultraspherical{LT2,DD,RR}}) where {LT1,LT2,DD,RR} =
+bandwidths(C::ConcreteConversion{<:Ultraspherical,<:Ultraspherical}) =
     0,order(domainspace(C))+1==order(rangespace(C)) ? 2 : ∞
 
-Base.stride(C::ConcreteConversion{Chebyshev{DD,RR},Ultraspherical{Int,DD,RR}}) where {DD,RR} = 2
-Base.stride(C::ConcreteConversion{Ultraspherical{LT1,DD,RR},Ultraspherical{LT2,DD,RR}}) where {LT1,LT2,DD,RR} = 2
+Base.stride(C::ConcreteConversion{<:Chebyshev,<:Ultraspherical{Int}}) = 2
+Base.stride(C::ConcreteConversion{<:Ultraspherical,<:Ultraspherical}) = 2
 
 
 ## coefficients
@@ -256,7 +254,7 @@ end
 
 
 # TODO: include in getindex to speed up
-Integral(sp::Chebyshev{DD},m::Integer) where {DD<:Segment} =
+Integral(sp::Chebyshev{DD},m::Integer) where {DD<:IntervalOrSegment} =
     IntegralWrapper(TimesOperator([Integral(Ultraspherical(m,domain(sp)),m),
                                    Conversion(sp,Ultraspherical(m,domain(sp)))]),m)
 

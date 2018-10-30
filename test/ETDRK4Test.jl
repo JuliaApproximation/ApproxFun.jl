@@ -1,5 +1,4 @@
 using ApproxFun, Test
-
 import ApproxFun: expα, expβ, expγ
 
 #

@@ -77,7 +77,7 @@ for (BF,FF) in ((BigFloat,Float64),(Complex{BigFloat},ComplexF64))
             throw(ArgumentError("Tried to take roots of a zero function."))
         end
 
-        hscale = maximum( [abs(first(d)), abs(last(d))] )
+        hscale = maximum( [abs(leftendpoint(d)), abs(rightendpoint(d))] )
         htol = eps(2000.)*max(hscale, 1)  # TODO: choose tolerance better
 
         # calculate Flaot64 roots
@@ -106,7 +106,7 @@ function roots( f::Fun{C,TT} ) where {C<:Chebyshev,TT<:Union{Float64,ComplexF64}
     c = f.coefficients
     vscale = maximum(abs,values(f))
 
-    hscale = max(abs(first(d)), abs(last(d)) )
+    hscale = max(abs(leftendpoint(d)), abs(rightendpoint(d)) )
     htol = eps(2000.)*max(hscale, 1)  # TODO: choose tolerance better
 
 
@@ -250,18 +250,18 @@ function rootsunit_coeffs(c::Vector{T}, htol::Float64,clplan::ClenshawPlan{S,T})
 end
 
 
-extremal_args(f::Fun{S}) where {S<:PiecewiseSpace} = cat(1,[extremal_args(fp) for fp in components(f)]...)
+extremal_args(f::Fun{S}) where {S<:Union{PiecewiseSpace,ContinuousSpace}} = cat(1,[extremal_args(fp) for fp in components(f)]...)
 
 
 function extremal_args(f::Fun)
-    d=domain(f)
-    if isa(d,PeriodicInterval)
+    d = domain(f)
+    if isa(d,PeriodicSegment)
         roots(differentiate(f))
     elseif isa(d,PeriodicDomain)  # avoid complex domains
         S=typeof(space(f))
         fromcanonical.(f,extremal_args(setcanonicaldomain(f)))
     else
-        dab=∂(domain(f))
+        dab = convert(Vector{Number}, collect(components(∂(domain(f)))))
         if ncoefficients(f) <=2 #TODO this is only relevant for Polynomial bases
             dab
         else
@@ -272,8 +272,7 @@ end
 
 for op in (:(maximum),:(minimum),:(extrema))
     @eval function $op(f::Fun{S,T}) where {S<:RealSpace,T<:Real}
-
-        pts = iszero(f') ? [first(domain(f))] : extremal_args(f)
+        pts = iszero(f') ? [leftendpoint(domain(f))] : extremal_args(f)
 
         $op(f.(pts))
     end
@@ -282,7 +281,7 @@ end
 for op in (:(maximum),:(minimum))
     @eval begin
         function $op(::typeof(abs), f::Fun{S,T}) where {S<:RealSpace,T<:Real}
-            pts = iszero(f') ? [first(domain(f))] : extremal_args(f)
+            pts = iszero(f') ? [leftendpoint(domain(f))] : extremal_args(f)
             $op(f.(pts))
         end
         function $op(::typeof(abs), f::Fun)
@@ -292,7 +291,11 @@ for op in (:(maximum),:(minimum))
         end
         $op(f::Fun{PiecewiseSpace{SV,DD,RR},T}) where {SV,DD<:UnionDomain,RR<:Real,T<:Real} =
             $op(map($op,components(f)))
+        $op(f::Fun{ContinuousSpace{T,R},T}) where {T<:Real,R<:Real} =
+            $op(map($op,components(f)))
         $op(::typeof(abs), f::Fun{PiecewiseSpace{SV,DD,RR},T}) where {SV,DD<:UnionDomain,RR<:Real,T<:Real} =
+            $op(abs, map(g -> $op(abs, g),components(f)))
+        $op(::typeof(abs), f::Fun{ContinuousSpace{T,R},T}) where {T<:Real,R<:Real} =
             $op(abs, map(g -> $op(abs, g),components(f)))
     end
 end
@@ -300,6 +303,8 @@ end
 
 
 extrema(f::Fun{PiecewiseSpace{SV,DD,RR},T}) where {SV,DD<:UnionDomain,RR<:Real,T<:Real} =
+    mapreduce(extrema,(x,y)->extrema([x...;y...]),components(f))
+extrema(f::Fun{ContinuousSpace{T,R},T}) where {T<:Real,R<:Real} =
     mapreduce(extrema,(x,y)->extrema([x...;y...]),components(f))
 
 
@@ -309,7 +314,7 @@ for op in (:(argmax),:(argmin))
     @eval begin
         function $op(f::Fun{S,T}) where {S<:RealSpace,T<:Real}
             # need to check for zero as extremal_args is not defined otherwise
-            iszero(f) && return first(domain(f))
+            iszero(f) && return leftendpoint(domain(f))
             # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
             # the extra real avoids issues with complex round-off
@@ -318,7 +323,7 @@ for op in (:(argmax),:(argmin))
 
         function $op(f::Fun{S,T}) where {S,T}
             # need to check for zero as extremal_args is not defined otherwise
-            iszero(f) && return first(domain(f))
+            iszero(f) && return leftendpoint(domain(f))
             # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
             fp=f.(pts)
@@ -406,7 +411,7 @@ function roots(f::Fun{Laurent{DD,RR}}) where {DD,RR}
         Complex{Float64}[]
     else
         rts=fromcanonical.(f, tocanonical.(Ref(Circle()), irts))
-        if isa(domain(f),PeriodicInterval)
+        if isa(domain(f),PeriodicSegment)
             sort!(real(rts))  # Make type safe?
         else
             rts
@@ -417,7 +422,7 @@ end
 
 roots(f::Fun{Fourier{D,R}}) where {D,R} = roots(Fun(f,Laurent))
 
-function roots(f::Fun{P}) where P<:PiecewiseSpace
+function roots(f::Fun{P}) where P<:Union{PiecewiseSpace, ContinuousSpace}
     rts=mapreduce(roots,vcat,components(f))
     k=1
     while k < length(rts)
@@ -441,10 +446,10 @@ function roots(f::Fun{S,T}) where {S<:JacobiWeight,T}
     d=domain(sp)
     rts=roots(Fun(sp.space,f.coefficients))
     if sp.β > 0
-        rts=[first(d);rts]
+        rts=[leftendpoint(d);rts]
     end
     if sp.α > 0
-        rts=[rts;last(d)]
+        rts=[rts;rightendpoint(d)]
     end
     rts
 end

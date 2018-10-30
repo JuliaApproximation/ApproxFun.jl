@@ -38,7 +38,7 @@ f = Fun(t->exp(sin(10t)),d)
 B = periodic(d,0)
 uChebyshev = [B;L]\[0.,f]
 
-d = PeriodicInterval([-π,π])
+d = PeriodicSegment([-π,π])
 a = Fun(t-> 1+sin(cos(2t)),d)
 D = Derivative(d)
 L = D + a
@@ -58,7 +58,7 @@ d = domain(f)
 x = ApproxFun.sample(f,10000)
 plot(f/sum(f);legend=false,grid=false)                           # Requires Gadfly or PyPlot
 histogram!(x;normed=true,nbins=100)
-xlims!(first(d),last(d));ylims!(0.0,0.18);xlabel!("\$x\$");ylabel!("Density")
+xlims!(leftendpoint(d),rightendpoint(d));ylims!(0.0,0.18);xlabel!("\$x\$");ylabel!("Density")
 PyPlot.savefig("Sample.png",dpi=300)
 
 println("Fourth image done")
@@ -81,7 +81,7 @@ println("Fifth image done")
 ## Multivariate
 
 
-d = Interval()^2                            # Defines a rectangle
+d = ChebyshevInterval()^2                            # Defines a rectangle
 
 u = [dirichlet(d);lap(d)+100I]\[[1.0,1.0,1.0,1.0]]      # First four entries of rhs are
                                             # boundary conditions

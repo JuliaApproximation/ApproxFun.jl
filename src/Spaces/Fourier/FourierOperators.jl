@@ -65,12 +65,12 @@ end
 
 conversion_type(A::Fourier{DD,R1},B::Fourier{DD,R2}) where {DD<:Circle,R1,R2} = domain(A).orientation ? A : B
 
-hasconversion(A::Fourier{DD,R1},B::Fourier{DD,R2}) where {DD,R1,R2} = domain(A) == reverse(domain(B))
+hasconversion(A::Fourier{DD,R1},B::Fourier{DD,R2}) where {DD,R1,R2} = domain(A) == reverseorientation(domain(B))
 function Conversion(A::Fourier{DD,R1},B::Fourier{DD,R2}) where {DD,R1,R2}
     if A==B
         ConversionWrapper(Operator(I,A))
     else
-        @assert domain(A) == reverse(domain(B))
+        @assert domain(A) == reverseorientation(domain(B))
         ConcreteConversion(A,B)
     end
 end
@@ -87,7 +87,7 @@ getindex(C::ConcreteConversion{Fourier{DD,R1},Fourier{DD,R2},T},k::Integer,j::In
 
 
 function Derivative(S::Union{CosSpace,SinSpace},order)
-    @assert isa(domain(S),PeriodicInterval)
+    @assert isa(domain(S),PeriodicSegment)
     ConcreteDerivative(S,order)
 end
 
@@ -101,7 +101,7 @@ rangespace(D::ConcreteDerivative{S}) where {S<:SinSpace} = iseven(D.order) ? D.s
 function getindex(D::ConcreteDerivative{CS,OT,T},k::Integer,j::Integer) where {CS<:CosSpace,OT,T}
     d=domain(D)
     m=D.order
-    C=convert(T,2/(d.b-d.a)*π)
+    C=convert(T,2/complexlength(d)*π)
 
     if k==j && mod(m,4)==0
         (C*(k-1))^m
@@ -119,7 +119,7 @@ end
 function getindex(D::ConcreteDerivative{CS,OT,T},k::Integer,j::Integer) where {CS<:SinSpace,OT,T}
     d=domain(D)
     m=D.order
-    C=convert(T,2/(d.b-d.a)*π)
+    C=convert(T,2/complexlength(d)*π)
 
     if k==j && mod(m,4)==0
         (C*k)^m
@@ -142,7 +142,7 @@ Derivative(S::Fourier{DD,RR},k::Integer) where {DD<:Circle,RR} =
 Integral(::CosSpace,m::Integer) =
     error("Integral not defined for CosSpace.  Use Integral(CosSpace()|(2:∞)) if first coefficient vanishes.")
 
-Integral(sp::SinSpace{<:PeriodicInterval}, m::Integer) = ConcreteIntegral(sp,m)
+Integral(sp::SinSpace{<:PeriodicSegment}, m::Integer) = ConcreteIntegral(sp,m)
 
 bandwidths(D::ConcreteIntegral{<:SinSpace}) = iseven(D.order) ? (0,0) : (1,0)
 rangespace(D::ConcreteIntegral{<:CosSpace}) = iseven(D.order) ? D.space : SinSpace(domain(D))
@@ -150,9 +150,9 @@ rangespace(D::ConcreteIntegral{<:SinSpace}) = iseven(D.order) ? D.space : CosSpa
 
 function getindex(D::ConcreteIntegral{CS,OT,T},k::Integer,j::Integer) where {CS<:SinSpace,OT,T}
     d=domain(D)
-    @assert isa(d,PeriodicInterval)
+    @assert isa(d,PeriodicSegment)
     m=D.order
-    C=convert(T,2/(d.b-d.a)*π)
+    C=convert(T,2/complexlength(d)*π)
 
 
     if k==j && mod(m,4)==0
@@ -168,22 +168,22 @@ function getindex(D::ConcreteIntegral{CS,OT,T},k::Integer,j::Integer) where {CS<
     end
 end
 
-function Integral(S::SubSpace{<:CosSpace,<:AbstractInfUnitRange{Int},<:PeriodicInterval},k::Integer)
+function Integral(S::SubSpace{<:CosSpace,<:AbstractInfUnitRange{Int},<:PeriodicSegment},k::Integer)
     @assert first(S.indexes)==2
     ConcreteIntegral(S,k)
 end
 
-bandwidths(D::ConcreteIntegral{<:SubSpace{<:CosSpace,<:AbstractInfUnitRange{Int},<:PeriodicInterval}}) =
+bandwidths(D::ConcreteIntegral{<:SubSpace{<:CosSpace,<:AbstractInfUnitRange{Int},<:PeriodicSegment}}) =
     (0,0)
-rangespace(D::ConcreteIntegral{<:SubSpace{<:CosSpace,<:AbstractInfUnitRange{Int},<:PeriodicInterval}}) =
+rangespace(D::ConcreteIntegral{<:SubSpace{<:CosSpace,<:AbstractInfUnitRange{Int},<:PeriodicSegment}}) =
     iseven(D.order) ? D.space : SinSpace(domain(D))
 
-function getindex(D::ConcreteIntegral{<:SubSpace{<:CosSpace,<:AbstractInfUnitRange{Int},<:PeriodicInterval}},
+function getindex(D::ConcreteIntegral{<:SubSpace{<:CosSpace,<:AbstractInfUnitRange{Int},<:PeriodicSegment}},
                   k::Integer,j::Integer)
     d=domain(D)
     m=D.order
     T=eltype(D)
-    C=convert(T,2/(d.b-d.a)*π)
+    C=convert(T,2/complexlength(d)*π)
 
 
     if k==j
@@ -282,13 +282,13 @@ for SP in (:CosSpace,:SinSpace,:Fourier)
     end
 end
 
-getindex(Σ::ConcreteDefiniteIntegral{CosSpace{D,R},T},k::Integer) where {T,D<:PeriodicInterval,R} =
+getindex(Σ::ConcreteDefiniteIntegral{CosSpace{D,R},T},k::Integer) where {T,D<:PeriodicSegment,R} =
     k == 1 ? convert(T,complexlength(domain(Σ))) : zero(T)
 
-getindex(Σ::ConcreteDefiniteIntegral{SinSpace{D,R},T},k::Integer) where {T,D<:PeriodicInterval,R} =
+getindex(Σ::ConcreteDefiniteIntegral{SinSpace{D,R},T},k::Integer) where {T,D<:PeriodicSegment,R} =
     zero(T)
 
-getindex(Σ::ConcreteDefiniteIntegral{Fourier{D,R},T},k::Integer) where {T,D<:PeriodicInterval,R} =
+getindex(Σ::ConcreteDefiniteIntegral{Fourier{D,R},T},k::Integer) where {T,D<:PeriodicSegment,R} =
     k == 1 ? convert(T,complexlength(domain(Σ))) : zero(T)
 
 getindex(Σ::ConcreteDefiniteIntegral{CosSpace{D,R},T},k::Integer) where {T,D<:Circle,R} =
@@ -300,13 +300,13 @@ getindex(Σ::ConcreteDefiniteIntegral{SinSpace{D,R},T},k::Integer) where {T,D<:C
 getindex(Σ::ConcreteDefiniteIntegral{Fourier{D,R},T},k::Integer) where {T,D<:Circle,R} =
     k == 2 ? convert(T,0.5im*complexlength(domain(Σ))) : (k==3 ? convert(T,complexlength(domain(Σ))/2) : zero(T))
 
-getindex(Σ::ConcreteDefiniteLineIntegral{CosSpace{D,R},T},k::Integer) where {T,D<:PeriodicInterval,R} =
+getindex(Σ::ConcreteDefiniteLineIntegral{CosSpace{D,R},T},k::Integer) where {T,D<:PeriodicSegment,R} =
     k==1 ? convert(T,arclength(domain(Σ))) : zero(T)
 
-getindex(Σ::ConcreteDefiniteLineIntegral{SinSpace{D,R},T},k::Integer) where {T,D<:PeriodicInterval,R} =
+getindex(Σ::ConcreteDefiniteLineIntegral{SinSpace{D,R},T},k::Integer) where {T,D<:PeriodicSegment,R} =
     zero(T)
 
-getindex(Σ::ConcreteDefiniteLineIntegral{Fourier{D,R},T},k::Integer) where {T,D<:PeriodicInterval,R} =
+getindex(Σ::ConcreteDefiniteLineIntegral{Fourier{D,R},T},k::Integer) where {T,D<:PeriodicSegment,R} =
     k==1 ? convert(T,arclength(domain(Σ))) : zero(T)
 
 getindex(Σ::ConcreteDefiniteLineIntegral{CosSpace{D,R},T},k::Integer) where {T,D<:Circle,R} =
@@ -318,9 +318,9 @@ getindex(Σ::ConcreteDefiniteLineIntegral{SinSpace{D,R},T},k::Integer) where {T,
 getindex(Σ::ConcreteDefiniteLineIntegral{Fourier{D,R},T},k::Integer) where {T,D<:Circle,R} =
     k==1 ? convert(T,arclength(domain(Σ))) : zero(T)
 
-bandwidths(Σ::ConcreteDefiniteIntegral{CosSpace{D,R}}) where {D<:PeriodicInterval,R} = 0,0
-bandwidths(Σ::ConcreteDefiniteIntegral{SinSpace{D,R}}) where {D<:PeriodicInterval,R} = 0,0
-bandwidths(Σ::ConcreteDefiniteIntegral{Fourier{D,R}}) where {D<:PeriodicInterval,R} = 0,0
+bandwidths(Σ::ConcreteDefiniteIntegral{CosSpace{D,R}}) where {D<:PeriodicSegment,R} = 0,0
+bandwidths(Σ::ConcreteDefiniteIntegral{SinSpace{D,R}}) where {D<:PeriodicSegment,R} = 0,0
+bandwidths(Σ::ConcreteDefiniteIntegral{Fourier{D,R}}) where {D<:PeriodicSegment,R} = 0,0
 bandwidths(Σ::ConcreteDefiniteIntegral{CosSpace{D,R}}) where {D<:Circle,R} = 0,1
 bandwidths(Σ::ConcreteDefiniteIntegral{SinSpace{D,R}}) where {D<:Circle,R} = 0,0
 bandwidths(Σ::ConcreteDefiniteIntegral{Fourier{D,R}}) where {D<:Circle,R} = 0,2
@@ -352,14 +352,14 @@ Reverse(S::Fourier{D}) where {D} = ReverseWrapper(NegateEven(S,S))
 
 for TYP in (:Fourier,:Laurent,:CosSpace,:SinSpace,:Taylor)
     @eval begin
-        function Dirichlet(S::TensorSpace{Tuple{$TYP{PeriodicInterval{T},R},PS}},k) where {PS,T,R}
-            op = [Operator(I,S.spaces[1])⊗Evaluation(S.spaces[2],first,k);
-                            ReverseOrientation(S.spaces[1])⊗Evaluation(S.spaces[2],last,k) ]
+        function Dirichlet(S::TensorSpace{Tuple{$TYP{PeriodicSegment{T},R},PS}},k) where {PS,T,R}
+            op = [Operator(I,S.spaces[1])⊗Evaluation(S.spaces[2],leftendpoint,k);
+                            ReverseOrientation(S.spaces[1])⊗Evaluation(S.spaces[2],rightendpoint,k) ]
             DirichletWrapper(SpaceOperator(op,S,PiecewiseSpace(rangespace(op).spaces)),k)
         end
-        function Dirichlet(S::TensorSpace{Tuple{PS,$TYP{PeriodicInterval{T},R}}},k) where {PS,T,R}
-            op = [Evaluation(S.spaces[1],first,k)⊗Operator(I,S.spaces[2]);
-                            Evaluation(S.spaces[1],last,k)⊗ReverseOrientation(S[2]) ]
+        function Dirichlet(S::TensorSpace{Tuple{PS,$TYP{PeriodicSegment{T},R}}},k) where {PS,T,R}
+            op = [Evaluation(S.spaces[1],leftendpoint,k)⊗Operator(I,S.spaces[2]);
+                            Evaluation(S.spaces[1],rightendpoint,k)⊗ReverseOrientation(S[2]) ]
             DirichletWrapper(SpaceOperator(op,S,PiecewiseSpace(rangespace(op).spaces)),k)
         end
     end

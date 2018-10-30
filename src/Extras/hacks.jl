@@ -2,8 +2,8 @@
 
 
 function pad!(A::BandedMatrix,n,m)
-    A.data=pad(A.data,size(A.data,1),m)
-    A.m=n
+    A.data = pad(A.data,size(A.data,1),m)
+    A.raxis = Base.OneTo(n)
     A
 end
 
@@ -25,15 +25,15 @@ function Fun(fin::Function)
         catch ex
             if isa(ex,BoundsError)
                 # assume its a tuple
-                return Fun(f,Interval()^2)
+                return Fun(f,ChebyshevInterval()^2)
             else
                 throw(ex)
             end
         end
 
-        Fun(f,Interval())
+        Fun(f,ChebyshevInterval())
     elseif hasnumargs(f,2)
-            Fun(f,Interval()^2)
+            Fun(f,ChebyshevInterval()^2)
     else
         error("Function not defined on interval or square")
     end

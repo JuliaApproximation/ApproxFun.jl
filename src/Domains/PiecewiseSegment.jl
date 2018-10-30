@@ -1,19 +1,19 @@
-struct PiecewiseSegment{T} <: UnivariateDomain{T}
+struct PiecewiseSegment{T} <: Domain{T}
     points::Vector{T}
     PiecewiseSegment{T}(d::Vector{T}) where {T} = new{T}(d)
 end
 PiecewiseSegment(d::AbstractVector) = PiecewiseSegment{eltype(d)}(collect(d))
 PiecewiseSegment(d...) = PiecewiseSegment(collect(mapreduce(eltype,promote_type,d),d))
 
-function PiecewiseSegment(pcsin::AbstractVector{IT}) where IT<:Segment
+function PiecewiseSegment(pcsin::AbstractVector{IT}) where IT<:IntervalOrSegment
     pcs=collect(pcsin)
     p=∂(pop!(pcs))
     successful=true
     while successful
         successful=false
         for k=1:length(pcs)
-            if first(pcs[k])==last(p)
-                push!(p,last(pcs[k]))
+            if leftendpoint(pcs[k]) == last(p)
+                push!(p,rightendpoint(pcs[k]))
                 deleteat!(pcs,k)
                 successful=true
                 break
@@ -26,6 +26,8 @@ end
 
 ==(a::PiecewiseSegment,b::PiecewiseSegment) = a.points==b.points
 
+indomain(x, d::PiecewiseSegment) = any(in.(x, components(d)))
+
 
 canonicaldomain(d::PiecewiseSegment)=d
 ncomponents(d::PiecewiseSegment)=length(d.points)-1
@@ -37,12 +39,12 @@ for OP in (:arclength,:complexlength)
 end
 
 
-isperiodic(d::PiecewiseSegment) = first(d.points)==last(d.points)
+isperiodic(d::PiecewiseSegment) = first(d.points) == last(d.points)
 
-reverse(d::PiecewiseSegment) = PiecewiseSegment(reverse(d.points))
+reverseorientation(d::PiecewiseSegment) = PiecewiseSegment(reverse(d.points))
 
-isambiguous(d::PiecewiseSegment)=isempty(d.points)
-convert(::Type{PiecewiseSegment{T}},::AnyDomain) where {T<:Number}=PiecewiseSegment{T}([])
+isambiguous(d::PiecewiseSegment) = isempty(d.points)
+convert(::Type{PiecewiseSegment{T}},::AnyDomain) where {T<:Number} = PiecewiseSegment{T}([])
 convert(::Type{IT},::AnyDomain) where {IT<:PiecewiseSegment}=PiecewiseSegment(Float64[])
 
 
@@ -50,19 +52,17 @@ function points(d::PiecewiseSegment,n)
    k=div(n,ncomponents(d))
     r=n-ncomponents(d)*k
 
-    eltype(d)[vcat([points(component(d,j),k+1) for j=1:r]...);
+    float(eltype(d))[vcat([points(component(d,j),k+1) for j=1:r]...);
         vcat([points(component(d,j),k) for j=r+1:ncomponents(d)]...)]
 end
 
 
 
 rand(d::PiecewiseSegment) = rand(d[rand(1:ncomponents(d))])
-checkpoints(d::PiecewiseSegment{T}) where {T} =
-    mapreduce(checkpoints,union,components(d))::Vector{T}
+checkpoints(d::PiecewiseSegment{T}) where {T} = mapreduce(checkpoints,union,components(d))
 
-for OP in (:(first),:(last))
-    @eval $OP(d::PiecewiseSegment) = $OP(d.points)
-end
+leftendpoint(d::PiecewiseSegment) = first(d.points)
+rightendpoint(d::PiecewiseSegment) = last(d.points)
 
 
 # Comparison with UnionDomain

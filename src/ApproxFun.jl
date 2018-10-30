@@ -2,11 +2,15 @@ __precompile__()
 
 module ApproxFun
     using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers,
-            BlockArrays, BandedMatrices, BlockBandedMatrices, IntervalSets,
+            BlockArrays, BandedMatrices, BlockBandedMatrices, DomainSets, IntervalSets,
             SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions, DSP,
             LinearAlgebra, LowRankApprox, SparseArrays, FillArrays, InfiniteArrays #, Arpack
     import StaticArrays, ToeplitzMatrices, Calculus
 
+
+import DomainSets: Domain, indomain, UnionDomain, ProductDomain, FullSpace, Point, elements, DifferenceDomain,
+            Interval, ChebyshevInterval, boundary, ∂, rightendpoint, leftendpoint,
+            dimension, Domain1d, Domain2d
 
 import AbstractFFTs: Plan, fft, ifft
 import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
@@ -22,11 +26,13 @@ import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, 
                 zeros, zero, one, promote_rule, repeat, length, resize!, isinf,
                 getproperty, findfirst, unsafe_getindex, fld, cld, div, real, imag,
                 @_inline_meta, eachindex, lastindex, keys, isreal, OneTo,
-                Array, Vector, Matrix, view, ones, @propagate_inbounds, print_array
+                Array, Vector, Matrix, view, ones, @propagate_inbounds, print_array,
+                split
 
 import Base.Broadcast: BroadcastStyle, Broadcasted, AbstractArrayStyle, broadcastable,
                         DefaultArrayStyle, broadcasted
 
+import Statistics: mean
 
 import LinearAlgebra: BlasInt, BlasFloat, norm, ldiv!, mul!, det, eigvals, dot, cross,
                         qr, qr!, isdiag, rank, issymmetric, ishermitian, Tridiagonal,
@@ -81,8 +87,12 @@ import InfiniteArrays: Infinity, InfRanges, AbstractInfUnitRange
 # convenience for 1-d block ranges
 const BlockRange1 = BlockRange{1,Tuple{UnitRange{Int}}}
 
+import Base: view
+
+import StaticArrays: StaticArray, SVector
 
 
+import IntervalSets: (..), endpoints
 
 const Vec{d,T} = SVector{d,T}
 
@@ -93,7 +103,7 @@ export pad!, pad, chop!, sample,
 ##Testing
 export bisectioninv
 
-export ..
+export .., Interval, ChebyshevInterval, leftendpoint, rightendpoint, endpoints
 
 
 

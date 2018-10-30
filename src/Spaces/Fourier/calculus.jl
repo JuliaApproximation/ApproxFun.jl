@@ -1,11 +1,11 @@
 ##Differentiation and integration
 
 
-Base.sum(f::Fun{Laurent{DD,RR}}) where {DD<:PeriodicInterval,RR} = coefficient(f,1).*arclength(domain(f))
+Base.sum(f::Fun{Laurent{DD,RR}}) where {DD<:PeriodicSegment,RR} = coefficient(f,1).*arclength(domain(f))
 Base.sum(f::Fun{Laurent{DD,RR}}) where {DD<:Circle,RR} = coefficient(f,3 - domain(f).orientation).*complexlength(domain(f))
 
 
-Base.sum(f::Fun{Fourier{DD,RR}}) where {DD<:PeriodicInterval,RR} = coefficient(f,1).*arclength(domain(f))
+Base.sum(f::Fun{Fourier{DD,RR}}) where {DD<:PeriodicSegment,RR} = coefficient(f,1).*arclength(domain(f))
 Base.sum(f::Fun{Fourier{DD,RR}}) where {DD<:Circle,RR} =
     (im*coefficient(f,2) + coefficient(f,3))/2*complexlength(domain(f))
 
@@ -20,21 +20,21 @@ function linesum(f::Fun{Laurent{DD,RR}}) where {DD,RR}
 end
 
 linesum(f::Fun{Fourier{DD,RR}}) where {DD<:Circle,RR} = sum(setcanonicaldomain(f))*domain(f).radius
-linesum(f::Fun{Fourier{DD,RR}}) where {DD<:PeriodicInterval,RR} = sum(f) #TODO: Complex periodic interval
+linesum(f::Fun{Fourier{DD,RR}}) where {DD<:PeriodicSegment,RR} = sum(f) #TODO: Complex periodic interval
 
 
-differentiate(f::Fun{Taylor{DD,RR}}) where {DD<:PeriodicInterval,RR} =
+differentiate(f::Fun{Taylor{DD,RR}}) where {DD<:PeriodicSegment,RR} =
     Fun(f.space,im*tocanonicalD(f,0)*taylor_diff(f.coefficients))
-differentiate(f::Fun{Hardy{false,DD,RR}}) where {DD<:PeriodicInterval,RR} =
+differentiate(f::Fun{Hardy{false,DD,RR}}) where {DD<:PeriodicSegment,RR} =
     Fun(f.space,im*tocanonicalD(f,0)*hardyfalse_diff(f.coefficients))
-differentiate(f::Fun{Laurent{DD,RR}}) where {DD<:PeriodicInterval,RR} =
+differentiate(f::Fun{Laurent{DD,RR}}) where {DD<:PeriodicSegment,RR} =
     Fun(f.space,im*tocanonicalD(f,0)*laurentdiff(f.coefficients))
 
-differentiate(f::Fun{CosSpace{DD,RR}}) where {DD<:PeriodicInterval,RR} =
+differentiate(f::Fun{CosSpace{DD,RR}}) where {DD<:PeriodicSegment,RR} =
     Fun(SinSpace(domain(f)),tocanonicalD(f,0)*cosspacediff(f.coefficients))
-differentiate(f::Fun{SinSpace{DD,RR}}) where {DD<:PeriodicInterval,RR} =
+differentiate(f::Fun{SinSpace{DD,RR}}) where {DD<:PeriodicSegment,RR} =
     Fun(CosSpace(domain(f)),tocanonicalD(f,0)*sinspacediff(f.coefficients))
-differentiate(f::Fun{Fourier{DD,RR}}) where {DD<:PeriodicInterval,RR} =
+differentiate(f::Fun{Fourier{DD,RR}}) where {DD<:PeriodicSegment,RR} =
     Fun(f.space,tocanonicalD(f,0)*fourierdiff(f.coefficients))
 
 differentiate(f::Fun{Laurent{DD,RR}}) where {DD,RR} = Derivative(space(f))*f
@@ -59,10 +59,10 @@ function integrate(f::Fun{Taylor{D,R}}) where {D,R}
 end
 
 
-Base.sum(f::Fun{CosSpace{DD,RR}}) where {DD<:PeriodicInterval,RR} =
+Base.sum(f::Fun{CosSpace{DD,RR}}) where {DD<:PeriodicSegment,RR} =
     f.coefficients[1]*complexlength(domain(f))
 
-linesum(f::Fun{CosSpace{DD,RR}}) where {DD<:PeriodicInterval,RR} =
+linesum(f::Fun{CosSpace{DD,RR}}) where {DD<:PeriodicSegment,RR} =
     f.coefficients[1]*arclength(domain(f))
 
 
@@ -77,8 +77,8 @@ function integrate(f::Fun{CS}) where CS<:CosSpace
             integrate(Fun(f,space(f)|(2:∞)))
         else
             d=domain(f)
-            @assert isa(d,PeriodicInterval)
-            x=Fun(identity,first(d)..last(d))
+            @assert isa(d,PeriodicSegment)
+            x=Fun(identity, Interval(d))
             (f.coefficients[1]*x)⊕integrate(Fun(f,space(f)|(2:∞)))
         end
     end
@@ -98,7 +98,7 @@ for OP in (:differentiate,:integrate)
     @eval $OP(f::Fun{Fourier{D,R},T}) where {T,D<:Circle,R} = $OP(Fun(f,Laurent))
 end
 
-integrate(f::Fun{Fourier{D,R},T}) where {T,D<:PeriodicInterval,R} =
+integrate(f::Fun{Fourier{D,R},T}) where {T,D<:PeriodicSegment,R} =
     integrate(component(f,2))⊕integrate(component(f,1))
 
 

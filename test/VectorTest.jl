@@ -161,7 +161,7 @@ using ApproxFun, LazyArrays, FillArrays, LinearAlgebra, SpecialFunctions, Test
     end
 
     @testset "Vector ODE" begin
-        d=Interval()
+        d=ChebyshevInterval()
         D=Derivative(d);
         B=ldirichlet();
         Bn=lneumann();
@@ -217,7 +217,7 @@ using ApproxFun, LazyArrays, FillArrays, LinearAlgebra, SpecialFunctions, Test
     end
 
     @testset "Multiplication" begin
-        d = Interval()
+        d = ChebyshevInterval()
         t=Fun(identity,d)
         f = Fun([t^2, sin(t)])
         @test norm(((Derivative(space(f))*f)-Fun(t->[2t,cos(t)])).coefficients)<100eps()
@@ -286,7 +286,7 @@ using ApproxFun, LazyArrays, FillArrays, LinearAlgebra, SpecialFunctions, Test
 
     @testset "Conversion" begin
         f=Fun(t->[cos(t) 0;sin(t) 1],-π..π)
-        g=Fun(f,Space(PeriodicInterval(-π,π)))
+        g=Fun(f,Space(PeriodicSegment(-π,π)))
         @test g(.1) ≈ f(.1)
 
         a = ArraySpace(JacobiWeight(1/2,1/2, Chebyshev()), 2)
@@ -328,7 +328,8 @@ using ApproxFun, LazyArrays, FillArrays, LinearAlgebra, SpecialFunctions, Test
     end
 
     @testset "Floquet" begin
-        T = π;a=0.15
+        # TODO: fix when IntervalSets.jl is fixed
+        T = Float64(π, RoundUp); a=0.15
         t = Fun(identity,0..T)
         d=domain(t)
         D=Derivative(d)

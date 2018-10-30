@@ -74,8 +74,8 @@ ProductFun(f::Function,dx::Space,dy::Space)=ProductFun(dynamic(f),TensorSpace(dx
 
 ProductFun(f::Function,D::Domain,M::Integer,N::Integer) = ProductFun(dynamic(f),Space(D),M,N)
 ProductFun(f::Function,d::Domain) = ProductFun(dynamic(f),Space(d))
-ProductFun(f::Function,dx::UnivariateDomain,dy::UnivariateDomain) = ProductFun(dynamic(f),Space(dx),Space(dy))
-ProductFun(f::Function) = ProductFun(dynamic(f),Interval(),Interval())
+ProductFun(f::Function,dx::Domain1d,dy::Domain1d) = ProductFun(dynamic(f),Space(dx),Space(dy))
+ProductFun(f::Function) = ProductFun(dynamic(f),ChebyshevInterval(),ChebyshevInterval())
 
 ## Conversion from other 2D Funs
 
@@ -123,14 +123,14 @@ end
 
 
 function pad(f::ProductFun{S,V,SS,T},n::Integer,m::Integer) where {S,V,SS,T}
-    ret=Array{VFun{S,T}}(m)
+    ret=Array{VFun{S,T}}(undef, m)
     cm=min(length(f.coefficients),m)
     for k=1:cm
         ret[k]=pad(f.coefficients[k],n)
     end
 
     for k=cm+1:m
-        ret[k]=zero(T,columnspace(f,k))
+        ret[k] = zeros(columnspace(f,k))
     end
     ProductFun{S,V,SS,T}(ret,f.space)
 end
@@ -140,7 +140,7 @@ function pad!(f::ProductFun{S,V,SS,T},::Colon,m::Integer) where {S,V,SS,T}
     resize!(f.coefficients,m)
 
     for k=cm+1:m
-        f.coefficients[k]=zero(T,columnspace(f,k))
+        f.coefficients[k]=zeros(columnspace(f,k))
     end
     f
 end

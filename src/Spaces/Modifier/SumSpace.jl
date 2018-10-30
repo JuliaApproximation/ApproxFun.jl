@@ -145,6 +145,8 @@ function PiecewiseSpace(spin::Tuple)
                    mapreduce(rangetype,promote_type,sp)}(sp)
 end
 
+PiecewiseSpace(spin::Set) = PiecewiseSpace(collect(spin))
+
 
 
 for TYP in (:SumSpace,:PiecewiseSpace)
@@ -283,7 +285,7 @@ function union_rule(A::SumSpace, B::Space)
     end
 end
 
-union_rule(A::SumSpace{<:Any,<:PeriodicInterval}, B::Space{<:IntervalDomain}) =
+union_rule(A::SumSpace{<:Any,<:PeriodicSegment}, B::Space{<:IntervalOrSegment}) =
     union(Space(Interval(domain(A))), B)
 
 

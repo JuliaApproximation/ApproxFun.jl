@@ -1,6 +1,6 @@
 ## Domains
 
-show(io::IO,d::Segment) = print(io,"【$(d.a),$(d.b)】")
+show(io::IO,d::Segment) = print(io,"the segment [$(leftendpoint(d)),$(rightendpoint(d))]")
 function show(io::IO,d::Line)
     if d.center == angle(d) == 0 && d.α == d.β == -1.
         print(io,"ℝ")
@@ -27,22 +27,13 @@ function show(io::IO,d::Ray)
     end
 end
 
-show(io::IO,d::PeriodicInterval) = print(io,"【$(d.a),$(d.b)❫")
+show(io::IO,d::PeriodicSegment) = print(io,"【$(leftendpoint(d)),$(rightendpoint(d))❫")
 show(io::IO,d::Circle) =
     print(io,(d.radius==1 ? "" : string(d.radius))*
                     (d.orientation ? "🕒" : "🕞")*
                     (d.center==0 ? "" : "+$(d.center)"))
 show(io::IO,d::Point) = print(io,"Point($(d.x))")
 
-
-function show(io::IO,d::UnionDomain)
-    s = components(d)
-    show(io,s[1])
-    for d in s[2:end]
-        print(io,"∪")
-        show(io,d)
-    end
-end
 
 ## Spaces
 
@@ -63,7 +54,9 @@ for typ in ("Chebyshev","Fourier","Laurent","Taylor","SinSpace","CosSpace")
     end
 end
 
-function show(io::IO,S::Ultraspherical)
+
+
+function show(io::IO, S::Ultraspherical)
     print(io,"Ultraspherical($(order(S)),")
     show(io,domain(S))
     print(io,")")
@@ -75,6 +68,11 @@ function show(io::IO,S::Jacobi)
     print(io,")")
 end
 
+
+show(io::IO, S::Chebyshev{<:ChebyshevInterval}) = print(io, "Chebyshev()")
+show(io::IO, S::Ultraspherical{<:Any,<:ChebyshevInterval}) = print(io, "Ultraspherical($(order(S)))")
+show(io::IO, S::Jacobi{<:ChebyshevInterval}) =
+    S.a == S.b == 0 ? print(io,"Legendre()") : print(io,"Jacobi($(S.b),$(S.a))")
 
 
 function show(io::IO,s::JacobiWeight)
@@ -182,7 +180,7 @@ end
 ## Operator
 
 summary(B::Operator) =
-    string(typeof(B).name.name)*":"*string(domainspace(B))*"→"*string(rangespace(B))
+    string(typeof(B).name.name)*" : "*string(domainspace(B))*" → "*string(rangespace(B))
 
 struct PrintShow
     str

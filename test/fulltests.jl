@@ -28,8 +28,16 @@ include("runtests.jl")
         testraggedbelowoperator(io)
     end
 
+<<<<<<< HEAD
+d=ChebyshevInterval()
+D=Derivative(d)
+A=D^2-I
+@time κ=nullspace(A)
+@test length(κ) == 2
+=======
     ## Newton iteration bug
     S=Chebyshev(0..7)
+>>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
 
     ω=2π
 
@@ -61,7 +69,7 @@ end
 
 @testset "Full ODE" begin
     ## Null space
-    d=Interval()
+    d=ChebyshevInterval()
     D=Derivative(d)
     A=D^2-I
     @time κ=nullspace(A)
@@ -77,7 +85,7 @@ end
     x=Fun(identity,d)
     D=Derivative(d)
     @time u=nullspace(D^2-x)
-    c=[u(d.a); u(d.b)]\[airyai(d.a),airyai(d.b)]
+    c=[u(leftendpoint(d)); u(rightendpoint(d))]\[airyai(d.a),airyai(d.b)]
     @test norm((u*c)[1]-Fun(airyai,d))<10000eps()
 
 
@@ -218,38 +226,52 @@ end
 
 
     ## Periodic
-    f=LowRankFun((x,y)->cos(x)*sin(y),PeriodicInterval(),PeriodicInterval())
+    f=LowRankFun((x,y)->cos(x)*sin(y),PeriodicSegment(),PeriodicSegment())
     @test f(.1,.2) ≈ cos(.1)*sin(.2)
 
-    f=LowRankFun((x,y)->cos(cos(x)+sin(y)),PeriodicInterval(),PeriodicInterval())
+    f=LowRankFun((x,y)->cos(cos(x)+sin(y)),PeriodicSegment(),PeriodicSegment())
     @test f(.1,.2) ≈ cos(cos(.1)+sin(.2))
     @test norm(Float64[cos(cos(x)+sin(y)) for x=ApproxFun.vecpoints(f,1),y=ApproxFun.vecpoints(f,2)]-values(f))<10000eps()
 
-    f=ProductFun((x,y)->cos(cos(x)+sin(y)),PeriodicInterval()^2)
+    f=ProductFun((x,y)->cos(cos(x)+sin(y)),PeriodicSegment()^2)
     @test f(.1,.2) ≈ cos(cos(.1)+sin(.2))
     x,y=points(f)
     @test norm(Float64[cos(cos(x[k,j])+sin(y[k,j])) for k=1:size(f,1),j=1:size(f,2)]-values(f))<10000eps()
 
-    d=PeriodicInterval()^2
+    d=PeriodicSegment()^2
     f=ProductFun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
     @test (transpose(f)-f|>coefficients|>norm)< 1000eps()
 
     ## Functional*Fun
 
+<<<<<<< HEAD
+d=ChebyshevInterval()
+B=ldirichlet(d)
+f=ProductFun((x,y)->cos(cos(x)*sin(y)),d^2)
+=======
     d=Interval()
     B=ldirichlet(d)
     f=ProductFun((x,y)->cos(cos(x)*sin(y)),d^2)
+>>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
 
     @test norm(B*f-Fun(y->cos(cos(-1)*sin(y)),d))<20000eps()
     @test norm(f*B-Fun(x->cos(cos(x)*sin(-1)),d))<20000eps()
 
     ## matrix
 
+<<<<<<< HEAD
+f=Fun((x,y)->[exp(x*cos(y));cos(x*sin(y));2],ChebyshevInterval()^2)
+@test f(0.1,0.2) ≈ [exp(0.1*cos(0.2));cos(0.1*sin(0.2));2]
+
+f=Fun((x,y)->[exp(x*cos(y)) cos(x*sin(y)); 2 1],ChebyshevInterval()^2)
+@test f(0.1,0.2) ≈ [exp(0.1*cos(0.2)) cos(0.1*sin(0.2));2 1]
+=======
     f=Fun((x,y)->[exp(x*cos(y));cos(x*sin(y));2],Interval()^2)
     @test f(0.1,0.2) ≈ [exp(0.1*cos(0.2));cos(0.1*sin(0.2));2]
 
     f=Fun((x,y)->[exp(x*cos(y)) cos(x*sin(y)); 2 1],Interval()^2)
     @test f(0.1,0.2) ≈ [exp(0.1*cos(0.2)) cos(0.1*sin(0.2));2 1]
+>>>>>>> abff326fa184c4021c60a8af5d7be726eccfbe54
 
 
     ## Cauchy fun

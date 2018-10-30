@@ -7,7 +7,7 @@ using ApproxFun, Test, BlockArrays, BlockBandedMatrices, SpecialFunctions
 
 @testset "Fourier" begin
 @testset "Fourier transforms" begin
-    for d in (PeriodicInterval(0.1,0.5),Circle(1.0+im,2.0))
+    for d in (PeriodicSegment(0.1,0.5),Circle(1.0+im,2.0))
         testtransforms(CosSpace(d);minpoints=2)
         testtransforms(SinSpace(d))
 
@@ -23,7 +23,7 @@ using ApproxFun, Test, BlockArrays, BlockBandedMatrices, SpecialFunctions
     @test P*v == P*real(v) + im*(P*imag(v))
 end
 
-d = PeriodicInterval()
+d = PeriodicSegment()
 
 @test sum(Fun(1,CosSpace())) ≈ 2π
 @test sum(Fun(SinSpace(),[1])) == 0
@@ -154,7 +154,7 @@ ef=Fun(exp,S)
 u=[Evaluation(S,0.),D-I]\[1.;0.]
 
 # check's Derivative constructor works
-D=Derivative(Taylor(PeriodicInterval()))
+D=Derivative(Taylor(PeriodicSegment()))
 
 
 

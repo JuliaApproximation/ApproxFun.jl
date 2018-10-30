@@ -15,7 +15,7 @@ export Ray
 represents a ray at angle `a` starting at `c`, with orientation out to
 infinity (`o = true`) or back from infinity (`o = false`).
 """
-struct Ray{angle,T<:Number} <: IntervalDomain{T}
+struct Ray{angle,T<:Number} <: SegmentDomain{T}
     center::T
     orientation::Bool
     Ray{angle,T}(c,o) where {angle,T} = new{angle,T}(c,o)
@@ -42,8 +42,8 @@ Ray() = Ray{false}()
 
 ##deal with vector
 
-function Ray(d::ClosedInterval)
-    a,b=d.left,d.right
+function convert(::Type{Ray}, d::AbstractInterval)
+    a,b = endpoints(d)
     @assert abs(a)==Inf || abs(b)==Inf
 
     if abs(b)==Inf
@@ -52,6 +52,7 @@ function Ray(d::ClosedInterval)
         Ray(b,angle(a),false)
     end
 end
+Ray(d::AbstractInterval) = convert(Ray, d)
 
 
 isambiguous(d::Ray)=isnan(d.center)
@@ -59,7 +60,7 @@ convert(::Type{Ray{a,T}},::AnyDomain) where {a,T<:Number} = Ray{a,T}(NaN,true)
 convert(::Type{IT},::AnyDomain) where {IT<:Ray} = Ray(NaN,NaN)
 
 
-
+isempty(::Ray) = false
 
 ## Map interval
 

@@ -4,6 +4,7 @@ import Base: chop
 # Used for spaces not defined yet
 struct UnsetNumber <: Number  end
 promote_rule(::Type{UnsetNumber},::Type{N}) where {N<:Number} = N
+promote_rule(::Type{Bool}, ::Type{UnsetNumber}) = Bool
 
 # Test the number of arguments a function takes
 hasnumargs(f,k) = applicable(f,zeros(k)...)
@@ -38,11 +39,19 @@ real(::Type{Array{T,n}}) where {T<:Complex,n} = Array{real(T),n}
 real(::Type{Vec{N,T}}) where {N,T<:Real} = Vec{N,T}
 real(::Type{Vec{N,T}}) where {N,T<:Complex} = Vec{N,real(T)}
 
+float(x) = Base.float(x)
+Base.float(::UnsetNumber) = UnsetNumber()
+Base.float(::Type{UnsetNumber}) = UnsetNumber
+float(::Type{Array{T,N}}) where {T,N} = Array{float(T),N}
+float(::Type{SVector{N,T}}) where {T,N} = SVector{N,float(T)}
+
+
 
 eps(x...) = Base.eps(x...)
 eps(x) = Base.eps(x)
 
 eps(::Type{T}) where {T<:Integer} = zero(T)
+eps(::T) where T<:Integer = eps(T)
 
 eps(::Type{Complex{T}}) where {T<:Real} = eps(real(T))
 eps(z::Complex{T}) where {T<:Real} = eps(abs(z))

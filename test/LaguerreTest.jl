@@ -1,4 +1,4 @@
-using ApproxFun, Compat.Test
+using ApproxFun, SpecialFunctions, Test
     import ApproxFun: testbandedoperator
 
 @testset "Laguerre and WeightedLagueree" begin
@@ -102,12 +102,12 @@ using ApproxFun, Compat.Test
         f = Fun(WeightedLaguerre(α), [1.0, 1.0])
         g = integrate(f)
         @test g(3.0) - cumsum(Fun(x -> f(x), 0..6))(3.0) ≈ g(0.0)
+    end
 
-        @testset "Correct domain" begin
-            w = Fun(WeightedLaguerre(0.5),[1.0])
-            h = cumsum(w)
-            @test domain(h) == Ray()
-        end
+    @testset "Correct domain" begin
+        w = Fun(WeightedLaguerre(0.5),[1.0])
+        h = cumsum(w)
+        @test domain(h) == Ray()
     end
 
     @testset "Multiplication rangespace" begin

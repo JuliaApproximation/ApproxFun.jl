@@ -4,7 +4,7 @@ export Curve
 
 
 
-struct IntervalCurve{S<:Space,T,VT} <: IntervalDomain{T}
+struct IntervalCurve{S<:Space,T,VT} <: SegmentDomain{T}
     curve::Fun{S,T,VT}
 end
 
@@ -24,7 +24,8 @@ Curve(exp(im*x))  # represents an arc
 const Curve{S,T} = Union{IntervalCurve{S,T},PeriodicCurve{S,T}}
 
 
-==(a::Curve,b::Curve)=a.curve==b.curve
+==(a::Curve, b::Curve) = a.curve == b.curve
+isempty(::Curve) = false
 
 for TYP in (:IntervalCurve,:PeriodicCurve)
     @eval points(c::$TYP,n::Integer) = c.curve.(points(domain(c.curve),n))
@@ -49,8 +50,7 @@ end
 
 fromcanonicalD(c::Curve,x)=differentiate(c.curve)(x)
 
-
-function in(x,c::Curve)
+function indomain(x,c::Curve)
     rts=roots(c.curve-x)
     if length(rts) ≠ 1
         false
@@ -59,8 +59,8 @@ function in(x,c::Curve)
     end
 end
 
-reverse(d::IntervalCurve) = IntervalCurve(reverseorientation(d.curve))
-reverse(d::PeriodicCurve) = PeriodicCurve(reverseorientation(d.curve))
+reverseorientation(d::IntervalCurve) = IntervalCurve(reverseorientation(d.curve))
+reverseorientation(d::PeriodicCurve) = PeriodicCurve(reverseorientation(d.curve))
 
 isambiguous(d::Curve) = ncoefficients(d.curve)==0 && isambiguous(domain(d.curve))
 convert(::Type{IntervalCurve{S,T}},::AnyDomain) where {S,T}=Fun(S(AnyDomain()),[NaN])

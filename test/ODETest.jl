@@ -7,8 +7,8 @@ using ApproxFun, SpecialFunctions, Test
         S=Chebyshev(d)
 
 
-        Bm=Evaluation(d,d.a);
-        Bp=Evaluation(d,d.b);
+        Bm=Evaluation(d,leftendpoint(d));
+        Bp=Evaluation(d,rightendpoint(d));
         B=[Bm;Bp];
         D2=Derivative(d,2);
         X=Multiplication(Fun(x->x,d));
@@ -16,30 +16,30 @@ using ApproxFun, SpecialFunctions, Test
         testbandedoperator(D2-X)
         testraggedbelowoperator([B;D2-X])
 
-        @time u=[B;D2-X]\[airyai(d.a),airyai(d.b),0.];
-        @test Number.(Array(B*u)) ≈ [airyai(d.a),airyai(d.b)]
+        @time u = [B;D2-X] \ [airyai.(endpoints(d))...,0.];
+        @test Number.(Array(B*u)) ≈ [airyai.(endpoints(d))...]
 
         @test ≈(u(0.),airyai(0.);atol=10ncoefficients(u)*eps())
 
-        @time u=[Bm;D2-X;Bp]\[airyai(d.a),0.,airyai(d.b)];
+        @time u=[Bm;D2-X;Bp]\[airyai(leftendpoint(d)),0.,airyai(rightendpoint(d))];
         @test ≈(u(0.),airyai(0.);atol=10ncoefficients(u)*eps())
 
-        @time u=[D2-X;Bm;Bp]\[0.,airyai(d.a),airyai(d.b)];
+        @time u=[D2-X;Bm;Bp]\[0.,airyai(leftendpoint(d)),airyai(rightendpoint(d))];
         @test ≈(u(0.),airyai(0.);atol=10ncoefficients(u)*eps())
 
         d=Interval(-1000.,5.);
-        Bm=Evaluation(d,d.a);
-        Bp=Evaluation(d,d.b);
+        Bm=Evaluation(d,leftendpoint(d));
+        Bp=Evaluation(d,rightendpoint(d));
         B=[Bm;Bp];
         D2=Derivative(d,2);
         X=Multiplication(Fun(x->x,d));
 
-        u=[B;D2-X]\[airyai(d.a),airyai(d.b),0.];
+        u=[B;D2-X]\[airyai(leftendpoint(d)),airyai(rightendpoint(d)),0.];
         @test ≈(u(0.),airyai(0.);atol=10ncoefficients(u)*eps())
 
         B=Neumann(d);
         A=[B;D2-X];
-        b=[[airyaiprime(d.a),airyaiprime(d.b)],0.];
+        b=[[airyaiprime(leftendpoint(d)),airyaiprime(rightendpoint(d))],0.];
 
         @time u=A\b;
 
@@ -52,11 +52,9 @@ using ApproxFun, SpecialFunctions, Test
         f=Fun(x->-x^2)
         g=Fun(t->exp(-t^2))
 
-        @test norm(Fun(t->exp(f(t)))-g)<= 100eps()
-
         fp=f';
-        Bm=Evaluation(domain(f),domain(f).a);
-        u=[Bm,Derivative(domain(f)) - fp]\[exp(f(domain(f).a)),0.];
+        Bm=Evaluation(domain(f),leftendpoint(domain(f)));
+        u=[Bm,Derivative(domain(f)) - fp]\[exp(f(leftendpoint(domain(f)))),0.];
         @test norm(u-g)<100eps()
     end
 
@@ -72,7 +70,7 @@ using ApproxFun, SpecialFunctions, Test
     end
 
     @testset "Bessel" begin
-        d=Interval()
+        d=ChebyshevInterval()
         D=Derivative(d)
         x=Fun(identity,d)
         A=x^2*D^2+x*D+x^2
@@ -80,7 +78,7 @@ using ApproxFun, SpecialFunctions, Test
         testbandedoperator(ToeplitzOperator([0.5],[0.0,0.5]))
         testbandedoperator(HankelOperator(Float64[]))
         testbandedoperator(A)
-        u=[ldirichlet(d);A]\[besselj(0,d.a),0.];
+        u=[ldirichlet(d);A]\[besselj(0,leftendpoint(d)),0.];
 
         @test u(0.1) ≈ besselj(0.,0.1)
         @test norm(A*u)<10eps()
@@ -143,7 +141,7 @@ using ApproxFun, SpecialFunctions, Test
     end
 
     @testset "Vector" begin
-        d=Interval()
+        d=ChebyshevInterval()
         D=Derivative(d);
         B=ldirichlet();
         Bn=lneumann();
@@ -181,7 +179,7 @@ using ApproxFun, SpecialFunctions, Test
         ν=100.
         L=(x^2*𝒟^2) + x*𝒟 + (x^2 - ν^2)   # our differential operator
 
-        @time u=[B;L]\[[besselj(ν,first(d)),besselj(ν,last(d))],0.]
+        @time u=[B;L]\[[besselj(ν,leftendpoint(d)),besselj(ν,rightendpoint(d))],0.]
         @test ≈(u(1900.),besselj(ν,1900.);atol=1000eps())
     end
 

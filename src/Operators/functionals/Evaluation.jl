@@ -6,7 +6,7 @@ abstract type Evaluation{T}<:Operator{T} end
 
 @functional Evaluation
 
-# M = first/last if endpoint
+# M = leftendpoint/rightendpoint if endpoint
 struct ConcreteEvaluation{S,M,OT,T} <: Evaluation{T}
     space::S
     x::M
@@ -22,10 +22,10 @@ Evaluation(::Type{T},sp::Space,x,order) where {T} =
 # TODO: This seems like a bad idea: if you are specifying x, just go with the generic version
 function Evaluation(::Type{T},sp::UnivariateSpace,x::Number,order) where {T}
     d=domain(sp)
-    if isa(d,IntervalDomain) && isapprox(first(d),x)
-        Evaluation(T,sp,first,order)
-    elseif isa(d,IntervalDomain) && isapprox(last(d),x)
-        Evaluation(T,sp,last,order)
+    if isa(d,IntervalOrSegment) && isapprox(leftendpoint(d),x)
+        Evaluation(T,sp,leftendpoint,order)
+    elseif isa(d,IntervalOrSegment) && isapprox(rightendpoint(d),x)
+        Evaluation(T,sp,rightendpoint,order)
     else
         ConcreteEvaluation{typeof(sp),typeof(x),typeof(order),T}(sp,x,order)
     end
@@ -33,12 +33,13 @@ end
 
 Evaluation(sp::Space,x,order) = Evaluation(rangetype(sp),sp,x,order)
 
-Evaluation(d::Space,x::Union{Number,typeof(first),typeof(last)}) = Evaluation(d,x,0)
+Evaluation(d::Space,x::Union{Number,typeof(leftendpoint),typeof(rightendpoint)}) = Evaluation(d,x,0)
 Evaluation(::Type{T},d::Space,n...) where {T} = error("Override Evaluation for $(typeof(d))")
 Evaluation(::Type{T},d,n...) where {T} = Evaluation(T,Space(d),n...)
+Evaluation(S::Space,n...) = error("Override Evaluation for $(typeof(S))")
 Evaluation(d,n...) = Evaluation(Space(d),n...)
-Evaluation(x::Union{Number,typeof(first),typeof(last)}) = Evaluation(UnsetSpace(),x,0)
-Evaluation(x::Union{Number,typeof(first),typeof(last)},k::Integer) =
+Evaluation(x::Union{Number,typeof(leftendpoint),typeof(rightendpoint)}) = Evaluation(UnsetSpace(),x,0)
+Evaluation(x::Union{Number,typeof(leftendpoint),typeof(rightendpoint)},k::Integer) =
     Evaluation(UnsetSpace(),x,k)
 
 rangespace(E::ConcreteEvaluation{<:AmbiguousSpace}) = ConstantSpace()
@@ -59,19 +60,18 @@ end
 getindex(D::ConcreteEvaluation,k::Integer) =
     eltype(D)(differentiate(Fun(D.space,[zeros(eltype(D),k-1);one(eltype(D))]),D.order)(D.x))
 
-#special first/last overrides
-for OP in (:first,:last)
+#special leftendpoint/rightendpoint overrides
+for (dop, fop) in ((:leftendpoint,:first), (:rightendpoint,:last))
     @eval begin
-        rangespace(E::ConcreteEvaluation{<:AmbiguousSpace,typeof($OP)}) = UnsetSpace()
-        function rangespace(E::ConcreteEvaluation{S,typeof($OP)}) where {S}
+        rangespace(E::ConcreteEvaluation{<:AmbiguousSpace,typeof($dop)}) = UnsetSpace()
+        function rangespace(E::ConcreteEvaluation{S,typeof($dop)}) where {S}
             d = domain(domainspace(E))
             isambiguous(d) && return ConstantSpace()
-            return ConstantSpace(Point($OP(d)))
+            return ConstantSpace(Point($dop(d)))
         end
-        function getindex(D::ConcreteEvaluation{S,typeof($OP)},k::Integer) where {S}
+        function getindex(D::ConcreteEvaluation{S,typeof($dop)},k::Integer) where {S}
             T=eltype(D)
-
-            T($OP(differentiate(Fun(D.space,[zeros(T,k-1);one(T)]),D.order)))
+            T($fop(differentiate(Fun(D.space,[zeros(T,k-1);one(T)]),D.order)))
         end
     end
 end
@@ -114,8 +114,8 @@ end
 
 
 evaluate(d::Domain,x) = Evaluation(d,x)
-ldiffbc(d,k) = Evaluation(d,first,k)
-rdiffbc(d,k) = Evaluation(d,last,k)
+ldiffbc(d,k) = Evaluation(d,leftendpoint,k)
+rdiffbc(d,k) = Evaluation(d,rightendpoint,k)
 
 ldirichlet(d) = ldiffbc(d,0)
 rdirichlet(d) = rdiffbc(d,0)
@@ -127,7 +127,7 @@ ivp(d,k) = Operator{prectype(d)}[ldiffbc(d,i) for i=0:k-1]
 bvp(d,k) = vcat(Operator{prectype(d)}[ldiffbc(d,i) for i=0:div(k,2)-1],
                 Operator{prectype(d)}[rdiffbc(d,i) for i=0:div(k,2)-1])
 
-periodic(d,k) = Operator{prectype(d)}[Evaluation(d,first,i)-Evaluation(d,last,i) for i=0:k]
+periodic(d,k) = Operator{prectype(d)}[Evaluation(d,leftendpoint,i)-Evaluation(d,rightendpoint,i) for i=0:k]
 
 
 

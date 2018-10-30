@@ -80,7 +80,7 @@ using the standard normalization.
 ## Fourier and Laurent spaces
 
 There are several different spaces to represent functions on periodic domains,
-which are typically a `PeriodicInterval`, `Circle` or `PeriodicLine`.  
+which are typically a `PeriodicSegment`, `Circle` or `PeriodicLine`.  
 
 `CosSpace` represents expansion in cosine series:
 

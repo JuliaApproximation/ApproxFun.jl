@@ -210,9 +210,9 @@ points(sp::SubSpace, n) = points(sp.space, n)
 points(sp::SubSpace) = points(sp, dimension(sp))
 
 
-coefficients(v::AbstractVector,::SubSpace{DS,IT,Segment{Vec{2,TT}}},::TensorSpace{SV,DD}) where {DS,IT,TT,SV,DD<:BivariateDomain} =
+coefficients(v::AbstractVector,::SubSpace{DS,IT,Segment{Vec{2,TT}}},::TensorSpace{SV,DD}) where {DS,IT,TT,SV,DD<:Domain2d} =
     error("Not callable, only defined for ambiguity errors.")
-coefficients(v::AbstractVector,::SubSpace{DS,IT,D},::TensorSpace{SV,DD}) where {DS,IT,D,SV,DD<:BivariateDomain} =
+coefficients(v::AbstractVector,::SubSpace{DS,IT,D},::TensorSpace{SV,DD}) where {DS,IT,D,SV,DD<:Domain2d} =
     error("Not callable, only defined for ambiguity errors.")
 
 for TYP in (:SumSpace,:PiecewiseSpace,:TensorSpace,:ConstantSpace,:Space) # Resolve conflict

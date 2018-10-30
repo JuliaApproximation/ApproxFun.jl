@@ -2,22 +2,53 @@ using ApproxFun, LinearAlgebra, Test
     import ApproxFun: testspace
 
 @testset "Chebyshev" begin
-    @testset "Constructors" begin
+    @testset "ChebyshevInterval" begin
         @test Fun(x->2,10)(.1) ≈ 2
         @test Fun(x->2)(.1) ≈ 2
-
         @test Fun(Chebyshev,Float64[]).([0.,1.]) ≈ [0.,0.]
         @test Fun(Chebyshev,[])(0.) ≈ 0.
         @test Fun(x->4,Chebyshev(),1).coefficients == [4.0]
         @test Fun(x->4).coefficients == [4.0]
         @test Fun(4).coefficients == [4.0]
 
+
+        @test Fun(x->4).coefficients == [4.0]
+        @test Fun(4).coefficients == [4.0]
+
+        f = Fun(ChebyshevInterval(), [1])
+        @test f(0.1) == 1
+
         ef = Fun(exp)
         @test ef(0.1) ≈ exp(0.1)
 
-        for d in (Interval(),Interval(1.,2.),Segment(1.0+im,2.0+2im))
+        for d in (ChebyshevInterval(),Interval(1.,2.),Segment(1.0+im,2.0+2im))
             testspace(Chebyshev(d))
         end
+
+        ef = Fun(exp,ChebyshevInterval())
+
+        @test ef == -(-ef)
+        @test ef == (ef-1) + 1
+
+        ef = Fun(exp)
+
+        cf = Fun(cos)
+
+        ecf = Fun(x->cos(x).*exp(x))
+        eocf = Fun(x->cos(x)./exp(x))
+
+        @test ef(.5) ≈ exp(.5)
+        @test ecf(.123456) ≈ cos(.123456).*exp(.123456)
+    end
+
+    @testset "Algebra" begin
+        ef = Fun(exp,ChebyshevInterval())
+
+        @test ef == -(-ef)
+        @test ef == (ef-1) + 1
+
+        @test ef / 3 == (3 \ ef)
+
 
         cf = Fun(cos)
 
@@ -31,24 +62,10 @@ using ApproxFun, LinearAlgebra, Test
 
         @test maximum(abs,ef.(r)-exp.(r))<200eps()
         @test maximum(abs,ecf.(r).-cos.(r).*exp.(r))<200eps()
-    end
 
-    @testset "Algebra" begin
-        ef = Fun(exp,Interval())
-
-        @test ef == -(-ef)
-        @test ef == (ef-1) + 1
-
-        ef = Fun(exp)
-
-        @test ef == -(-ef)
-        @test ef == (ef-1) + 1
-
-        @test ef / 3 == (3 \ ef)
-
-        cf = Fun(cos)
-        ecf = Fun(x->cos(x).*exp(x))
-        eocf = Fun(x->cos(x)./exp(x))
+        @test (cf .* ef)(0.1) ≈ ecf(0.1) ≈ cos(0.1)*exp(0.1)
+        @test domain(cf.*ef) ≈ domain(ecf)
+        @test domain(cf.*ef) == domain(ecf)
 
         @test norm((ecf-cf.*ef).coefficients)<200eps()
         @test maximum(abs,(eocf-cf./ef).coefficients)<1000eps()
@@ -80,17 +97,28 @@ using ApproxFun, LinearAlgebra, Test
         r=rand(100) .+ 1
         @test maximum(abs,ef.(r)-exp.(r))<400eps()
         @test maximum(abs,ecf.(r).-cos.(r).*exp.(r))<100eps()
+    end
 
+    @testset "Other interval" begin
+        ef = Fun(exp,1..2)
+        cf = Fun(cos,1..2)
 
+        ecf = Fun(x->cos(x).*exp(x),1..2)
+        eocf = Fun(x->cos(x)./exp(x),1..2)
+
+        r=rand(100) .+ 1
+        x=1.5
+
+        @test ef(x) ≈ exp(x)
+
+        @test maximum(abs,ef.(r)-exp.(r))<400eps()
+        @test maximum(abs,ecf.(r).-cos.(r).*exp.(r))<100eps()
         @test norm((ecf-cf.*ef).coefficients)<500eps()
         @test maximum(abs,(eocf-cf./ef).coefficients)<1000eps()
-
         @test norm(((ef/3).*(3/ef)-1).coefficients)<1000eps()
-
 
         ## Diff and cumsum
         @test norm((ef - ef').coefficients)<10E-11
-
         @test norm((ef - cumsum(ef)').coefficients) < 10eps()
         @test norm((cf - cumsum(cf)').coefficients) < 10eps()
 
@@ -111,7 +139,15 @@ using ApproxFun, LinearAlgebra, Test
         @test norm(f.coefficients-Matrix(I,ncoefficients(f),ncoefficients(f))[:,51])<100eps()
     end
 
-    @testset "#121" begin
+    @testset "Integer values" begin
+        @test Fun(x->2,10)(.1) ≈ 2
+        @test Fun(x->2)(.1) ≈ 2
+
+        @test Fun(Chebyshev,Float64[]).([0.,1.]) ≈ [0.,0.]
+        @test Fun(Chebyshev,[])(0.) ≈ 0.
+    end
+
+    @testset "large intervals #121" begin
         x = Fun(identity,0..10)
         f = sin(x^2)
         g = cos(x)
@@ -119,13 +155,13 @@ using ApproxFun, LinearAlgebra, Test
 
         x = Fun(identity,0..100)
         f = sin(x^2)
-        @test f(.1) ≈ sin(.1^2) atol=1E-12
+        @test ≈(f(.1),sin(.1^2);atol=1E-12)
     end
 
     @testset "Reverse" begin
         f=Fun(exp)
-        @test ApproxFun.default_Fun(f, Chebyshev(1 .. -1), ncoefficients(f))(0.1) ≈ exp(0.1)
-        @test Fun(f,Chebyshev(1 .. -1))(0.1) ≈ f(0.1)
+        @test ApproxFun.default_Fun(f, Chebyshev(Segment(1 , -1)), ncoefficients(f))(0.1) ≈ exp(0.1)
+        @test Fun(f,Chebyshev(Segment(1,-1)))(0.1) ≈ f(0.1)
     end
 
     @testset "minimum/maximum" begin
@@ -134,7 +170,7 @@ using ApproxFun, LinearAlgebra, Test
         @test maximum(x) == 1
     end
 
-    @testset "#7" begin
+    @testset "Do not overresolve #7" begin
         @test ncoefficients(Fun(x->sin(400*pi*x),-1..1)) ≤ 1400
     end
 
@@ -148,17 +184,16 @@ using ApproxFun, LinearAlgebra, Test
 
         iϕfun = 1-cumsum(ϕfun)
         @test iϕfun(0.00001) ≈ 1
-
-        @test ncoefficients(Fun(x->sin(400*pi*x),-1..1)) ≤ 1400
-
-        let w = Fun(x -> 1e5/(x*x+1), 283.72074879785936 .. 335.0101119042838)
-          @test w(domain(w).a) ≈ 1e5/(domain(w).a^2+1)
-        end
     end
 
-  @testset "supremum norm" begin
-      x = Fun()
-      f = 1/(1 + 25*(x^2))
-      @test norm(f, Inf) ≈ 1.0
-  end
+    @testset "Large scaling" begin
+        w = Fun(x -> 1e5/(x*x+1), 283.72074879785936 .. 335.0101119042838)
+        @test w(leftendpoint(domain(w))) ≈ 1e5/(leftendpoint(domain(w))^2+1)
+    end
+
+    @testset "supremum norm" begin
+        x = Fun()
+        f = 1/(1 + 25*(x^2))
+        @test norm(f, Inf) ≈ 1.0
+    end
 end

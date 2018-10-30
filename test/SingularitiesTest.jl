@@ -1,5 +1,6 @@
-using ApproxFun, SpecialFunctions, Random, Test
+using ApproxFun, IntervalSets, SpecialFunctions, LinearAlgebra, Random, Test
     import ApproxFun: HeavisideSpace, PointSpace, DiracSpace, PiecewiseSegment
+
 
 @testset "Singularities" begin
     @testset "sqrt" begin
@@ -18,12 +19,12 @@ using ApproxFun, SpecialFunctions, Random, Test
 
         f = Fun(x->x*cot(π*x/2))
         x = Fun(identity)
-        u = Fun(JacobiWeight(1.,1.,Interval()), (f/(1-x^2)).coefficients)
+        u = Fun(JacobiWeight(1.,1.,ChebyshevInterval()), (f/(1-x^2)).coefficients)
         @test 1/(0.1*cot(π*.1/2)) ≈ (1/u)(.1)
 
         @test (x/u)(.1) ≈ tan(π*.1/2)
 
-        f = Fun(x->exp(-x^2),Line(0.,0.,-.5,-.5),400)
+        f=Fun(x->exp(-x^2),Line(0.,0.,-.5,-.5),400)
         @test sum(f) ≈ sqrt(π)
 
         f=Fun(x->exp(x)/sqrt(1-x.^2),JacobiWeight(-.5,-.5))
@@ -40,10 +41,10 @@ using ApproxFun, SpecialFunctions, Random, Test
     end
 
     @testset "JacobiWeight Derivative" begin
-        S=JacobiWeight(-1.,-1.,Chebyshev(0..1))
+        S = JacobiWeight(-1.,-1.,Chebyshev(0..1))
 
         # Checks bug in Derivative(S)
-        @test typeof(ConstantSpace(Domain(0..1))) <: Space{Segment{Float64},Float64}
+        @test typeof(ConstantSpace(0..1)) <: Space{ClosedInterval{Int},Float64}
 
         D=Derivative(S)
         f=Fun(S,Fun(exp,0..1).coefficients)
@@ -60,11 +61,6 @@ using ApproxFun, SpecialFunctions, Random, Test
         @test f(x) ≈ exp(x)*x^(-1)/2
         @test (D*f)(x) ≈ exp(x)*(x-1)/(2x^2)
     end
-
-
-    ## ODEs
-
-    ## f/g bugs
 
     @testset "Jacobi singularity" begin
         x = Fun(identity)
@@ -88,54 +84,57 @@ using ApproxFun, SpecialFunctions, Random, Test
     end
 
     @testset "Ray and Line" begin
-        @test Inf in Ray()   # this was a bug
+        @testset "Ray" begin
+            @test Inf in Ray()   # this was a bug
+            @test Space(0..Inf) == Chebyshev(Ray())
+            f=Fun(x->exp(-x),0..Inf)
+            @test f(0.1) ≈ exp(-0.1)
+            @test f'(.1) ≈ -f(.1)
 
-        f=Fun(x->exp(-x),0..Inf)
-        @test f'(.1) ≈ -f(.1)
+            x=Fun(identity,Ray())
+            f=exp(-x)
+            u=integrate(f)
+            @test (u(1.)-u(0)-1) ≈ -f(1)
 
-        x=Fun(identity,Ray())
-        f=exp(-x)
-        u=integrate(f)
-        @test (u(1.)-u(0)-1) ≈ -f(1)
+            x=Fun(identity,Ray())
+            f=x^(-0.123)*exp(-x)
+            @test integrate(f)'(1.) ≈ f(1.)
 
-        x=Fun(identity,Ray())
-        f=x^(-0.123)*exp(-x)
-        @test integrate(f)'(1.) ≈ f(1.)
+            @test ≈(sum(Fun(sech,0..Inf)),sum(Fun(sech,0..40));atol=1000000eps())
+            @test Line() ∪ Ray() == Line()
+            @test Line() ∩ Ray() == Ray()
 
-        @test ≈(sum(Fun(sech,0..Inf)),sum(Fun(sech,0..40));atol=1000000eps())
+            f=Fun(sech,Line())
+            Fun(f,Ray())(2.0) ≈ sech(2.0)
+            Fun(f,Ray(0.,π))(-2.0) ≈ sech(-2.0)
+            Fun(sech,Ray(0.,π))(-2.0) ≈ sech(-2.0)
+        end
 
-        f=Fun(sech,Line())
-        Fun(f,Ray())(2.0) ≈ sech(2.0)
-        Fun(f,Ray(0.,π))(-2.0) ≈ sech(-2.0)
-        Fun(sech,Ray(0.,π))(-2.0) ≈ sech(-2.0)
+        @testset "Ei (Exp Integral)" begin
+            y=Fun(Ray())
+            q=integrate(exp(-y)/y)
+            @test (q-last(q))(2.) ≈ (-0.04890051070806113)
 
+            ## Line
+            f=Fun(x->exp(-x^2),Line())
 
-        #Ei (Exp Integral)
+            @test f'(0.1) ≈ -2*0.1exp(-0.1^2)
+            @test (Derivative()*f)(0.1) ≈ -2*0.1exp(-0.1^2)
+        end
 
-        y=Fun(Ray())
-        q=integrate(exp(-y)/y)
-        @test (q-last(q))(2.) ≈ (-0.04890051070806113)
+        @testset "PeriodicLine" begin
+            d=PeriodicLine()
+            D=Derivative(d)
 
-        ## Line
-        f=Fun(x->exp(-x^2),Line())
+            f = Fun(x->sech(x-0.1),d,200)
+            @test f(1.) ≈ sech(1-0.1)
 
-        @test f'(0.1) ≈ -2*0.1exp(-0.1^2)
-        @test (Derivative()*f)(0.1) ≈ -2*0.1exp(-0.1^2)
+            f=Fun(x->sech(x-0.1),d)
+            @test f(1.) ≈ sech(1-0.1)
 
-        ## PeriodicLine
-
-        d=PeriodicLine()
-        D=Derivative(d)
-
-        f = Fun(x->sech(x-0.1),d,200)
-        @test f(1.) ≈ sech(1-0.1)
-
-
-        f=Fun(x->sech(x-0.1),d)
-        @test f(1.) ≈ sech(1-0.1)
-
-        @test ≈((D*f)(.2),-0.0991717226583897;atol=100000eps())
-        @test ≈((D^2*f)(.2),-0.9752522555114987;atol=1000000eps())
+            @test ≈((D*f)(.2),-0.0991717226583897;atol=100000eps())
+            @test ≈((D^2*f)(.2),-0.9752522555114987;atol=1000000eps())
+        end
     end
 
     @testset "LogWeight" begin
@@ -161,11 +160,11 @@ using ApproxFun, SpecialFunctions, Random, Test
     end
 
     @testset "Complex domains sqrt" begin
-        a=1+10*im;b=2-6*im
+        a=1+10*im; b=2-6*im
         d=Curve(Fun(x->1+a*x+b*x^2))
 
         x=Fun(d)
-        w=sqrt(abs(first(d)-x))*sqrt(abs(last(d)-x))
+        w=sqrt(abs(leftendpoint(d)-x))*sqrt(abs(rightendpoint(d)-x))
 
         @test sum(w/(x-2.))/(2π*im) ≈ (-4.722196879007759+2.347910413861846im)
         @test linesum(w*log(abs(x-2.)))/π ≈ (88.5579588360686)
@@ -209,7 +208,6 @@ using ApproxFun, SpecialFunctions, Random, Test
 
         @test g(2.3) ≈ 2.3
 
-
         h = a + Fun(2..3)
 
         # for some reason this test is broken only on Travis
@@ -251,6 +249,7 @@ using ApproxFun, SpecialFunctions, Random, Test
 
     @testset "Multiple roots" begin
         x=Fun(identity,-1..1)
+
         @test (1/x^2)(0.1) ≈ 100.
         @test (1/x^2)(-0.1) ≈ 100.
 
@@ -268,23 +267,31 @@ using ApproxFun, SpecialFunctions, Random, Test
 
         ## roots of log(abs(x-y))
         x=Fun(-2..(-1))
+        @test space(abs(x)) == Chebyshev(-2 .. (-1))
+
         @test roots(abs(x+1.2)) ≈ [-1.2]
 
+        f = sign(x+1.2)
+        @test space(f) isa PiecewiseSpace
+        @test f(-1.4) == -1
+        @test f(-1.1) == 1
+
         f=abs(x+1.2)
-
+        @test abs(f)(-1.3) ≈ f(-1.3)
+        @test abs(f)(-1.1) ≈ f(-1.1)
         @test norm(abs(f)-f)<10eps()
-        @test norm(sign(f)-Fun(1,space(f)))<10eps()
 
+        @test norm(sign(f)-Fun(1,space(f)))<10eps()
 
         @test log(f)(-1.3) ≈ log(abs(-1.3+1.2))
         @test log(f)(-1.1) ≈ log(abs(-1.1+1.2))
+    end
 
-        #393
-        x=Fun(0..1)
+    @testset "#393" begin
+        x = Fun(0..1)
         f = exp(x)*sqrt(x)*log(1-x)
         @test f(0.1) ≈ exp(0.1)*sqrt(0.1)*log(1-0.1)
     end
-
 
     @testset "Jacobi conversions" begin
         S1,S2=JacobiWeight(3.,1.,Jacobi(1.,1.)),JacobiWeight(1.,1.,Jacobi(0.,1.))
@@ -299,7 +306,6 @@ using ApproxFun, SpecialFunctions, Random, Test
         Cf=C*f
         @test Cf(0.1) ≈ f(0.1)
     end
-
 
     @testset "Derivative operator for HeavisideSpace" begin
         H = HeavisideSpace([-1.0,0.0,1.0])
