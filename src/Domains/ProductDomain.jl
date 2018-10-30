@@ -1,7 +1,6 @@
 
-
-
 canonicaldomain(d::ProductDomain) = ProductDomain(map(canonicaldomain,d.domains)...)
+
 
 # product domains are their own canonical domain
 for OP in (:fromcanonical,:tocanonical)
