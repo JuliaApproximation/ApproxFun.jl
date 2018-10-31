@@ -123,6 +123,8 @@ subblock_blockbandwidths(K::KroneckerOperator) =
 
 # If each block were in turn BandedMatrix, these are the bandwidths
 function subblockbandwidths(K::KroneckerOperator)
+    isbandedblockbanded(K) || return (∞,∞)
+
     if all(hastrivialblocks,domainspace(K).spaces) &&
             all(hastrivialblocks,rangespace(K).spaces)
         subblock_blockbandwidths(K)

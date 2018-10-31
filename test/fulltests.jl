@@ -219,7 +219,7 @@ end
     @test sin(u0)(.1,.2)-sin(u0(.1,.2))|>abs < 10e-4
 
 
-    F = LowRankFun((x,y)->hankelh1(0,10abs(y-x)),Chebyshev(1.0..2.0),Chebyshev(1.0im..2.0im))
+    F = LowRankFun((x,y)->hankelh1(0,10abs(y-x)),Chebyshev(1.0..2.0),Chebyshev(Segment(1.0im,2.0im)))
 
     @test F(1.5,1.5im) ≈ hankelh1(0,10abs(1.5im-1.5))
 

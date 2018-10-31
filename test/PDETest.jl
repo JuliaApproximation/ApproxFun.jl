@@ -36,7 +36,13 @@ using ApproxFun, LinearAlgebra, Test
         B = Dirichlet(d)
 
         testblockbandedoperator(B)
+        testbandedblockbandedoperator(Laplacian(d))
         testbandedblockbandedoperator(Laplacian(d)+0.0I)
+
+        A=[Dirichlet(d);Laplacian(d)]
+
+        @time u=A\[g,0.]
+        @test u(.1,.2) ≈ real(exp(0.1+0.2im))
 
         A=[Dirichlet(d);Laplacian(d)+0.0I]
         @time u=A\[g,0.]
