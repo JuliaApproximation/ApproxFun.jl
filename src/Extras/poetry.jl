@@ -3,7 +3,7 @@
 #####
 
 
-export chebyshevt, chebyshevu, legendre, ∫, ⨜, ⨍, ChebyshevWeight, 𝕀, ℝ, 𝕌, 𝒟
+export chebyshevt, chebyshevu, legendre, ∫, ⨜, ⨍, ChebyshevWeight, 𝕀, 𝕌, 𝒟
 
 ## Constructors
 

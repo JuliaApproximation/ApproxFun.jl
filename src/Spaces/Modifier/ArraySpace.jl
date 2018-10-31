@@ -37,14 +37,14 @@ Matrix(sp::MatrixSpace) = sp.spaces
 BlockInterlacer(sp::ArraySpace) = BlockInterlacer(blocklengths.(tuple(sp.spaces...)))
 interlacer(sp::ArraySpace) = BlockInterlacer(sp)
 
-for OP in (:length,:endof,:size)
+for OP in (:length,:firstindex,:lastindex,:size)
     @eval begin
         $OP(S::ArraySpace) = $OP(components(S))
         $OP(f::Fun{<:ArraySpace}) = $OP(space(f))
     end
 end
 
-for OP in (:getindex,:iterate,:stride,:size)
+for OP in (:getindex,:iterate,:stride,:size,:lastindex,:firstindex)
     @eval $OP(S::ArraySpace,k) = $OP(components(S),k)
 end
 

@@ -5,7 +5,10 @@ using ApproxFun, LazyArrays, FillArrays, LinearAlgebra, SpecialFunctions, Test
 
 @testset "Vector" begin
     @testset "Construction" begin
-        @test Fun(x->[1.,0.])(0.) ≈ [1.,0.]
+        f = Fun(x->[1.,0.])
+        @test f(0.) ≈ [1.,0.]
+        @test f[end] ≈ 0
+        @test f[firstindex(f)] ≈ 1
     end
 
     @testset "Broadcast" begin
