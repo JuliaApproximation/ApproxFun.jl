@@ -185,6 +185,14 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
         @test f(0.1) ≈ exp(0.1)
     end
 
+    @testset "Jacobi evaluation bug" begin
+        S=Jacobi(0.5,-0.5)
+        f=Fun(exp,S)
+        B = ldirichlet(S)
+        testfunctional(B)
+        @test B*f ≈ exp(-1)
+    end
+
     @testset "cancellation conversion" begin
         x=Fun(0..1)
         f=exp(x)-1

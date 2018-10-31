@@ -2,18 +2,19 @@ using ApproxFun, Test
     import ApproxFun: testfunctional, testbandedoperator
 
 @testset "Fractional" begin
-    ## Jupyer example
-    S=Legendre()⊕JacobiWeight(0.5,0.,Ultraspherical(1))
-    Q½=LeftIntegral(S,0.5)
+    @testset "Jupyer example" begin
+        S = Legendre() ⊕ JacobiWeight(0.5,0.,Ultraspherical(1))
+        Q½ = LeftIntegral(S,0.5)
 
-    y=(I+Q½)\1
-    @test values(y)[1] ≈ 0.33627096683893143
+        y = (I+Q½)\1
+        @test values(y)[1] ≈ 0.33627096683893143
 
-    S=Legendre()⊕JacobiWeight(0.5,0.,Ultraspherical(1))
-    testfunctional(rdirichlet(S))
-    B=rdirichlet(S)
-    D=LeftDerivative(1.5) : S
-    testbandedoperator(D)
+        S = Legendre()⊕JacobiWeight(0.5,0.,Ultraspherical(1))
+        testfunctional(rdirichlet(S))
+        B=rdirichlet(S)
+        D=LeftDerivative(1.5) : S
+        testbandedoperator(D)
+    end
 
     ## Avazzadev et al
 

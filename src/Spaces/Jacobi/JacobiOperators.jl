@@ -1,7 +1,7 @@
 ## Evaluation
 
 
-function Evaluation(S::Jacobi,x::Union{typeof(first),typeof(last)},order)
+function Evaluation(S::Jacobi,x::Union{typeof(leftendpoint),typeof(leftendpoint)},order)
     if order ≤ 2
         ConcreteEvaluation(S,x,order)
     else
@@ -22,7 +22,7 @@ function Evaluation(S::Jacobi,x,order)
 end
 
 # avoid ambiguity
-for OP in (:first,:last)
+for OP in (:leftendpoint,:rightendpoint)
     @eval getindex(op::ConcreteEvaluation{<:Jacobi,typeof($OP)},k::Integer) =
         op[k:k][1]
 end
@@ -30,7 +30,7 @@ end
 getindex(op::ConcreteEvaluation{<:Jacobi},k::Integer) = op[k:k][1]
 
 
-function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(first)},kr::AbstractRange)
+function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(leftendpoint)},kr::AbstractRange)
     @assert op.order <= 2
     sp=op.space
     T=eltype(op)
@@ -38,7 +38,7 @@ function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(first)},kr::AbstractRan
     a=convert(RT,sp.a);b=convert(RT,sp.b)
 
     if op.order == 0
-        jacobip(T,kr-1,a,b,-one(T))
+        jacobip(T,kr.-1,a,b,-one(T))
     elseif op.order == 1&&  b==0
         d=domain(op)
         @assert isa(d,IntervalOrSegment)
@@ -47,11 +47,11 @@ function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(first)},kr::AbstractRan
         d=domain(op)
         @assert isa(d,IntervalOrSegment)
         if kr[1]==1 && kr[end] ≥ 2
-            tocanonicalD(d,leftendpoint(d))*(a+b+kr).*T[zero(T);jacobip(T,0:kr[end]-2,1+a,1+b,-one(T))]/2
+            tocanonicalD(d,leftendpoint(d)).*(a .+ b .+ kr).*T[zero(T);jacobip(T,0:kr[end]-2,1+a,1+b,-one(T))]/2
         elseif kr[1]==1  # kr[end] ≤ 1
             zeros(T,length(kr))
         else
-            tocanonicalD(d,leftendpoint(d))*(a+b+kr).*jacobip(T,kr-1,1+a,1+b,-one(T))/2
+            tocanonicalD(d,leftendpoint(d)) .* (a.+b.+kr).*jacobip(T,kr.-1,1+a,1+b,-one(T))/2
         end
     elseif op.order == 2
         @assert b==0
@@ -62,7 +62,7 @@ function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(first)},kr::AbstractRan
     end
 end
 
-function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(last)},kr::AbstractRange)
+function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(rightendpoint)},kr::AbstractRange)
     @assert op.order <= 2
     sp=op.space
     T=eltype(op)
@@ -447,7 +447,7 @@ function getindex(C::ConcreteConversion{US,J,T},k::Integer,j::Integer) where {US
     if j==k
         S=rangespace(C)
         jp=jacobip(T,k-1,S.a,S.b,one(T))
-        um=Evaluation(setcanonicaldomain(domainspace(C)),last,0)[k]
+        um=Evaluation(setcanonicaldomain(domainspace(C)),rightendpoint,0)[k]
         um/jp::T
     else
         zero(T)
@@ -461,7 +461,7 @@ function BandedMatrix(S::SubOperator{T,ConcreteConversion{US,J,T},Tuple{UnitRang
 
     sp=rangespace(parent(S))
     jp=jacobip(T,k.-1,sp.a,sp.b,one(T))
-    um=Evaluation(T,setcanonicaldomain(domainspace(parent(S))),last,0)[k]
+    um=Evaluation(T,setcanonicaldomain(domainspace(parent(S))),rightendpoint,0)[k]
     vals = um./jp
 
     ret[band(bandshift(S))] = vals
@@ -474,7 +474,7 @@ function getindex(C::ConcreteConversion{J,US,T},k::Integer,j::Integer) where {US
     if j==k
         S=domainspace(C)
         jp=jacobip(T,k-1,S.a,S.b,one(T))
-        um=Evaluation(T,setcanonicaldomain(rangespace(C)),last,0)[k]
+        um=Evaluation(T,setcanonicaldomain(rangespace(C)),rightendpoint,0)[k]
         jp/um::T
     else
         zero(T)
@@ -488,7 +488,7 @@ function BandedMatrix(S::SubOperator{T,ConcreteConversion{J,US,T},Tuple{UnitRang
 
     sp=domainspace(parent(S))
     jp=jacobip(T,k.-1,sp.a,sp.b,one(T))
-    um=Evaluation(T,setcanonicaldomain(rangespace(parent(S))),last,0)[k]
+    um=Evaluation(T,setcanonicaldomain(rangespace(parent(S))),rightendpoint,0)[k]
     vals = jp./um
 
     ret[band(bandshift(S))] = vals

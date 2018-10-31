@@ -33,7 +33,7 @@ end
 
 checkpoints(d::Curve) = fromcanonical.(Ref(d),checkpoints(domain(d.curve)))
 
-for op in (:(first),:(last),:(rand))
+for op in (:(leftendpoint),:(rightendpoint),:(rand))
     @eval $op(c::Curve)=c.curve($op(domain(c.curve)))
 end
 

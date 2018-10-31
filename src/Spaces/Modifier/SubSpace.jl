@@ -105,7 +105,7 @@ getindex(C::ConcreteConversion{<:SubSpace}, k::Integer,j::Integer) =
 
 
 # avoid ambiguity
-for OP in (:first,:last)
+for OP in (:leftendpoint,:rightendpoint)
     @eval getindex(E::ConcreteEvaluation{SubSpace{DS,IT,DD,RR},typeof($OP)},k::Integer) where {IT,DS,DD,RR}=
         Evaluation(E.space.space,E.x,E.order)[E.space.indexes[k]]
 end

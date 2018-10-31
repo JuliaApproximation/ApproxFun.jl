@@ -307,14 +307,14 @@ function Evaluation(S::PolynomialSpace,x,order)
 end
 
 
-function getindex(op::ConcreteEvaluation{J,typeof(first)},kr::AbstractRange) where J<:PolynomialSpace
+function getindex(op::ConcreteEvaluation{J,typeof(leftendpoint)},kr::AbstractRange) where J<:PolynomialSpace
     sp=op.space
     T=eltype(op)
 
     forwardrecurrence(T,sp,kr.-1,-one(T))
 end
 
-function getindex(op::ConcreteEvaluation{J,typeof(last)},kr::AbstractRange) where J<:PolynomialSpace
+function getindex(op::ConcreteEvaluation{J,typeof(rightendpoint)},kr::AbstractRange) where J<:PolynomialSpace
     sp=op.space
     T=eltype(op)
 
