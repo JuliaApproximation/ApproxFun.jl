@@ -200,7 +200,6 @@ function resizedata!(co::CachedOperator{T,AlmostBandedMatrix{T},
         end
     end
 
-
     kr=co.datasize[1]+1:n
     jr=max(1,kr[1]-l):n+u
     BLAS.axpy!(1.0,view(co.op.ops[ind],kr .- r,jr),

@@ -669,7 +669,7 @@ const WrapperOperator = Union{SpaceOperator,MultiplicationWrapper,DerivativeWrap
 ## BLAS and matrix routines
 # We assume that copy may be overriden
 
-BLAS.axpy!(a, X::Operator, Y::AbstractMatrix) = BLAS.axpy!(a,AbstractMatrix(X),Y)
+BLAS.axpy!(a, X::Operator, Y::AbstractMatrix) = (Y .= a .* AbstractMatrix(X) .+ Y)
 copyto!(dest::AbstractMatrix, src::Operator) = copyto!(dest, AbstractMatrix(src))
 
 # this is for operators that implement copy via axpy!

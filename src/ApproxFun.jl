@@ -79,7 +79,7 @@ import FastTransforms: ChebyshevTransformPlan, IChebyshevTransformPlan, plan_che
 
 import FillArrays: AbstractFill, getindex_value
 import LazyArrays: cache
-import InfiniteArrays: Infinity, InfRanges, AbstractInfUnitRange
+import InfiniteArrays: Infinity, InfRanges, AbstractInfUnitRange, OneToInf
 
 
 

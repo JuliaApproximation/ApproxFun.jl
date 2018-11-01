@@ -24,7 +24,7 @@ struct Tensorizer{DMS<:Tuple}
     blocks::DMS
 end
 
-const TrivialTensorizer{d} = Tensorizer{NTuple{d,Ones{Int,1,Int}}}
+const TrivialTensorizer{d} = Tensorizer{NTuple{d,Ones{Int,1,Tuple{OneToInf{Int}}}}}
 
 Base.eltype(a::Tensorizer) = NTuple{length(a.blocks),Int}
 Base.eltype(::Tensorizer{NTuple{d,T}}) where {d,T} = NTuple{d,Int}

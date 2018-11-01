@@ -8,19 +8,6 @@ x = Fun(identity,d)
 u = [Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
 u = [Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
 @time u = [Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
-
-@profile u = [Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
-
-using Profile
-Profile.print()
-using BandedMatrices
-A = brand(5000,5000,1,1)
-B = similar(A)
-
-@time BLAS.axpy!(2.0, A, B)
-@time B .= 2.0 .* A .+ B
-
-
 println("Cos/Sin: should be ~0.016920 seconds (3.19 k allocations: 12.593 MiB)")
 
 d = -1000..5.0
@@ -78,8 +65,8 @@ d=domain(x)
 B=Dirichlet()
 ν=1000.0
 L=x^2*𝒟^2 + x*𝒟 + (x^2 - ν^2)   # our differential operator
-u=[B;L]\[besselj.(ν,endpoints(d)),0]
-@time u=[B;L]\[besselj.(ν,endpoints(d)),0]
+u=[B;L]\[[besselj.(ν,endpoints(d))...],0]
+@time u=[B;L]\[[besselj.(ν,endpoints(d))...],0]
 println("Bessel: should be ~0.008441 seconds (6.14 k allocations: 4.765 MiB)")
 
 
@@ -94,12 +81,8 @@ x=Fun(identity,Domain(-20..15) \ Set([-10.,-5.,0.,1.]))
 sp=space(x)
 D=Derivative(sp)
 B=[Dirichlet(sp);continuity(sp,0:1)]
-u=[B;
-    D^2-x]\[[airyai(-20.),0.],zeros(8),0];
-@time u=[B;
-    D^2-x]\[[airyai(-20.),0.],zeros(8),0]
-
-
+u=[B;D^2-x]\[[airyai(-20.),0.],zeros(8),0];
+@time u=[B;D^2-x]\[[airyai(-20.),0.],zeros(8),0]
 println("Piecewise Airy: should be ~0.008")
 
 

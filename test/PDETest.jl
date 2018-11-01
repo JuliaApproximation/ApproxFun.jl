@@ -1,5 +1,5 @@
 using ApproxFun, LinearAlgebra, Test
-    import ApproxFun: testbandedblockbandedoperator, testblockbandedoperator, testraggedbelowoperator
+    import ApproxFun: testbandedblockbandedoperator, testblockbandedoperator, testraggedbelowoperator, Block
 
 @testset "PDE" begin
     @testset "Zero Dirichlet" begin
@@ -123,5 +123,12 @@ using ApproxFun, LinearAlgebra, Test
 
         @time u = \([timedirichlet(d);L],[u0,[0.,0.],0.];tolerance=1E-5)
         @test u(0.5,0.001) ≈ 0.857215539785593+0.08694948835021317im  # empircal from ≈ schurfact
+    end
+
+    @testset "check we dispatch correctly to get fast build" begin
+        S = JacobiWeight(1.,1.,Jacobi(1.,1.))^2
+        Δ = Laplacian(S)
+        @time S = view(Δ.op.ops[1].ops[1].op,Block.(1:40), Block.(1:40))
+        @test typeof(S.parent.domaintensorizer) == ApproxFun.Trivial2DTensorizer
     end
 end

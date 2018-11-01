@@ -9,21 +9,18 @@ S = JacobiWeight(1.,1.,Jacobi(1.,1.))^2
 
 f = Fun((x,y)->sin(π*x)*sin(π*y),S)
 
-QR=qr(Δ)
-    ApproxFun.resizedata!(QR,:,400)
-    \(QR,f; tolerance=1E-10)
-QR=qr(Δ)
+QR1=qr(Δ)
+    ApproxFun.resizedata!(QR1,:,400)
+    \(QR1,f; tolerance=1E-10)
+QR1=qr(Δ)
     @time Δ[Block.(1:40), Block.(1:40)]
-    @time ApproxFun.resizedata!(QR,:,400)
-    @time \(QR,f; tolerance=1E-10)
+    @time ApproxFun.resizedata!(QR1,:,400)
+    @time \(QR1,f; tolerance=1E-10)
 println("Laplace Dirichlet: should be ~0.015, 0.015, 0.001")
 
-
 d=ChebyshevInterval()^2
-#dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
 A=[Dirichlet(d); Laplacian(d)]
 f=Fun((x,y)->real(exp(x+im*y)),∂(d))
-
 
 QR=qr(A)
     ApproxFun.resizedata!(QR,:,150)
@@ -40,7 +37,7 @@ println("Laplace: should be ~0.06, 0.001")
 d=ChebyshevInterval()^2
 u = [Neumann(d); Laplacian(d)+100I] \ [[[1,1],[1,1]],0]
 @time u = [Neumann(d); Laplacian(d)+100I] \ [[[1,1],[1,1]],0]
-println("Neumann Helmholtz: should be ~0.032 (currently ~4.6s)")
+println("Neumann Helmholtz: should be ~0.032")
 
 # dx=Interval(0.,1.);dt=Interval(0.0,0.54)
 # d=dx*dt

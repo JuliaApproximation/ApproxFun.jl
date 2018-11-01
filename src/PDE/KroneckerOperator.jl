@@ -374,6 +374,11 @@ function BandedBlockBandedMatrix(S::SubOperator{T,KroneckerOperator{SS,V,DS,RS,
     ret
 end
 
+convert(::Type{BandedBlockBandedMatrix}, S::SubOperator{T,KroneckerOperator{SS,V,DS,RS,
+                                     Trivial2DTensorizer,Trivial2DTensorizer,T},
+                                     Tuple{BlockRange1,BlockRange1}}) where {SS,V,DS,RS,T} =
+    BandedBlockBandedMatrix(S)
+
 ## TensorSpace operators
 
 
