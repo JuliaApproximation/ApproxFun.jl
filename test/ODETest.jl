@@ -1,4 +1,4 @@
-using ApproxFun, SpecialFunctions, Test
+using ApproxFun, SpecialFunctions, LazyArrays, Test
     import ApproxFun: Multiplication, testraggedbelowoperator, testbandedoperator, interlace, ∞
 
 @testset "ODE" begin
@@ -208,5 +208,28 @@ using ApproxFun, SpecialFunctions, Test
         u = v[1] + setdomain(v[2], Domain(1..2)) + setdomain(v[3], Domain(2..3))
 
         @test abs(u'(1.3) + u(1.3-1) ) ≤ 10eps()
+    end
+
+    @testset "Tenth order" begin
+        x = Fun()
+        D = Derivative()
+
+
+        L=D^10 + cosh(x)*D^8 + x^3*D^6 + x^4*D^4 + cos(x)*D^2 + x^2
+        d = ChebyshevInterval()
+        B = [Dirichlet(d) ;
+             Neumann(d)   ;
+             [Evaluation(d,leftendpoint,k) for k=2:4]... ;
+             [Evaluation(d,rightendpoint,k) for k=2:4]...]
+
+        rs = rangespace(B)
+        @test ApproxFun.blocklengths(rs) == [10]
+
+        A = [B; L]
+        rs = rangespace(A)
+        @test ApproxFun.blocklengths(rs) isa Vcat
+
+        u = [B; L] \ [ [0.,0.], [1.,1.], zeros(6)..., exp(x)]
+        @test u(0.5) ≈ -0.4024723414410859 # Empirical
     end
 end

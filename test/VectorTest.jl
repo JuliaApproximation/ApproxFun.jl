@@ -3,6 +3,9 @@ using ApproxFun, LazyArrays, FillArrays, LinearAlgebra, SpecialFunctions, Test
                         ArraySpace, testblockbandedoperator, blocklengths, ∞,
                         testraggedbelowoperator, Vec
 
+
+
+
 @testset "Vector" begin
     @testset "Construction" begin
         f = Fun(x->[1.,0.])
@@ -375,5 +378,11 @@ using ApproxFun, LazyArrays, FillArrays, LinearAlgebra, SpecialFunctions, Test
                  0.732284 -0.170879 -0.612945 -0.836059;
                  -0.836059 0.265569 -0.170879 -0.148885;
                  -0.612945 -0.836059 0.732284 -0.170879] atol=1E-3
+    end
+
+    @testset "diagonal" begin
+        x = Fun(0.0..1)
+        @test isambiguous(domain(zero(typeof(x))))
+        @test diagm(0 => [x,x]) * [1,2] == [x,2x]
     end
 end

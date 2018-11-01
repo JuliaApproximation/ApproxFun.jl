@@ -3,15 +3,27 @@ using ApproxFun, SpecialFunctions, Test
 
 ## ODEs
 
-d = Interval(-20000.,20000.)
+d = -20000..20000.0
 x = Fun(identity,d)
 u = [Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
 u = [Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
 @time u = [Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
 
+@profile u = [Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
+
+using Profile
+Profile.print()
+using BandedMatrices
+A = brand(5000,5000,1,1)
+B = similar(A)
+
+@time BLAS.axpy!(2.0, A, B)
+@time B .= 2.0 .* A .+ B
+
+
 println("Cos/Sin: should be ~0.016920 seconds (3.19 k allocations: 12.593 MiB)")
 
-d=Interval(-1000.,5.)
+d = -1000..5.0
 x=Fun(identity,d)
 u=[Dirichlet(d);Derivative(d)^2-x]\[[1,0],0]
 u=[Dirichlet(d);Derivative(d)^2-x]\[[1,0],0]
@@ -21,8 +33,6 @@ println("Airy: 0.014356 seconds (1.08 k allocations: 8.015 MB)")
 M=cache([Dirichlet(d);Derivative(d)^2-x];padding=true)
 @time ApproxFun.resizedata!(M,12500,:)
 println("Airy construct op: 0.003200 seconds (131 allocations: 3.723 MiB)")
-
-
 
 S=Chebyshev()
 x=Fun(identity,S)

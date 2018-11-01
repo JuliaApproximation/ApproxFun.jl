@@ -38,12 +38,15 @@ convert(::Type{Segment{T}}, d::AbstractInterval) where T =convert(Segment{T}, co
 Segment(d::AbstractInterval) = convert(Segment, d)
 
 
+
 AnySegment(::Type{T}) where {T} = Segment{T}(NaN,NaN)
 AnySegment() = AnySegment(Float64)
-isambiguous(d::Segment) = all(isnan(leftendpoint(d))) && all(isnan(rightendpoint(d)))
+isambiguous(d::IntervalOrSegmentDomain) = all(isnan(leftendpoint(d))) && all(isnan(rightendpoint(d)))
 convert(::Type{Segment{T}},::AnyDomain) where {T<:Number} = AnySegment(T)
 convert(::Type{Segment},::AnyDomain) = AnySegment()
 convert(::Type{Interval}, d::Segment{<:Real}) = d.a < d.b ? d.a .. d.b : d.b .. d.a
+convert(::Type{ClosedInterval}, ::AnyDomain) = NaN..NaN
+convert(::Type{ClosedInterval{T}}, ::AnyDomain) where T = T(NaN)..T(NaN)
 Interval(d::Segment) = convert(Interval, d)
 
 
