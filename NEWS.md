@@ -3,11 +3,27 @@
 
 ### notes on release changes, ongoing development, and future planned work
 
-#### 0.8.1 (current master)
+#### 0.10.0
+ - Use DomainSets.jl for representing domains
+ - Use InfiniteArrays.jl for representing block sizes
+ - Improve support for Laguerre
+ - Remove `bandinds` in favour of `bandwidths`
+ - Fixes for Hermite polynomials
+ - Support latest BandedMatrices and BlockBandedMatrices
+  
+#### 0.9.0
+ - Upgrade to Julia v1.0
+ - Improve support for Heaviside functions
+
+#### 0.8.2
+ - Support integrating `WeightedLaguerre`
+ - Prepare for Julia v0.7
+
+#### 0.8.1 
  - Support BandedMatrices v0.5
  - Bug fixes and minor improvements
 
-#### 0.8
+#### 0.8.0
 - In-place transform functionality for `Fourier`
 - Use BandedBlockBandedMatrices.jl for more reliable solution of PDEs
 - Adds `jumplocations` for finding discontinuities of a piecewise `Fun` (thanks lcw)
@@ -21,7 +37,7 @@
 - Support `f^k` for polynomial `f` and real `k`
 - Fix several bugs and performance enhancements
 
-#### 0.7
+#### 0.7.0
 - Examples moved to [ApproxFunExamples](https://github.com/JuliaApproximation/ApproxFunExamples) repository
 - `vcat`, `hcat` and `hvcat` of operators now returns an `Operator`
 - `Dirichlet` and `Neumann` operators supported in 1D, replacing
