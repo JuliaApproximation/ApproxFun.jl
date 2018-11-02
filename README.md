@@ -81,12 +81,13 @@ h = airyai(10asin(f)+2g)
 Solve the Airy ODE `u'' - x u = 0` as a BVP on `[-1000,200]`:
 
 ```julia
-x = Fun(identity, -1000..200)
+a,b = -1000,200
+x = Fun(identity, a..b)
 d = domain(x)
 D = Derivative(d)
 B = Dirichlet(d)
 L = D^2 - x
-u = [B;L] \ [airy.(endpoints(d)), 0]
+u = [B;L] \ [[airyai(a),airyai(b)],0]
 plot(u)
 ```
 
