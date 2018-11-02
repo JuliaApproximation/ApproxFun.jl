@@ -24,7 +24,7 @@ struct Tensorizer{DMS<:Tuple}
     blocks::DMS
 end
 
-const TrivialTensorizer{d} = Tensorizer{NTuple{d,Repeated{Bool}}}
+const TrivialTensorizer{d} = Tensorizer{NTuple{d,Ones{Int,1,Tuple{OneToInf{Int}}}}}
 
 Base.eltype(a::Tensorizer) = NTuple{length(a.blocks),Int}
 Base.eltype(::Tensorizer{NTuple{d,T}}) where {d,T} = NTuple{d,Int}
@@ -80,11 +80,11 @@ function Base.findfirst(::TrivialTensorizer{2},kj::Tuple{Int,Int})
     end
 end
 
-function Base.findfirst(sp::Tensorizer{Tuple{Repeated{S},Repeated{T}}},kj::Tuple{Int,Int}) where {S,T}
+function Base.findfirst(sp::Tensorizer{Tuple{<:AbstractFill{S},<:AbstractFill{T}}},kj::Tuple{Int,Int}) where {S,T}
     k,j=kj
 
     if k > 0 && j > 0
-        a,b = sp.blocks[1].x,sp.blocks[2].x
+        a,b = getindex_value(sp.blocks[1]),getindex_value(sp.blocks[2])
         kb1,kr = fldmod(k-1,a)
         jb1,jr = fldmod(j-1,b)
         nb=kb1+jb1
@@ -104,34 +104,12 @@ block(ci::CachedIterator{T,TrivialTensorizer{2}},k::Int) where {T} =
 block(::TrivialTensorizer{2},n::Int) =
     Block(floor(Integer,sqrt(2n) + 1/2))
 
-block(sp::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Int) where {S,T} =
-    Block(floor(Integer,sqrt(2floor(Integer,(n-1)/(sp.blocks[1].x*sp.blocks[2].x))+1) + 1/2))
-block(sp::Tensorizer,k::Int) = Block(findfirst(x->x≥k,cumsum(blocklengths(sp))))
+block(sp::Tensorizer{<:Tuple{<:AbstractFill{S},<:AbstractFill{T}}},n::Int) where {S,T} =
+    Block(floor(Integer,sqrt(2floor(Integer,(n-1)/(getindex_value(sp.blocks[1])*getindex_value(sp.blocks[2])))+1) + 1/2))
+_cumsum(x) = cumsum(x)
+_cumsum(x::Number) = x
+block(sp::Tensorizer,k::Int) = Block(findfirst(x->x≥k, _cumsum(blocklengths(sp))))
 block(sp::CachedIterator,k::Int) = block(sp.iterator,k)
-
-# [1,2,3] x 1:∞
-function block(it::Tensorizer{Tuple{Vector{Bool},Repeated{Bool}}},n::Int)
-    m=sum(it.blocks[1])
-    if m == length(it.blocks[1])  # trivial blocks
-        N=(m*(m+1))÷2
-        if n < N
-            return Block(floor(Integer,sqrt(2n)+1/2))
-        else
-            return Block(m+(n-N)÷m)
-        end
-    else
-        return Block(findfirst(x->x≥n,cumsum(blocklengths(it))))
-    end
-end
-
-# 1:∞ x 1:m
-function block(it::Tensorizer{Tuple{Repeated{Bool},Vector{Bool}}},n::Int)
-    m=length(it.blocks[2])  # assume all true
-    N=(m*(m+1))÷2
-    Block(n < N ?
-        floor(Integer,sqrt(2n)+1/2) :
-        m+(n-N)÷m)
-end
 
 blocklength(it,k) = blocklengths(it)[k]
 blocklength(it,k::Block) = blocklength(it,k.n[1])
@@ -152,8 +130,8 @@ function getindex(it::TrivialTensorizer{2},n::Integer)
 end
 
 # could be cleaned up using blocks
-function getindex(it::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Integer) where {S,T}
-    a,b = it.blocks[1].x,it.blocks[2].x
+function getindex(it::Tensorizer{<:Tuple{<:AbstractFill{S},<:AbstractFill{T}}},n::Integer) where {S,T}
+    a,b = getindex_value(it.blocks[1]),getindex_value(it.blocks[2])
     nb1,nr = fldmod(n-1,a*b) # nb1 = "nb" - 1, i.e. using zero-base
     m1=block(it,n).n[1]-1
     pb1=fld(findfirst(it,(1,b*m1+1))-1,a*b)
@@ -164,8 +142,10 @@ end
 
 
 blockstart(it,K)::Int = K==1 ? 1 : sum(blocklengths(it)[1:K-1])+1
-blockstop(it,::Infinity{Bool}) = ∞
-blockstop(it,K)::Int = sum(blocklengths(it)[1:K])
+blockstop(it,::Infinity) = ∞
+_K_sum(bl::AbstractVector, K) = sum(bl[1:K])
+_K_sum(bl::Integer, K) = bl
+blockstop(it, K)::Int = _K_sum(blocklengths(it), K)
 
 blockstart(it,K::Block) = blockstart(it,K.n[1])
 blockstop(it,K::Block) = blockstop(it,K.n[1])
@@ -191,65 +171,9 @@ subblock2tensor(rt::CachedIterator,K,k) = rt[blockstart(rt,K)+k-1]
 #  Tensor product degrees are taken to be the sum of the degrees
 #  a degree is which block you are in
 
+
 tensorblocklengths(a) = a   # a single block is not modified
-function tensorblocklengths(a::Repeated{Bool},b::Repeated{Bool})
-    @assert a.x && b.x
-    1:∞
-end
-
-
-function tensorblocklengths(a::Repeated,b::Repeated{Bool})
-    @assert b.x
-    a.x:a.x:∞
-end
-
-
-function tensorblocklengths(a::Repeated{Bool},b::Repeated)
-    @assert a.x
-    b.x:b.x:∞
-end
-
-
-function tensorblocklengths(a::Repeated,b::Repeated)
-    m=a.x*b.x
-    m:m:∞
-end
-
-function tensorblocklengths(a::Repeated,b)
-    cs = a.x*cumsum(b)
-    if isinf(length(b))
-        cs
-    elseif length(cs) == 1 && last(cs) == a.x
-        a
-    else
-        flatten((cs,repeated(last(cs))))
-    end
-end
-
-
-
-function tensorblocklengths(a::Repeated{Bool},b)
-    @assert a.x
-    cs = cumsum(b)
-    if isinf(length(b))
-        cs
-    elseif length(cs) == 1 && last(cs) == a.x
-        a
-    else
-        flatten((cs,repeated(last(cs))))
-    end
-end
-
-
-tensorblocklengths(a,b::Repeated) =
-    tensorblocklengths(b,a)
-
-function tensorblocklengths(a::AbstractVector{Bool},b::AbstractVector{Bool})
-    @assert length(a) == length(b) && a[1] && b[1]
-    a
-end
-
-
+tensorblocklengths(a, b) = conv(a,b)
 tensorblocklengths(a,b,c,d...) = tensorblocklengths(tensorblocklengths(a,b),c,d...)
 
 
@@ -300,7 +224,7 @@ tensor_eval_type(_,::Type{Vector{Any}}) = Vector{Any}
 
 
 TensorSpace(sp::Tuple) =
-    TensorSpace{typeof(sp),typeof(mapreduce(domain,*,sp)),
+    TensorSpace{typeof(sp),typeof(mapreduce(domain,×,sp)),
                 mapreduce(rangetype,(a,b)->tensor_eval_type(a,b),sp)}(sp)
 
 
@@ -322,8 +246,10 @@ TensorSpace(A::ProductDomain) = TensorSpace(tuple(map(Space,A.domains)...))
 ⊗(A::Space,B::TensorSpace) = TensorSpace(A,B.spaces...)
 ⊗(A::Space,B::Space) = TensorSpace(A,B)
 
-domain(f::TensorSpace) = mapreduce(domain,*,f.spaces)
+domain(f::TensorSpace) = mapreduce(domain,×,f.spaces)
 Space(sp::ProductDomain) = TensorSpace(sp)
+
+setdomain(sp::TensorSpace, d::ProductDomain) = TensorSpace(setdomain.(factors(sp), factors(d)))
 
 *(A::Space, B::Space) = A⊗B
 ^(A::Space, p::Integer) = p == 1 ? A : A*A^(p-1)
@@ -375,12 +301,12 @@ struct ProductSpace{S<:Space,V<:Space,D,R} <: AbstractProductSpace{Tuple{S,V},D,
 end
 
 ProductSpace(spacesx::Vector,spacey) =
-    ProductSpace{eltype(spacesx),typeof(spacey),typeof(mapreduce(domain,*,sp)),
+    ProductSpace{eltype(spacesx),typeof(spacey),typeof(mapreduce(domain,×,sp)),
                 mapreduce(s->eltype(domain(s)),promote_type,sp)}(spacesx,spacey)
 
 # TODO: This is a weird definition
 ⊗(A::Vector{S},B::Space) where {S<:Space} = ProductSpace(A,B)
-domain(f::ProductSpace) = domain(f.spacesx[1])*domain(f.spacesy)
+domain(f::ProductSpace) = domain(f.spacesx[1])×domain(f.spacesy)
 
 
 nfactors(d::AbstractProductSpace) = length(d.spaces)
@@ -542,7 +468,7 @@ end
 
 ## points
 
-points(d::Union{BivariateDomain,BivariateSpace},n,m) = points(d,n,m,1),points(d,n,m,2)
+points(d::Union{Domain2d,BivariateSpace},n,m) = points(d,n,m,1),points(d,n,m,2)
 
 function points(d::BivariateSpace,n,m,k)
     ptsx=points(columnspace(d,1),n)
@@ -597,14 +523,14 @@ end
 
 for OP in (:block,:blockstart,:blockstop)
     @eval begin
-        $OP(s::TensorSpace, ::Infinity{Bool}) = ∞
+        $OP(s::TensorSpace, ::Infinity) = ∞
         $OP(s::TensorSpace, M::Block) = $OP(tensorizer(s),M)
         $OP(s::TensorSpace, M) = $OP(tensorizer(s),M)
     end
 end
 
 function points(sp::TensorSpace,n)
-    pts=Array{eltype(domain(sp))}(undef,0)
+    pts=Array{float(eltype(domain(sp)))}(undef,0)
     a,b = sp.spaces
     if isfinite(dimension(a)) && isfinite(dimension(b))
         N,M=dimension(a),dimension(b)
@@ -638,7 +564,7 @@ coefficientmatrix(f::Fun{<:AbstractProductSpace}) = totensor(space(f),f.coeffici
 
 
 #TODO: Implement
-# function ∂(d::TensorSpace{Segment{Float64}})
+# function ∂(d::TensorSpace{<:IntervalOrSegment{Float64}})
 #     @assert length(d.spaces) ==2
 #     PiecewiseSpace([d[1].a+im*d[2],d[1].b+im*d[2],d[1]+im*d[2].a,d[1]+im*d[2].b])
 # end
@@ -660,16 +586,16 @@ union_rule(a::TensorSpace,b::TensorSpace) = TensorSpace(map(union,a.spaces,b.spa
 #      (domain(ts)[2] == Point(0.0) && isconvertible(sp,ts.spaces[1])))
 #  end
 
-isconvertible(sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R} = length(ts.spaces) == 2 &&
+isconvertible(sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:Domain2d,R} = length(ts.spaces) == 2 &&
     ((domain(ts)[1] == Point(0.0) && isconvertible(sp,ts.spaces[2])) ||
      (domain(ts)[2] == Point(0.0) && isconvertible(sp,ts.spaces[1])))
 
 
-# coefficients(f::AbstractVector,sp::ConstantSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R} =
+# coefficients(f::AbstractVector,sp::ConstantSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:Domain2d,R} =
 #     f[1]*ones(ts).coefficients
 
 #
-# function coefficients(f::AbstractVector,sp::Space{Segment{Vec{2,TT}}},ts::TensorSpace{Tuple{S,V},D,R}) where {S,V<:ConstantSpace,D<:BivariateDomain,R,TT} where {T<:Number}
+# function coefficients(f::AbstractVector,sp::Space{IntervalOrSegment{Vec{2,TT}}},ts::TensorSpace{Tuple{S,V},D,R}) where {S,V<:ConstantSpace,D<:Domain2d,R,TT} where {T<:Number}
 #     a = domain(sp)
 #     b = domain(ts)
 #     # make sure we are the same domain. This will be replaced by isisomorphic
@@ -680,7 +606,7 @@ isconvertible(sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:Bivariat
 # end
 
 
-function coefficients(f::AbstractVector,sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R}
+function coefficients(f::AbstractVector,sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:Domain2d,R}
     @assert length(ts.spaces) == 2
 
     if factor(domain(ts),1) == Point(0.0)
@@ -693,7 +619,7 @@ function coefficients(f::AbstractVector,sp::UnivariateSpace,ts::TensorSpace{SV,D
 end
 
 
-function isconvertible(sp::Space{Segment{Vec{2,TT}}},ts::TensorSpace{SV,D,R}) where {TT,SV,D<:BivariateDomain,R}
+function isconvertible(sp::Space{Segment{Vec{2,TT}}},ts::TensorSpace{SV,D,R}) where {TT,SV,D<:Domain2d,R}
     d1 = domain(sp)
     d2 = domain(ts)
     if length(ts.spaces) ≠ 2
@@ -712,7 +638,7 @@ end
 
 
 function coefficients(f::AbstractVector,sp::Space{Segment{Vec{2,TT}}},
-                            ts::TensorSpace{SV,D,R}) where {TT,SV,D<:BivariateDomain,R}
+                            ts::TensorSpace{SV,D,R}) where {TT,SV,D<:Domain2d,R}
     @assert length(ts.spaces) == 2
     d1 = domain(sp)
     d2 = domain(ts)

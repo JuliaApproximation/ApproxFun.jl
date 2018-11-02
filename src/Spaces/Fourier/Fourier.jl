@@ -4,17 +4,18 @@ export Fourier,Taylor,Hardy,CosSpace,SinSpace,Laurent
 
 for T in (:CosSpace,:SinSpace)
     @eval begin
-        struct $T{D<:Domain,R} <: Space{D,R}
+        struct $T{D<:PeriodicDomain,R} <: Space{D,R}
             domain::D
-            $T{D,R}(d::Domain) where {D,R} = new(convert(D,d))
+            $T{D,R}(d::PeriodicDomain) where {D,R} = new(convert(D,d))
             $T{D,R}(d::D) where{D,R} = new(d)
         end
-        $T(d::Domain) = $T{typeof(d),real(prectype(d))}(d)
-        $T() = $T(PeriodicInterval())
+        $T(d::PeriodicDomain) = $T{typeof(d),real(prectype(d))}(d)
+        $T(d) = $T(convert(PeriodicDomain, d))
+        $T() = $T(PeriodicSegment())
         spacescompatible(a::$T,b::$T) = domainscompatible(a,b)
         hasfasttransform(::$T) = true
         canonicalspace(S::$T) = Fourier(domain(S))
-        setdomain(S::$T,d::Domain) = $T(d)
+        setdomain(S::$T,d::PeriodicDomain) = $T(d)
     end
 end
 
@@ -34,18 +35,18 @@ SinSpace()
 `Hardy{false}()` is the space spanned by `[1/z,1/z^2,...]`.
 `Hardy{true}()` is the space spanned by `[1,z,z^2,...]`.
 """
-struct Hardy{s,D<:Domain,R} <: Space{D,R}
+struct Hardy{s,D<:PeriodicDomain,R} <: Space{D,R}
     domain::D
     Hardy{s,D,R}(d) where {s,D,R} = new{s,D,R}(d)
     Hardy{s,D,R}() where {s,D,R}  = new{s,D,R}(D())
 end
 
-# The <: Domain is crucial for matching Basecall overrides
+# The <: PeriodicDomain is crucial for matching Basecall overrides
 """
 `Taylor()` is the space spanned by `[1,z,z^2,...]`.
 This is a type alias for `Hardy{true}`.
 """
-const Taylor{D<:Domain,R} = Hardy{true,D,R}
+const Taylor{D<:PeriodicDomain,R} = Hardy{true,D,R}
 
 
 @containsconstants CosSpace
@@ -58,11 +59,11 @@ Base.promote_rule(::Type{Fun{S,V}},::Type{T}) where {T<:Number,S<:Union{Hardy{tr
 Base.promote_rule(::Type{Fun{S}},::Type{T}) where {T<:Number,S<:Union{Hardy{true},CosSpace}} =
     Fun{S,T}
 
-(H::Type{Hardy{s}})(d::Domain) where {s} = Hardy{s,typeof(d),complex(prectype(d))}(d)
+(H::Type{Hardy{s}})(d::PeriodicDomain) where {s} = Hardy{s,typeof(d),complex(prectype(d))}(d)
 (H::Type{Hardy{s}})() where {s} = Hardy{s}(Circle())
 
 canonicalspace(S::Hardy) = S
-setdomain(S::Hardy{s},d::Domain) where {s} = Hardy{s}(d)
+setdomain(S::Hardy{s},d::PeriodicDomain) where {s} = Hardy{s}(d)
 
 
 spacescompatible(a::Hardy{s},b::Hardy{s}) where {s} = domainscompatible(a,b)
@@ -101,14 +102,14 @@ end
 transform(sp::Hardy,vals::AbstractVector,plan) = plan*vals
 itransform(sp::Hardy,vals::AbstractVector,plan) = plan*vals
 
-evaluate(f::AbstractVector,S::Taylor{D,R},z) where {D<:Domain,R} = horner(f,fromcanonical(Circle(),tocanonical(S,z)))
+evaluate(f::AbstractVector,S::Taylor{D,R},z) where {D<:PeriodicDomain,R} = horner(f,fromcanonical(Circle(),tocanonical(S,z)))
 function evaluate(f::AbstractVector,S::Taylor{D,R},z) where {D<:Circle,R}
     z=mappoint(S,𝕌,z)
     d=domain(S)
     horner(f,z)
 end
 
-function evaluate(f::AbstractVector,S::Hardy{false,D},z) where D<:Domain
+function evaluate(f::AbstractVector,S::Hardy{false,D},z) where D<:PeriodicDomain
     z=mappoint(S,𝕌,z)
     z=1/z
     z*horner(f,z)
@@ -122,7 +123,7 @@ end
 
 ##TODO: fast routine
 
-function horner(c::AbstractVector,kr::AbstractRange{Int64},x)
+function horner(c::AbstractVector,kr::AbstractRange{Int},x)
     T = promote_type(eltype(c),eltype(x))
     if isempty(c)
         return zero(x)
@@ -136,7 +137,7 @@ function horner(c::AbstractVector,kr::AbstractRange{Int64},x)
     ret
 end
 
-function horner(c::AbstractVector,kr::AbstractRange{Int64},x::AbstractVector)
+function horner(c::AbstractVector,kr::AbstractRange{Int},x::AbstractVector)
     n,T = length(x),promote_type(eltype(c),eltype(x))
     if isempty(c)
         return zero(x)
@@ -155,7 +156,7 @@ end
 
 horner(c::AbstractVector,x) = horner(c,1:length(c),x)
 horner(c::AbstractVector,x::AbstractArray) = horner(c,1:length(c),x)
-horner(c::AbstractVector,kr::AbstractRange{Int64},x::AbstractArray) = reshape(horner(c,kr,vec(x)),size(x))
+horner(c::AbstractVector,kr::AbstractRange{Int},x::AbstractArray) = reshape(horner(c,kr,vec(x)),size(x))
 
 ## Cos and Sin space
 
@@ -272,16 +273,11 @@ end
     P.plan*Vector{Complex{T}}(vals)
 
 
-
 transform(::Laurent{DD,RR},vals,plan) where {DD,RR} = plan*vals
 itransform(::Laurent{DD,RR},cfs,plan) where {DD,RR} = plan*cfs
 
 transform(sp::Laurent{DD,RR},vals::AbstractVector) where {DD,RR} = plan_transform(sp,vals)*vals
 itransform(sp::Laurent{DD,RR},cfs::AbstractVector) where {DD,RR} = plan_itransform(sp,cfs)*cfs
-
-
-
-
 
 
 function evaluate(f::AbstractVector,S::Laurent{DD,RR},z) where {DD,RR}
@@ -317,13 +313,13 @@ See also `Laurent`.
 """
 const Fourier{DD,RR} = SumSpace{Tuple{CosSpace{DD,RR},SinSpace{DD,RR}},DD,RR}
 
-Laurent(d::Domain) = Laurent{typeof(d),complex(prectype(d))}(d)
-Fourier(d::Domain) = Fourier{typeof(d),real(prectype(d))}(d)
+Laurent(d::PeriodicDomain) = Laurent{typeof(d),complex(prectype(d))}(d)
+Fourier(d::PeriodicDomain) = Fourier{typeof(d),real(prectype(d))}(d)
 
 for Typ in (:Laurent,:Fourier)
     @eval begin
-        $Typ() = $Typ(PeriodicInterval())
-        $Typ(d) = $Typ(PeriodicDomain(d))
+        $Typ() = $Typ(PeriodicSegment())
+        $Typ(d) = $Typ(convert(PeriodicDomain, d))
 
         hasfasttransform(::$Typ{D,R}) where {D,R} = true
     end
@@ -428,7 +424,7 @@ itransform(sp::Fourier{DD,RR},cfs::AbstractVector) where {DD,RR} = plan_itransfo
 
 
 
-canonicalspace(S::Laurent{DD,RR}) where {DD<:PeriodicInterval,RR} = Fourier(domain(S))
+canonicalspace(S::Laurent{DD,RR}) where {DD<:PeriodicSegment,RR} = Fourier(domain(S))
 canonicalspace(S::Fourier{DD,RR}) where {DD<:Circle,RR} = Laurent(domain(S))
 canonicalspace(S::Laurent{DD,RR}) where {DD<:PeriodicLine,RR} = S
 
@@ -458,7 +454,7 @@ Fun(::typeof(identity), S::Fourier{DD,RR}) where {DD<:Circle,RR} =
 
 
 reverseorientation(f::Fun{Fourier{DD,RR}}) where {DD,RR} =
-    Fun(Fourier(reverse(domain(f))),alternatesign!(copy(f.coefficients)))
+    Fun(Fourier(reverseorientation(domain(f))),alternatesign!(copy(f.coefficients)))
 function reverseorientation(f::Fun{Laurent{DD,RR}}) where {DD,RR}
     # exp(im*k*x) -> exp(-im*k*x), or equivalentaly z -> 1/z
     n=ncoefficients(f)
@@ -472,7 +468,7 @@ function reverseorientation(f::Fun{Laurent{DD,RR}}) where {DD,RR}
     end
     iseven(n) && (ret[n] = 0)
 
-    Fun(Laurent(reverse(domain(f))),ret)
+    Fun(Laurent(reverseorientation(domain(f))),ret)
 end
 
 include("calculus.jl")

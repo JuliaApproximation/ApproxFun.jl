@@ -48,7 +48,7 @@ end
 
 ## Construction in a TensorSpace via a Vector of Funs
 
-function LowRankFun(X::Vector{VFun{S,T}},d::TensorSpace{SV,DD}) where {S,T,DD<:BivariateDomain,SV}
+function LowRankFun(X::Vector{VFun{S,T}},d::TensorSpace{SV,DD}) where {S,T,DD<:Domain2d,SV}
     @assert d[1] == space(X[1])
     LowRankFun(X,d[2])
 end
@@ -190,14 +190,14 @@ end
 
 ## Construction via TensorSpaces and ProductDomains
 
-LowRankFun(f::Function,S::TensorSpace{SV,DD,RR};kwds...) where {SV,DD<:BivariateDomain,RR} =
+LowRankFun(f::Function,S::TensorSpace{SV,DD,RR};kwds...) where {SV,DD<:Domain2d,RR} =
     LowRankFun(dynamic(f),factor(S,1),factor(S,2);kwds...)
 LowRankFun(f::Function,dx::Domain,dy::Domain;kwds...) =
     LowRankFun(dynamic(f),Space(dx),Space(dy);kwds...)
 LowRankFun(f::Function,d::ProductDomain;kwds...) =
     LowRankFun(dynamic(f),d.domains...;kwds...)
 
-LowRankFun(f::Function;kwds...) = LowRankFun(dynamic(f),Interval(),Interval();kwds...)
+LowRankFun(f::Function;kwds...) = LowRankFun(dynamic(f),ChebyshevInterval(),ChebyshevInterval();kwds...)
 
 ## Construction from values
 
@@ -206,10 +206,10 @@ LowRankFun(c::Number,etc...) = LowRankFun((x,y)->c,etc...)
 
 ## Construction from other LowRankFuns
 
-LowRankFun(f::LowRankFun,d1::IntervalDomain,d2::IntervalDomain) =
+LowRankFun(f::LowRankFun,d1::IntervalOrSegment,d2::IntervalOrSegment) =
     LowRankFun(map(g->Fun(d1,g.coefficients),f.A),
                map(g->Fun(d2,g.coefficients),f.B))
-LowRankFun(f::LowRankFun) = LowRankFun(f,Interval(),Interval())
+LowRankFun(f::LowRankFun) = LowRankFun(f,ChebyshevInterval(),ChebyshevInterval())
 
 
 

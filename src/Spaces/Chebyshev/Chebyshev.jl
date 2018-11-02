@@ -12,21 +12,34 @@ can be easily resolved.
 """
 struct Chebyshev{D<:Domain,R} <: PolynomialSpace{D,R}
     domain::D
-    Chebyshev{D,R}(d) where {D,R} = new(d)
-    Chebyshev{D,R}() where {D,R} = new(Segment())
+    function Chebyshev{D,R}(d) where {D,R}
+        isempty(d) && throw(ArgumentError("Domain cannot be empty"))
+        new(d)
+    end
+    Chebyshev{D,R}() where {D,R} = new(convert(D, ChebyshevInterval()))
 end
 
 Chebyshev(d::Domain) = Chebyshev{typeof(d),real(prectype(d))}(d)
-Chebyshev() = Chebyshev{Segment{Float64},Float64}()
+Chebyshev() = Chebyshev(ChebyshevInterval())
 Chebyshev(d) = Chebyshev(Domain(d))
 
 
-Space(d::Segment) = Chebyshev(d)
+Space(d::SegmentDomain) = Chebyshev(d)
+function Space(d::AbstractInterval)
+    a,b = endpoints(d)
+    if isinf(norm(a)) && isinf(norm(b))
+        Chebyshev(Line(d))
+    elseif isinf(norm(a)) || isinf(norm(b))
+        Chebyshev(Ray(d))
+    else
+        Chebyshev(d)
+    end
+end
 
 
-setdomain(S::Chebyshev,d::Domain) = Chebyshev(d)
+setdomain(S::Chebyshev, d::Domain) = Chebyshev(d)
 
-ones(::Type{T},S::Chebyshev) where {T<:Number} = Fun(S,fill(one(T),1))
+ones(::Type{T}, S::Chebyshev) where {T<:Number} = Fun(S,fill(one(T),1))
 ones(S::Chebyshev) = Fun(S,fill(1.0,1))
 
 function Base.first(f::Fun{<:Chebyshev})
@@ -51,7 +64,7 @@ plan_itransform(::Chebyshev,cfs::AbstractVector) = plan_ichebyshevtransform(cfs)
 
 ## Evaluation
 
-clenshaw(sp::Chebyshev,c::AbstractVector,x::AbstractArray) =
+clenshaw(sp::Chebyshev, c::AbstractVector, x::AbstractArray) =
     clenshaw(c,x,ClenshawPlan(promote_type(eltype(c),eltype(x)),sp,length(c),length(x)))
 
 function clenshaw(::Chebyshev,c::AbstractVector,x)
@@ -210,9 +223,9 @@ end
 
 
 # diff T -> U, then convert U -> T
-integrate(f::Fun{Chebyshev{D,R}}) where {D<:Segment,R} =
+integrate(f::Fun{Chebyshev{D,R}}) where {D<:IntervalOrSegment,R} =
     Fun(f.space,fromcanonicalD(f,0)*ultraint!(ultraconversion(f.coefficients)))
-differentiate(f::Fun{Chebyshev{D,R}}) where {D<:Segment,R} =
+differentiate(f::Fun{Chebyshev{D,R}}) where {D<:IntervalOrSegment,R} =
     Fun(f.space,1/fromcanonicalD(f,0)*ultraiconversion(ultradiff(f.coefficients)))
 
 
@@ -221,49 +234,53 @@ differentiate(f::Fun{Chebyshev{D,R}}) where {D<:Segment,R} =
 
 ## Multivariate
 
+# determine correct parameter to have at least
+# N point
+_padua_length(N) = Int(cld(-3+sqrt(1+8N),2))
+
 function squarepoints(::Type{T}, N) where T
-    pts=paduapoints(T,Int(cld(-3+sqrt(1+8N),2)))
+    pts = paduapoints(T, _padua_length(N))
     n = size(pts,1)
-    ret=Array{Vec{2,T}}(undef, n)
+    ret = Array{Vec{2,T}}(undef, n)
     @inbounds for k=1:n
-        ret[k]=Vec{2,T}(pts[k,1],pts[k,2])
+        ret[k] = Vec{2,T}(pts[k,1],pts[k,2])
     end
     ret
 end
 
-function points(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},N) where {D,R}
-    T = real(prectype(D))
+points(S::TensorSpace{<:Tuple{<:Chebyshev{<:ChebyshevInterval},<:Chebyshev{<:ChebyshevInterval}}}, N) =
+    squarepoints(real(prectype(S)), N)
+
+function points(S::TensorSpace{<:Tuple{<:Chebyshev,<:Chebyshev}},N)
+    T = real(prectype(S))
     pts = squarepoints(T, N)
-    if domain(S) == Segment()^2
-        pts
-    else
-        fromcanonical.(Ref(S),pts)
-    end
+    pts .= fromcanonical.(Ref(domain(S)), pts)
+    pts
 end
 
-plan_transform(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector) where {D,R} =
+plan_transform(S::TensorSpace{<:Tuple{<:Chebyshev,<:Chebyshev}},v::AbstractVector) =
     plan_paduatransform!(v,Val{false})
 
-transform(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector,
-        plan=plan_transform(S,v)) where {D,R} = plan*copy(v)
+transform(S::TensorSpace{<:Tuple{<:Chebyshev,<:Chebyshev}},v::AbstractVector,
+        plan=plan_transform(S,v)) = plan*copy(v)
 
-plan_itransform(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector) where {D,R} =
+plan_itransform(S::TensorSpace{<:Tuple{<:Chebyshev,<:Chebyshev}},v::AbstractVector) =
      plan_ipaduatransform!(eltype(v),sum(1:nblocks(Fun(S,v))),Val{false})
 
-itransform(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector,
-         plan=plan_itransform(S,v)) where {D,R} = plan*pad(v,sum(1:nblocks(Fun(S,v))))
+itransform(S::TensorSpace{<:Tuple{<:Chebyshev,<:Chebyshev}},v::AbstractVector,
+         plan=plan_itransform(S,v)) = plan*pad(v,sum(1:nblocks(Fun(S,v))))
 
 
 #TODO: adaptive
 for op in (:(Base.sin),:(Base.cos))
-    @eval ($op)(f::ProductFun{S,V}) where {S<:Chebyshev,V<:Chebyshev} =
+    @eval ($op)(f::ProductFun{<:Chebyshev,<:Chebyshev}) =
         ProductFun(chebyshevtransform($op.(values(f))),space(f))
 end
 
 
 
-reverseorientation(f::Fun{C}) where {C<:Chebyshev} =
-    Fun(Chebyshev(reverse(domain(f))),alternatesign!(copy(f.coefficients)))
+reverseorientation(f::Fun{<:Chebyshev}) =
+    Fun(Chebyshev(reverseorientation(domain(f))),alternatesign!(copy(f.coefficients)))
 
 
 include("ChebyshevOperators.jl")

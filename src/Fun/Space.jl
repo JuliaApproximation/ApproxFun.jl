@@ -8,7 +8,7 @@ export Space, domainspace, rangespace, maxspace,Space,conversion_type, transform
 # Space maps the Domain to the type R
 # For example, we have
 #   Chebyshev{Interval{Float64}} <: Space{Interval{Float64},Float64}
-#   Laurent{PeriodicInterval{Float64}} <: Space{PeriodicInterval{Float64},ComplexF64}
+#   Laurent{PeriodicSegment{Float64}} <: Space{PeriodicSegment{Float64},ComplexF64}
 #   Fourier{Circle{ComplexF64}} <: Space{Circle{ComplexF64},Float64}
 # Note for now Space doesn't contain any information about the coefficients
 
@@ -18,9 +18,9 @@ abstract type Space{D,R} end
 
 const RealSpace = Space{D,R} where {D,R<:Real}
 const ComplexSpace = Space{D,R} where {D,R<:Complex}
-const UnivariateSpace = Space{D,R} where {D<:UnivariateDomain,R}
-const BivariateSpace = Space{D,R}  where {D<:BivariateDomain,R}
-const RealUnivariateSpace = RealSpace{D,R} where {D<:UnivariateDomain,R<:Real}
+const UnivariateSpace = Space{D,R} where {D<:Domain1d,R}
+const BivariateSpace = Space{D,R}  where {D<:Domain2d,R}
+const RealUnivariateSpace = RealSpace{D,R} where {D<:Domain1d,R<:Real}
 
 
 
@@ -51,11 +51,12 @@ transpose(sp::Space) = sp  # default no-op
 
 
 # the default is all spaces have one-coefficient blocks
-blocklengths(S::Space) = repeated(true,dimension(S))
+blocklengths(S::Space) = Ones{Int}(dimension(S))
 nblocks(S::Space) = length(blocklengths(S))
 block(S::Space,k) = Block(k)
 
-Space(d::AbstractVector{D}) where {D<:Number} = Space(convert(Domain,d))
+Space(s::Space) = s
+
 
 
 abstract type AmbiguousSpace <: Space{AnyDomain,UnsetNumber} end
@@ -78,7 +79,7 @@ end
 # end
 
 setcanonicaldomain(s) = setdomain(s,canonicaldomain(s))
-reverseorientation(S::Space) = setdomain(S,reverse(domain(S)))
+reverseorientation(S::Space) = setdomain(S,reverseorientation(domain(S)))
 
 
 # UnsetSpace dictates that an operator is not defined until
@@ -110,7 +111,7 @@ spacescompatible(f::D,g::D) where D<:Space = error("Override spacescompatible fo
 spacescompatible(::UnsetSpace,::UnsetSpace) = true
 spacescompatible(::NoSpace,::NoSpace) = true
 spacescompatible(f,g) = false
-==(A::Space,B::Space) = spacescompatible(A,B) && domain(A)==domain(B)
+==(A::Space,B::Space) = spacescompatible(A,B) && domain(A) == domain(B)
 spacesequal(A::Space,B::Space) = A==B
 
 pointscompatible(f,g) = spacescompatible(f,g)
@@ -241,9 +242,9 @@ end
 # union combines two spaces
 # this is used primarily for addition of two funs
 # that may be incompatible
-union(a::AmbiguousSpace,b::AmbiguousSpace)=b
-union(a::AmbiguousSpace,b::Space)=b
-union(a::Space,b::AmbiguousSpace)=a
+union(a::AmbiguousSpace, b::AmbiguousSpace) = b
+union(a::AmbiguousSpace, b::Space) = b
+union(a::Space, b::AmbiguousSpace) = a
 
 
 function union_by_union_rule(a::Space,b::Space)
@@ -261,7 +262,7 @@ function union_by_union_rule(a::Space,b::Space)
     union_rule(b,a)
 end
 
-function union(a::Space,b::Space)
+function union(a::Space, b::Space)
     cr = union_by_union_rule(a,b)
     cr isa NoSpace || return cr
 
@@ -270,11 +271,11 @@ function union(a::Space,b::Space)
     if cspa!=a || cspb!=b
         cr = union_by_union_rule(cspa,cspb)
     end
-    #TODO: Uncomment when Julia bug is fixed
-    # cr=maxspace(a,b)  #Max space since we can convert both to it
-    # if !isa(cr,NoSpace)
-    #     return cr
-    # end
+    # TODO: Uncomment when Julia bug is fixed
+    cr=maxspace(a,b)  #Max space since we can convert both to it
+    if !isa(cr,NoSpace)
+        return cr
+    end
 
     a ⊕ b
 end
@@ -481,8 +482,11 @@ struct ConstantSpace{DD,R} <: Space{DD,R}
 end
 
 ConstantSpace(d::Domain) = ConstantSpace{typeof(d),real(prectype(d))}(d)
-ConstantSpace() = ConstantSpace{AnyDomain,Float64}(AnyDomain())
-ConstantSpace(::Type{N}) where {N<:Number} = ConstantSpace{AnyDomain,real(N)}(AnyDomain())
+
+ConstantSpace(::Type{N},d::Domain) where {N<:Number} = ConstantSpace{typeof(d),real(N)}(d)
+ConstantSpace(::Type{N}) where {N<:Number} = ConstantSpace(N,AnyDomain())
+ConstantSpace() = ConstantSpace(Float64)
+
 
 convert(::Type{Space}, z::Number) = ConstantSpace(convert(Domain, z))  # Spaces
 convert(::Type{ConstantSpace}, d::Domain) = ConstantSpace(d)
@@ -510,6 +514,7 @@ space(f::AbstractArray{T}) where T<:Number = ArraySpace(ConstantSpace{T}(), size
 
 setdomain(A::ConstantSpace{DD,R}, d) where {DD,R} = ConstantSpace{typeof(d),R}(d)
 
+blocklengths(::ConstantSpace) = Vec(1)
 
 # Range type is Nothing since function evaluation is not defined
 struct SequenceSpace <: Space{PositiveIntegers,Nothing} end
@@ -529,4 +534,4 @@ spacescompatible(::SequenceSpace,::SequenceSpace) = true
 
 ## Boundary
 
-∂(S::Space) = ∂(domain(S))
+boundary(S::Space) = boundary(domain(S))

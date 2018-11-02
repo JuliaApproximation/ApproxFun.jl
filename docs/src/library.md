@@ -46,7 +46,7 @@ Line
 ```
 
 ```@docs
-PeriodicInterval
+PeriodicSegment
 ```
 
 ```@docs

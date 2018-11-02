@@ -5,7 +5,7 @@ export grad, lap, curl
 
 #implements coefficients/values/evaluate
 space(f::MultivariateFun{T,N}) where {T,N}=mapreduce(k->space(f,k),⊗,1:N)
-domain(f::MultivariateFun{T,N}) where {T,N}=mapreduce(k->domain(f,k),*,1:N)
+domain(f::MultivariateFun{T,N}) where {T,N}=mapreduce(k->domain(f,k),×,1:N)
 
 domain(f::MultivariateFun,k::Integer)=domain(space(f,k))
 

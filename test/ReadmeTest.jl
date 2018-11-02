@@ -1,4 +1,4 @@
-using ApproxFun, SpecialFunctions, Test
+using ApproxFun, SpecialFunctions, LinearAlgebra, Test
 
 
 @testset "Readme" begin
@@ -51,12 +51,13 @@ using ApproxFun, SpecialFunctions, Test
     end
 
     @testset "ODE" begin
-        x = Fun(identity,-1000..200)
+        a,b = -1000,200
+        x = Fun(identity, a..b)
         d = domain(x)
         D = Derivative(d)
         B = Dirichlet(d)
         L = D^2 - x
-        u = [B;L] \ [[airyai(d.a),airyai(d.b)],0]
+        u = [B;L] \ [[airyai(a),airyai(b)],0]
 
         @test ≈(u(0.),airyai(0.);atol=10000eps())
 
@@ -101,7 +102,7 @@ using ApproxFun, SpecialFunctions, Test
 
 
     @testset "PDE" begin
-        d = Interval()^2                            # Defines a rectangle
+        d = ChebyshevInterval()^2                            # Defines a rectangle
 
         # @time u = \([Dirichlet(d);Laplacian(d)+100I],
         #                     [ones(∂(d));0.];tolerance=1E-10)      # First four entries of rhs are

@@ -65,16 +65,16 @@ end
 conversion_rule(sp::HeavisideSpace,sp2::PiecewiseSpace{NTuple{k,PS}}) where {k,PS<:PolynomialSpace} = sp
 
 
-Conversion(a::HeavisideSpace,b::PiecewiseSpace{NTuple{kk,CC},DD,RR}) where {kk,CC<:PolynomialSpace,DD<:UnivariateDomain,RR<:Real} =
+Conversion(a::HeavisideSpace,b::PiecewiseSpace{NTuple{kk,CC},DD,RR}) where {kk,CC<:PolynomialSpace,DD<:Domain1d,RR<:Real} =
     ConcreteConversion(a,b)
-bandinds(::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},DD,RR}}) where {HS<:HeavisideSpace,CC<:PolynomialSpace,DD<:UnivariateDomain,RR<:Real,kk} =
+bandwidths(::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},DD,RR}}) where {HS<:HeavisideSpace,CC<:PolynomialSpace,DD<:Domain1d,RR<:Real,kk} =
     0,0
 
-getindex(C::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},DD,RR}},k::Integer,j::Integer) where {HS<:HeavisideSpace,CC<:PolynomialSpace,DD<:UnivariateDomain,RR<:Real,kk} =
+getindex(C::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},DD,RR}},k::Integer,j::Integer) where {HS<:HeavisideSpace,CC<:PolynomialSpace,DD<:Domain1d,RR<:Real,kk} =
     k ≤ dimension(domainspace(C)) && j==k ? one(eltype(C)) : zero(eltype(C))
 
 
-bandinds(D::ConcreteDerivative{H}) where {H<:HeavisideSpace} = (0,1)
+bandwidths(D::ConcreteDerivative{H}) where {H<:HeavisideSpace} = (0,1)
 rangespace(D::ConcreteDerivative{H}) where {H<:HeavisideSpace} = DiracSpace(domain(D).points[2:end-1])
 
 function getindex(D::ConcreteDerivative{H,<:Any,T},k::Integer,j::Integer) where {H<:HeavisideSpace,T}

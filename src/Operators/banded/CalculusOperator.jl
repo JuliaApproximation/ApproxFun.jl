@@ -94,7 +94,7 @@ macro calculus_operator(Op)
             end
         end
     end)
-#     for func in (:rangespace,:domainspace,:bandinds)
+#     for func in (:rangespace,:domainspace,:bandwidths)
 #         # We assume the operator wrapped has the correct spaces
 #         @eval $func(D::$WrappOp)=$func(D.op)
 #     end
@@ -155,7 +155,7 @@ function linesum(f::Fun)
     d=domain(f)
 
     if isreal(d)
-        a,b=first(d),last(d)
+        a,b=leftendpoint(d),rightendpoint(d)
         sign(last(b)-first(a))*sum(f)
     elseif typeof(cd)==typeof(d)  || isa(d,PeriodicDomain)
         error("override linesum for $(f.space)")

@@ -23,14 +23,14 @@ end
 
 Ultraspherical(m::Number,d::Domain) = Ultraspherical{typeof(m),typeof(d),real(prectype(d))}(m,d)
 Ultraspherical(m::Number,d) = Ultraspherical(m,Domain(d))
-Ultraspherical(m::Number) = Ultraspherical(m,Interval())
+Ultraspherical(m::Number) = Ultraspherical(m,ChebyshevInterval())
 
 
 order(S::Ultraspherical) = S.order
 setdomain(S::Ultraspherical,d::Domain) = Ultraspherical(order(S),d)
 
 
-
+convert(::Type{Ultraspherical{T,D,R}}, S::Ultraspherical{T,D,R}) where {T,D,R} = S
 
 
 canonicalspace(S::Ultraspherical) = Chebyshev(domain(S))
@@ -102,8 +102,8 @@ end
 
 Base.last(f::Fun{Ultraspherical{Int,D,R}}) where {D,R} = reduce(+,coefficients(f,Chebyshev))
 
-Base.first(f::Fun{Ultraspherical{O,D,R}}) where {O,D,R} = f(first(domain(f)))
-Base.last(f::Fun{Ultraspherical{O,D,R}}) where {O,D,R} = f(last(domain(f)))
+Base.first(f::Fun{Ultraspherical{O,D,R}}) where {O,D,R} = f(leftendpoint(domain(f)))
+Base.last(f::Fun{Ultraspherical{O,D,R}}) where {O,D,R} = f(rightendpoint(domain(f)))
 
 Fun(::typeof(identity), d::Ultraspherical) = Fun(Fun(identity, domain(d)),d)
 

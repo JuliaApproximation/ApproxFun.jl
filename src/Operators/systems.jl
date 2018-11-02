@@ -1,8 +1,8 @@
 ##Operators
-
+# TODO: REMOVE!
 for op in (:Derivative,:Integral)
     @eval begin
-        function ($op)(d::AbstractVector{T}) where T<:IntervalDomain
+        function ($op)(d::AbstractVector{T}) where T<:IntervalOrSegment
             n=length(d)
             R=zeros(Operator{mapreduce(eltype,promote_type,d)},n,n)
             for k=1:n
@@ -14,7 +14,7 @@ for op in (:Derivative,:Integral)
     end
 end
 
-function Evaluation(d::AbstractVector{T},x...) where T<:IntervalDomain
+function Evaluation(d::AbstractVector{T},x...) where T<:IntervalOrSegment
     n=length(d)
     R=zeros(Operator{mapreduce(eltype,promote_type,d)},n,n)
     for k=1:n

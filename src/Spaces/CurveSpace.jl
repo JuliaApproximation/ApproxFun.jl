@@ -5,7 +5,7 @@ Space(d::PeriodicCurve{S}) where {S<:Fourier}=Fourier(d)
 Space(d::PeriodicCurve{S}) where {S<:Laurent}=Laurent(d)
 
 #TODO: Make type stable
-Curve(f::Fun) = isa(domain(f),IntervalDomain) ? IntervalCurve(f) : PeriodicCurve(f)
+Curve(f::Fun) = isa(domain(f),IntervalOrSegment) ? IntervalCurve(f) : PeriodicCurve(f)
 
 # function evaluate{C<:Curve,TT}(f::AbstractVector,S::Space{TT,C},x::Number)
 #     rts=roots(domain(S).curve-x)
@@ -24,24 +24,24 @@ Fun(::typeof(identity), d::Space{<:Curve}) = Fun(setdomain(space(domain(d).curve
 #
 export Bernstein, Bézier
 
-struct Bernstein{order,T,R} <: Space{T,R}
-    domain::Segment{T}
-    Bernstein{order,T,R}(d) where {order,T,R} = new(d)
-    Bernstein{order,T,R}() where {order,T,R} = new(Segment{T}())
+struct Bernstein{order,D,R} <: Space{D,R}
+    domain::D
+    Bernstein{order,D,R}(d) where {order,D,R} = new(d)
+    Bernstein{order,D,R}() where {order,D,R} = new(convert(D, ChebyshevInterval()))
 end
 
 const Bézier = Bernstein # option+e e gives é
 
-Bernstein{O}() where {O} = Bernstein{O,Float64,Float64}()
-Bernstein{O}(d::Domain) where {O} = Bernstein{O,eltype(d),real(prectype(d))}(d)
+Bernstein{O}() where {O} = Bernstein{O,ChebyshevInterval{Float64},Float64}()
+Bernstein{O}(d::Domain) where {O} = Bernstein{O,typeof(d),real(prectype(d))}(d)
 
 order(::Bernstein{O}) where {O} = O
-order(::Type{Bernstein{O,T,R}}) where {O,T,R} = O
+order(::Type{Bernstein{O,D,R}}) where {O,D,R} = O
 dimension(::Bernstein{O}) where {O} = O+1
-dimension(::Type{Bernstein{O,T,R}}) where {O,T,R} = O+1
+dimension(::Type{Bernstein{O,D,R}}) where {O,D,R} = O+1
 
 canonicalspace(B::Bernstein) = Chebyshev(domain(B))
-canonicaldomain(B::Bernstein{O,T}) where {O,T} = Segment{T}()
+canonicaldomain(B::Bernstein{O,T}) where {O,T} = ChebyshevInterval{T}()
 
 spacescompatible(a::Bernstein{O,T},b::Bernstein{O,T}) where {O,T}=domainscompatible(a,b)
 
@@ -94,7 +94,7 @@ function splitbernstein(f::AbstractVector,S::Bernstein,z)
         β1[order(S)+2-i] = β[1]
         β2[i] = β[i]
     end
-    Fun(PiecewiseSpace(Bernstein{order(S)}(Segment(first(domain(S)),z)),Bernstein{order(S)}(Segment(z,last(domain(S))))),
+    Fun(PiecewiseSpace(Bernstein{order(S)}(Segment(leftendpoint(domain(S)),z)),Bernstein{order(S)}(Segment(z,rightendpoint(domain(S))))),
         interlace(β1,β2))
 end
 

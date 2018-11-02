@@ -34,8 +34,8 @@ function continuity(sp::PiecewiseSpace,order::Integer)
     B=zeros(Operator{prectype(sp)},m-1,m)
 
     for k=1:m-1
-        B[k,k] = Evaluation(component(sp,k),last,order)
-        B[k,k+1] = -Evaluation(component(sp,k+1),first,order)
+        B[k,k] = Evaluation(component(sp,k),rightendpoint,order)
+        B[k,k+1] = -Evaluation(component(sp,k+1),leftendpoint,order)
     end
 
     InterlaceOperator(B,PiecewiseSpace,ArraySpace)
@@ -172,7 +172,7 @@ function Conversion(a::SumSpace, b::Space)
     for n=1:length(a.spaces)
         m[1,n]=Conversion(a.spaces[n],b)
     end
-    return ConversionWrapper(InterlaceOperator(m, a, b, cache(interlacer(a)), cache(BlockInterlacer((repeated(1),))), (1-dimension(b),dimension(a)-1)))
+    return ConversionWrapper(InterlaceOperator(m, a, b, cache(interlacer(a)), cache(BlockInterlacer((Fill(1,∞),))), (1-dimension(b),dimension(a)-1)))
 end
 
 
@@ -201,7 +201,7 @@ for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspac
             elseif sort(collect(cs1)) == sort(collect(cs2))
                 # sort S1
                 p=perm(cs1,cs2)
-                $OP($TYP(S1[p]),S2)
+                $OP($TYP(S1[p]),S2sp)
             elseif length(S1) == length(S2) == 2  &&
                     $OP(S1[1],S2[1]) != NoSpace() &&
                     $OP(S1[2],S2[2]) != NoSpace()

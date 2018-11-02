@@ -107,17 +107,17 @@ DiracDelta()=DiracDelta(0.)
 KroneckerDelta(x::Number) = Fun(PointSpace(x),[1.])
 KroneckerDelta() = KroneckerDelta(0.)
 
-function Base.cumsum(f::Fun{S},d::Segment{T}) where {S<:DiracSpace,T<:Real}
+function Base.cumsum(f::Fun{S},d::IntervalOrSegment{T}) where {S<:DiracSpace,T<:Real}
     pts=space(f).points
     @assert pts ==sort(pts)
     cfs=cumsum(f.coefficients)
-    if first(d) < first(pts) && last(d) > last(pts)
-        Fun(HeavisideSpace([first(d);pts;last(d)]),[0;cfs])
-    elseif first(d) == first(pts) && last(d) > last(pts)
-        Fun(HeavisideSpace([pts;last(d)]),cfs)
-    elseif first(d) < first(pts) && last(d) == last(pts)
-        Fun(HeavisideSpace([first(d);pts]),[0;cfs])
-    elseif first(d) == first(pts) && last(d) == last(pts)
+    if leftendpoint(d) < first(pts) && rightendpoint(d) > last(pts)
+        Fun(HeavisideSpace([leftendpoint(d);pts;rightendpoint(d)]),[0;cfs])
+    elseif leftendpoint(d) == first(pts) && rightendpoint(d) > last(pts)
+        Fun(HeavisideSpace([pts;rightendpoint(d)]),cfs)
+    elseif leftendpoint(d) < first(pts) && rightendpoint(d) == last(pts)
+        Fun(HeavisideSpace([leftendpoint(d);pts]),[0;cfs])
+    elseif leftendpoint(d) == first(pts) && rightendpoint(d) == last(pts)
         Fun(HeavisideSpace(pts),cfs[1:end-1])
     else
         error("Implement")
@@ -144,17 +144,17 @@ end
 
 function Multiplication(f::Fun{PS}, PS2::PointSpace) where PS<:PointSpace
     @assert space(f).points==PS2.points
-    FiniteOperator(diagm(values(f)),PS2,PS2)
+    FiniteOperator(Diagonal(values(f)),PS2,PS2)
 end
 
 function Multiplication(f::Fun{PS}, DS::DiracSpace) where PS<:PointSpace
     @assert space(f).points==DS.points
-    FiniteOperator(diagm(values(f)),DS,DS)
+    FiniteOperator(Diagonal(values(f)),DS,DS)
 end
 
 function Multiplication(f::Fun{DS}, PS::PointSpace) where DS<:DiracSpace
     @assert space(f).points==PS.points
-    FiniteOperator(diagm(coefficient(f,:)),PS,space(f))
+    FiniteOperator(Diagonal(coefficient(f,:)),PS,space(f))
 end
 
 function coefficienttimes(f::Fun{PS}, g::Fun{DS}) where {PS<:PointSpace,DS<:DiracSpace}

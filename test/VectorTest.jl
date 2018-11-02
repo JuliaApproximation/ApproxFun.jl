@@ -1,10 +1,17 @@
-using ApproxFun, Test
+using ApproxFun, LazyArrays, FillArrays, LinearAlgebra, SpecialFunctions, Test
     import ApproxFun: interlace, Multiplication, ConstantSpace, PointSpace,
-    ArraySpace, testblockbandedoperator
+                        ArraySpace, testblockbandedoperator, blocklengths, ∞,
+                        testraggedbelowoperator, Vec
+
+
+
 
 @testset "Vector" begin
     @testset "Construction" begin
-        @test Fun(x->[1.,0.])(0.) ≈ [1.,0.]
+        f = Fun(x->[1.,0.])
+        @test f(0.) ≈ [1.,0.]
+        @test f[end] ≈ 0
+        @test f[firstindex(f)] ≈ 1
     end
 
     @testset "Broadcast" begin
@@ -67,7 +74,6 @@ using ApproxFun, Test
 
         @test (m+I)(0.1) ≈ m(0.1)+I
     end
-
 
     @testset "CosSpace Vector" begin
         a = [1 2; 3 4]
@@ -161,7 +167,7 @@ using ApproxFun, Test
     end
 
     @testset "Vector ODE" begin
-        d=Interval()
+        d=ChebyshevInterval()
         D=Derivative(d);
         B=ldirichlet();
         Bn=lneumann();
@@ -187,7 +193,6 @@ using ApproxFun, Test
            0 D+I];
 
         b=Any[0.,0.,0.,f...]
-
 
         @time u=A\b
         u1=vec(u)[1];u2=vec(u)[2];
@@ -217,11 +222,8 @@ using ApproxFun, Test
         @test norm(u(1.)-exp(A)[:,1:2])<eps(1000.)
     end
 
-
-
-
     @testset "Multiplication" begin
-        d = Interval()
+        d = ChebyshevInterval()
         t=Fun(identity,d)
         f = Fun([t^2, sin(t)])
         @test norm(((Derivative(space(f))*f)-Fun(t->[2t,cos(t)])).coefficients)<100eps()
@@ -274,7 +276,6 @@ using ApproxFun, Test
 
         @test Fun(F) ≡ F
 
-
         @test F(exp(0.1im)) ≈ [-exp(-0.1im)+1+2exp(0.1im);-3exp(-0.1im)+1+1exp(0.1im)]
         @test Fun(F̃,space(F))(exp(0.1im)) ≈ [-exp(-0.1im)+1+2exp(0.1im);-3exp(-0.1im)+1+1exp(0.1im)]
 
@@ -285,14 +286,13 @@ using ApproxFun, Test
 
         @test inv(G(exp(0.1im))) ≈ inv(G)(exp(0.1im))
 
-
         @test Fun(Matrix(I,2,2),space(G))(exp(0.1im)) ≈ Matrix(I,2,2)
         @test Fun(I,space(G))(exp(0.1im)) ≈ Matrix(I,2,2)
     end
 
     @testset "Conversion" begin
         f=Fun(t->[cos(t) 0;sin(t) 1],-π..π)
-        g=Fun(f,Space(PeriodicInterval(-π,π)))
+        g=Fun(f,Space(PeriodicSegment(-π,π)))
         @test g(.1) ≈ f(.1)
 
         a = ArraySpace(JacobiWeight(1/2,1/2, Chebyshev()), 2)
@@ -311,10 +311,10 @@ using ApproxFun, Test
     end
 
     @testset "Interlace" begin
-        S1=Chebyshev()^2
-        S2=Chebyshev()
-        TS=ArraySpace([ConstantSpace(),S1,ConstantSpace(),S2,PointSpace([1.,2.])])
-        f=Fun(TS,collect(1:13))
+        S1 = Chebyshev()^2
+        S2 = Chebyshev()
+        TS = ArraySpace([ConstantSpace(),S1,ConstantSpace(),S2,PointSpace([1.,2.])])
+        f = Fun(TS,collect(1:13))
         @test f[1] == Fun(TS[1],[1.])
         @test f[2] == Fun(TS[2],[2.,7.,8.,10.,11.,12.])
         @test f[3] == Fun(TS[3],[3.])
@@ -334,13 +334,15 @@ using ApproxFun, Test
     end
 
     @testset "Floquet" begin
-        T = π;a=0.15
+        # TODO: fix when IntervalSets.jl is fixed
+        T = Float64(π, RoundUp); a=0.15
         t = Fun(identity,0..T)
         d=domain(t)
         D=Derivative(d)
         B=ldirichlet(d)
 
         B_row = [D             -I  0I            0I]
+
         f=Fun(exp,d)
         @test norm((B_row*[f;f;f;f])[1]) ≤ 1000eps()
         @test B_row isa ApproxFun.MatrixInterlaceOperator
@@ -351,12 +353,15 @@ using ApproxFun, Test
 
         n=4
         Dg = Operator(diagm(0 => fill(ldirichlet(d),n)))
+
         @test Dg isa ApproxFun.MatrixInterlaceOperator
         @test size([Dg; B_row].ops) == (5,4)
+
+        L = [Dg; B_row]
+        testraggedbelowoperator(L)
         @test ([Dg; B_row]*[f;f;f;f])(0.1) ≈ [fill(1.0,4);0]
 
         @test hcat(Dg).ops == Dg.ops
-
 
         B_row2 = [(2+a*cos(2t))   D  -I            0I]
         @test ([B_row;B_row2]*[f;f;f;f])(0.1) ≈ [0.,(2+a*cos(2*0.1))*f(0.1) + f'(0.1) - f(0.1)]
@@ -367,12 +372,17 @@ using ApproxFun, Test
            0I             0I   D            -I;
            -I             0I  (2+a*cos(2t))  D]
 
-
         Φ = A\Matrix(I,2n,n);
 
         @test Φ(π) ≈ [-0.170879 -0.148885 -0.836059 0.265569;
                  0.732284 -0.170879 -0.612945 -0.836059;
                  -0.836059 0.265569 -0.170879 -0.148885;
                  -0.612945 -0.836059 0.732284 -0.170879] atol=1E-3
+    end
+
+    @testset "diagonal" begin
+        x = Fun(0.0..1)
+        @test isambiguous(domain(zero(typeof(x))))
+        @test diagm(0 => [x,x]) * [1,2] == [x,2x]
     end
 end

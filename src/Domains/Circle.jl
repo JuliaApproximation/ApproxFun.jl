@@ -66,7 +66,7 @@ fromcanonicalD(d::Circle{T},θ::Number) where {T<:Vec} =
 	d.radius*(d.orientation ? 1 : -1)*Vec(-sin((d.orientation ? 1 : -1)*θ),cos((d.orientation ? 1 : -1)*θ))
 
 
-in(z,d::Circle) = norm(z-d.center) ≈ d.radius
+indomain(z,d::Circle) = norm(z-d.center) ≈ d.radius
 
 arclength(d::Circle) = 2π*d.radius
 complexlength(d::Circle) = (d.orientation ? 1 : -1)*im*arclength(d)  #TODO: why?
@@ -90,7 +90,7 @@ end
 
 
 
-reverse(d::Circle) = Circle(d.center,d.radius,!d.orientation)
+reverseorientation(d::Circle) = Circle(d.center,d.radius,!d.orientation)
 conj(d::Circle) = Circle(conj(d.center),d.radius,!d.orientation)
 
 

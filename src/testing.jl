@@ -123,7 +123,7 @@ function backend_testinfoperator(A)
     @test isinf(size(A,1))
     @test isinf(size(A,2))
     B=A[1:5,1:5]
-    eltype(B) == eltype(A)
+    @test eltype(B) == eltype(A)
 
     for k=1:5,j=1:5
         @test B[k,j] ≈ A[k,j]
@@ -190,7 +190,7 @@ function testbandedbelowoperator(A)
     testraggedbelowoperator(A)
 
     for k=1:10
-        @test colstop(A,k) ≤ k + bandwidth(A,1)
+        @test colstop(A,k) ≤ max(0,k + bandwidth(A,1))
     end
 end
 
@@ -217,9 +217,12 @@ function testblockbandedoperator(A)
     @test isfinite(blockbandwidth(A,2))
     @test isfinite(blockbandwidth(A,1))
 
-    for K=1:10
-        @test K - blockbandwidth(A,2) ≤ blockcolstop(A,K).n[1] ≤ K + blockbandwidth(A,1) < ∞
-        @test K - blockbandwidth(A,1) ≤ blockrowstop(A,K).n[1] ≤ K + blockbandwidth(A,2) < ∞
+
+    if -blockbandwidth(A,1) ≤ blockbandwidth(A,2)
+        for K=1:10
+            @test K - blockbandwidth(A,2) ≤ blockcolstop(A,K).n[1] ≤ K + blockbandwidth(A,1) < ∞
+            @test K - blockbandwidth(A,1) ≤ blockrowstop(A,K).n[1] ≤ K + blockbandwidth(A,2) < ∞
+        end
     end
 end
 

@@ -14,7 +14,7 @@ struct LaurentDirichlet{DD,RR} <: Space{DD,RR}
     LaurentDirichlet{DD,RR}(d::DD) where {DD,RR} = new(d)
 end
 LaurentDirichlet(d::Domain) = LaurentDirichlet{typeof(d),complex(eltype(d))}(d)
-LaurentDirichlet() = LaurentDirichlet(PeriodicInterval())
+LaurentDirichlet() = LaurentDirichlet(PeriodicSegment())
 
 spacescompatible(a::LaurentDirichlet,b::LaurentDirichlet) = domainscompatible(a,b)
 
@@ -22,7 +22,7 @@ canonicalspace(S::LaurentDirichlet) = Laurent(domain(S))
 
 
 Conversion(a::LaurentDirichlet{DD,RR},b::Laurent{DD,RR}) where {DD,RR} = ConcreteConversion(a,b)
-bandinds(::ConcreteConversion{LaurentDirichlet{DD,RR},Laurent{DD,RR}}) where {DD,RR} = 0,2
+bandwidths(::ConcreteConversion{LaurentDirichlet{DD,RR},Laurent{DD,RR}}) where {DD,RR} = 0,2
 
 function getindex(C::ConcreteConversion{LaurentDirichlet{DD,RR},Laurent{DD,RR}},k::Integer,j::Integer) where {DD,RR}
     if k==1 && j==2
@@ -91,14 +91,14 @@ struct CosDirichlet{DD,RR} <: Space{DD,RR}
 end
 
 CosDirichlet(d::Domain) = CosDirichlet{typeof(d),real(eltype(d))}(d)
-CosDirichlet() = CosDirichlet(PeriodicInterval())
+CosDirichlet() = CosDirichlet(PeriodicSegment())
 
 spacescompatible(a::CosDirichlet,b::CosDirichlet) = domainscompatible(a,b)
 
 canonicalspace(S::CosDirichlet)=CosSpace(domain(S))
 
 Conversion(a::CosSpace,b::CosDirichlet) = ConcreteConversion(a,b)
-bandinds(::ConcreteConversion{CD,CS}) where {CS<:CosSpace,CD<:CosDirichlet}=0,1
+bandwidths(::ConcreteConversion{CD,CS}) where {CS<:CosSpace,CD<:CosDirichlet}=0,1
 getindex(C::ConcreteConversion{CD,CS},k::Integer,j::Integer) where {CS<:CosSpace,CD<:CosDirichlet} =
     (k==j||j==k+1) ? one(eltype(C)) : zero(eltype(C))
 

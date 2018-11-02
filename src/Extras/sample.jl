@@ -22,7 +22,7 @@ end
 
 function bisectioninv(f::Fun{S,T},x::Float64;numits::Int=47) where {S,T}
     d=domain(f)
-    a = first(d);b = last(d)
+    a = minimum(d);b = maximum(d)
 
     for k=1:numits  #TODO: decide 47
         m= genmidpoint(a,b)
@@ -196,7 +196,7 @@ function sample(f::LowRankFun,n::Integer)
     [rx ry]
 end
 
-function sample(f::LowRankFun{C,C,TensorSpace{Tuple{C,C},DD,RR},Float64},n::Integer) where {C<:Chebyshev,DD<:BivariateDomain,RR<:Real}
+function sample(f::LowRankFun{C,C,TensorSpace{Tuple{C,C},DD,RR},Float64},n::Integer) where {C<:Chebyshev,DD<:Domain2d,RR<:Real}
     ry=sample(sum(f,1),n)
     fA=evaluate.(f.A,ry')
     CB=coefficientmatrix(f.B)

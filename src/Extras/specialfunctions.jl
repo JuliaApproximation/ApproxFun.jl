@@ -1,5 +1,27 @@
 ## abs
-splitmap(g,d::Domain,pts) = Fun(g,d \ pts)
+splitmap(g,d::Domain,pts) = Fun(g,split(d , pts))
+
+function split(d::IntervalOrSegment, pts)
+    a,b = endpoints(d)
+    isendpoint = true
+    for p in pts
+        if !(p ≈ a) && !(p ≈ b)
+            isendpoint = false
+            break
+        end
+    end
+    isendpoint && return d
+
+    @assert all(in.(pts, Ref(d)))
+    PiecewiseSegment(sort!(union(endpoints(d), pts)))
+end
+
+function split(d::PiecewiseSegment, pts)
+    @assert all(in.(pts, Ref(d)))
+    PiecewiseSegment(sort!(union(d.points, pts)))
+end
+
+split(d::SegmentDomain, pts) = d
 
 
 function splitatroots(f::Fun)
@@ -15,6 +37,7 @@ function abs(f::Fun{S,T}) where {S<:RealUnivariateSpace,T<:Real}
 end
 
 function abs(f::Fun)
+
     d=domain(f)
 
     pts = iszero(f) ? cfstype(f)[] : roots(f)
@@ -28,9 +51,8 @@ function abs(f::Fun)
 end
 
 
-midpoints(d::Segment) = [(d.b+d.a)/2]
-midpoints(d::UnionDomain) = mapreduce(midpoints,vcat,d.domains)
-
+midpoints(d::IntervalOrSegment) = [mean(d)]
+midpoints(d::Union{UnionDomain,PiecewiseSegment}) = mapreduce(midpoints,vcat,components(d))
 
 for OP in (:sign,:angle)
     @eval function $OP(f::Fun{S,T}) where {S<:RealUnivariateSpace,T<:Real}
@@ -41,9 +63,9 @@ for OP in (:sign,:angle)
         if isempty(pts)
             $OP(first(f))*one(f)
         else
-            d = d \ pts
+            d = split(d , pts)
             midpts = midpoints(d)
-            Fun(d, $OP.(f.(midpts)))
+            Fun(UnionDomain(components(d)), $OP.(f.(midpts)))
         end
     end
 end
@@ -94,22 +116,22 @@ end
 # TODO: need to work out how to set piecewise domain
 
 
-scaleshiftdomain(f::Fun,sc,sh)=setdomain(f,sc*domain(f)+sh)
+scaleshiftdomain(f::Fun,sc,sh) = setdomain(f,sc*domain(f)+sh)
 
 /(c::Number,f::Fun{Ultraspherical{λ,DD,RR}}) where {λ,DD,RR} = c/Fun(f,Chebyshev(domain(f)))
-/(c::Number,f::Fun{Jacobi{DD,RR}}) where {DD,RR} = c/Fun(f,Chebyshev(domain(f)))
+/(c::Number,f::Fun{<:PolynomialSpace{<:IntervalOrSegment}}) = c/Fun(f,Chebyshev(domain(f)))
 
 /(c::Number,f::Fun{C}) where {C<:Chebyshev}=setdomain(c/setcanonicaldomain(f),domain(f))
-function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:Segment,RR}
+function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:IntervalOrSegment,RR}
     fc = setcanonicaldomain(f)
     d=domain(f)
     # if domain f is small then the pts get projected in
     tol = 200eps(promote_type(typeof(c),cfstype(f)))*norm(f.coefficients,1)
 
     # we prune out roots at the boundary first
-    if ncoefficients(f)==1
+    if ncoefficients(f) == 1
         return Fun(c/f.coefficients[1],space(f))
-    elseif ncoefficients(f)==2
+    elseif ncoefficients(f) == 2
         if isempty(roots(f))
             return \(Multiplication(f,space(f)),c;tolerance=0.05tol)
         elseif isapprox(fc.coefficients[1],fc.coefficients[2])
@@ -122,18 +144,18 @@ function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:Segment,RR}
             # we need to split at the only root
             return c/splitatroots(f)
         end
-    elseif abs(first(fc))≤tol
+    elseif abs(first(fc)) ≤ tol
         #left root
         g=divide_singularity((1,0),fc)
         p=c/g
         x = Fun(identity,domain(p))
-        return scaleshiftdomain(p/(1+x),(d.b - d.a)/2,(d.a + d.b)/2 )
-    elseif abs(last(fc))≤tol
+        return scaleshiftdomain(p/(1+x),complexlength(d)/2,mean(d) )
+    elseif abs(last(fc)) ≤ tol
         #right root
         g=divide_singularity((0,1),fc)
         p=c/g
         x=Fun(identity,domain(p))
-        return scaleshiftdomain(p/(1-x),(d.b - d.a)/2,(d.a + d.b)/2 )
+        return scaleshiftdomain(p/(1-x),complexlength(d)/2,mean(d) )
     else
         r = roots(fc)
 
@@ -144,13 +166,13 @@ function /(c::Number,f::Fun{Chebyshev{DD,RR}}) where {DD<:Segment,RR}
             g=divide_singularity((1,0),fc)
             p=c/g
             x=Fun(identity,domain(p))
-            return scaleshiftdomain(p/(1+x),(d.b - d.a)/2,(d.a + d.b)/2 )
+            return scaleshiftdomain(p/(1+x),complexlength(d)/2,mean(d) )
         elseif abs(last(r)-1.0)≤tol  # double check
             #right root
             g=divide_singularity((0,1),fc)
             p=c/g
             x=Fun(identity,domain(p))
-            return scaleshiftdomain(p/(1-x),(d.b - d.a)/2,(d.a + d.b)/2 )
+            return scaleshiftdomain(p/(1-x),complexlength(d)/2,mean(d) )
         else
             # no roots on the boundary
             return c/splitatroots(f)
@@ -196,7 +218,7 @@ end
 # Default is just try solving ODE
 function ^(f::Fun{S,T},β) where {S,T}
     A=Derivative()-β*differentiate(f)/f
-    B=Evaluation(first(domain(f)))
+    B=Evaluation(leftendpoint(domain(f)))
     [B;A]\[first(f)^β;0]
 end
 
@@ -217,52 +239,50 @@ log(f::Fun) = cumsum(differentiate(f)/f)+log(first(f))
 
 # project first to [-1,1] to avoid issues with
 # complex derivative
-function log(f::Fun{US}) where US<:Union{Ultraspherical,Chebyshev}
-    if domain(f)==Segment()
-        r = sort(roots(f))
-        #TODO divideatroots
-        @assert length(r) <= 2
+function log(f::Fun{<:PolynomialSpace{<:ChebyshevInterval}})
+    r = sort(roots(f))
+    #TODO divideatroots
+    @assert length(r) <= 2
 
-        if length(r) == 0
-            cumsum(differentiate(f)/f)+log(first(f))
-        elseif length(r) == 1
-            @assert isapprox(abs(r[1]),1)
+    if length(r) == 0
+        cumsum(differentiate(f)/f)+log(first(f))
+    elseif length(r) == 1
+        @assert isapprox(abs(r[1]),1)
 
-            if isapprox(r[1],1.)
-                g=divide_singularity(true,f)
-                lg=Fun(LogWeight(0.,1.,Chebyshev()),[1.])
-                if isapprox(g,1.)  # this means log(g)~0
-                    lg
-                else # log((1-x)) + log(g)
-                    lg⊕log(g)
-                end
-            else
-                g=divide_singularity(false,f)
-                lg=Fun(LogWeight(1.,0.,Chebyshev()),[1.])
-                if isapprox(g,1.)  # this means log(g)~0
-                    lg
-                else # log((1+x)) + log(g)
-                    lg⊕log(g)
-                end
-           end
+        if isapprox(r[1],1.)
+            g=divide_singularity(true,f)
+            lg=Fun(LogWeight(0.,1.,Chebyshev()),[1.])
+            if isapprox(g,1.)  # this means log(g)~0
+                lg
+            else # log((1-x)) + log(g)
+                lg⊕log(g)
+            end
         else
-            @assert isapprox(r[1],-1)
-            @assert isapprox(r[2],1)
-
-            g=divide_singularity(f)
-            lg=Fun(LogWeight(1.,1.,Chebyshev()),[1.])
+            g=divide_singularity(false,f)
+            lg=Fun(LogWeight(1.,0.,Chebyshev()),[1.])
             if isapprox(g,1.)  # this means log(g)~0
                 lg
             else # log((1+x)) + log(g)
                 lg⊕log(g)
             end
-        end
+       end
     else
-        # this makes sure differentiate doesn't
-        # make the function complex
-        g=log(setdomain(f,Segment()))
-        setdomain(g,domain(f))
+        @assert isapprox(r[1],-1)
+        @assert isapprox(r[2],1)
+
+        g=divide_singularity(f)
+        lg=Fun(LogWeight(1.,1.,Chebyshev()),[1.])
+        if isapprox(g,1.)  # this means log(g)~0
+            lg
+        else # log((1+x)) + log(g)
+            lg⊕log(g)
+        end
     end
+end
+
+function log(f::Fun{<:PolynomialSpace{<:IntervalOrSegment}})
+    g = log(setdomain(f, ChebyshevInterval()))
+    setdomain(g, domain(f))
 end
 
 
@@ -272,7 +292,7 @@ function log(f::Fun{Fourier{D,R},T}) where {T<:Real,D,R}
     else
         # this makes sure differentiate doesn't
         # make the function complex
-        g=log(setdomain(f,PeriodicInterval()))
+        g=log(setdomain(f,PeriodicSegment()))
         setdomain(g,domain(f))
     end
 end
@@ -285,8 +305,8 @@ atan(f::Fun)=cumsum(f'/(1+f^2))+atan(first(f))
 # condition in calculating secial functions
 function specialfunctionnormalizationpoint(op,growth,f)
     g=chop(growth(f),eps(cfstype(f)))
-    xmin = isempty(g.coefficients) ? first(domain(g)) : argmin(g)
-    xmax = isempty(g.coefficients) ? last(domain(g)) : argmax(g)
+    xmin = isempty(g.coefficients) ? leftendpoint(domain(g)) : argmin(g)
+    xmax = isempty(g.coefficients) ? rightendpoint(domain(g)) : argmax(g)
     opfxmin,opfxmax = op(f(xmin)),op(f(xmax))
     opmax = maximum(abs,(opfxmin,opfxmax))
     if abs(opfxmin) == opmax xmax,opfxmax = xmin,opfxmin end
@@ -334,12 +354,8 @@ end
 
 # JacobiWeight explodes, we want to ensure the solution incorporates the fact
 # that exp decays rapidly
-function exp(f::Fun{JW}) where JW<:JacobiWeight
-    if !isa(domain(f),Segment)
-        # project first to get better derivative behaviour
-        return setdomain(exp(setdomain(f,Segment())),domain(f))
-    end
-
+exp(f::Fun{<:JacobiWeight}) = setdomain(exp(setdomain(f, ChebyshevInterval())), domain(f))
+function exp(f::Fun{<:JacobiWeight{<:Any,<:ChebyshevInterval}})
     S=space(f)
     q=Fun(S.space,f.coefficients)
     if isapprox(S.α,0.) && isapprox(S.β,0.)
@@ -415,8 +431,8 @@ for (op,ODE,RHS,growth) in ((:(erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
             f=setcanonicaldomain(fin)
 
             g=chop($growth(f),eps(T))
-            xmin = isempty(g.coefficients) ? first(domain(g)) : argmin(g)
-            xmax = isempty(g.coefficients) ? last(domain(g)) : argmax(g)
+            xmin = isempty(g.coefficients) ? leftendpoint(domain(g)) : argmin(g)
+            xmax = isempty(g.coefficients) ? rightendpoint(domain(g)) : argmax(g)
             opfxmin,opfxmax = $op(f(xmin)),$op(f(xmax))
             opmax = maximum(abs,(opfxmin,opfxmax))
             while opmax≤10eps(T) || abs(f(xmin)-f(xmax))≤10eps(T)
@@ -453,8 +469,8 @@ for (op,ODE,RHS,growth) in ((:(hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^
             f=setcanonicaldomain(fin)
 
             g=chop($growth(f),eps(T))
-            xmin = isempty(g.coefficients) ? first(domain(g)) : argmin(g)
-            xmax = isempty(g.coefficients) ? last(domain(g)) : argmax(g)
+            xmin = isempty(g.coefficients) ? leftendpoint(domain(g)) : argmin(g)
+            xmax = isempty(g.coefficients) ? rightendpoint(domain(g)) : argmax(g)
             opfxmin,opfxmax = $op(ν,f(xmin)),$op(ν,f(xmax))
             opmax = maximum(abs,(opfxmin,opfxmax))
             while opmax≤10eps(T) || abs(f(xmin)-f(xmax))≤10eps(T)
@@ -576,13 +592,13 @@ for op in (:(<=),:(>=))
             if length(rts)==0
                 $op(first(f),c)
             elseif length(rts)==1
-                if isapprox(rts[1],first(domain(f))) || isapprox(rts[1],last(domain(f)))
+                if isapprox(rts[1],leftendpoint(domain(f))) || isapprox(rts[1],rightendpoint(domain(f)))
                     $op(f(fromcanonical(f,0.)),c)
                 else
                     error("Implement for mid roots")
                 end
             elseif length(rts)==2
-                if isapprox(rts[1],first(domain(f))) && isapprox(rts[2],last(domain(f)))
+                if isapprox(rts[1],leftendpoint(domain(f))) && isapprox(rts[2],rightendpoint(domain(f)))
                     $op(f(fromcanonical(f,0.)),c)
                 else
                     error("Implement for mid roots")
@@ -596,13 +612,13 @@ for op in (:(<=),:(>=))
             if length(rts)==0
                 $op(c,first(f))
             elseif length(rts)==1
-                if isapprox(rts[1],first(domain(f))) || isapprox(rts[1],first(domain(f)))
+                if isapprox(rts[1],leftendpoint(domain(f))) || isapprox(rts[1],leftendpoint(domain(f)))
                     $op(c,f(fromcanonical(f,0.)))
                 else
                     error("Implement for mid roots")
                 end
             elseif length(rts)==2
-                if isapprox(rts[1],first(domain(f))) && isapprox(rts[2],first(domain(f)))
+                if isapprox(rts[1],leftendpoint(domain(f))) && isapprox(rts[2],leftendpoint(domain(f)))
                     $op(c,f(fromcanonical(f,0.)))
                 else
                     error("Implement for mid roots")
@@ -627,17 +643,20 @@ end
 ## PIecewiseSpace
 # map over components
 
-/(c::Number,f::Fun{S}) where {S<:PiecewiseSpace} = Fun(map(f->c/f,components(f)),PiecewiseSpace)
-^(f::Fun{S},c::Integer) where {S<:PiecewiseSpace} = Fun(map(f->f^c,components(f)),PiecewiseSpace)
-^(f::Fun{S},c::Number) where {S<:PiecewiseSpace} = Fun(map(f->f^c,components(f)),PiecewiseSpace)
+/(c::Number,f::Fun{S}) where {S<:Union{PiecewiseSpace,ContinuousSpace}} = Fun(map(f->c/f,components(f)),PiecewiseSpace)
+^(f::Fun{S},c::Integer) where {S<:Union{PiecewiseSpace,ContinuousSpace}} = Fun(map(f->f^c,components(f)),PiecewiseSpace)
+^(f::Fun{S},c::Number) where {S<:Union{PiecewiseSpace,ContinuousSpace}} = Fun(map(f->f^c,components(f)),PiecewiseSpace)
 
 
 
 for OP in (:abs,:sign,:log,:angle)
     @eval begin
-        $OP(f::Fun{PiecewiseSpace{S,DD,RR},T}) where {S,DD,RR<:Real,T<:Real} =
+        $OP(f::Fun{<:PiecewiseSpace{<:Any,<:Any,<:Real},<:Real}) =
             Fun(map($OP,components(f)),PiecewiseSpace)
-        $OP(f::Fun{PiecewiseSpace{S,DD,RR}}) where {S,DD<:UnivariateDomain,RR} = Fun(map($OP,components(f)),PiecewiseSpace)
+        $OP(f::Fun{<:ContinuousSpace{<:Any,<:Real},<:Real}) =
+            Fun(map($OP,components(f)),PiecewiseSpace)
+        $OP(f::Fun{<:PiecewiseSpace{<:Any,<:Domain1d}}) =
+            Fun(map($OP,components(f)),PiecewiseSpace)
     end
 end
 
@@ -649,7 +668,7 @@ function jumplocations(f::Fun)
 end
 
 # Return the locations of jump discontinuities
-function jumplocations(f::Fun{S}) where{S<:PiecewiseSpace}
+function jumplocations(f::Fun{S}) where{S<:Union{PiecewiseSpace,ContinuousSpace}}
     d = domain(f)
 
     if ncomponents(d) < 2
@@ -662,10 +681,10 @@ function jumplocations(f::Fun{S}) where{S<:PiecewiseSpace}
     dc = components(d)
     fc = components(f)
 
-    isjump = isapprox.(first.(dc[2:end]), last.(dc[1:end-1]), rtol=dtol) .&
+    isjump = isapprox.(leftendpoint.(dc[2:end]), rightendpoint.(dc[1:end-1]), rtol=dtol) .&
            .!isapprox.(first.(fc[2:end]), last.(fc[1:end-1]), rtol=ftol)
 
-    locs = last.(dc[1:end-1])
+    locs = rightendpoint.(dc[1:end-1])
     locs[isjump]
 end
 

@@ -1,5 +1,5 @@
 include("Segment.jl")
-include("PeriodicInterval.jl")
+include("PeriodicSegment.jl")
 include("Ray.jl")
 include("Circle.jl")
 include("Line.jl")
@@ -12,123 +12,109 @@ include("Curve.jl")
 include("Point.jl")
 
 
-const AffineDomain = Union{Segment,PeriodicInterval,Ray,Line}
+const AffineDomain = Union{AbstractInterval,Segment,PeriodicSegment,Ray,Line}
 
-
-points(d::ClosedInterval,n) = points(Domain(d),n)
-
-# These are needed for spaces to auto-convert [a,b] to Segment
-function Domain(d::ClosedInterval)
-    a,b=d.left,d.right
-    if isinf(norm(a)) && isinf(norm(b))
-        Line(d)
-    elseif isinf(norm(a)) || isinf(norm(b))
-        Ray(d)
-    else
-        Segment(d)
-    end
-end
-convert(::Type{D}, d::ClosedInterval) where D<:Domain = D(d)
 
 # These are needed for spaces to auto-convert [a,b] to Interval
-function PeriodicDomain(d::ClosedInterval)
+function convert(::Type{PeriodicDomain},d::ClosedInterval)
     a,b=d.left,d.right
+    a,b = float(a),float(b)
     if isinf(norm(a)) && isinf(norm(b))
         PeriodicLine(d)
     elseif isinf(norm(a)) || isinf(norm(b))
         error("PeriodicRay not implemented")
     else
-        PeriodicInterval(d)
+        PeriodicSegment(d)
     end
 end
 
-Space(d::ClosedInterval) = Space(Domain(d))
-convert(::Type{S},d::ClosedInterval) where S<:Space =
-    S(d)
-
+convert(::Type{Space},d::ClosedInterval) = Space(Domain(d))
 
 #issubset between domains
 
-issubset(a::PeriodicInterval,b::Segment) = Segment(a.a,a.b)⊆b
-issubset(a::Segment,b::PeriodicInterval) = PeriodicInterval(a.a,a.b)⊆b
-issubset(a::Segment{T},b::PiecewiseSegment{T}) where {T<:Real} =
+issubset(a::PeriodicSegment, b::IntervalOrSegment) = Segment(endpoints(a)...)⊆b
+issubset(a::IntervalOrSegment, b::PeriodicSegment) = PeriodicSegment(endpoints(a)...)⊆b
+issubset(a::IntervalOrSegment{T}, b::PiecewiseSegment{T}) where {T<:Real} =
     a⊆Segment(first(b.points),last(b.points))
-issubset(a::Segment,b::Line) = first(a)∈b && last(a)∈b
+issubset(a::IntervalOrSegment, b::Line) = leftendpoint(a)∈b && rightendpoint(a)∈b
+issubset(a::Ray{angle}, b::Line{angle}) where angle = leftendpoint(a) ∈ b
+issubset(a::Ray{true}, b::Line{false}) = true
+issubset(a::Ray{false}, b::Line{true}) = true
 
 
-function intersect(a::Segment,b::Line)
+
+function intersect(a::Union{Interval,Segment,Ray},b::Line)
     @assert a ⊆ b
     a
 end
 
-intersect(b::Line,a::Segment) = intersect(a,b)
+function union(a::Union{Interval,Segment,Ray},b::Line)
+    @assert a ⊆ b
+    b
+end
+
+intersect(b::Line,a::Union{Interval,Segment,Ray}) = intersect(a,b)
+union(b::Line,a::Union{Interval,Segment,Ray}) = union(a,b)
 
 
 function setdiff(b::Line,a::Segment)
     @assert a ⊆ b
-    if first(a)>last(a)
-        b\reverse(a)
+    if leftendpoint(a)>rightendpoint(a)
+        b\reverseorientation(a)
     else
-        Ray([first(b),first(a)]) ∪ Ray([last(a),last(b)])
+        Ray([leftendpoint(b),leftendpoint(a)]) ∪ Ray([rightendpoint(a),rightendpoint(b)])
     end
 end
 
 function setdiff(b::Segment,a::Point)
     if !(a ⊆ b)
         b
-    elseif first(b) == a.x  || last(b) == a.x
+    elseif leftendpoint(b) == a.x  || rightendpoint(b) == a.x
         b
     else
-        Segment(first(b),a.x) ∪ Segment(a.x,last(b))
+        Segment(leftendpoint(b),a.x) ∪ Segment(a.x,rightendpoint(b))
     end
 end
 
 # sort
 
-isless(d1::Segment{T1},d2::Ray{false,T2}) where {T1<:Real,T2<:Real} = d1 ≤ d2.center
-isless(d2::Ray{true,T2},d1::Segment{T1}) where {T1<:Real,T2<:Real} = d2.center ≤ d1
+isless(d1::IntervalOrSegment{T1},d2::Ray{false,T2}) where {T1<:Real,T2<:Real} = d1 ≤ d2.center
+isless(d2::Ray{true,T2},d1::IntervalOrSegment{T1}) where {T1<:Real,T2<:Real} = d2.center ≤ d1
 
-
-# ^
-*(a::ClosedInterval, b::Domain) = Domain(a)*b
-*(a::Domain, b::ClosedInterval) = a*Domain(b)
-
-#union
-union(a::ClosedInterval,b::Domain) = union(Domain(a),b)
-union(a::Domain,b::ClosedInterval) = union(a,Domain(b))
 
 
 ## set minus
-\(d::Domain,x::Number) = d \ Point(x)
-
-
-function setdiff(d::AffineDomain,ptsin::Vector)
-    pts=copy(ptsin)
+function Base.setdiff(d::AffineDomain,ptsin::UnionDomain{AS}) where {AS <: AbstractVector{P}} where {P <: Point}
+    pts=Number.(elements(ptsin))
     isempty(pts) && return d
     tol=sqrt(eps(arclength(d)))
-    da=first(d)
+    da=leftendpoint(d)
     isapprox(da,pts[1];atol=tol) && popfirst!(pts)
     isempty(pts) && return d
-    db=last(d)
+    db=rightendpoint(d)
     isapprox(db,pts[end];atol=tol) && pop!(pts)
 
     sort!(pts)
-    d.a > d.b && reverse!(pts)
+    leftendpoint(d) > rightendpoint(d) && reverse!(pts)
     filter!(p->p ∈ d,pts)
 
     isempty(pts) && return d
     length(pts) == 1 && return d \ pts[1]
 
     ret = Array{Domain}(undef, length(pts)+1)
-    ret[1] = Domain(d.a..pts[1])
+    ret[1] = Domain(leftendpoint(d) .. pts[1])
     for k = 2:length(pts)
         ret[k] = Domain(pts[k-1]..pts[k])
     end
-    ret[end] = Domain(pts[end]..d.b)
+    ret[end] = Domain(pts[end] .. rightendpoint(d))
     UnionDomain(ret)
 end
 
-
+function Base.setdiff(d::SegmentDomain,p::Point)
+    x = Number(p)
+    (x ∉ d || x ≈ leftendpoint(d) || x ≈ rightendpoint(d)) && return d
+    DifferenceDomain(d,p)
+end
 
 
 

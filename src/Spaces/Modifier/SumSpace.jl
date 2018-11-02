@@ -15,7 +15,7 @@ struct BlockInterlacer{DMS<:Tuple}
 end
 
 
-const TrivialInterlacer{d} = BlockInterlacer{NTuple{d,Repeated{Bool}}}
+const TrivialInterlacer{d} = BlockInterlacer{NTuple{d,<:Ones}}
 
 BlockInterlacer(v::AbstractVector) = BlockInterlacer(tuple(v...))
 
@@ -144,6 +144,8 @@ function PiecewiseSpace(spin::Tuple)
     PiecewiseSpace{typeof(sp),typeof(UnionDomain(map(domain,sp))),
                    mapreduce(rangetype,promote_type,sp)}(sp)
 end
+
+PiecewiseSpace(spin::Set) = PiecewiseSpace(collect(spin))
 
 
 
@@ -283,7 +285,7 @@ function union_rule(A::SumSpace, B::Space)
     end
 end
 
-union_rule(A::SumSpace{<:Any,<:PeriodicInterval}, B::Space{<:IntervalDomain}) =
+union_rule(A::SumSpace{<:Any,<:PeriodicSegment}, B::Space{<:IntervalOrSegment}) =
     union(Space(Interval(domain(A))), B)
 
 

@@ -30,7 +30,7 @@ JacobiWeight{S,DD,RR,T}(β,α,space::Space) where {S,DD,RR,T} =
 JacobiWeight(a::Number, b::Number, d::Space) =
     JacobiWeight{typeof(d),domaintype(d),rangetype(d),promote_type(eltype(a),eltype(b))}(a,b,d)
 JacobiWeight(β::Number, α::Number, d::JacobiWeight) =  JacobiWeight(β+d.β,α+d.α,d.space)
-JacobiWeight(a::Number, b::Number, d::IntervalDomain) = JacobiWeight(a,b,Space(d))
+JacobiWeight(a::Number, b::Number, d::IntervalOrSegment) = JacobiWeight(a,b,Space(d))
 JacobiWeight(a::Number, b::Number, d) = JacobiWeight(a,b,Space(d))
 JacobiWeight(a::Number, b::Number) = JacobiWeight(a,b,Chebyshev())
 
@@ -44,9 +44,9 @@ order(S::JacobiWeight{Ultraspherical{Int,D,R},D,R}) where {D,R} = order(S.space)
 
 spacescompatible(A::JacobiWeight,B::JacobiWeight) =
     A.β ≈ B.β && A.α ≈ B.α && spacescompatible(A.space,B.space)
-spacescompatible(A::JacobiWeight,B::Space{DD,RR}) where {DD<:IntervalDomain,RR<:Real} =
+spacescompatible(A::JacobiWeight,B::Space{DD,RR}) where {DD<:IntervalOrSegment,RR<:Real} =
     spacescompatible(A,JacobiWeight(0,0,B))
-spacescompatible(B::Space{DD,RR},A::JacobiWeight) where {DD<:IntervalDomain,RR<:Real} =
+spacescompatible(B::Space{DD,RR},A::JacobiWeight) where {DD<:IntervalOrSegment,RR<:Real} =
     spacescompatible(A,JacobiWeight(0,0,B))
 
 transformtimes(f::Fun{JW1},g::Fun{JW2}) where {JW1<:JacobiWeight,JW2<:JacobiWeight}=
@@ -60,14 +60,14 @@ transformtimes(f::Fun,g::Fun{JW}) where {JW<:JacobiWeight} =
 
 jacobiweight(β,α,x) = -1 ≤ x ≤ 1 ? (1+x)^β*(1-x)^α : zero(x)
 jacobiweight(β,α,d::Domain) = Fun(JacobiWeight(β,α,ConstantSpace(d)),[1.])
-jacobiweight(β,α) = jacobiweight(β,α,Interval())
+jacobiweight(β,α) = jacobiweight(β,α,ChebyshevInterval())
 
 weight(sp::JacobiWeight,x) = jacobiweight(sp.β,sp.α,tocanonical(sp,x))
 dimension(sp::JacobiWeight) = dimension(sp.space)
 
 
-Base.first(f::Fun{JW}) where {JW<:JacobiWeight} = space(f).β>0 ? zero(cfstype(f)) : f(first(domain(f)))
-Base.last(f::Fun{JW}) where {JW<:JacobiWeight} = space(f).α>0 ? zero(cfstype(f)) : f(last(domain(f)))
+Base.first(f::Fun{JW}) where {JW<:JacobiWeight} = space(f).β>0 ? zero(cfstype(f)) : f(leftendpoint(domain(f)))
+Base.last(f::Fun{JW}) where {JW<:JacobiWeight} = space(f).α>0 ? zero(cfstype(f)) : f(rightendpoint(domain(f)))
 
 setdomain(sp::JacobiWeight,d::Domain)=JacobiWeight(sp.β,sp.α,setdomain(sp.space,d))
 
@@ -75,7 +75,7 @@ setdomain(sp::JacobiWeight,d::Domain)=JacobiWeight(sp.β,sp.α,setdomain(sp.spac
 
 
 ##TODO: paradigm for same space
-function coefficients(f::AbstractVector,sp1::JacobiWeight{SJ1,DD},sp2::JacobiWeight{SJ2,DD}) where {SJ1,SJ2,DD<:IntervalDomain}
+function coefficients(f::AbstractVector,sp1::JacobiWeight{SJ1,DD},sp2::JacobiWeight{SJ2,DD}) where {SJ1,SJ2,DD<:IntervalOrSegment}
     β,α=sp1.β,sp1.α
     c,d=sp2.β,sp2.α
 
@@ -88,20 +88,20 @@ function coefficients(f::AbstractVector,sp1::JacobiWeight{SJ1,DD},sp2::JacobiWei
     end
 end
 coefficients(f::AbstractVector,sp::JacobiWeight{SJ,DD},
-             S2::SubSpace{S,IT,DD,RR}) where {SJ,S,IT,DD<:IntervalDomain,RR<:Real} = subspace_coefficients(f,sp,S2)
+             S2::SubSpace{S,IT,DD,RR}) where {SJ,S,IT,DD<:IntervalOrSegment,RR<:Real} = subspace_coefficients(f,sp,S2)
 coefficients(f::AbstractVector,S2::SubSpace{S,IT,DD,RR},
-             sp::JacobiWeight{SJ,DD}) where {SJ,S,IT,DD<:IntervalDomain,RR<:Real} = subspace_coefficients(f,S2,sp)
+             sp::JacobiWeight{SJ,DD}) where {SJ,S,IT,DD<:IntervalOrSegment,RR<:Real} = subspace_coefficients(f,S2,sp)
 #TODO: it could be possible that we want to JacobiWeight a SumSpace....
-coefficients(f::AbstractVector,sp::JacobiWeight{SJ,DD},S2::SumSpace{SV,DD,RR}) where {SJ,SV,DD<:IntervalDomain,RR<:Real} =
+coefficients(f::AbstractVector,sp::JacobiWeight{SJ,DD},S2::SumSpace{SV,DD,RR}) where {SJ,SV,DD<:IntervalOrSegment,RR<:Real} =
     sumspacecoefficients(f,sp,S2)
-coefficients(f::AbstractVector,sp::JacobiWeight{SJ,Segment{Vec{2,TT}}},S2::TensorSpace{SV,TTT,DD}) where {SJ,TT,SV,TTT,DD<:BivariateDomain} =
+coefficients(f::AbstractVector,sp::JacobiWeight{SJ,Segment{Vec{2,TT}}},S2::TensorSpace{SV,TTT,DD}) where {SJ,TT,SV,TTT,DD<:Domain2d} =
     coefficients(f,sp,JacobiWeight(0,0,S2))
 
-coefficients(f::AbstractVector,sp::JacobiWeight{SJ,DD},S2::Space{DD,RR}) where {SJ,DD<:IntervalDomain,RR<:Real} =
+coefficients(f::AbstractVector,sp::JacobiWeight{SJ,DD},S2::Space{DD,RR}) where {SJ,DD<:IntervalOrSegment,RR<:Real} =
     coefficients(f,sp,JacobiWeight(0,0,S2))
-coefficients(f::AbstractVector,sp::ConstantSpace{DD},ts::JacobiWeight{SJ,DD}) where {SJ,DD<:IntervalDomain} =
+coefficients(f::AbstractVector,sp::ConstantSpace{DD},ts::JacobiWeight{SJ,DD}) where {SJ,DD<:IntervalOrSegment} =
     f.coefficients[1]*ones(ts).coefficients
-coefficients(f::AbstractVector,S2::Space{DD,RR},sp::JacobiWeight{SJ,DD}) where {SJ,DD<:IntervalDomain,RR<:Real} =
+coefficients(f::AbstractVector,S2::Space{DD,RR},sp::JacobiWeight{SJ,DD}) where {SJ,DD<:IntervalOrSegment,RR<:Real} =
     coefficients(f,JacobiWeight(0,0,S2),sp)
 
 

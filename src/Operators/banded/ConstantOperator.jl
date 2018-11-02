@@ -24,11 +24,11 @@ end
 promotedomainspace(C::ConstantOperator,sp::Space) = ConstantOperator(C.λ,sp)
 promoterangespace(C::ConstantOperator,sp::Space,cursp::UnsetSpace) = ConstantOperator(C.λ,sp)
 
-bandinds(T::ConstantOperator) = 0,0
+bandwidths(T::ConstantOperator) = 0,0
 
 isbandedblockbanded(::ConstantOperator) = true
-blockbandinds(::ConstantOperator) = 0,0
-subblockbandinds(::ConstantOperator,k::Integer) = 0
+blockbandwidths(::ConstantOperator) = 0,0
+subblockbandwidths(::ConstantOperator) = 0,0
 
 getindex(C::ConstantOperator,k::Integer,j::Integer) =
     k==j ? eltype(C)(C.λ) : zero(eltype(C))
@@ -73,7 +73,7 @@ end
 BasisFunctional(k,sp) = BasisFunctional{Float64,typeof(sp)}(k, sp)
 BasisFunctional(k) = BasisFunctional(k, ℓ⁰)
 
-bandinds(B::BasisFunctional) = 0,B.k-1
+bandwidths(B::BasisFunctional) = 0,B.k-1
 domainspace(B::BasisFunctional) = B.space
 
 convert(::Type{Operator{T}},B::BasisFunctional) where {T} = BasisFunctional{T,typeof(B.space)}(B.k,B.space)
@@ -117,9 +117,9 @@ Base.zero(A::Operator) = ZeroOperator(domainspace(A),rangespace(A))
 domainspace(Z::ZeroOperator)=Z.domainspace
 rangespace(Z::ZeroOperator)=Z.rangespace
 
-bandinds(T::ZeroOperator) = 720,-720   # 6!
-blockbandinds(T::ZeroOperator) = 720,-720   # 6!
-subblockbandinds(T::ZeroOperator,k::Integer) = k == 1 ? 720 : -720
+bandwidths(T::ZeroOperator) = -720,-720   # 6!
+blockbandwidths(T::ZeroOperator) = -720,-720   # 6!
+subblockbandwidths(T::ZeroOperator) =  -720, -720
 
 isbandedblockbandedabove(::ZeroOperator) = true
 isbandedblockbandedbelow(::ZeroOperator) = true
@@ -153,5 +153,8 @@ convert(::Type{T},S::SpaceOperator) where {T<:Number} = convert(T,S.op)
 ## Special case for ZeroOperator
 for TYP in (:RaggedMatrix,:Matrix,:BandedMatrix,
             :BlockBandedMatrix,:BandedBlockBandedMatrix)
-    @eval $TYP(S::SubOperator{T,ZO}) where {T,ZO<:ZeroOperator} = $TYP(Zeros, S)
+    @eval begin
+        $TYP(S::SubOperator{T,ZO}) where {T,ZO<:ZeroOperator} = $TYP(Zeros, S)
+        $TYP(S::SubOperator{T,ZO,NTuple{2,UnitRange{Int}}}) where {T,ZO<:ZeroOperator} = $TYP(Zeros, S)
+    end
 end

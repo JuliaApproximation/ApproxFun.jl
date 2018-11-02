@@ -80,7 +80,7 @@ struct InterlaceOperator{T,p,DS,RS,DI,RI,BI} <: Operator{T}
     rangespace::RS
     domaininterlacer::DI
     rangeinterlacer::RI
-    bandinds::BI
+    bandwidths::BI
 end
 
 const VectorInterlaceOperator = InterlaceOperator{T,1,DS,RS} where {T,DS,RS<:Space{D,R}} where {D,R<:AbstractVector}
@@ -92,24 +92,24 @@ InterlaceOperator(ops::Array{T,p},ds,rs,di,ri,bi) where {T,p} =
                         typeof(di),typeof(ri),typeof(bi)}(ops,ds,rs,di,ri,bi)
 
 function InterlaceOperator(ops::AbstractMatrix{Operator{T}},ds::Space,rs::Space) where T
-    # calculate bandinds TODO: generalize
+    # calculate bandwidths TODO: generalize
     p=size(ops,1)
     dsi = interlacer(ds)
     rsi = interlacer(rs)
 
     if size(ops,2) == p && all(isbanded,ops) &&# only support nblocks 1 for now
-            all(i->isa(i,Repeated) && i.x == 1, dsi.blocks) &&
-            all(i->isa(i,Repeated) && i.x == 1, rsi.blocks)
+            all(i->isa(i,AbstractFill) && getindex_value(i) == 1, dsi.blocks) &&
+            all(i->isa(i,AbstractFill) && getindex_value(i) == 1, rsi.blocks)
         l,u = 0,0
         for k=1:p,j=1:p
-            l=min(l,p*bandinds(ops[k,j],1)+j-k)
+            l=max(l,p*bandwidth(ops[k,j],1)+k-j)
         end
         for k=1:p,j=1:p
-            u=max(u,p*bandinds(ops[k,j],2)+j-k)
+            u=max(u,p*bandwidth(ops[k,j],2)+j-k)
         end
     elseif p == 1 && size(ops,2) == 2 && size(ops[1],2) == 1
         # special case for example
-        l,u = min(bandinds(ops[1],1),bandinds(ops[2],1)+1),bandinds(ops[2],2)+1
+        l,u = max(bandwidth(ops[1],1),bandwidth(ops[2],1)-1),bandwidth(ops[2],2)+1
     else
         l,u = (1-dimension(rs),dimension(ds)-1)  # not banded
     end
@@ -123,16 +123,16 @@ end
 
 
 function InterlaceOperator(ops::Vector{Operator{T}},ds::Space,rs::Space) where T
-    # calculate bandinds
+    # calculate bandwidths
     p=size(ops,1)
     if all(isbanded,ops)
         l,u = 0,0
         #TODO: this code assumes an interlace strategy that might not be right
         for k=1:p
-            l=min(l,p*bandinds(ops[k],1)+1-k)
+            l=max(l,p*bandwidth(ops[k],1)+k-1)
         end
         for k=1:p
-            u=max(u,p*bandinds(ops[k],2)+1-k)
+            u=max(u,p*bandwidth(ops[k],2)+1-k)
         end
     else
         l,u = (1-dimension(rs),dimension(ds)-1)  # not banded
@@ -198,24 +198,24 @@ function convert(::Type{Operator{T}},S::InterlaceOperator) where T
             ops[k,j]=S.ops[k,j]
         end
         InterlaceOperator(ops,domainspace(S),rangespace(S),
-                            S.domaininterlacer,S.rangeinterlacer,S.bandinds)
+                            S.domaininterlacer,S.rangeinterlacer,S.bandwidths)
     end
 end
 
 
 
-#TODO: More efficient to save bandinds
-bandinds(M::InterlaceOperator) = M.bandinds
+#TODO: More efficient to save bandwidth
+bandwidths(M::InterlaceOperator) = M.bandwidths
 
-blockbandinds(M::InterlaceOperator) =
-    (mapreduce(op->blockbandinds(op,1),min,M.ops),
-     mapreduce(op->blockbandinds(op,2),max,M.ops))
+blockbandwidths(M::InterlaceOperator) =
+    (mapreduce(op->blockbandwidth(op,1),max,M.ops),
+     mapreduce(op->blockbandwidth(op,2),max,M.ops))
 
 isblockbanded(M::InterlaceOperator) = all(isblockbanded,M.ops)
 
 function blockcolstop(M::InterlaceOperator,J::Integer)
     if isblockbandedbelow(M)
-        Block(J - blockbandinds(M,1))
+        Block(J + blockbandwidth(M,1))
     else
         mapreduce(op->blockcolstop(op,J),max,M.ops)
     end

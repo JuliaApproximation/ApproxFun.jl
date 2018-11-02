@@ -3,15 +3,14 @@ using ApproxFun, SpecialFunctions, Test
 
 ## ODEs
 
-d = Interval(-20000.,20000.)
+d = -20000..20000.0
 x = Fun(identity,d)
 u = [Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
 u = [Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
 @time u = [Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
-
 println("Cos/Sin: should be ~0.016920 seconds (3.19 k allocations: 12.593 MiB)")
 
-d=Interval(-1000.,5.)
+d = -1000..5.0
 x=Fun(identity,d)
 u=[Dirichlet(d);Derivative(d)^2-x]\[[1,0],0]
 u=[Dirichlet(d);Derivative(d)^2-x]\[[1,0],0]
@@ -21,8 +20,6 @@ println("Airy: 0.014356 seconds (1.08 k allocations: 8.015 MB)")
 M=cache([Dirichlet(d);Derivative(d)^2-x];padding=true)
 @time ApproxFun.resizedata!(M,12500,:)
 println("Airy construct op: 0.003200 seconds (131 allocations: 3.723 MiB)")
-
-
 
 S=Chebyshev()
 x=Fun(identity,S)
@@ -68,8 +65,8 @@ d=domain(x)
 B=Dirichlet()
 ν=1000.0
 L=x^2*𝒟^2 + x*𝒟 + (x^2 - ν^2)   # our differential operator
-u=[B;L]\[[besselj(ν,first(d)),besselj(ν,last(d))],0]
-@time u=[B;L]\[[besselj(ν,first(d)),besselj(ν,last(d))],0]
+u=[B;L]\[[besselj.(ν,endpoints(d))...],0]
+@time u=[B;L]\[[besselj.(ν,endpoints(d))...],0]
 println("Bessel: should be ~0.008441 seconds (6.14 k allocations: 4.765 MiB)")
 
 
@@ -80,21 +77,17 @@ println("Complex exp: Time should be 0.03")
 
 
 ## Piecewise
-x=Fun(identity,Domain(-20..15) \ [-10.,-5.,0.,1.])
+x=Fun(identity,Domain(-20..15) \ Set([-10.,-5.,0.,1.]))
 sp=space(x)
 D=Derivative(sp)
 B=[Dirichlet(sp);continuity(sp,0:1)]
-u=[B;
-    D^2-x]\[[airyai(-20.),0.],zeros(8),0];
-@time u=[B;
-    D^2-x]\[[airyai(-20.),0.],zeros(8),0]
-
-
+u=[B;D^2-x]\[[airyai(-20.),0.],zeros(8),0];
+@time u=[B;D^2-x]\[[airyai(-20.),0.],zeros(8),0]
 println("Piecewise Airy: should be ~0.008")
 
 
 ## Vector
-d=Interval()
+d=ChebyshevInterval()
 D=Derivative(d);
 B=ldirichlet();
 Bn=lneumann();

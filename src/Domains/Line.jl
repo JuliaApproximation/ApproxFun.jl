@@ -17,7 +17,7 @@ export Line, PeriodicLine
 
 represents the line at angle `a` in the complex plane, centred at `c`.
 """
-struct Line{angle,T<:Number} <: IntervalDomain{T}
+struct Line{angle,T<:Number} <: SegmentDomain{T}
     center::T
     α::Float64
     β::Float64
@@ -36,9 +36,9 @@ Line{a}() where {a} = Line{a,Float64}()
 
 angle(d::Line{a}) where {a} = a*π
 
-reverse(d::Line{true}) = Line{false}(d.center,d.β,d.α)
-reverse(d::Line{false}) = Line{true}(d.center,d.β,d.α)
-reverse(d::Line{a}) where {a} = Line{a-1}(d.center,d.β,d.α)
+reverseorientation(d::Line{true}) = Line{false}(d.center,d.β,d.α)
+reverseorientation(d::Line{false}) = Line{true}(d.center,d.β,d.α)
+reverseorientation(d::Line{a}) where {a} = Line{a-1}(d.center,d.β,d.α)
 
 # ensure the angle is always in (-1,1]
 Line(c,a,α,β) = Line{mod(a/π-1,-2)+1,typeof(c)}(c,α,β)
@@ -50,7 +50,8 @@ Line() = Line(false)
 
 
 isambiguous(d::Line)=isnan(d.center)
-convert(::Type{Line{a,T}},::AnyDomain) where {a,T<:Number}=Line{a,T}(NaN)
+convert(::Type{Domain{T}},d::Line{a}) where {a,T<:Number} = Line{a,T}(d.center, d.α, d.β)
+convert(::Type{Line{a,T}},::AnyDomain) where {a,T<:Number} = Line{a,T}(NaN)
 convert(::Type{IT},::AnyDomain) where {IT<:Line}=Line(NaN,NaN)
 
 ## Map interval
@@ -58,6 +59,7 @@ convert(::Type{IT},::AnyDomain) where {IT<:Line}=Line(NaN,NaN)
 
 ##TODO non-1 alpha,beta
 
+isempty(::Line) = false
 
 function line_tocanonical(α,β,x)
     @assert α==β==-1. || α==β==-.5
@@ -153,7 +155,7 @@ end
 
 # angle is (false==0) and π (true==1)
 # or ranges from (-1,1]
-struct PeriodicLine{angle,T} <: PeriodicDomain{Float64}
+struct PeriodicLine{angle,T} <: PeriodicDomain{T}
     center::T
     L::Float64
     PeriodicLine{angle,T}(c,L) where {angle,T} = new{angle,T}(c,L)
@@ -162,7 +164,7 @@ struct PeriodicLine{angle,T} <: PeriodicDomain{Float64}
     PeriodicLine{angle,T}() where {angle,T} = new{angle,T}(0.,1.)
 end
 
-convert(::Type{PeriodicLine{a}},c,L) where {a} = PeriodicLine{a,typeof(c)}(c,L)
+(::Type{PeriodicLine{a}})(c,L) where {a} = PeriodicLine{a,typeof(c)}(c,L)
 
 
 PeriodicLine(c,a) = PeriodicLine{a/π,eltype(c)}(c,1.)
@@ -170,18 +172,17 @@ PeriodicLine() = PeriodicLine{false,Float64}(0.,1.)
 PeriodicLine(b::Bool) = PeriodicLine{b,Float64}()
 
 isambiguous(d::PeriodicLine) = isnan(d.center) && isnan(d.angle)
+convert(::Type{Domain{T}},d::PeriodicLine{a}) where {a,T<:Number} = PeriodicLine{a,T}(d.center, d.L)
 convert(::Type{PeriodicLine{T,TT}},::AnyDomain) where {T<:Number,TT} = PeriodicLine{T,TT}(NaN,NaN)
 convert(::Type{IT},::AnyDomain) where {IT<:PeriodicLine} = PeriodicLine(NaN,NaN)
 
 angle(d::PeriodicLine{a}) where {a}=a*π
 
-reverse(d::PeriodicLine{true})=PeriodicLine{false}(d.center,d.L)
-reverse(d::PeriodicLine{false})=PeriodicLine{true}(d.center,d.L)
-reverse(d::PeriodicLine{a}) where {a}=PeriodicLine{a-1}(d.center,d.L)
+reverseorientation(d::PeriodicLine{true})=PeriodicLine{false}(d.center,d.L)
+reverseorientation(d::PeriodicLine{false})=PeriodicLine{true}(d.center,d.L)
+reverseorientation(d::PeriodicLine{a}) where {a}=PeriodicLine{a-1}(d.center,d.L)
 
 tocanonical(d::PeriodicLine{false},x) = real(2atan((x-d.center)/d.L))
-fromcanonical(d::PeriodicLine{false},v::AbstractArray) =
-    eltype(d)[fromcanonical(d,vk) for vk in v]
 fromcanonical(d::PeriodicLine{false},θ) = d.L*tan(θ/2) + d.center
 
 tocanonical(d::PeriodicLine{a},x) where {a} = tocanonical(PeriodicLine{false,Float64}(0.,d.L),exp(-π*im*a)*(x-d.center))
@@ -193,7 +194,7 @@ fromcanonical(d::PeriodicLine{a},x) where {a} =
 
 function invfromcanonicalD(d::PeriodicLine{false})
     @assert d.center==0  && d.L==1.0
-    a=Fun(PeriodicInterval(),[1.,0,1])
+    a=Fun(PeriodicSegment(),[1.,0,1])
 end
 
 mappoint(a::PeriodicLine{false},b::Circle,x) = b.radius*((a.L*im-(x-a.center))./(a.L*im+(x-a.center)))+b.center
@@ -222,7 +223,7 @@ complexlength(d::Union{Line,PeriodicLine})=Inf
 ## vectorized
 
 for typ in (:Line,:PeriodicLine)
-    @eval function $typ(d::ClosedInterval)
+    @eval function convert(::Type{$typ},d::ClosedInterval)
         a,b=d.left,d.right
         @assert abs(a) == abs(b) == Inf
 

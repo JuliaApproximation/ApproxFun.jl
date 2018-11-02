@@ -1,5 +1,5 @@
 export Operator
-export bandinds, bandrange, \, periodic
+export bandwidths, bandrange, \, periodic
 export neumann
 export ldirichlet,rdirichlet,lneumann,rneumann
 export ldiffbc,rdiffbc,diffbcs
@@ -39,16 +39,16 @@ isconstspace(_) = false
 isafunctional(A::Operator) = size(A,1)==1 && isconstspace(rangespace(A))
 
 
-isboolvec(A) = isa(A,Repeated{Bool}) || isa(A,AbstractVector{Bool})
+isonesvec(A) = A isa AbstractFill && getindex_value(A) == 1
 # block lengths of a space are 1
-hastrivialblocks(A::Space) = isboolvec(blocklengths(A))
+hastrivialblocks(A::Space) = isonesvec(blocklengths(A))
 hastrivialblocks(A::Operator) = hastrivialblocks(domainspace(A)) &&
                                 hastrivialblocks(rangespace(A))
 
 # blocklengths are constant lengths
-hasconstblocks(A::Space) = isa(blocklengths(A),Repeated)
+hasconstblocks(A::Space) = isa(blocklengths(A),AbstractFill)
 hasconstblocks(A::Operator) = hasconstblocks(domainspace(A)) && hasconstblocks(rangespace(A)) &&
-                                blocklengths(domainspace(A)).x == blocklengths(rangespace(A)).x
+                                getindex_value(blocklengths(domainspace(A))) == getindex_value(blocklengths(rangespace(A)))
 
 
 macro functional(FF)
@@ -56,7 +56,7 @@ macro functional(FF)
         Base.size(A::$FF,k::Integer) = k==1 ? 1 : dimension(domainspace(A))
         ApproxFun.rangespace(F::$FF) = ConstantSpace(eltype(F))
         ApproxFun.isafunctional(::$FF) = true
-        ApproxFun.blockbandinds(A::$FF) = 0,hastrivialblocks(domainspace(A)) ? bandinds(A,2) : ∞
+        ApproxFun.blockbandwidths(A::$FF) = 0,hastrivialblocks(domainspace(A)) ? bandwidth(A,2) : ∞
         function ApproxFun.defaultgetindex(f::$FF,k::Integer,j::Integer)
             @assert k==1
             f[j]::eltype(f)
@@ -103,9 +103,10 @@ function lastindex(A::Operator, n::Integer)
     elseif isinf(size(A,2)) || isinf(size(A,1))
         ∞
     else
-        size(A,1)*size(A,2)
+        size(A,1)
     end
 end
+lastindex(A::Operator) = size(A,1)*size(A,2)
 
 Base.ndims(::Operator) = 2
 
@@ -115,8 +116,8 @@ Base.ndims(::Operator) = 2
 
 
 ## bandrange and indexrange
-isbandedbelow(A::Operator) = isfinite(bandinds(A,1))
-isbandedabove(A::Operator) = isfinite(bandinds(A,2))
+isbandedbelow(A::Operator) = isfinite(bandwidth(A,1))
+isbandedabove(A::Operator) = isfinite(bandwidth(A,2))
 isbanded(A::Operator) = isbandedbelow(A) && isbandedabove(A)
 
 
@@ -130,13 +131,13 @@ isbandedblockbanded(A::Operator) = isbandedblockbandedabove(A) && isbandedblockb
 #TODO: I think it can be generalized to the case when the domainspace
 # blocklengths == rangespace blocklengths, in which case replace the definition
 # of p with maximum(blocklength(domainspace(A)))
-function blockbandinds(A::Operator)
-    hastrivialblocks(A) && return bandinds(A)
+function blockbandwidths(A::Operator)
+    hastrivialblocks(A) && return bandwidths(A)
 
     if hasconstblocks(A)
-        a,b = bandinds(A)
-        p = blocklengths(domainspace(A)).x
-        return (fld(a,p),-fld(-b,p))
+        a,b = bandwidths(A)
+        p = getindex_value(blocklengths(domainspace(A)))
+        return (-fld(-a,p),-fld(-b,p))
     end
 
     #TODO: Generalize to finite dimensional
@@ -144,42 +145,33 @@ function blockbandinds(A::Operator)
         rs = rangespace(A)
 
         if hasconstblocks(rs)
-            a = bandinds(A,1)
-            p = blocklengths(rs).x
-            return (fld(a,p),0)
+            a = bandwidth(A,1)
+            p = getindex_value(blocklengths(rs))
+            return (-fld(-a,p),0)
         end
     end
 
-    return (1-length(blocklengths(rangespace(A))),length(blocklengths(domainspace(A)))-1)
+    return (length(blocklengths(rangespace(A)))-1,length(blocklengths(domainspace(A)))-1)
 end
 
 # assume dense blocks
-subblockbandinds(K::Operator,k) = k==1 ? 1-maximum(blocklengths(rangespace(K))) : maximum(blocklengths(domainspace(K)))-1
+subblockbandwidths(K::Operator) = maximum(blocklengths(rangespace(K)))-1, maximum(blocklengths(domainspace(K)))-1
 
-isblockbandedbelow(A) = isfinite(blockbandinds(A,1))
-isblockbandedabove(A) = isfinite(blockbandinds(A,2))
+isblockbandedbelow(A) = isfinite(blockbandwidth(A,1))
+isblockbandedabove(A) = isfinite(blockbandwidth(A,2))
 isblockbanded(A::Operator) = isblockbandedbelow(A) && isblockbandedabove(A)
 
 israggedbelow(A::Operator) = isbandedbelow(A) || isbandedblockbanded(A) || isblockbandedbelow(A)
 
 
-blockbandwidths(S::Operator) = (-blockbandinds(S,1),blockbandinds(S,2))
-blockbandinds(K::Operator,k::Integer) = blockbandinds(K)[k]
-blockbandwidth(K::Operator,k::Integer) = k==1 ? -blockbandinds(K,k) : blockbandinds(K,k)
-
-subblockbandwidths(K::Operator) = -subblockbandinds(K,1),subblockbandinds(K,2)
-subblockbandinds(K::Operator) = subblockbandinds(K,1),subblockbandinds(K,2)
-subblockbandwidth(K::Operator,k::Integer) = k==1 ? -subblockbandinds(K,k) : subblockbandinds(K,k)
+blockbandwidth(K::Operator, k::Integer) = blockbandwidths(K)[k]
+subblockbandwidth(K::Operator,k::Integer) = subblockbandwidths(K)[k]
 
 
-
-bandwidth(A::Operator) = bandwidth(A,1) + bandwidth(A,2) + 1
-bandwidth(A::Operator,k::Integer) = k==1 ? -bandinds(A,1) : bandinds(A,2)
-bandwidths(A::Operator) = (bandwidth(A,1),bandwidth(A,2))
+bandwidth(A::Operator, k::Integer) = bandwidths(A)[k]
 # we are always banded by the size
-bandinds(A::Operator) = (1-size(A,1),size(A,2)-1)
-bandinds(A,k::Integer) = bandinds(A)[k]
-bandrange(b::Operator) = UnitRange(bandinds(b)...)
+bandwidths(A::Operator) = (size(A,1)-1,size(A,2)-1)
+bandwidths(A::Operator, k::Integer) = bandwidths(A)[k]
 
 
 
@@ -192,7 +184,7 @@ bandrange(b::Operator) = UnitRange(bandinds(b)...)
 stride(A::Operator) =
     isdiag(A) ? factorial(10) : 1
 
-isdiag(A::Operator) = bandinds(A)==(0,0)
+isdiag(A::Operator) = bandwidths(A)==(0,0)
 
 
 ## Construct operators
@@ -289,6 +281,7 @@ function bandedblockbanded_colstart(A::Operator, i::Integer)
 end
 
 function bandedblockbanded_colstop(A::Operator, i::Integer)
+    i ≤ 0 && return 0
     ds = domainspace(A)
     rs = rangespace(A)
     B = block(ds,i)
@@ -377,7 +370,7 @@ for OP in (:colstart,:colstop,:rowstart,:rowstop)
     defOP = Meta.parse("default_"*string(OP))
     @eval begin
         $OP(A::Operator,i::Integer) = $defOP(A,i)
-        $OP(A::Operator,i::Infinity{Bool}) = ∞
+        $OP(A::Operator,i::Infinity) = ∞
     end
 end
 
@@ -447,11 +440,10 @@ macro wrapperstructure(Wrap)
         haswrapperstructure(::$Wrap) = true
     end
 
-    for func in (:(ApproxFun.bandinds),:(LinearAlgebra.stride),
+    for func in (:(ApproxFun.bandwidths),:(LinearAlgebra.stride),
                  :(ApproxFun.isbandedblockbanded),:(ApproxFun.isblockbanded),
                  :(ApproxFun.israggedbelow),:(Base.size),:(ApproxFun.isbanded),
-                 :(ApproxFun.bandwidth),:(ApproxFun.bandwidths),
-                 :(ApproxFun.blockbandinds),:(ApproxFun.subblockbandinds),
+                 :(ApproxFun.blockbandwidths),:(ApproxFun.subblockbandwidths),
                  :(LinearAlgebra.issymmetric))
         ret = quote
             $ret
@@ -461,8 +453,8 @@ macro wrapperstructure(Wrap)
     end
 
      for func in (:(ApproxFun.bandwidth),:(ApproxFun.colstart),:(ApproxFun.colstop),
-                     :(ApproxFun.rowstart),:(ApproxFun.rowstop),:(ApproxFun.blockbandinds),
-                     :(Base.size),:(ApproxFun.bandinds),:(ApproxFun.subblockbandinds))
+                     :(ApproxFun.rowstart),:(ApproxFun.rowstop),:(ApproxFun.blockbandwidth),
+                     :(Base.size),:(ApproxFun.subblockbandwidth))
          ret = quote
              $ret
 
@@ -484,6 +476,10 @@ macro wrappergetindex(Wrap)
             OP.op[k...]::eltype(OP)
 
         Base.getindex(OP::$Wrap,k::Union{Number,AbstractArray,Colon}...) = OP.op[k...]
+        Base.getindex(OP::$Wrap,k::ApproxFun.InfRanges, j::ApproxFun.InfRanges) = view(OP, k, j)
+        Base.getindex(OP::$Wrap,k::ApproxFun.InfRanges, j::Colon) = view(OP, k, j)
+        Base.getindex(OP::$Wrap,k::Colon, j::ApproxFun.InfRanges) = view(OP, k, j)
+        Base.getindex(OP::$Wrap,k::Colon, j::Colon) = view(OP, k, j)
 
         BLAS.axpy!(α,P::ApproxFun.SubOperator{T,OP},A::AbstractMatrix) where {T,OP<:$Wrap} =
             ApproxFun.unwrap_axpy!(α,P,A)
@@ -525,8 +521,8 @@ macro wrappergetindex(Wrap)
         # if the spaces change, then we need to be smarter
         function ApproxFun.BlockBandedMatrix(S::ApproxFun.SubOperator{T,OP}) where {T,OP<:$Wrap}
             P = parent(S)
-            if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
-                    blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
+            if blocklengths(domainspace(P)) === blocklengths(domainspace(P.op)) &&
+                    blocklengths(rangespace(P)) === blocklengths(rangespace(P.op))
                 BlockBandedMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
             else
                 default_BlockBandedMatrix(S)
@@ -535,8 +531,8 @@ macro wrappergetindex(Wrap)
 
         function ApproxFun.PseudoBlockMatrix(S::ApproxFun.SubOperator{T,OP}) where {T,OP<:$Wrap}
             P = parent(S)
-            if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
-                    blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
+            if blocklengths(domainspace(P)) === blocklengths(domainspace(P.op)) &&
+                    blocklengths(rangespace(P)) === blocklengths(rangespace(P.op))
                 PseudoBlockMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
             else
                 default_blockmatrix(S)
@@ -545,8 +541,8 @@ macro wrappergetindex(Wrap)
 
         function ApproxFun.BandedBlockBandedMatrix(S::ApproxFun.SubOperator{T,OP}) where {T,OP<:$Wrap}
             P = parent(S)
-            if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
-                    blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
+            if blocklengths(domainspace(P)) === blocklengths(domainspace(P.op)) &&
+                    blocklengths(rangespace(P)) === blocklengths(rangespace(P.op))
                 BandedBlockBandedMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
             else
                 default_BandedBlockBandedMatrix(S)
@@ -673,7 +669,7 @@ const WrapperOperator = Union{SpaceOperator,MultiplicationWrapper,DerivativeWrap
 ## BLAS and matrix routines
 # We assume that copy may be overriden
 
-BLAS.axpy!(a, X::Operator, Y::AbstractMatrix) = BLAS.axpy!(a,AbstractMatrix(X),Y)
+BLAS.axpy!(a, X::Operator, Y::AbstractMatrix) = (Y .= a .* AbstractMatrix(X) .+ Y)
 copyto!(dest::AbstractMatrix, src::Operator) = copyto!(dest, AbstractMatrix(src))
 
 # this is for operators that implement copy via axpy!

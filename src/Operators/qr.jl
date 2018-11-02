@@ -43,7 +43,7 @@ function getindex(R::QROperatorR,k::Integer,j::Integer)
     end
 end
 
-bandinds(R::QROperatorR) = 0,bandinds(R.QR.R_cache,2)
+bandwidths(R::QROperatorR) = 0,bandwidth(R.QR.R_cache,2)
 
 struct QROperatorQ{QRT,T} <: Operator{T}
     QR::QRT

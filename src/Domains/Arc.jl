@@ -12,7 +12,7 @@ mobiusinvD(a,b,c,d,z) = mobiusD(d,-b,-c,a,z)
 
 represents the arc centred at `c` with radius `r` from angle `θ₁` to `θ₂`.
 """
-struct Arc{T,V<:Real,TT} <: IntervalDomain{TT}
+struct Arc{T,V<:Real,TT} <: SegmentDomain{TT}
     center::T
     radius::V
     angles::Tuple{V,V}
@@ -46,7 +46,9 @@ convert(::Type{Arc{T,V}},::AnyDomain) where {T<:Number,V<:Real} =
 convert(::Type{IT},::AnyDomain) where {IT<:Arc} =
     Arc(NaN,NaN,(NaN,NaN))
 
-reverse(a::Arc) = Arc(a.center,a.radius,reverse(a.angles))
+isempty(d::Arc) = false
+
+reverseorientation(a::Arc) = Arc(a.center,a.radius,reverse(a.angles))
 
 arclength(d::Arc) = d.radius*(d.angles[2]-d.angles[1])
 
@@ -101,7 +103,7 @@ end
 
 
 # allow exp(im*Segment(0,1)) for constructing arc
-function exp(d::Segment{CMP}) where CMP<:Complex
-    @assert isapprox(real(d.a),0) && isapprox(real(d.b),0)
-    Arc(0,1,(imag(d.a),imag(d.b)))
+function exp(d::IntervalOrSegment{<:Complex})
+    @assert isapprox(real(leftendpoint(d)),0) && isapprox(real(rightendpoint(d)),0)
+    Arc(0,1,(imag(leftendpoint(d)),imag(rightendpoint(d))))
 end

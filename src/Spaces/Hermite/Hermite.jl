@@ -35,7 +35,7 @@ recC(::Type,::Hermite,k) = 2k;
 Derivative(H::Hermite,order) = ConcreteDerivative(H,order)
 
 
-bandinds(D::ConcreteDerivative{H}) where {H<:Hermite} = 0,D.order
+bandwidths(D::ConcreteDerivative{H}) where {H<:Hermite} = 0,D.order
 rangespace(D::ConcreteDerivative{H}) where {H<:Hermite} = domainspace(D)
 getindex(D::ConcreteDerivative{H},k::Integer,j::Integer) where {H<:Hermite} =
         j==k+D.order ? one(eltype(D))*2^D.order*pochhammer(k,D.order) : zero(eltype(D))
@@ -111,13 +111,13 @@ include("hermitetransform.jl")
 function Multiplication(f::Fun{H}, S::GaussWeight{H}) where H<:Hermite
     M = Multiplication(f, S.space)
     rs = rangespace(M)
-    MultiplicationWrapper(f, SpaceOperator(M, S, GaussWeight(rs, rs.L)))
+    MultiplicationWrapper(f, SpaceOperator(M, S, GaussWeight(rs, S.L)))
 end
 
 function Multiplication(f::Fun{GaussWeight{H,T}}, S::Hermite) where {H<:Hermite,T}
     M = Multiplication(Fun(space(f).space, f.coefficients), S)
     rs = rangespace(M)
-    MultiplicationWrapper(f, SpaceOperator(M, S, GaussWeight(rs, rs.L)))
+    MultiplicationWrapper(f, SpaceOperator(M, S, GaussWeight(rs, space(f).L)))
 end
 
 
@@ -139,7 +139,7 @@ function integrate(f::Fun{GW}) where GW<:GaussWeight{H} where H<:Hermite
         else
             g = Fun(GaussWeight(Hermite(L), L), f.coefficients[2:end] / -sqrt(L));
             f₀ = Fun(GaussWeight(Hermite(L), L), [f.coefficients[1]]);
-            f₀ = Fun(f₀, Chebyshev(-Inf .. Inf));
+            f₀ = Fun(f₀, Chebyshev(Line()));
             g₀ = integrate(f₀);
             g₀ = g₀ - last(g₀);
             return g + g₀

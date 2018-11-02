@@ -2,11 +2,15 @@ __precompile__()
 
 module ApproxFun
     using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers,
-            BlockArrays, BandedMatrices, BlockBandedMatrices, IntervalSets,
-            SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions,
-            LinearAlgebra, LowRankApprox, SparseArrays #, Arpack
+            BlockArrays, BandedMatrices, BlockBandedMatrices, DomainSets, IntervalSets,
+            SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions, DSP,
+            LinearAlgebra, LowRankApprox, SparseArrays, FillArrays, InfiniteArrays #, Arpack
     import StaticArrays, ToeplitzMatrices, Calculus
 
+
+import DomainSets: Domain, indomain, UnionDomain, ProductDomain, FullSpace, Point, elements, DifferenceDomain,
+            Interval, ChebyshevInterval, boundary, ∂, rightendpoint, leftendpoint,
+            dimension, Domain1d, Domain2d
 
 import AbstractFFTs: Plan, fft, ifft
 import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
@@ -21,12 +25,14 @@ import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, 
                 minimum, maximum, extrema, argmax, argmin, findmax, findmin, isfinite,
                 zeros, zero, one, promote_rule, repeat, length, resize!, isinf,
                 getproperty, findfirst, unsafe_getindex, fld, cld, div, real, imag,
-                @_inline_meta, eachindex, lastindex, keys, isreal, 
-                Array, Vector, Matrix, view, ones, @propagate_inbounds, print_array
+                @_inline_meta, eachindex, firstindex, lastindex, keys, isreal, OneTo,
+                Array, Vector, Matrix, view, ones, @propagate_inbounds, print_array,
+                split
 
 import Base.Broadcast: BroadcastStyle, Broadcasted, AbstractArrayStyle, broadcastable,
                         DefaultArrayStyle, broadcasted
 
+import Statistics: mean
 
 import LinearAlgebra: BlasInt, BlasFloat, norm, ldiv!, mul!, det, eigvals, dot, cross,
                         qr, qr!, isdiag, rank, issymmetric, ishermitian, Tridiagonal,
@@ -51,10 +57,11 @@ import SpecialFunctions: sinpi, cospi, airy, besselh,
                     abs, sign, log, expm1, tan, abs2, sqrt, angle, max, min, cbrt, log,
                     atan, acos, asin, erfc, inv
 
+import StaticArrays: SVector
 
 import BlockArrays: nblocks, blocksize, global2blockindex, globalrange, BlockSizes
 
-import BandedMatrices: bandinds, bandrange, PrintShow, bandshift,
+import BandedMatrices: bandrange, bandshift,
                         inbands_getindex, inbands_setindex!, bandwidth, AbstractBandedMatrix,
                         dotu, normalize!, flipsign,
                         colstart, colstop, colrange, rowstart, rowstop, rowrange,
@@ -70,11 +77,22 @@ import BlockBandedMatrices: blockbandwidth, blockbandwidths, blockcolstop, block
 import FastTransforms: ChebyshevTransformPlan, IChebyshevTransformPlan, plan_chebyshevtransform,
                         plan_chebyshevtransform!, plan_ichebyshevtransform, plan_ichebyshevtransform!
 
+import FillArrays: AbstractFill, getindex_value
+import LazyArrays: cache
+import InfiniteArrays: Infinity, InfRanges, AbstractInfUnitRange, OneToInf
+
+
+
+
 # convenience for 1-d block ranges
 const BlockRange1 = BlockRange{1,Tuple{UnitRange{Int}}}
 
-import StaticArrays: SVector
+import Base: view
 
+import StaticArrays: StaticArray, SVector
+
+
+import IntervalSets: (..), endpoints
 
 const Vec{d,T} = SVector{d,T}
 
@@ -85,7 +103,7 @@ export pad!, pad, chop!, sample,
 ##Testing
 export bisectioninv
 
-export ..
+export .., Interval, ChebyshevInterval, leftendpoint, rightendpoint, endpoints
 
 
 
