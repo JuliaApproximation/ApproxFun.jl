@@ -44,7 +44,7 @@ Chebyshev(【-1.0,-0.9000000000000002】)⨄Chebyshev(【-0.9000000000000002,-0.
 ## Convenience constructors
 
 The default space is `Chebyshev`, which can represent non-periodic functions on intervals.  Each `Space` type has a default domain: for `Chebyshev` this is `-1..1`, for Fourier and Laurent this is `-π..π`.  Thus the following
-are synonyms:
+are equivalent:
 ```julia
 Fun(exp,Chebyshev(Interval(-1,1)))
 Fun(exp,Chebyshev(ChebyshevInterval()))
@@ -56,7 +56,7 @@ Fun(exp,Interval(-1,1))
 Fun(exp)
 ```
 If a function is not specified, then it is taken to be `identity`.  Thus we have the
-following synonyms:
+following equivalent constructions:
 ```julia
 x = Fun(identity, -1..1)
 x = Fun(-1..1)
