@@ -206,7 +206,7 @@ function resizedata!(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T},
      W = QR.H
      R = MO.data
 
-     l,u = R.l,R.u
+     l,u = blockbandwidths(R)
 
      ds = domainspace(QR)
      col = blockstop(ds, COL)  # last column
