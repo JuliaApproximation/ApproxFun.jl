@@ -374,4 +374,15 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
 
         @test norm(uFourier-uChebyshev) ≤ 100eps()
     end
+
+    @testset "real line integral" begin
+        f = x -> x^2/(x^4+1)
+
+        z₁,z₂,z₃,z₄ = exp(im*π/4), exp(3im*π/4), exp(5im*π/4), exp(7im*π/4)
+
+        res₁ = z₁^2 / ((z₁ - z₂)*(z₁ - z₃)*(z₁ - z₄) )
+        res₂ = z₂^2 / ((z₂ - z₁)*(z₂ - z₃)*(z₂ - z₄) )
+
+        @test_skip sum(Fun(f, Line())) ≈ 2π*im*(res₁ + res₂)
+    end
 end
