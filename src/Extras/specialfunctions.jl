@@ -344,8 +344,7 @@ for (op,ODE,RHS,growth) in ((:(exp),"D-f'","0",:(real)),
             # This supports Line/Rays
             D=Derivative(domain(f))
             B=Evaluation(domainspace(D),xmax)
-            #([B,eval($L)]\[opfxmax/opmax,eval($R)/opmax])*opmax
-            u=\([B,eval($L)],Any[opfxmax/opmax,eval($R)/opmax];tolerance=eps(T))*opmax
+            u=\([B,eval($L)],Any[opfxmax,eval($R)];tolerance=eps(T)*opmax)
 
             setdomain(u,domain(fin))
         end
@@ -390,7 +389,7 @@ function exp(f::Fun{<:JacobiWeight{<:Any,<:ChebyshevInterval}})
         D=Derivative(s)
         B=Evaluation(s,xmax)
 
-        \([B,D-f'],Any[opfxmax/opmax,0.];tolerance=eps(cfstype(f)))*opmax
+        \([B,D-f'],Any[opfxmax,0.];tolerance=eps(cfstype(f))*opmax)
     end
 end
 
@@ -442,8 +441,7 @@ for (op,ODE,RHS,growth) in ((:(erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
             end
             D=Derivative(space(f))
             B=[Evaluation(space(f),xmin),Evaluation(space(f),xmax)]
-            u=\([B;eval($L)],[opfxmin/opmax;opfxmax/opmax;eval($R)/opmax];
-                        tolerance=10ncoefficients(f)*eps(T)*opmax)*opmax
+            u=\([B;eval($L)],[opfxmin;opfxmax;eval($R)];tolerance=eps(T)*opmax)
 
             setdomain(u,domain(fin))
         end
@@ -480,7 +478,7 @@ for (op,ODE,RHS,growth) in ((:(hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^
             end
             D=Derivative(space(f))
             B=[Evaluation(space(f),xmin),Evaluation(space(f),xmax)]
-            u=([B;eval($L)]\[opfxmin/opmax;opfxmax/opmax;eval($R)/opmax])*opmax
+            u=\([B;eval($L)],[opfxmin;opfxmax;eval($R)];tolerance=eps(T)*opmax)
 
             setdomain(u,domain(fin))
         end
