@@ -2,7 +2,8 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
     import DomainSets
     import DomainSets: UnionDomain
     import ApproxFun: ChebyshevDirichlet, Ultraspherical, PiecewiseSegment, ContinuousSpace, space, SpaceOperator,
-                        testspace, testbandedoperator, testraggedbelowoperator, testcalculus, testtransforms
+                        testspace, testbandedoperator, testraggedbelowoperator, testcalculus, testtransforms,
+                        testfunctional
 
 @testset "Spaces" begin
     @testset "ChebyshevDirichlet" begin
@@ -327,7 +328,7 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
     @testset "one for SumSpace" begin
         S = Jacobi(0,1) ⊕ JacobiWeight(1/3,0,Jacobi(1/3,2/3)) ⊕ JacobiWeight(2/3,0,Jacobi(2/3,1/3))
         o = ones(S)
-        @test o(0.5) == 1
+        @test o(0.5) ≈ 1
     end
 
     @testset "blockbandwidths for FiniteOperator of pointscompatibleace bug" begin
@@ -384,5 +385,18 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
         res₂ = z₂^2 / ((z₂ - z₁)*(z₂ - z₃)*(z₂ - z₄) )
 
         @test_skip sum(Fun(f, Line())) ≈ 2π*im*(res₁ + res₂)
+    end
+
+    @testset "Piecewise Legendre" begin
+        f = Fun(x -> exp(-40(x-0.1)^2), Legendre(0..1), 1000)
+        @test f(0.2) ≈ exp(-40(0.1)^2)
+
+        f = Fun(x -> exp(-40(x-0.1)^2), Legendre(0..1))
+        @test f(0.2) ≈ exp(-40(0.1)^2)
+
+        sp = Legendre(Segment(0 , -1)) ⊕ Legendre(0 .. 1)
+        @time f = Fun(x->sign(x)*exp(-40(x-0.1)^2), sp)
+        @test f(0.2) ≈ exp(-40(0.1)^2)
+        @test f(-0.2) ≈ -exp(-40(0.3)^2)
     end
 end

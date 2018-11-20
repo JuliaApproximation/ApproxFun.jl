@@ -1,4 +1,4 @@
-using ApproxFun, Test, StaticArrays, SpecialFunctions
+using ApproxFun, Test, StaticArrays, SpecialFunctions, LinearAlgebra
     import ApproxFun: testbandedbelowoperator, testbandedoperator, testspace, testtransforms, Vec,
                         maxspace, NoSpace, hasconversion, testfunctional
 
