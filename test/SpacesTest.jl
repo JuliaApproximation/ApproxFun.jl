@@ -399,4 +399,9 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
         @test f(0.2) ≈ exp(-40(0.1)^2)
         @test f(-0.2) ≈ -exp(-40(0.3)^2)
     end
+
+    @testset "Ambiguous evaluate" begin
+        f = Fun(1.0, Chebyshev(NaN..NaN))
+        @test f(0.1) ≈ 1.0
+    end
 end
