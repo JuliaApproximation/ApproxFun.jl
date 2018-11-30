@@ -18,6 +18,12 @@ rangespace(M::ConcreteMultiplication{U,V}) where {U<:PolynomialSpace,V<:Polynomi
 function evaluate(f::AbstractVector,S::PolynomialSpace,x)
     if x in domain(S)
         clenshaw(S,f,tocanonical(S,x))
+    elseif isambiguous(domain(S))
+        length(f) == 0 && return zero(eltype(f))
+        for k = 2:length(f)
+            iszero(f[k]) || throw(ArgumentError("Ambiguous domains only work with constants"))
+        end
+        return first(f)
     else
         zero(eltype(f))
     end
