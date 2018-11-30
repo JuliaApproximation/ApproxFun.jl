@@ -125,10 +125,11 @@ include("JacobiOperators.jl")
 
 
 
-for op in (:(one),:(Base.zeros))
-    @eval ($op)(::Type{T},S::Jacobi) where {T<:Number} = Fun(S,fill($op(T),1))
-    @eval ($op)(S::Jacobi) = Fun(S,fill($op(Float64),1))
-end
+
+one(::Type{T},S::Jacobi) where {T<:Number} = Fun(S,fill(one(T),1))
+one(S::Jacobi) = Fun(S,fill(one(Float64),1))
+zeros(::Type{T},S::Jacobi) where {T<:Number} = Fun(S,zeros(T,1))
+zeros(S::Jacobi) = Fun(S,zeros(T,1))
 
 Fun(::typeof(identity), J::Jacobi{<:ChebyshevInterval}) =
     Fun(J,[(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)])

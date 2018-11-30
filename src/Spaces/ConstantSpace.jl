@@ -5,9 +5,9 @@ iterate(::Fun{SequenceSpace}) = 1
 iterate(f::Fun{SequenceSpace}, st) = f[st], st+1
 
 getindex(f::Fun{SequenceSpace}, k::Integer) =
-    k ≤ ncoefficients(f) ? f.coefficients[k] : zero(eltype(f))
+    k ≤ ncoefficients(f) ? f.coefficients[k] : zero(cfstype(f))
 getindex(f::Fun{SequenceSpace},K::CartesianIndex{0}) = f[1]
-getindex(f::Fun{SequenceSpace},K) = eltype(f)[f[k] for k in K]
+getindex(f::Fun{SequenceSpace},K) = cfstype(f)[f[k] for k in K]
 
 length(f::Fun{SequenceSpace}) = ∞
 
