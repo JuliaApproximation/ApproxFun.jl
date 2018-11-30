@@ -19,6 +19,9 @@ piece(d::UnionDomain,k) = pieces(d)[k]
 npieces(d::UnionDomain) = length(elements(d))
 
 
+union(::AnyDomain, d::UnionDomain) = d
+union(d::UnionDomain, ::AnyDomain) = d
+
 arclength(d::UnionDomain) = mapreduce(arclength,+,d.domains)
 
 
