@@ -123,6 +123,9 @@ end
 coefficients(cfsin::AbstractVector,A::ContinuousSpace,B::PiecewiseSpace) =
     defaultcoefficients(cfsin,A,B)
 
+coefficients(cfsin::AbstractVector,A::PiecewiseSpace,B::ContinuousSpace) =
+    default_Fun(Fun(A,cfsin),B).coefficients
+
 coefficients(cfsin::AbstractVector,A::ContinuousSpace,B::ContinuousSpace) =
     default_Fun(Fun(A,cfsin),B).coefficients
 
@@ -410,6 +413,8 @@ end
 
 union_rule(A::PiecewiseSpace, B::ContinuousSpace) = union(A, convert(PiecewiseSpace, B))
 union_rule(A::ConstantSpace, B::ContinuousSpace) = B
+union_rule(A::ContinuousSpace, B::PolynomialSpace{<:IntervalOrSegment}) =
+    Space(domain(A) ∪ domain(B))
 
 function approx_union(a::AbstractVector{T}, b::AbstractVector{V}) where {T,V}
     ret = sort!(union(a,b))

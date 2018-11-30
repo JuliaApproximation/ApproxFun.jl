@@ -404,4 +404,12 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
         f = Fun(1.0, Chebyshev(NaN..NaN))
         @test f(0.1) ≈ 1.0
     end
+
+    @testset "x + abs(x) (#637)" begin
+        x = Fun()
+        g = abs(x) + x
+        @test ncoefficients(g) == 3
+        @test g(0.1) ≈ 0.2
+        @test g(-0.2) ≈ 0.0
+    end
 end

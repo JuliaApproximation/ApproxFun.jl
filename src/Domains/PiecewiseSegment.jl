@@ -72,3 +72,12 @@ for OP in (:(isapprox),:(==))
         $OP(b::UnionDomain,a::PiecewiseSegment) = $OP(UnionDomain(components(a)),b)
     end
 end
+
+
+function union(S::PiecewiseSegment{<:Real}, D::IntervalOrSegment{<:Real})
+    isempty(D) && return S
+    a,b = endpoints(D)
+    (a ∈ S || b ∈ S) && return PiecewiseSegment(sort!(union(S.points, a, b)))
+    UnionDomain(S, D)
+end
+union(D::IntervalOrSegment{<:Real}, S::PiecewiseSegment{<:Real}) = union(S,D)
