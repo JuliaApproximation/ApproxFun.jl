@@ -10,7 +10,7 @@ DomainSets 0.0.1
 IntervalSets 0.3.1
 StaticArrays 0.8.3
 BlockArrays 0.4.1
-BlockBandedMatrices 0.3.1
+BlockBandedMatrices 0.3.2
 AbstractFFTs 0.3.1
 FFTW 0.2.4
 SpecialFunctions 0.7
