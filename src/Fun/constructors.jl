@@ -25,9 +25,6 @@ function choosefuncfstype(ftype,Td)
     if ftype <: Number #TODO should also work for array-valued functions
         Tprom,Tpromd=valsdomain_type_promote(ftype,Td)
 
-        if ftype != Int && Tprom != ftype
-                @warn "Promoting function output type from $(ftype) to $(Tprom)"
-        end
         if Tpromd != Td
                 @warn "Space domain number type $(Td) is not compatible with coefficient type $(Tprom)"
                 #TODO should construct a new Space that contains a domain where the numbers have been promoted
