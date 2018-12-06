@@ -30,6 +30,7 @@ function coefficients(f::AbstractVector,a::Jacobi,b::Chebyshev)
     end
 end
 function coefficients(f::AbstractVector,a::Chebyshev,b::Jacobi)
+    isempty(f) && return f
     if domain(a) == domain(b) && (!isapproxinteger(b.a-0.5) || !isapproxinteger(b.b-0.5))
         icjt(f,b.a,b.b)
     else
