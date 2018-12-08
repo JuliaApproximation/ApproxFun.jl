@@ -4,6 +4,12 @@ export domainplot, coefficientplot, complexplot
 
 ## Fun routines
 
+function _maybe_sort(p::AbstractVector{<:Real}, v)
+    σ = sortperm(p)
+    p[σ], v[σ]
+end
+
+_maybe_sort(p, v) = (p,v)
 
 function plotptsvals(f::Fun)
     if isinf(dimension(space(f)))
@@ -11,10 +17,10 @@ function plotptsvals(f::Fun)
     else
         f=pad(f,dimension(space(f)))
     end
-    return points(f),values(f)
+    return _maybe_sort(points(f),values(f))
 end
 
-function plotptsvals(f::Fun{S}) where S<:JacobiWeight
+function plotptsvals(f::Fun{<:JacobiWeight})
     f=pad(f,3ncoefficients(f)+50)
     s=space(f)
     pts,vals=points(f),values(f)
@@ -60,7 +66,7 @@ end
 end
 
 
-@recipe function f(G::AbstractVector{F}) where F<:Fun
+@recipe function f(G::AbstractVector{<:Fun})
     x=Vector{Float64}[]
     v=Vector{Float64}[]
     for g in G
@@ -68,7 +74,7 @@ end
         push!(x,xx)
         push!(v,vv)
     end
-    x,v
+    _maybe_sort(x,v)
 end
 
 @recipe function f(x::AbstractVector{T},G::AbstractVector{F}) where {T<:Real,F<:Fun}

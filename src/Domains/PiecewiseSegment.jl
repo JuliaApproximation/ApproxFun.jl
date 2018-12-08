@@ -81,3 +81,7 @@ function union(S::PiecewiseSegment{<:Real}, D::IntervalOrSegment{<:Real})
     UnionDomain(S, D)
 end
 union(D::IntervalOrSegment{<:Real}, S::PiecewiseSegment{<:Real}) = union(S,D)
+
+for OP in (:minimum, :maximum)
+    @eval $OP(d::PiecewiseSegment) = $OP(d.points)
+end
