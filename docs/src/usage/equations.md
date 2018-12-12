@@ -112,7 +112,7 @@ x = Fun(-8 .. 8)
 L = -𝒟^2/2 + x^2/2
 S = space(x)
 B = Dirichlet(S)
-λ, v = eigs(B, L, 500,tolerance=1E-10)
+λ, v = ApproxFun.eigs(B, L, 500,tolerance=1E-10)
 ```
 note that boundary conditions must be specified in the call to `eigs`. Plotting the first $20$ eigenfunctions offset vertically by their eigenvalue, we see
 
