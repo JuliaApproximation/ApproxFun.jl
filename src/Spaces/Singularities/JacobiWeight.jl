@@ -62,7 +62,7 @@ jacobiweight(β,α,x) = -1 ≤ x ≤ 1 ? (1+x)^β*(1-x)^α : zero(x)
 jacobiweight(β,α,d::Domain) = Fun(JacobiWeight(β,α,ConstantSpace(d)),[1.])
 jacobiweight(β,α) = jacobiweight(β,α,ChebyshevInterval())
 
-weight(sp::JacobiWeight,x) = jacobiweight(sp.β,sp.α,tocanonical(sp,x))
+weight(sp::JacobiWeight,x) = jacobiweight(sp.β,sp.α,real(tocanonical(sp,x)))
 dimension(sp::JacobiWeight) = dimension(sp.space)
 
 

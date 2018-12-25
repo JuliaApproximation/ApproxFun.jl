@@ -1,4 +1,3 @@
-
 using ApproxFun, Test
 
 @testset "BigFloat" begin
@@ -50,4 +49,12 @@ using ApproxFun, Test
         end
     end
 
+    @testset "#641" begin
+        f64 = Fun(Laurent(),[2, -1, -1])
+        frat = Fun(Laurent(),Rational.(BigInt.([2, -1, -1])))
+        fr2 = (frat*frat)
+        f642 = f64*f64
+        @test fr2 isa Fun{<:Laurent, Rational{BigInt}}
+        @test f2.coefficients ≈ f642.coefficients
+    end
 end

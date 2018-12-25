@@ -50,13 +50,15 @@ float(::Type{SVector{N,T}}) where {T,N} = SVector{N,float(T)}
 eps(x...) = Base.eps(x...)
 eps(x) = Base.eps(x)
 
-eps(::Type{T}) where {T<:Integer} = zero(T)
+eps(::Type{T}) where T<:Integer = zero(T)
+eps(::Type{T}) where T<:Rational = zero(T)
 eps(::T) where T<:Integer = eps(T)
 
 eps(::Type{Complex{T}}) where {T<:Real} = eps(real(T))
 eps(z::Complex{T}) where {T<:Real} = eps(abs(z))
 eps(::Type{Dual{Complex{T}}}) where {T<:Real} = eps(real(T))
 eps(z::Dual{Complex{T}}) where {T<:Real} = eps(abs(z))
+
 
 eps(::Type{Vector{T}}) where {T<:Number} = eps(T)
 eps(::Type{Vec{k,T}}) where {k,T<:Number} = eps(T)
