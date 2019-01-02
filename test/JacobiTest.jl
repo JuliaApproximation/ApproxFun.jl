@@ -1,10 +1,11 @@
 using ApproxFun, Test, StaticArrays, SpecialFunctions, LinearAlgebra
     import ApproxFun: testbandedbelowoperator, testbandedoperator, testspace, testtransforms, Vec,
-                        maxspace, NoSpace, hasconversion, testfunctional
+                        maxspace, NoSpace, hasconversion, testfunctional,
+                        jacobip, reverseorientation, ReverseOrientation
 
 @testset "Jacobi" begin
     @testset "Basic" begin
-        @test ApproxFun.jacobip(0:5,2,0.5,0.1) ≈ [1.,0.975,-0.28031249999999996,-0.8636328125,-0.0022111816406250743,0.7397117980957031]
+        @test jacobip(0:5,2,0.5,0.1) ≈ [1.,0.975,-0.28031249999999996,-0.8636328125,-0.0022111816406250743,0.7397117980957031]
 
         testspace(Jacobi(.5,2.);haslineintegral=false)
 
@@ -247,9 +248,26 @@ using ApproxFun, Test, StaticArrays, SpecialFunctions, LinearAlgebra
 
     @testset "Reverse orientation" begin
         S = Jacobi(0.1,0.2)
+
+        @test_throws ArgumentError Conversion(S, Jacobi(1.1,1.2,0..1))
+
         f = Fun(S, randn(10))
-        @test f(0.1) ≈ (ApproxFun.ReverseOrientation(S)*f)(0.1) ≈ ApproxFun.reverseorientation(f)(0.1)
-        @test rangespace(ApproxFun.ReverseOrientation(S)) == space(ApproxFun.reverseorientation(f)) ==
+        @test f(0.1) ≈ (ReverseOrientation(S)*f)(0.1) ≈ reverseorientation(f)(0.1)
+        @test rangespace(ReverseOrientation(S)) == space(reverseorientation(f)) ==
                     Jacobi(0.2,0.1,Segment(1,-1))
+
+        R = Conversion(S, reverseorientation(S))
+        @test (R*f)(0.1) ≈ f(0.1) ≈ reverseorientation(f)(0.1)
+
+        S = Legendre()
+        f = Fun(S, randn(10))
+        @test f(0.1) ≈ (ReverseOrientation(S)*f)(0.1) ≈ reverseorientation(f)(0.1)
+        @test rangespace(ReverseOrientation(S)) == space(reverseorientation(f)) ==
+                    Legendre(Segment(1,-1))
+
+        R = Conversion(S, reverseorientation(S))
+        @test rangespace(R) == reverseorientation(S) ==
+            space(reverseorientation(f))
+        @test f(0.1) ≈ (R*f)(0.1) ≈ reverseorientation(f)(0.1)
     end
 end

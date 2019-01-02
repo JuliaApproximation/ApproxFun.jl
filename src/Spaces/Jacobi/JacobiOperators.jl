@@ -239,6 +239,12 @@ end
 # multiplies conversion operators to handle otherwise
 
 function Conversion(L::Jacobi,M::Jacobi)
+    domain(L) == reverseorientation(domain(M)) &&
+        return ConversionWrapper(Conversion(reverseorientation(L), M)*ReverseOrientation(L))
+
+    domain(L) == domain(M) || domain(L) == reverseorientation(domain(M)) ||
+        throw(ArgumentError("Domains must be the same"))
+
     if isapproxinteger(L.a-M.a) && isapproxinteger(L.b-M.b)
         dm=domain(M)
         D=typeof(dm)

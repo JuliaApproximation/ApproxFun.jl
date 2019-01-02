@@ -55,6 +55,6 @@ using ApproxFun, Test
         fr2 = (frat*frat)
         f642 = f64*f64
         @test fr2 isa Fun{<:Laurent, Rational{BigInt}}
-        @test f2.coefficients ≈ f642.coefficients
+        @test fr2.coefficients ≈ f642.coefficients
     end
 end
