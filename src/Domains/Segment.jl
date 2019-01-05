@@ -29,6 +29,7 @@ Segment(a::Tuple, b::Tuple) = Segment(Vec(a...),Vec(b...))
 
 
 convert(::Type{Domain{T}}, d::Segment) where {T<:Number} = Segment{T}(leftendpoint(d),rightendpoint(d))
+convert(::Type{Domain{T}}, d::Segment) where {T<:SVector} = Segment{T}(leftendpoint(d),rightendpoint(d))
 convert(::Type{Segment{T}}, d::Segment) where {T<:Number} = Segment{T}(leftendpoint(d),rightendpoint(d))
 convert(::Type{Segment}, d::AbstractInterval) = Segment(leftendpoint(d), rightendpoint(d))
 convert(::Type{Segment{T}}, d::AbstractInterval) where T =convert(Segment{T}, convert(Segment, d))
