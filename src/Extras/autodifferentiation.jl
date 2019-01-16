@@ -52,8 +52,9 @@ end
 first(d::DualFun) = DualFun(first(d.f),Evaluation(rangespace(d.J),leftendpoint)*d.J)
 last(d::DualFun) = DualFun(last(d.f),Evaluation(rangespace(d.J),rightendpoint)*d.J)
 
-jacobian(d::DualFun)=d.J
-
+jacobian(d::DualFun) = d.J
+jacobian(a::Number) = 0.0
+jacobian(f::Fun) = Operator(I,space(f))
 
 promote_rule(::Type{DF},::Type{T}) where {DF<:DualFun,T<:Number}=DualFun
 convert(::Type{DualFun},b::Number) = DualFun(b,0)
@@ -102,6 +103,38 @@ function newton(N,u0::Fun;maxiterations=15,tolerance=1E-15)
     return u
 end
 
+# Newton iteration for a system of nonlinear equations
+function newton(N, u0::Array{T,1}; maxiterations=15, tolerance=1E-15) where T <: Fun
+    u = copy(u0)
+    err = Inf
+    
+    numf = length(u0) # number of functions
+    
+    for k = 1:maxiterations
+        Js = Array{Any,2}(undef,1,numf)
+        
+        # calculate partial Jacobian for each function - O(numf^2)
+        for i = 1:numf
+            @inbounds Js[i] = jacobian.(N([ (j == i ? DualFun(u[j]) : u[j]) for j = 1:numf ]...))
+        end
+        
+        F = N(u...)
+        J = Base.typed_hcat(Operator, Js...)
+        
+        unew = u .- J\F
+        err = maximum(norm.(unew-u)) # use the max norm error as the overall error
+        
+        if err ≤ 10*tolerance
+            return unew
+        else
+            u = map(q -> chop(q, tolerance), unew)
+        end
+    end
+    
+    @warn "Maximum number of iterations $maxiterations reached, with approximate accuracy of $err."
+    
+    return u
+end
 
 newton(N,d::Domain;opts...) =
     newton(N,zeros(d);opts...)
