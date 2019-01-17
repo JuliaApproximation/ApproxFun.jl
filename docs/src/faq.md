@@ -39,7 +39,7 @@ julia> p = range(1,stop=2,length=n);   # a non-default grid
 
 julia> v = exp.(p);           # values at the non-default grid
 
-julia> V = Array(Float64,n,n); # Create a Vandermonde matrix by evaluating the basis at the grid
+julia> V = Array{Float64}(undef,n,n); # Create a Vandermonde matrix by evaluating the basis at the grid
 
 julia> for k = 1:n
            V[:,k] = Fun(S,[zeros(k-1);1]).(p)
@@ -65,7 +65,7 @@ julia> p = range(1,stop=2,length=n);   # a non-default grid
 
 julia> v = exp.(p);           # values at the non-default grid
 
-julia> V = Array(Float64,n,m); # Create a Vandermonde matrix by evaluating the basis at the grid
+julia> V = Array{Float64}(undef,n,m); # Create a Vandermonde matrix by evaluating the basis at the grid
 
 julia> for k = 1:m
            V[:,k] = Fun(S,[zeros(k-1);1]).(p)
@@ -91,7 +91,7 @@ julia> Random.seed!(0); x = rand(n); y = rand(n);
 
 julia> v = exp.(x .* cos(y));  # values at the non-default grid
 
-julia> V = Array(Float64,n,m); # Create a Vandermonde matrix by evaluating the basis at the grid
+julia> V = Array{Float64}(undef,n,m); # Create a Vandermonde matrix by evaluating the basis at the grid
 
 julia> for k = 1:m
           V[:,k] = Fun(S,[zeros(k-1);1]).(x,y)
