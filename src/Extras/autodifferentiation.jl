@@ -16,6 +16,13 @@ function cumsum(d::DualFun)
     DualFun(cumsum(d.f),(I-Evaluation(rangespace(Q),leftendpoint))*Q)
 end
 
+# total definite integral of a function
+import Base.sum
+function sum(df::DualFun)
+    Q = Integral(rangespace(df.J))*df.J
+    return DualFun(sum(df.f), Evaluation(rangespace(Q), rightendpoint)*Q)
+end
+
 
 adjoint(d::DualFun) = differentiate(d)
 
