@@ -109,6 +109,31 @@ plot(u)
 
 <img src=https://github.com/JuliaApproximation/ApproxFun.jl/raw/master/images/nbvp.png width=500 height=400>
 
+One can also solve a system nonlinear ODEs with potentially nonlinear boundary conditions:
+
+```julia
+function nonlinear_test()
+    x=Fun(Chebyshev(0..1))
+    N = (u1,u2) -> [u1'(0) - 0.5*u1(0)*u2(0);
+                    u2'(0) + 1;
+                    u1(1) - 1;
+                    u2(1) - 1;
+                    u1'' + u1*u2;
+                    u2'' - u1*u2]
+
+    u10 = one(x)
+    u20 = one(x)
+    
+    return newton(N, [u10,u20])
+end
+
+u1,u2 = nonlinear_test()
+
+plot(u1, label="u1")
+plot!(u2, label="u2")
+```
+
+<img src=images/example_nonlin.png width=500 height=400>
 
 
 ## Periodic functions
