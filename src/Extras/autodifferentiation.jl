@@ -111,23 +111,37 @@ function newton(N,u0::Fun;maxiterations=15,tolerance=1E-15)
 end
 
 # Newton iteration for a system of nonlinear equations
+# INPUTS:
+#   N - a nonlinear function N(u1, u2, u3, ...) = [BCs;...]
+#   u0 - an array of initial Funs
+#       NOTE: these initial Funs should be "chopped" as much as possible for optimal speed
+#
+# KSS and ZJS
 function newton(N, u0::Array{T,1}; maxiterations=15, tolerance=1E-15) where T <: Fun
     u = copy(u0)
     err = Inf
     
-    numf = length(u0) # number of functions
+    numf = length(u0)   # number of functions
+    
+    Js = Array{Any,2}(undef,1,numf) # jacobians
     
     for k = 1:maxiterations
-        Js = Array{Any,2}(undef,1,numf)
+        # ------ calculate Jacobian for each function - O(numf^2) ----
         
-        # calculate partial Jacobian for each function - O(numf^2)
-        for i = 1:numf
+        # use the first call to populate the value of the functions
+        # this saves one call to N()
+        F = N([ (j == 1 ? DualFun(u[j]) : u[j]) for j = 1:numf ]...)
+        @inbounds Js[1] = jacobian.(F)
+        F = map(d -> typeof(d) <: DualFun ? d.f : d, F)
+        
+        for i = 2:numf
             @inbounds Js[i] = jacobian.(N([ (j == i ? DualFun(u[j]) : u[j]) for j = 1:numf ]...))
         end
         
         F = N(u...)
         J = Base.typed_hcat(Operator, Js...)
         
+        # ------- update step ---------
         unew = u .- J\F
         err = maximum(norm.(unew-u)) # use the max norm error as the overall error
         
