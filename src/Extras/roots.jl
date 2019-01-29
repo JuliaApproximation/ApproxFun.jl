@@ -88,7 +88,7 @@ for (BF,FF) in ((BigFloat,Float64),(Complex{BigFloat},ComplexF64))
 
         # do Newton 3 time
         for _ = 1:3
-            rts .-=f.(rts)./fp.(rts)
+            rts .-=extrapolate.(Ref(f),rts)./extrapolate.(Ref(fp),rts)
         end
 
         return rts

@@ -57,4 +57,12 @@ using ApproxFun, Test
         @test fr2 isa Fun{<:Laurent, Rational{BigInt}}
         @test fr2.coefficients ≈ f642.coefficients
     end
+
+    @testset "Roots of BigFloat" begin
+        x = Fun(identity, BigFloat(0)..1)
+        @test roots(1-x^2) == BigFloat[1]
+        b = BigFloat(30.5)
+        w = (1-x^2)^b
+        @test w(BigFloat(1)/10) ≈ (1-(BigFloat(1)/10)^2)^b
+    end
 end
