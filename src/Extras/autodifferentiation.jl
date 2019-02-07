@@ -17,7 +17,6 @@ function cumsum(d::DualFun)
 end
 
 # total definite integral of a function
-import Base.sum
 function sum(df::DualFun)
     Q = Integral(rangespace(df.J))*df.J
     return DualFun(sum(df.f), Evaluation(rangespace(Q), rightendpoint)*Q)
@@ -60,7 +59,7 @@ first(d::DualFun) = DualFun(first(d.f),Evaluation(rangespace(d.J),leftendpoint)*
 last(d::DualFun) = DualFun(last(d.f),Evaluation(rangespace(d.J),rightendpoint)*d.J)
 
 jacobian(d::DualFun) = d.J
-jacobian(a::Number) = 0.0
+jacobian(a::Number) = zero(a)
 jacobian(f::Fun) = Operator(I,space(f))
 
 promote_rule(::Type{DF},::Type{T}) where {DF<:DualFun,T<:Number}=DualFun
@@ -122,6 +121,10 @@ function newton(N, u0::Array{T,1}; maxiterations=15, tolerance=1E-15) where T <:
     err = Inf
     
     numf = length(u0)   # number of functions
+
+    if numf == 0
+        error("u0 must contain at least 1 function")
+    end
     
     Js = Array{Any,2}(undef,1,numf) # jacobians
     
