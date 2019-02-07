@@ -93,4 +93,53 @@ using ApproxFun, Test, DualNumbers
         @test [findmax(f)...] ≈ [3.0531164509549584, 1.886754631165656]
         @test [findmin(f)...] ≈ [-0.825047261209411, -1.5741041425422948]
     end
+
+    @testset "Newton iteration" begin
+        x=Fun(Chebyshev(0..1))
+
+        # Test two coupled systems of nonlinear ODEs with nonlinear BCs
+        u1 = 0.5*one(x)
+        u2 = 0.5*one(x)
+
+        N_dep = (u1,u2) -> [
+                u1(0)*u1(0)*u1(0) - 0.125;
+                u2(0) - 1;
+                u1' - u1*u1;  
+                u2' + u1*u1*u2;
+            ] 
+        u1,u2 = newton(N_dep, [u1,u2])
+
+        u1_exact = -1 / (x - 2)
+        u2_exact = exp(1 / (x - 2) + 1/2)
+        @test norm(u2 - u2_exact) < 1e-15
+        @test norm(u1 - u1_exact) < 1e-15
+
+        # Test two independent systems of nonlinear ODEs with nonlinear BCs
+        u1 = 0.5*one(x)
+        u2 = 0.5*one(x)
+
+        N_ind = (u1,u2) -> [
+                u1(0)*u1(0)*u1(0) - 0.125;
+                u2(0)*u2(0)*u2(0) + 0.125;
+                u1' - u1*u1;  
+                u2' - u2*u2;
+            ] 
+
+        # note takes a few more iterations to converge to accuracy
+        u1,u2 = newton(N_ind, [u1,u2], maxiterations=25) 
+
+        u1_exact = -1 / (x - 2)
+        u2_exact = -1 / (x + 2)
+        @test norm(u2 - u2_exact) < 1e-15
+        @test norm(u1 - u1_exact) < 1e-15
+
+        # Compare to original newton for one equation and verify all solutions correct
+        N_single = u -> [u(0)*u(0)*u(0) - 0.125;
+                        u' - u*u]
+
+        u = 0.5*one(x)
+        u = newton(N_single, [u])
+        @test norm(u - u1) < 1e-15
+
+    end
 end
