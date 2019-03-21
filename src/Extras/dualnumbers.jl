@@ -13,14 +13,6 @@ indomain(x::Dual, d::Segment{<:Dual}) = in(realpart(x),realpart(d))
 isempty(d::Segment{<:Dual}) = isempty(realpart(d))
 
 
-# for QR Factorization.  These have been submitted to DualNumbers
-# but we need these duplicates so that they call ApproxFun.flipsign
-flipsign(x::Dual,y::Dual) = y == 0 ? flipsign(x, epsilon(y)) : flipsign(x, realpart(y))
-flipsign(x, y::Dual) = y == 0 ? flipsign(x, epsilon(y)) : flipsign(x, realpart(y))
-flipsign(x::Dual, y::Complex) = y==0 ? x : x*sign(y)
-flipsign(x::Dual, y) = dual(flipsign(realpart(x), y), flipsign(epsilon(x), y))
-
-
 
 valsdomain_type_promote(::Type{Dual{T}},::Type{V}) where {T<:Real,V<:Real} =
     Dual{promote_type(T,V)},promote_type(T,V)
