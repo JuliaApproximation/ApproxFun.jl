@@ -1,4 +1,4 @@
-export Jacobi, Legendre, WeightedJacobi
+export Jacobi, NormalizedJacobi, Legendre, NormalizedLegendre, WeightedJacobi
 
 
 """
@@ -20,6 +20,13 @@ Jacobi(b,a,d) = Jacobi(b,a,Domain(d))
 Jacobi(b,a) = Jacobi(b,a,ChebyshevInterval())
 Jacobi(A::Ultraspherical) = Jacobi(order(A)-0.5,order(A)-0.5,domain(A))
 Jacobi(A::Chebyshev) = Jacobi(-0.5,-0.5,domain(A))
+
+NormalizedJacobi(b,a,d) = NormalizedPolynomialSpace(Jacobi(b,a,d))
+NormalizedJacobi(b,a) = NormalizedPolynomialSpace(Jacobi(b,a))
+NormalizedLegendre(d) = NormalizedPolynomialSpace(Legendre(d))
+NormalizedLegendre() = NormalizedPolynomialSpace(Legendre())
+
+normalization(::Type{T}, sp::Jacobi, k::Int) where T = FastTransforms.Anαβ(k, sp.a, sp.b)
 
 function Ultraspherical(J::Jacobi)
     if J.a == J.b
@@ -135,7 +142,7 @@ Fun(::typeof(identity), J::Jacobi{<:ChebyshevInterval}) =
     Fun(J,[(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)])
 function Fun(::typeof(identity), J::Jacobi)
     d=domain(J)
-    complexlength(d)/2*(Fun(J,[(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)])+1.)+leftendpoint(d)
+    complexlength(d)/2*(Fun(J,[2.0*(J.b + 1)/(2+J.a+J.b),2.0/(2+J.a+J.b)]))+leftendpoint(d)
 end
 
 

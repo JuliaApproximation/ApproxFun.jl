@@ -272,3 +272,66 @@ function hankel_axpy!(α,cfs,kr,jr,ret)
 
     ret
 end
+
+## These are both hacks that apparently work
+
+function BandedMatrix(S::SubOperator{T,PP,Tuple{UnitRange{Int},UnitRange{Int}}}) where {T,PP<:PartialInverseOperator}
+    kr,jr = parentindices(S)
+    P = parent(S)
+    #ret = BandedMatrix{eltype(S)}(undef, size(S), bandwidths(S))
+    ret = BandedMatrix{eltype(S)}(undef, (last(kr),last(jr)), bandwidths(P))
+    b = bandwidth(P, 2)
+    #@assert first(kr) == first(jr) == 1
+
+    @inbounds for j in 1:last(jr)
+        kk = colrange(ret, j)
+        if j in kk
+            ret[j,j] = inv(P.cache[j,j])
+        end
+        for k in first(kk):min(last(kk),j-1)
+            t = zero(T)
+            for i = max(k,j-b-1):j-1
+                t += ret[k,i]*P.cache[i,j]
+            end
+            ret[k,j] = -t/P.cache[j,j]
+        end
+    end
+
+    ret[kr,jr]
+end
+
+function BandedMatrix(S::SubOperator{T,ConcreteConversion{QuotientSpace{SP,O,D,R},SP,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {SP,O,D,R,T}
+    kr,jr = parentindices(S)
+    C = parent(S)
+    #ret = BandedMatrix{eltype(S)}(undef, size(S), bandwidths(S))
+    ret = BandedMatrix{eltype(S)}(undef, (last(kr),last(jr)), bandwidths(C))
+    #@assert first(kr) == first(jr) == 1
+
+    sp = domainspace(C)
+    F = sp.F
+    A = F.factors
+    n = size(A, 1)
+    B = sp.bcs[1:n,1:last(jr)+n]
+    x = sp.x
+    @inbounds for j in 1:last(jr)
+        kk = colrange(ret, j)
+        if j in kk
+            ret[j,j] = one(R)
+        end
+        for jj = 1:n, ii = 1:n
+            A[ii,jj] = B[ii,j+jj]
+        end
+        for ii = 1:n
+            x[ii] = -B[ii,j]
+        end
+        if norm(x) > 8*norm(A)*eps(R)
+            mutable_lu!(F)
+            ldiv!(F, x)
+        end
+        for k = first(kk)+1:last(kk)
+            ret[k,j] = x[k-j]
+        end
+    end
+
+    ret[kr,jr]
+end

@@ -1,4 +1,7 @@
 
+
+export PolynomialSpace, NormalizedPolynomialSpace
+
 ## Orthogonal polynomials
 
 abstract type PolynomialSpace{D,R} <: Space{D,R} end
@@ -290,10 +293,9 @@ function forwardrecurrence(::Type{T},S::Space,r::AbstractRange,x::Number) where 
     if n > 0
         v[1]=1
         if n > 1
-            v[2] = (x-recα(T,S,1))*v[1]/recβ(T,S,1)
-
+            v[2] = muladd(recA(T,S,0),x,recB(T,S,0))
             @inbounds for k=2:n-1
-                v[k+1]=((x-recα(T,S,k))*v[k] - recγ(T,S,k)*v[k-1])/recβ(T,S,k)
+                v[k+1]=muladd(muladd(recA(T,S,k-1),x,recB(T,S,k-1)),v[k],-recC(T,S,k-1)*v[k-1])
             end
         end
     end
@@ -334,4 +336,89 @@ function getindex(op::ConcreteEvaluation{J,TT},kr::AbstractRange) where {J<:Poly
     x=op.x
 
     forwardrecurrence(T,sp,kr.-1,tocanonical(sp,x))
+end
+
+
+struct NormalizedPolynomialSpace{S,D,R} <: Space{D,R}
+    space::S
+    NormalizedPolynomialSpace{S,D,R}(space) where {S,D,R} = new{S,D,R}(space)
+end
+
+domain(S::NormalizedPolynomialSpace) = domain(S.space)
+canonicalspace(S::NormalizedPolynomialSpace) = S.space
+
+NormalizedPolynomialSpace(space::PolynomialSpace{D,R}) where {D,R} = NormalizedPolynomialSpace{typeof(space),D,R}(space)
+
+function Conversion(L::NormalizedPolynomialSpace{S}, M::S) where S<:PolynomialSpace
+    if L.space == M
+        ConcreteConversion(L, M)
+    else
+        sp = L.space
+        ConversionWrapper(TimesOperator(Conversion(sp, M), Conversion(L, sp)))
+    end
+end
+
+function Conversion(L::S, M::NormalizedPolynomialSpace{S}) where S<:PolynomialSpace
+    if M.space == L
+        ConcreteConversion(L, M)
+    else
+        sp = M.space
+        ConversionWrapper(TimesOperator(Conversion(sp, M), Conversion(L, sp)))
+    end
+end
+
+bandwidths(C::ConcreteConversion{NormalizedPolynomialSpace{S,D,R},S}) where {S,D,R} = (0, 0)
+bandwidths(C::ConcreteConversion{S,NormalizedPolynomialSpace{S,D,R}}) where {S,D,R} = (0, 0)
+
+function getindex(C::ConcreteConversion{NormalizedPolynomialSpace{S,D,R},S,T},k::Integer,j::Integer) where {S,D<:IntervalOrSegment,R,T}
+    if j==k
+        inv(sqrt(normalization(T, C.rangespace, k-1)*arclength(domain(C.rangespace))/2))
+    else
+        zero(T)
+    end
+end
+
+function getindex(C::ConcreteConversion{S,NormalizedPolynomialSpace{S,D,R},T},k::Integer,j::Integer) where {S,D<:IntervalOrSegment,R,T}
+    if j==k
+        sqrt(normalization(T, C.domainspace, k-1)*arclength(domain(C.domainspace))/2)
+    else
+        zero(T)
+    end
+end
+
+function getindex(C::ConcreteConversion{NormalizedPolynomialSpace{S,D,R},S,T},k::Integer,j::Integer) where {S,D<:Ray,R,T}
+    if j==k
+        inv(sqrt(normalization(T, C.rangespace, k-1)))
+    else
+        zero(T)
+    end
+end
+
+function getindex(C::ConcreteConversion{S,NormalizedPolynomialSpace{S,D,R},T},k::Integer,j::Integer) where {S,D<:Ray,R,T}
+    if j==k
+        sqrt(normalization(T, C.domainspace, k-1))
+    else
+        zero(T)
+    end
+end
+
+spacescompatible(a::NormalizedPolynomialSpace,b::NormalizedPolynomialSpace) = spacescompatible(a.space,b.space)
+hasconversion(a::PolynomialSpace,b::NormalizedPolynomialSpace) = hasconversion(a,b.space)
+hasconversion(a::NormalizedPolynomialSpace,b::PolynomialSpace) = hasconversion(a.space,b)
+hasconversion(a::NormalizedPolynomialSpace,b::NormalizedPolynomialSpace) = hasconversion(a.space,b)
+
+
+function Multiplication(f::Fun{U},sp::NormalizedPolynomialSpace) where U <: PolynomialSpace
+    csp = space(f)
+    MultiplicationWrapper(f,Conversion(csp,sp)*Multiplication(f,csp)*Conversion(sp,csp))
+end
+
+function Multiplication(f::Fun{U},sp::PolynomialSpace) where U <: NormalizedPolynomialSpace
+    Multiplication(Conversion(space(f), canonicalspace(f))*f, sp)
+end
+
+function Multiplication(f::Fun{U},sp::NormalizedPolynomialSpace) where U <: NormalizedPolynomialSpace
+    csp = canonicalspace(f)
+    fc = Conversion(space(f), csp)*f
+    MultiplicationWrapper(f,Conversion(csp,sp)*Multiplication(fc,csp)*Conversion(sp,csp))
 end

@@ -1,4 +1,4 @@
-export Hermite,GaussWeight
+export Hermite,NormalizedHermite,GaussWeight
 
 #TODO: Add general lines
 
@@ -10,6 +10,9 @@ struct Hermite{T} <: PolynomialSpace{Line{false,Float64},Float64}
     L::T
 end
 Hermite() = Hermite(1.0)
+
+NormalizedHermite() = NormalizedPolynomialSpace(Hermite())
+NormalizedHermite(L) = NormalizedPolynomialSpace(Hermite(L))
 
 domain(::Hermite) = Line()
 canonicalspace(H::Hermite) = Hermite()
@@ -31,6 +34,7 @@ recA(::Type,H::Hermite,k) = 2 * sqrt(H.L);
 recB(::Type,::Hermite,k) = 0;
 recC(::Type,::Hermite,k) = 2k;
 
+normalization(::Type{T}, sp::Hermite, k::Int) where T = (warn("This normalization would have overflown sooner than you wished! Not normalizing."); one(T))
 
 Derivative(H::Hermite,order) = ConcreteDerivative(H,order)
 

@@ -1,4 +1,4 @@
-export Laguerre, LaguerreWeight, WeightedLaguerre
+export Laguerre, NormalizedLaguerre, LaguerreWeight, WeightedLaguerre
 
 #####
 # recα/β/γ are given by
@@ -14,6 +14,14 @@ export Laguerre, LaguerreWeight, WeightedLaguerre
 # p_{n+1} = (A_n x + B_n)p_n - C_n p_{n-1}
 #####
 
+"""
+`Laguerre(α)` is a space spanned by generalized Laguerre polynomials `Lₙᵅ(x)` 's
+on `(0, Inf)`, which satisfy the differential equations
+```
+    xy'' + (α + 1 - x)y' + ny = 0
+```
+`Laguerre()` is equivalent to `Laguerre(0)` by default.
+"""
 struct Laguerre{T<:Real,D<:Ray} <: PolynomialSpace{D,T}
     α::T
     domain::D
@@ -22,14 +30,9 @@ end
 Laguerre(α) = Laguerre(α,Ray())
 Laguerre() = Laguerre(0)
 
-"""
-`Laguerre(α)` is a space spanned by generalized Laguerre polynomials `Lₙ(x)` 's
-on `(0, Inf)`, which satisfy the differential equations
-```
-    xy' + (α + 1 -y) + ny = 0
-```
-`Laguerre()` is equivalent to `Laguerre(0)` by default.
-"""
+NormalizedLaguerre(α) = NormalizedPolynomialSpace(Laguerre(α))
+NormalizedLaguerre() = NormalizedLaguerre(0)
+
 spacescompatible(A::Laguerre,B::Laguerre) = A.α ≈ B.α
 
 canonicaldomain(::Laguerre) = Ray()
@@ -53,7 +56,7 @@ for (REC,JREC) in ((:recα,:laguerrerecα),(:recβ,:laguerrerecβ),(:recγ,:lagu
     @eval @inline $REC(::Type{T},sp::Laguerre,k) where {T} = $JREC(T,sp.α,k)
 end
 
-
+normalization(::Type{T}, sp::Laguerre, k::Int) where T = FastTransforms.Λ(T(k),sp.α+one(T),one(T))
 
 
 function laguerrel(::Type{T},r::AbstractRange,α,x) where T
@@ -239,6 +242,7 @@ end
 
 conversion_rule(A::LaguerreWeight,B::Space{D}) where {D<:Ray} = conversion_type(A,LaguerreWeight(0,0,B))
 
+hasconversion(A::LaguerreWeight, B::LaguerreWeight) = isapproxinteger(A.α-B.α) && A.L == B.L && hasconversion(A.space, B.space)
 
 function Conversion(A::LaguerreWeight,B::LaguerreWeight)
     @assert isapproxinteger(A.α-B.α) && A.L == B.L
@@ -287,7 +291,8 @@ Conversion(A::LaguerreWeight,B::Space{D,RR}) where {D<:Ray,RR<:Real} = Conversio
 function Multiplication(f::Fun{H},S::LaguerreWeight{H}) where H<:Laguerre
     M=Multiplication(f,S.space)
     rs=rangespace(M)
-    MultiplicationWrapper(f,SpaceOperator(M,S,LaguerreWeight(rs.α, rs)))
+    T = typeof(S.L)
+    MultiplicationWrapper(f,SpaceOperator(M,S,LaguerreWeight(T(rs.α), S.L, rs)))
 end
 
 function Multiplication(f::Fun{LaguerreWeight{H,T}},S::Laguerre) where {H<:Laguerre,T}

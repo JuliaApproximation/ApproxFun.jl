@@ -68,6 +68,7 @@ end
 @time include("broadcastingtest.jl")
 @time include("OperatorTest.jl")
 @time include("ODETest.jl")
+@time include("EigTest.jl")
 @time include("VectorTest.jl")
 @time include("SingularitiesTest.jl")
 @time include("IntegralEquationsTest.jl")

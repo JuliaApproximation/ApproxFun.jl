@@ -74,6 +74,7 @@ show(io::IO, S::Ultraspherical{<:Any,<:ChebyshevInterval}) = print(io, "Ultrasph
 show(io::IO, S::Jacobi{<:ChebyshevInterval}) =
     S.a == S.b == 0 ? print(io,"Legendre()") : print(io,"Jacobi($(S.b),$(S.a))")
 
+show(io::IO, S::NormalizedPolynomialSpace) = (print(io, "Normalized"); show(io, S.space))
 
 function show(io::IO,s::JacobiWeight)
     d=domain(s)
@@ -166,6 +167,8 @@ function show(io::IO, f::Fun)
 end
 
 ## MultivariateFun
+
+show(io::IO, ::MIME"text/plain", f::MultivariateFun) = show(io, f)
 
 function show(io::IO,L::LowRankFun)
     print(io,"LowRankFun on ",space(L)," of rank ",rank(L),".")
