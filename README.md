@@ -123,7 +123,7 @@ function nonlinear_test()
 
     u10 = one(x)
     u20 = one(x)
-    
+
     return newton(N, [u10,u20])
 end
 
@@ -237,8 +237,36 @@ end
 ```
 
 
+## Self-adjoint eigenvalue problems
+
+This solves the confined anharmonic oscillator, `[-𝒟² + V(x)] u = λu`, where `u(±10) = 0`, `V(x) = ω*x² + x⁴`, and `ω = 25`.
+```julia
+    n = 3000
+    ω = 25.0
+    d = Segment(-10..10)
+    S = Ultraspherical(0.5, d)
+    NS = NormalizedPolynomialSpace(S)
+    V = Fun(x->ω*x^2+x^4, S)
+    L = -Derivative(S, 2) + V
+    C = Conversion(domainspace(L), rangespace(L))
+    B = Dirichlet(S)
+    QS = QuotientSpace(B)
+    Q = Conversion(QS, S)
+    D1 = Conversion(S, NS)
+    D2 = Conversion(NS, S)
+    R = D1*Q
+    P = cache(PartialInverseOperator(C, (0, ApproxFun.bandwidth(L, 1) + ApproxFun.bandwidth(R, 1) + ApproxFun.bandwidth(C, 2))))
+    A = R'D1*P*L*D2*R
+    B = R'R
+    SA = Symmetric(A[1:n,1:n], :L)
+    SB = Symmetric(B[1:n,1:n], :L)
+    λ = eigvals(SA, SB)[1:round(Int, 3n/5)]
+```
+
 
 ## References
+
+J. L. Aurentz & R. M. Slevinsky (2019), On symmetrizing the ultraspherical spectral method for self-adjoint problems, arxiv:1903.08538
 
 S. Olver & A. Townsend (2014), A practical framework for infinite-dimensional linear algebra, Proceedings of the 1st First Workshop for High Performance Technical Computing in Dynamic Languages, 57–62
 

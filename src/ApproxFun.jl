@@ -35,8 +35,9 @@ import Base.Broadcast: BroadcastStyle, Broadcasted, AbstractArrayStyle, broadcas
 import Statistics: mean
 
 import LinearAlgebra: BlasInt, BlasFloat, norm, ldiv!, mul!, det, eigvals, dot, cross,
-                        qr, qr!, isdiag, rank, issymmetric, ishermitian, Tridiagonal,
-                        diagm, factorize, nullspace, adjoint, transpose, diagm_container
+                        qr, qr!, rank, isdiag, istril, istriu, issymmetric, ishermitian,
+                        Tridiagonal, diagm, diagm_container, factorize, nullspace,
+                        Hermitian, Symmetric, adjoint, transpose, char_uplo
 
 import SparseArrays: blockdiag
 

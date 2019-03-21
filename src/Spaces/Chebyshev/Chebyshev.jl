@@ -1,5 +1,5 @@
 
-export Chebyshev
+export Chebyshev, NormalizedChebyshev
 
 """
 `Chebyshev()` is the space spanned by the Chebyshev polynomials
@@ -22,7 +22,10 @@ end
 Chebyshev(d::Domain) = Chebyshev{typeof(d),real(prectype(d))}(d)
 Chebyshev() = Chebyshev(ChebyshevInterval())
 Chebyshev(d) = Chebyshev(Domain(d))
+NormalizedChebyshev() = NormalizedPolynomialSpace(Chebyshev())
+NormalizedChebyshev(d) = NormalizedPolynomialSpace(Chebyshev(d))
 
+normalization(::Type{T}, sp::Chebyshev, k::Int) where T = T(π)/(2-FastTransforms.δ(k,0))
 
 Space(d::SegmentDomain) = Chebyshev(d)
 function Space(d::AbstractInterval)

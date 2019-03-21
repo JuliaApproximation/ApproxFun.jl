@@ -253,14 +253,15 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
     end
 
     @testset "QuotientSpace" begin
-        for (bcs,ret) in ((Dirichlet(Chebyshev()),[1 -1 0 0 0;1 1 0 0 0]),
-                          (Neumann(Chebyshev()),[0 1 -4 0 0;0 1 4 0 0]),
-                          ([DefiniteIntegral(Chebyshev());SpaceOperator(BasisFunctional(2),Chebyshev(),ConstantSpace())],[2 0 0 0 0;0 1 0 0 0]),
-                          (vcat(bvp(Chebyshev(),4)...),[1 -1 1 -1 0;0 1 -4 9 0;1 1 1 1 0;0 1 4 9 0]))
-            QS = QuotientSpace(bcs)
-            C = Conversion(QS, QS.space)
+        S = Chebyshev()
+        for B in (Dirichlet(S),
+                    Neumann(S),
+                    vcat(bvp(S,4)...),
+                    [Dirichlet(S); Neumann(S); Evaluation(S, -1, 3); Evaluation(S, 1, 3)])
+            QS = QuotientSpace(B)
+            A = Conversion(QS, S)
 
-            norm((bcs*C)[1:size(bcs, 1),1:5] - ret) < 1000eps()
+            @test norm(B[1:size(B,1),1:10]*A[1:10,1:10-size(B,1)]) < 1000eps()
         end
     end
 

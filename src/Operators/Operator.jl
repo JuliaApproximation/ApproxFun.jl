@@ -185,6 +185,8 @@ stride(A::Operator) =
     isdiag(A) ? factorial(10) : 1
 
 isdiag(A::Operator) = bandwidths(A)==(0,0)
+istriu(A::Operator) = bandwidth(A, 1) == 0
+istril(A::Operator) = bandwidth(A, 2) == 0
 
 
 ## Construct operators

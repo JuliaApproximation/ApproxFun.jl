@@ -13,6 +13,7 @@ recβ(::Type{T},S::Ultraspherical,k) where {T} = k/(2*(k-one(T)+order(S)))   # o
 recγ(::Type{T},S::Ultraspherical,k) where {T} = (k-2+2order(S))/(2*(k-one(T)+order(S)))   # one(T) ensures we get correct type
 
 
+normalization(::Type{T}, sp::Ultraspherical, k::Int) where T = (λ = order(sp); (T(2)^(1-2λ)*π)/((k+λ)*gamma(λ)^2*FastTransforms.Λ(T(k),one(λ),2λ)))
 
 ## Multiplication
 # these are special cases

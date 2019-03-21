@@ -107,7 +107,15 @@ Chebyshev
 ```
 
 ```@docs
+Hermite
+```
+
+```@docs
 Jacobi
+```
+
+```@docs
+Laguerre
 ```
 
 ```@docs

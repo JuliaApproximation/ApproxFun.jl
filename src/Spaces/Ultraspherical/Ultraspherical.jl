@@ -1,5 +1,5 @@
 
-export Ultraspherical
+export Ultraspherical, NormalizedUltraspherical
 
 #Ultraspherical Spaces
 
@@ -11,6 +11,8 @@ export Ultraspherical
 ```
 Note that `λ=1` this reduces to Chebyshev polynomials of the second kind:
 `C_k^{(1)}(x) = U_k(x)`.
+For `λ=1/2` this also reduces to Legendre polynomials:
+`C_k^{(1/2)}(x) = P_k(x)`.
 """
 struct Ultraspherical{T,D<:Domain,R} <: PolynomialSpace{D,R}
     order::T
@@ -24,6 +26,8 @@ end
 Ultraspherical(m::Number,d::Domain) = Ultraspherical{typeof(m),typeof(d),real(prectype(d))}(m,d)
 Ultraspherical(m::Number,d) = Ultraspherical(m,Domain(d))
 Ultraspherical(m::Number) = Ultraspherical(m,ChebyshevInterval())
+NormalizedUltraspherical(m) = NormalizedPolynomialSpace(Ultraspherical(m))
+NormalizedUltraspherical(m,d) = NormalizedPolynomialSpace(Ultraspherical(m,d))
 
 
 order(S::Ultraspherical) = S.order
