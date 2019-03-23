@@ -1,4 +1,3 @@
-export dotu
 import Base: chop
 
 # BLAS/linear algebra overrides
