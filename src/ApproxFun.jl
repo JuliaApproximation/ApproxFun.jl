@@ -27,14 +27,14 @@ import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, 
                 getproperty, findfirst, unsafe_getindex, fld, cld, div, real, imag,
                 @_inline_meta, eachindex, firstindex, lastindex, keys, isreal, OneTo,
                 Array, Vector, Matrix, view, ones, @propagate_inbounds, print_array,
-                split
+                split, checkbounds
 
 import Base.Broadcast: BroadcastStyle, Broadcasted, AbstractArrayStyle, broadcastable,
                         DefaultArrayStyle, broadcasted
 
 import Statistics: mean
 
-import LinearAlgebra: BlasInt, BlasFloat, norm, ldiv!, mul!, det, eigvals, dot, cross,
+import LinearAlgebra: BlasInt, BlasFloat, norm, ldiv!, mul!, lmul!, det, eigvals, dot, cross,
                         qr, qr!, rank, isdiag, istril, istriu, issymmetric, ishermitian,
                         Tridiagonal, diagm, diagm_container, factorize, nullspace,
                         Hermitian, Symmetric, adjoint, transpose, char_uplo

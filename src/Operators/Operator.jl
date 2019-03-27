@@ -608,6 +608,7 @@ include("systems.jl")
 include("qr.jl")
 include("nullspace.jl")
 
+include("eigen.jl")
 
 
 
