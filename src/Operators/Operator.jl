@@ -1,5 +1,5 @@
 export Operator
-export bandwidths, bandrange, \, periodic
+export bandwidth, bandwidths, bandrange, \, periodic
 export neumann
 export ldirichlet,rdirichlet,lneumann,rneumann
 export ldiffbc,rdiffbc,diffbcs
