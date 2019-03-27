@@ -64,7 +64,7 @@ import BlockArrays: nblocks, blocksize, global2blockindex, globalrange, BlockSiz
 
 import BandedMatrices: bandrange, bandshift,
                         inbands_getindex, inbands_setindex!, bandwidth, AbstractBandedMatrix,
-                        dotu, normalize!, flipsign,
+                        flipsign,
                         colstart, colstop, colrange, rowstart, rowstop, rowrange,
                         bandwidths, _BandedMatrix, BandedMatrix
 
