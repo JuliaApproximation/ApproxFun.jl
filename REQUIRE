@@ -8,14 +8,14 @@ Calculus 0.1.15
 DomainSets 0.0.1
 IntervalSets 0.3.1
 StaticArrays 0.8.3
-BlockArrays 0.4.1
+BlockArrays 0.4.1 0.8
 BlockBandedMatrices 0.3.2 0.4
-BandedMatrices 0.7.1 0.9
+BandedMatrices 0.9
 AbstractFFTs 0.3.1
 FFTW 0.2.4
 SpecialFunctions 0.7
 LowRankApprox 0.1.4
-FillArrays 0.3
-InfiniteArrays 0.0.2
-LazyArrays 0.3.2
+FillArrays 0.5
+InfiniteArrays 0.0.3
+LazyArrays 0.7.1
 DSP 0.5.1
