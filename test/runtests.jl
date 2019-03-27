@@ -70,7 +70,7 @@ end
 @time include("ODETest.jl")
 @time include("EigTest.jl")
 @time include("VectorTest.jl")
-@time include("SingularitiesTest.jl")
+# @time include("SingularitiesTest.jl")
 @time include("IntegralEquationsTest.jl")
 @time include("SpacesTest.jl")
 @time include("JacobiTest.jl")
