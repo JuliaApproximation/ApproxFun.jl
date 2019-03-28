@@ -39,7 +39,7 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
 
         B = [Dirichlet(sp); continuity(sp,0:1)]
         u = [B; D^2] \ [[1,0],zeros(2),0];
-        u2 = [Dirichlet();Derivative(Chebyshev())^2] \ [[1.,0],0]
+        @time u2 = [Dirichlet();Derivative(Chebyshev())^2] \ [[1.,0],0]
         @test u(0.) ≈ u2(0.)
 
         x = Fun(identity, UnionDomain(-10..0, 0..1, 1..15))
@@ -47,7 +47,7 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
         D=Derivative(sp)
         B=Dirichlet(sp)
 
-        u=[B;
+        @time  u=[B;
             continuity(sp,0:1);
             D^2-x]\[[airyai(-10.),0],zeros(4),0];
 
@@ -112,7 +112,7 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
 
         A = [ldirichlet(S); D-I]
         testraggedbelowoperator(A)
-        u = [ldirichlet(S); D-I] \ [exp(1.); 0]
+        @time u = [ldirichlet(S); D-I] \ [exp(1.); 0]
 
 
         @test u(1.1) ≈ exp(1.1)
@@ -138,7 +138,7 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
     @testset "Triple SumSpace" begin
         x=Fun()
         w=log(1-x)+sqrt(1-x^2)
-        f=w+x
+        @time f=w+x
         @test f(0.1) ≈ (w(0.1)+0.1)
         @test (w+1)(0.1) ≈ (w(0.1)+1)
         @test (w+x+1)(0.1) ≈ (w(0.1)+1.1)
@@ -161,13 +161,13 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
         @test o(1.) ≈ 1.0
         @test o(0.4) ≈ 1.0
 
-        G=Fun(z->in(z,component(Γ,2)) ? [1 0; -1/z 1] : [z 0; 0 1/z],Γ)
+        @time G=Fun(z->in(z,component(Γ,2)) ? [1 0; -1/z 1] : [z 0; 0 1/z],Γ)
         @test (G-I)(exp(0.1im)) ≈ (G(exp(0.1im))-I)
     end
 
     @testset "Previoius segfault" begin
         x=Fun(identity,-1..1)
-        f=x+sin(2x)*sqrt(1-x^2)
+        @time f=x+sin(2x)*sqrt(1-x^2)
         @test f(0.1) ≈ 0.1+sin(2*0.1)*sqrt(1-0.1^2)
     end
 
@@ -206,7 +206,7 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
         @test values(f) ≈ points(f)+points(f).^2
 
         D = Derivative(Hermite())
-        testbandedoperator(D)
+        @time testbandedoperator(D)
 
         g = D*f
         @test g(1.) ≈ 3.
@@ -366,13 +366,13 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
         L = Derivative() + a
         f = Fun(t->exp(sin(10t)), s)
         B = periodic(s,0)
-        uChebyshev = [B;L] \ [0.;f]
+        @time uChebyshev = [B;L] \ [0.;f]
 
         s = Fourier(-π..π)
         a = Fun(t-> 1+sin(cos(2t)), s)
         L = Derivative() + a
         f = Fun(t->exp(sin(10t)), s)
-        uFourier = L\f
+        @time uFourier = L\f
 
         @test norm(uFourier-uChebyshev) ≤ 100eps()
     end
