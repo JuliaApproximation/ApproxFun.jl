@@ -5,10 +5,10 @@ using ApproxFun, IntervalSets, SpecialFunctions, LinearAlgebra, Random, Test
 @testset "Singularities" begin
     @testset "sqrt" begin
         x=Fun(identity);
-        @test sqrt(cos(π/2*x))(.1) ≈ sqrt(cos(.1π/2))
+        @time @test sqrt(cos(π/2*x))(.1) ≈ sqrt(cos(.1π/2))
 
         x=Fun(identity,-2..2)
-        u=sqrt(4-x^2)/(2π)
+        @time u=sqrt(4-x^2)/(2π)
 
         @test u(.1) ≈ sqrt(4-0.1^2)/(2π)
         @test sum(u) ≈ 1
@@ -25,19 +25,18 @@ using ApproxFun, IntervalSets, SpecialFunctions, LinearAlgebra, Random, Test
         @test (x/u)(.1) ≈ tan(π*.1/2)
 
         f=Fun(x->exp(-x^2),Line(0.,0.,-.5,-.5),400)
-        @test sum(f) ≈ sqrt(π)
+        @time @test sum(f) ≈ sqrt(π)
 
         f=Fun(x->exp(x)/sqrt(1-x.^2),JacobiWeight(-.5,-.5))
         @test f(.1) ≈ (x->exp(x)/sqrt(1-x.^2))(.1)
 
-        @test norm(Fun(exp,Legendre(0..1))+sqrt(Fun(0..1))) ≈ 2.491141949903508
-
-        # sampling Chebyshev
-        x=Fun(identity)
-        f = exp(x)/sqrt(1-x^2)
-        g = cumsum(f)
-        @test abs(g(-1)) ≤ 1E-15
-        @test g'(0.1) ≈ f(0.1)
+        @testset "sampling Chebyshev" begin
+            x=Fun(identity)
+            f = exp(x)/sqrt(1-x^2)
+            @time g = cumsum(f)
+            @test abs(g(-1)) ≤ 1E-15
+            @test g'(0.1) ≈ f(0.1)
+        end
     end
 
     @testset "JacobiWeight Derivative" begin
@@ -72,10 +71,7 @@ using ApproxFun, IntervalSets, SpecialFunctions, LinearAlgebra, Random, Test
         f = exp(x)/(1-x.^2).^1.0
         @test f(.1) ≈ exp(.1)/(1-.1^2)
 
-
-
         ## 1/f with poles
-
         x=Fun(identity)
         f=sin(10x)
         g=1/f
@@ -105,9 +101,9 @@ using ApproxFun, IntervalSets, SpecialFunctions, LinearAlgebra, Random, Test
             @test Line() ∩ Ray() == Ray()
 
             f=Fun(sech,Line())
-            Fun(f,Ray())(2.0) ≈ sech(2.0)
-            Fun(f,Ray(0.,π))(-2.0) ≈ sech(-2.0)
-            Fun(sech,Ray(0.,π))(-2.0) ≈ sech(-2.0)
+            @test Fun(f,Ray())(2.0) ≈ sech(2.0)
+            @test Fun(f,Ray(0.,π))(-2.0) ≈ sech(-2.0)
+            @test Fun(sech,Ray(0.,π))(-2.0) ≈ sech(-2.0)
         end
 
         @testset "Ei (Exp Integral)" begin
@@ -186,8 +182,8 @@ using ApproxFun, IntervalSets, SpecialFunctions, LinearAlgebra, Random, Test
         δ=DiracDelta()
         x=Fun()
         w=sqrt(1-x^2)
-        w+δ
-
+        @test (w+δ)(0.1) ≈ w(0.1)
+        @test sum(w+δ) ≈ sum(w)+1
 
         ## PointSpace
 
@@ -254,7 +250,7 @@ using ApproxFun, IntervalSets, SpecialFunctions, LinearAlgebra, Random, Test
         @test (1/x^2)(-0.1) ≈ 100.
 
         fc=x*(1+x)^2
-        @test (1/fc)(0.1) ≈ 1/fc(0.1)
+        @time @test (1/fc)(0.1) ≈ 1/fc(0.1)
 
         fc=x*(1-x)^2
         @test (1/fc)(0.1) ≈ 1/fc(0.1)
@@ -262,8 +258,8 @@ using ApproxFun, IntervalSets, SpecialFunctions, LinearAlgebra, Random, Test
 
     @testset "special function singularities" begin
         x=Fun(0..1)
-        @test erf(sqrt(x))(0.1) ≈ erf(sqrt(0.1))
-        @test erfc(sqrt(x))(0.1) ≈ erfc(sqrt(0.1))
+        @time @test erf(sqrt(x))(0.1) ≈ erf(sqrt(0.1))
+        @time @test erfc(sqrt(x))(0.1) ≈ erfc(sqrt(0.1))
 
         ## roots of log(abs(x-y))
         x=Fun(-2..(-1))
@@ -289,7 +285,7 @@ using ApproxFun, IntervalSets, SpecialFunctions, LinearAlgebra, Random, Test
 
     @testset "#393" begin
         x = Fun(0..1)
-        f = exp(x)*sqrt(x)*log(1-x)
+        @time f = exp(x)*sqrt(x)*log(1-x)
         @test f(0.1) ≈ exp(0.1)*sqrt(0.1)*log(1-0.1)
     end
 

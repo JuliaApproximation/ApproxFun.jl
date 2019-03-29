@@ -5,7 +5,7 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, FastTransforms, Test
 
 
 include("runtests.jl")
-@time include("SingularitiesTest.jl")
+@time include("FullSingularitiesTest.jl")
 @time include("SpacesTest.jl")
 
 
