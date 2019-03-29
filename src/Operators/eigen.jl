@@ -15,7 +15,7 @@ function symmetric_eigen(L::Operator{T}, n::Int; verbose::Bool = false, tol::Rea
 
     # We start by determining a good deflation window.
 
-    Lk = Symmetric(L[1:k,1:k])#SymBandedMatrix(L, b, 1:k)
+    Lk = Symmetric(L[1:k,1:k])
     Lb = L[k+1:k+b,1:k]
     Λ, Q = eigen(Lk)
     M = Lb*Q
@@ -23,7 +23,7 @@ function symmetric_eigen(L::Operator{T}, n::Int; verbose::Bool = false, tol::Rea
     j = 0
     while j < 1
         k *= 2
-        Lk = Symmetric(L[1:k,1:k])#SymBandedMatrix(L, b, 1:k)
+        Lk = Symmetric(L[1:k,1:k])
         Lb = L[k+1:k+b,1:k]
         Λ, Q = eigen(Lk)
         M = Lb*Q
@@ -41,7 +41,6 @@ function symmetric_eigen(L::Operator{T}, n::Int; verbose::Bool = false, tol::Rea
     v = zero(w)
     Lw = zero(w)
     wQ = zero(w)
-    F = Eigen(zeros(T, k), zeros(T, k, k))
 
     while ndef < n
         # With the dimensions of the deflation window, (k, k), found & fixed,
@@ -99,20 +98,20 @@ function symmetric_eigen(L::Operator{T}, C::Operator{T}, n::Int; verbose::Bool =
 
     # We start by determining a good deflation window.
 
-    Lk = SymBandedMatrix(L, b, 1:k)
+    Lk = Symmetric(L[1:k,1:k])
     Lb = L[k+1:k+b,1:k]
-    Ck = SymBandedMatrix(C, b, 1:k)
+    Ck = Symmetric(C[1:k,1:k])
     Cb = C[k+1:k+b,1:k]
     Λ, V = eigen(Lk, Ck)
     M = Lb*V
     N = Cb*V
 
     j = 0
-    while j < 1
+    while j < 2b
         k *= 2
-        Lk = SymBandedMatrix(L, b, 1:k)
+        Lk = Symmetric(L[1:k,1:k])
         Lb = L[k+1:k+b,1:k]
-        Ck = SymBandedMatrix(C, b, 1:k)
+        Ck = Symmetric(C[1:k,1:k])
         Cb = C[k+1:k+b,1:k]
         Λ, V = eigen(Lk, Ck)
         M = Lb*V
@@ -132,7 +131,6 @@ function symmetric_eigen(L::Operator{T}, C::Operator{T}, n::Int; verbose::Bool =
     v = zero(w)
     Lw = zero(w)
     wQ = zero(w)
-    #F = Eigen(zeros(T, k), zeros(T, k, k))
 
     while ndef < n
         # With the dimensions of the deflation window, (k, k), found & fixed,
@@ -144,7 +142,7 @@ function symmetric_eigen(L::Operator{T}, C::Operator{T}, n::Int; verbose::Bool =
 
         Q = Matrix{T}(I, k, k)
         symblockarrowhead2symbanded!(w, v, Lw, SBAL, wQ, Q)
-        push!(ALLV, EmbeddedBlockOperator(Q', ndef, ds, rs))
+        push!(ALLV, EmbeddedBlockOperator(Matrix(Q'), ndef, ds, rs))
 
         replenishLk!(Lk, SBAL, SBAC, L, ndef)
         replenishLb!(Lb, L, ndef, k, b)
@@ -167,7 +165,6 @@ function symmetric_eigen(L::Operator{T}, C::Operator{T}, n::Int; verbose::Bool =
             v = zero(w)
             Lw = zero(w)
             wQ = zero(w)
-            #F = Eigen(zeros(T, k), zeros(T, k, k))
         end
 
         Λ, V = eigen(Lk, Ck)
@@ -198,18 +195,6 @@ symmetric_eigvals(L::Operator{T}, C::Operator{T}, n::Int; kwargs...) where T = s
 
 # Miscellaneous
 
-function SymBandedMatrix(M::Operator{T}, b::Int, ir::UnitRange) where T
-    B = BandedMatrix{T}(undef, length(ir), length(ir), b, b)
-    A = M[ir, ir]
-    shft = first(ir)-1
-    @inbounds for i in 1:length(ir)
-        for j in colrange(B, i)
-            B[i,j] = A[i+shft, j+shft]
-        end
-    end
-    Symmetric(B)
-end
-
 function SymBandedMatrix(M::AbstractMatrix{T}, b::Int, ir::UnitRange) where T
     B = BandedMatrix{T}(undef, length(ir), length(ir), b, b)
     shft = first(ir)-1
@@ -221,54 +206,27 @@ function SymBandedMatrix(M::AbstractMatrix{T}, b::Int, ir::UnitRange) where T
     Symmetric(B)
 end
 
-
-function replenishLk!(A::AbstractMatrix, SBA::SymBlockArrowHead, M::Operator, ndef::Int)
-    b = maximum(bandwidths(M)) # SBA.A.b
-    m, n = size(SBA.A)
-    @inbounds for j = 1:size(SBA.A, 2)
-        @simd for i = 1:size(SBA.A, 1)
-            A[i,j] = SBA[i,j]
+function replenishLk!(Lk::Symmetric{T,MB}, SBA::SymBlockArrowHead, L::Operator, ndef::Int) where {T,MB<:BandedMatrix{T}}
+    k = size(Lk, 1)
+    l = size(SBA.A, 1)
+    @inbounds for i = 1:l
+        for j in colrange(Lk, i)
+            Lk.data[i,j] = SBA[i,j]
         end
     end
-    @inbounds for j = size(SBA.A, 2)+1:size(SBA, 2)
-        @simd for i = 1:size(SBA, 1)-b#size(SBA, 1)-2b+1:size(SBA, 1)-b
-            A[i,j] = SBA[i,j]
+    @inbounds for i = l+1:k
+        for j in colrange(Lk, i)
+            Lk.data[i,j] = L[i+ndef,j+ndef]
         end
     end
-    @inbounds for j = size(SBA.A, 2)+1:size(A, 2)
-        @simd for i = size(SBA.A, 1)+1:size(A, 1)
-            A[i,j] = M[i+ndef,j+ndef]
-        end
-    end
-    A
-end
-
-function replenishLk!(A::Symmetric{T,MB}, SBA::SymBlockArrowHead, M::Operator, ndef::Int) where {T,MB<:BandedMatrix{T}}
-    b = SBA.A.b
-    m, n = size(SBA.A)
-    @inbounds for i = size(SBA.A, 1)+1:size(A, 1)
-        @simd for j in colrange(A, i)
-            A.data[i,j] = M[i+ndef,j+ndef]
-        end
-    end
-    @inbounds for i = size(SBA, 1)-2b+1:size(SBA, 1)-b
-        for j in colrange(A, i)
-            A.data[i,j] = SBA[i,j]
-        end
-    end
-    @inbounds for i = 1:size(SBA.A, 1)
-        for j in colrange(A, i)
-            A.data[i,j] = SBA[i,j]
-        end
-    end
-    A
+    Lk
 end
 
 function replenishLk!(A::Symmetric{T,MB}, SBAL::SymBlockArrowHead, SBAC::SymBlockArrowHead, M::Operator, ndef::Int) where {T,MB<:BandedMatrix{T}}
     b = SBAL.A.b
     m, n = size(SBAL.A)
     for i = size(SBAL.A, 1)+1:size(A, 1)
-        @simd for j in colrange(A, i)
+        for j in colrange(A, i)
             A.data[i,j] = M[i+ndef,j+ndef]
         end
     end
@@ -293,7 +251,7 @@ function replenishLk!(A::Symmetric{T,MB}, SBAL::SymBlockArrowHead, SBAC::SymBloc
     temp3 = temp2*temp1
     @inbounds for i = k+b+1:k+2b
         for j = k+1:k+b
-            A.data[i,j] = temp3[i-k-b,j-k]
+            A.data[i,j] = A.data[j,i] = temp3[i-k-b,j-k]
         end
     end
     A
@@ -301,47 +259,36 @@ end
 
 function replenishCk!(A::Symmetric{T,MB}, SBA::SymBlockArrowHead, M::Operator, b::Int, ndef::Int)  where {T,MB<:BandedMatrix{T}}
     m, n = size(SBA.A)
-    k = size(SBA.A, 1)
-    temp1 = UpperTriangular(SBA.C)
-    temp2 = UpperTriangular(Matrix(M[ndef+k+b+1:ndef+k+2b,ndef+k+1:ndef+k+b]))
-    temp3 = temp2*temp1
     @inbounds for i = size(SBA.A, 1)+1:size(A, 1)
-        @simd for j in colrange(A, i)
+        for j in colrange(A, i)
             A.data[i,j] = M[i+ndef,j+ndef]
         end
     end
-    @inbounds for i = 1:size(SBA, 1)
+    @inbounds for i = 1:size(SBA.A, 1)+b
         for j in colrange(A, i)
             A.data[i,j] = 0
         end
         A.data[i,i] = 1
     end
+    k = size(SBA.A, 1)
+    temp1 = UpperTriangular(SBA.C)
+    temp2 = UpperTriangular(Matrix(M[ndef+k+b+1:ndef+k+2b,ndef+k+1:ndef+k+b]))
+    temp3 = temp2*temp1
     @inbounds for i = k+b+1:k+2b
         for j = k+1:k+b
-            A.data[i,j] = temp3[i-k-b,j-k]
+            A.data[i,j] = A.data[j,i] = temp3[i-k-b,j-k]
         end
     end
     A
 end
 
-function replenishLb!(L::Matrix{T}, M::Operator{T}, ndef::Int, k::Int, b::Int) where T
+function replenishLb!(Lb::BandedMatrix{T}, L::Operator{T}, ndef::Int, k::Int, b::Int) where T
     ndefpk = ndef+k
-    @inbounds for j = 1:k
+    @inbounds for j = k-b+1:k
         jpndef = j+ndef
-        @simd for i = 1:b
-            L[i,j] = M[i+ndefpk, jpndef]
+        for i in 1:(b+j-k)
+            Lb[i,j] = L[i+ndefpk, jpndef]
         end
     end
-    L
-end
-
-function replenishLb!(L::BandedMatrix{T}, M::Operator{T}, ndef::Int, k::Int, b::Int) where T
-    ndefpk = ndef+k
-    @inbounds for j = 1:k
-        jpndef = j+ndef
-        @simd for i in 1:b #rowrange(L, j)#i = 1:k
-            L[i,j] = M[i+ndefpk, jpndef]
-        end
-    end
-    L
+    Lb
 end
