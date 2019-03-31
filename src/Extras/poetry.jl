@@ -5,12 +5,6 @@
 
 export chebyshevt, chebyshevu, legendre, ∫, ⨜, ⨍, ChebyshevWeight, 𝕀, 𝕌, 𝒟
 
-## Constructors
-
-Fun() = Fun(identity)
-Fun(d::Domain) = Fun(identity,d)
-Fun(d::Space) = Fun(identity,d)
-
 ## Chebyshev & Legendre polynomials
 
 chebyshevt(n::Int,d::IntervalOrSegment{T}) where {T<:Number} = Fun(Chebyshev(d),[zeros(T,n);one(T)])

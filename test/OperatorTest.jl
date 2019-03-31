@@ -115,46 +115,6 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
         @test P[1:4,1:4] ≈ [0 1 0 0; 1 0 0 0; 0 0 0 1; 0 0 1 0]
     end
 
-    @testset "Periodic" begin
-        d=PeriodicSegment(0.,2π)
-        a=Fun(t-> 1+sin(cos(10t)),d)
-        D=Derivative(d)
-        L=D+a
-
-        @time testbandedoperator(D)
-        @time testbandedoperator(Multiplication(a,Space(d)))
-
-
-        f=Fun(t->exp(sin(t)),d)
-        u=L\f
-
-        @test norm(L*u-f) < 100eps()
-
-        d=PeriodicSegment(0.,2π)
-        a1=Fun(t->sin(cos(t/2)^2),d)
-        a0=Fun(t->cos(12sin(t)),d)
-        D=Derivative(d)
-        L=D^2+a1*D+a0
-
-        @time testbandedoperator(L)
-
-        f=Fun(space(a1),[1,2,3,4,5])
-
-        testbandedoperator(Multiplication(a0,Fourier(0..2π)))
-
-        @test (Multiplication(a0,Fourier(0..2π))*f)(0.1)  ≈ (a0(0.1)*f(0.1))
-        @test ((Multiplication(a1,Fourier(0..2π))*D)*f)(0.1)  ≈ (a1(0.1)*f'(0.1))
-        @test (L.ops[1]*f)(0.1) ≈ f''(0.1)
-        @test (L.ops[2]*f)(0.1) ≈ a1(0.1)*f'(0.1)
-        @test (L.ops[3]*f)(0.1) ≈ a0(0.1)*f(0.1)
-        @test (L*f)(0.1) ≈ f''(0.1)+a1(0.1)*f'(0.1)+a0(0.1)*f(0.1)
-
-        f=Fun(t->exp(cos(2t)),d)
-        u=L\f
-
-        @test norm(L*u-f) < 1000eps()
-    end
-
     @testset "Mixed" begin
         d = ChebyshevInterval()
         D = Derivative(d)
@@ -208,10 +168,6 @@ using ApproxFun, BlockBandedMatrices,  LinearAlgebra, Test
 
         @test ApproxFun.Reverse(Chebyshev())*Fun(exp) ≈ Fun(x->exp(-x))
         @test ApproxFun.ReverseOrientation(Chebyshev())*Fun(exp) ≈ Fun(exp,Segment(1,-1))
-
-
-        @test norm(ApproxFun.Reverse(Fourier())*Fun(t->cos(cos(t-0.2)-0.1),Fourier()) - Fun(t->cos(cos(-t-0.2)-0.1),Fourier())) < 10eps()
-        @test norm(ApproxFun.ReverseOrientation(Fourier())*Fun(t->cos(cos(t-0.2)-0.1),Fourier()) - Fun(t->cos(cos(t-0.2)-0.1),Fourier(PeriodicSegment(2π,0)))) < 10eps()
     end
 
     @testset "Sub-operator re-view bug" begin

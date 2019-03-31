@@ -735,7 +735,7 @@ end
 
 ## ConstantSpace and PointSpace default overrides
 
-for SP in (:ConstantSpace,:PointSpace)
+for SP in (:PointSpace,)
     for OP in (:abs,:sign,:exp,:sqrt,:angle)
         @eval begin
             $OP(z::Fun{<:$SP,<:Complex}) = Fun(space(z),$OP.(coefficients(z)))

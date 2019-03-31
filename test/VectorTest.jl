@@ -122,17 +122,7 @@ using ApproxFun, LazyArrays, FillArrays, LinearAlgebra, SpecialFunctions, Test
         @test (m+a)(0.1) ≈ m(0.1)+a
 
         @test (m+I)(0.1) ≈ m(0.1)+I
-    end
-
-    @testset "Fourier Vector" begin
-        a = [1 2; 3 4]
-        f = Fun(θ->[sin(θ),sin(2θ)],Fourier())
-        @test (a*f)(0.1) ≈ a*f(0.1)
-        @test Fun(a)*f ≈ a*f
-        @test Fun(a*Array(f)) ≈ a*f
-        @test norm(f) ≈ sqrt(2π)
-        @test norm(f,2) ≈ sqrt(2π)
-    end
+end
 
     @testset "Matrix{Fun}*Matrix{Fun}" begin
     # note that 2x2 and 3x3 mult are special cases

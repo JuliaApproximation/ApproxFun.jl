@@ -104,20 +104,6 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
         @test f(0.5,0.5) ≈ exp(-0.5-2cos(0.5))
     end
 
-    @testset "Vec circle" begin
-        d=Circle((0.,0.),1.)
-        f=Fun(xy->exp(-xy[1]-2cos(xy[2])),Fourier(d),40)
-        @test f(cos(0.1),sin(0.1)) ≈ exp(-cos(0.1)-2cos(sin(0.1)))
-        @test f(Vec(cos(0.1),sin(0.1))) ≈ exp(-cos(0.1)-2cos(sin(0.1)))
-
-        f=Fun((x,y)->exp(-x-2cos(y)),Fourier(d),40)
-        @test f(cos(0.1),sin(0.1)) ≈ exp(-cos(0.1)-2cos(sin(0.1)))
-
-
-        f=Fun((x,y)->exp(-x-2cos(y)),Fourier(d))
-        @test f(cos(0.1),sin(0.1)) ≈ exp(-cos(0.1)-2cos(sin(0.1)))
-    end
-
     @testset "Multivariate calculus" begin
         ## Sum
         ff = (x,y) -> (x-y)^2*exp(-x^2/2-y^2/2)
@@ -307,13 +293,6 @@ using ApproxFun, LinearAlgebra, SpecialFunctions, Test
         rs = rangespace([B;Δ])
         f = Fun((x,y)->exp(-x^2-y^2),d)
         @test_throws DimensionMismatch coefficients([0.0;0.0;0.0;0.0;f],rs)
-    end
-
-    @testset "tensor of mult for Fourier #507" begin
-        mySin = Fun(Fourier(),[0,1])
-        A = Multiplication(mySin,Fourier())
-        L = A ⊗ A
-        @test L[1,1] == 0
     end
 
     @testset "off domain evaluate" begin

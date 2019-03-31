@@ -168,32 +168,6 @@ end
 Base.stride(M::ConcreteMultiplication{U,V}) where {U<:Chebyshev,V<:Chebyshev} =
     stride(M.f)
 
-
-function chebmult_getindex(cfs::AbstractVector,k::Integer,j::Integer)
-    n=length(cfs)
-
-    ret = zero(eltype(cfs))
-
-    n == 0 && return ret
-
-    # Toeplitz part
-    if k == j
-        ret += cfs[1]
-    elseif k > j && k-j+1 ≤ n
-        ret += cfs[k-j+1]/2
-    elseif k < j && j-k+1 ≤ n
-        ret += cfs[j-k+1]/2
-    end
-
-    # Hankel part
-    if k ≥ 2 && k+j-1 ≤ n
-        ret += cfs[k+j-1]/2
-    end
-
-    ret
-end
-
-
 getindex(M::ConcreteMultiplication{C,C,T},k::Integer,j::Integer) where {T,C<:Chebyshev} =
     chebmult_getindex(coefficients(M.f),k,j)
 

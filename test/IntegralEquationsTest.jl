@@ -3,8 +3,7 @@ using ApproxFun, IntervalSets, Random, LinearAlgebra, Test
 
 
 @testset "Integral equations" begin
-    @time for S in (Fourier(Circle()),Laurent(Circle()),Taylor(Circle()),
-                CosSpace(Circle()),JacobiWeight(-0.5,-0.5,Chebyshev()),
+    @time for S in (JacobiWeight(-0.5,-0.5,Chebyshev()),
                 JacobiWeight(-0.5,-0.5,Chebyshev(Segment(1.0,2.0+im))),
                 JacobiWeight(0.5,0.5,Ultraspherical(1,Segment(1.0,2.0+im))))
         testfunctional(DefiniteLineIntegral(S))
@@ -85,14 +84,6 @@ using ApproxFun, IntervalSets, Random, LinearAlgebra, Test
         f = Fun(t->cos(cos(t)),Laurent(-π..π))
 
         @test sum(f1) ≈ Σ*f
-
-        f1 = Fun(t->cos(cos(t))/t,Laurent(Circle()))
-        f2 = Fun(t->cos(cos(t))/t,Fourier(Circle()))
-        @test Σ*f1 ≈ Σ*f2
-
-        f1=Fun(t->cos(cos(t)),Laurent(-π..π))
-        f2=Fun(t->cos(cos(t)),Fourier(-π..π))
-        @test Σ*f1 ≈ Σ*f2
     end
 
     @testset "arcs" begin

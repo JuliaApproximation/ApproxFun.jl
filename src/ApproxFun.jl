@@ -1,20 +1,24 @@
 __precompile__()
 
 module ApproxFun
-    using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers,
-            BlockArrays, BandedMatrices, BlockBandedMatrices, DomainSets, IntervalSets,
-            SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions, DSP,
-            LinearAlgebra, LowRankApprox, SparseArrays, FillArrays, InfiniteArrays #, Arpack
-    import StaticArrays, ToeplitzMatrices, Calculus
+    using Base, Reexport, BlockArrays, BandedMatrices, BlockBandedMatrices, DomainSets, IntervalSets,
+            SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions, DSP, DualNumbers, FastTransforms,
+            LinearAlgebra, SparseArrays, LowRankApprox, FillArrays, InfiniteArrays #, Arpack
 
+@reexport using ApproxFunBase    
+@reexport using ApproxFunFourier
+
+import ApproxFunBase: normalize!, flipsign, FiniteRange, MatrixFun, UnsetSpace, VFun, RowVector,
+                    UnivariateSpace, AmbiguousSpace, IntervalOrSegment, RaggedMatrix, AlmostBandedMatrix,
+                    AnyDomain, ZeroSpace, TrivialInterlacer, BlockInterlacer, TransformPlan, ITransformPlan,
+                    ConcreteConversion, ConcreteMultiplication, ConcreteDerivative, ConcreteEvaluation,
+                    TridiagonalOperator, SubOperator, Space
 
 import DomainSets: Domain, indomain, UnionDomain, ProductDomain, FullSpace, Point, elements, DifferenceDomain,
             Interval, ChebyshevInterval, boundary, ∂, rightendpoint, leftendpoint,
             dimension, Domain1d, Domain2d
 
-import AbstractFFTs: Plan, fft, ifft
-import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
-                r2r!, r2r,  plan_fft, plan_ifft, plan_ifft!, plan_fft!
+
 
 
 import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, !=, eltype, iterate,
@@ -64,7 +68,6 @@ import BlockArrays: nblocks, blocksize, global2blockindex, globalrange, BlockSiz
 
 import BandedMatrices: bandrange, bandshift,
                         inbands_getindex, inbands_setindex!, bandwidth, AbstractBandedMatrix,
-                        flipsign,
                         colstart, colstop, colrange, rowstart, rowstop, rowrange,
                         bandwidths, _BandedMatrix, BandedMatrix
 
@@ -83,7 +86,34 @@ import LazyArrays: cache
 import InfiniteArrays: Infinity, InfRanges, AbstractInfUnitRange, OneToInf
 
 
+const AffineDomain = Union{AbstractInterval,Segment,PeriodicSegment,Ray,Line}
 
+## set minus
+function Base.setdiff(d::AffineDomain,ptsin::UnionDomain{AS}) where {AS <: AbstractVector{P}} where {P <: Point}
+    pts=Number.(elements(ptsin))
+    isempty(pts) && return d
+    tol=sqrt(eps(arclength(d)))
+    da=leftendpoint(d)
+    isapprox(da,pts[1];atol=tol) && popfirst!(pts)
+    isempty(pts) && return d
+    db=rightendpoint(d)
+    isapprox(db,pts[end];atol=tol) && pop!(pts)
+
+    sort!(pts)
+    leftendpoint(d) > rightendpoint(d) && reverse!(pts)
+    filter!(p->p ∈ d,pts)
+
+    isempty(pts) && return d
+    length(pts) == 1 && return d \ pts[1]
+
+    ret = Array{Domain}(undef, length(pts)+1)
+    ret[1] = Domain(leftendpoint(d) .. pts[1])
+    for k = 2:length(pts)
+        ret[k] = Domain(pts[k-1]..pts[k])
+    end
+    ret[end] = Domain(pts[end] .. rightendpoint(d))
+    UnionDomain(ret)
+end
 
 # convenience for 1-d block ranges
 const BlockRange1 = BlockRange{1,Tuple{UnitRange{Int}}}
@@ -108,16 +138,6 @@ export .., Interval, ChebyshevInterval, leftendpoint, rightendpoint, endpoints
 
 
 
-include("LinearAlgebra/LinearAlgebra.jl")
-
-
-include("Fun/Fun.jl")
-
-
-include("Domains/Domains.jl")
-include("Multivariate/Multivariate.jl")
-include("Operators/Operator.jl")
-
 include("Spaces/Spaces.jl")
 
 
@@ -125,12 +145,9 @@ include("Spaces/Spaces.jl")
 
 ## Further extra features
 
-include("PDE/PDE.jl")
-include("Caching/caching.jl")
 include("Extras/Extras.jl")
 include("Plot/Plot.jl")
 include("docs.jl")
-include("testing.jl")
 
 #include("precompile.jl")
 #_precompile_()

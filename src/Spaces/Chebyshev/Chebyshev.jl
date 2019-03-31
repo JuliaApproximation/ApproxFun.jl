@@ -70,59 +70,13 @@ plan_itransform(::Chebyshev,cfs::AbstractVector) = plan_ichebyshevtransform(cfs)
 clenshaw(sp::Chebyshev, c::AbstractVector, x::AbstractArray) =
     clenshaw(c,x,ClenshawPlan(promote_type(eltype(c),eltype(x)),sp,length(c),length(x)))
 
-function clenshaw(::Chebyshev,c::AbstractVector,x)
-    N,T = length(c),promote_type(eltype(c),typeof(x))
-    if N == 0
-        return zero(x)
-    elseif N == 1 # avoid issues with NaN x
-        return first(c)*one(x)
-    end
-
-    x = 2x
-    bk1,bk2 = zero(T),zero(T)
-    @inbounds for k = N:-1:2
-        bk2, bk1 = bk1, muladd(x,bk1,c[k]-bk2)
-    end
-
-    muladd(x/2,bk1,c[1]-bk2)
-end
+clenshaw(::Chebyshev,c::AbstractVector,x) = chebyshev_clenshaw(c,x)
 
 clenshaw(c::AbstractVector,x::AbstractVector,plan::ClenshawPlan{S,V}) where {S<:Chebyshev,V}=
     clenshaw(c,collect(x),plan)
 
 #TODO: This modifies x, which is not threadsafe
-function clenshaw(c::AbstractVector,x::Vector,plan::ClenshawPlan{S,V}) where {S<:Chebyshev,V}
-    N,n = length(c),length(x)
-    if isempty(c)
-        return zeros(V,n)
-    end
-
-    bk=plan.bk
-    bk1=plan.bk1
-    bk2=plan.bk2
-
-    @inbounds for i = 1:n
-        x[i] = 2x[i]
-        bk1[i] = zero(V)
-        bk2[i] = zero(V)
-    end
-
-    @inbounds for k = N:-1:2
-        ck = c[k]
-        for i = 1:n
-            bk[i] = muladd(x[i],bk1[i],ck-bk2[i])
-        end
-        bk2, bk1, bk = bk1, bk, bk2
-    end
-
-    ck = c[1]
-    @inbounds for i = 1:n
-        x[i] = x[i]/2
-        bk[i] = muladd(x[i],bk1[i],ck-bk2[i])
-    end
-
-    bk
-end
+clenshaw(c::AbstractVector,x::Vector,plan::ClenshawPlan{<:Chebyshev}) = chebyshev_clenshaw(c,x,plan)
 
 function clenshaw(c::AbstractMatrix{T},x::T,plan::ClenshawPlan{S,T}) where {S<:Chebyshev,T<:Number}
     bk=plan.bk
