@@ -8,11 +8,13 @@
               ◹ □ ◺
                 ◹ □ ]
 """
-mutable struct SymBandedPlusBulge{T} <: AbstractMatrix{T}
-    A::Matrix{T}
+mutable struct SymBandedPlusBulge{T,M<:BandedMatrix{T}} <: AbstractMatrix{T}
+    A::M
     b::Int
     bulge::Int
 end
+
+SymBandedPlusBulge(A::AbstractMatrix, b::Int, bulge::Int) = SymBandedPlusBulge(BandedMatrix(A, (2b, 2b)), b, bulge)
 
 size(A::SymBandedPlusBulge) = size(A.A)
 
@@ -43,7 +45,7 @@ function getindex(A::SymBandedPlusBulge{T}, i::Integer, j::Integer) where T
     end
 end
 
-setindex!(A::SymBandedPlusBulge{T}, v, i::Integer, j::Integer) where T = setindex!(A.A, v, i, j)
+setindex!(A::SymBandedPlusBulge{T}, v, i::Integer, j::Integer) where T = (b = A.b; -2b ≤ i-j ≤ 2b && setindex!(A.A, v, i, j))
 
 function computeHouseholder!(A::SymBandedPlusBulge{T}, w::Vector{T}, col::Int) where T
     b = A.b

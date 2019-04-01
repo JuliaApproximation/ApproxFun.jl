@@ -45,7 +45,7 @@ function setindex!(A::SymBlockArrowHead{T}, v, i::Integer, j::Integer) where T
     end
 end
 
-function computeHouseholder!(A::SymBlockArrowHead{T,SymBandedPlusBulge{T}}, w::Vector{T}, row::Int, col::Int) where T
+function computeHouseholder!(A::SymBlockArrowHead{T,SymBandedPlusBulge{T,V}}, w::Vector{T}, row::Int, col::Int) where {T,V}
     b = A.A.b
     corr = zero(T)
     fill!(w, corr)
@@ -94,7 +94,7 @@ function applyHouseholder!(w::Vector{T}, wQ::Vector{T}, Q::Matrix{T}, bulge::Int
     Q
 end
 
-function similarity!(w::Vector{T}, v::Vector{T}, Aw::Vector{T}, A::SymBlockArrowHead{T,SymBandedPlusBulge{T}}, row::Int) where T
+function similarity!(w::Vector{T}, v::Vector{T}, Aw::Vector{T}, A::SymBlockArrowHead{T,SymBandedPlusBulge{T,V}}, row::Int) where {T,V}
     bulge = A.A.bulge
     b = A.A.b
     sw = max(row-b, 1)
@@ -150,7 +150,7 @@ function similarity!(w::Vector{T}, v::Vector{T}, Aw::Vector{T}, A::SymBlockArrow
     A
 end
 
-function symblockarrowhead2symbanded!(w::Vector{T}, v::Vector{T}, Aw::Vector{T}, A::SymBlockArrowHead{T,SymBandedPlusBulge{T}}) where T
+function symblockarrowhead2symbanded!(w::Vector{T}, v::Vector{T}, Aw::Vector{T}, A::SymBlockArrowHead{T,SymBandedPlusBulge{T,V}}) where {T,V}
     n = size(A, 2)
     b = A.A.b
 
@@ -171,14 +171,14 @@ function symblockarrowhead2symbanded!(w::Vector{T}, v::Vector{T}, Aw::Vector{T},
     A
 end
 
-function symblockarrowhead2symbanded!(A::SymBlockArrowHead{T,SymBandedPlusBulge{T}}) where T
+function symblockarrowhead2symbanded!(A::SymBlockArrowHead{T,SymBandedPlusBulge{T,V}}) where {T,V}
     w = zeros(T, size(A, 2))
     v = zero(w)
     Aw = zero(w)
     symblockarrowhead2symbanded!(w, v, Aw, A)
 end
 
-function symblockarrowhead2symbanded!(w::Vector{T}, v::Vector{T}, Aw::Vector{T}, A::SymBlockArrowHead{T,SymBandedPlusBulge{T}}, wQ::Vector{T}, Q::Matrix{T}) where T
+function symblockarrowhead2symbanded!(w::Vector{T}, v::Vector{T}, Aw::Vector{T}, A::SymBlockArrowHead{T,SymBandedPlusBulge{T,V}}, wQ::Vector{T}, Q::Matrix{T}) where {T,V}
     n = size(A, 2)
     b = A.A.b
 
@@ -201,7 +201,7 @@ function symblockarrowhead2symbanded!(w::Vector{T}, v::Vector{T}, Aw::Vector{T},
     A
 end
 
-function symblockarrowhead2symbanded!(A::SymBlockArrowHead{T,SymBandedPlusBulge{T}}, Q::Matrix{T}) where T
+function symblockarrowhead2symbanded!(A::SymBlockArrowHead{T,SymBandedPlusBulge{T,V}}, Q::Matrix{T}) where {T,V}
     w = zeros(T, size(A, 2))
     v = zero(w)
     Aw = zero(w)

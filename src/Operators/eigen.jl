@@ -31,7 +31,7 @@ function symmetric_eigen(L::Operator{T}, n::Int; verbose::Bool = false, tol::Rea
         verbose && println("This is the size of the deflation window: ",k," and this is the number of deflated eigenvalues: ",j)
     end
 
-    SBA = SymBlockArrowHead(SymBandedPlusBulge(Matrix(Diagonal(Λ[j+1:k])), b, b), Matrix(M[:,j+1:k]'), Matrix(L[k+1:k+b,k+1:k+b]))
+    SBA = SymBlockArrowHead(SymBandedPlusBulge(Diagonal(Λ[j+1:k]), b, b), Matrix(M[:,j+1:k]'), Matrix(L[k+1:k+b,k+1:k+b]))
 
     push!(ALLEIGS, Λ[1:j]...)
     push!(ALLQ, EmbeddedBlockOperator(Q, ndef, ds, rs))
@@ -73,7 +73,7 @@ function symmetric_eigen(L::Operator{T}, n::Int; verbose::Bool = false, tol::Rea
         j = deflationcheck(M, Λ, tol^2, verbose)÷b*b
         verbose && println("This is the size of the deflation window: ",k," and this is the number of deflated eigenvalues: ",j)
 
-        SBA = SymBlockArrowHead(SymBandedPlusBulge(Matrix(Diagonal(Λ[j+1:k])), b, b), Matrix(M[:,j+1:k]'), Matrix(L[ndef+k+1:ndef+k+b,ndef+k+1:ndef+k+b]))
+        SBA = SymBlockArrowHead(SymBandedPlusBulge(Diagonal(Λ[j+1:k]), b, b), Matrix(M[:,j+1:k]'), Matrix(L[ndef+k+1:ndef+k+b,ndef+k+1:ndef+k+b]))
 
         push!(ALLEIGS, Λ[1:j]...)
         push!(ALLQ, EmbeddedBlockOperator(Q, ndef, ds, rs))
@@ -120,7 +120,7 @@ function symmetric_eigen(L::Operator{T}, C::Operator{T}, n::Int; verbose::Bool =
         verbose && println("This is the size of the deflation window: ",k," and this is the number of deflated eigenvalues: ",j)
     end
 
-    SBAL = SymBlockArrowHead(SymBandedPlusBulge(Matrix(Diagonal(Λ[j+1:k])), b, b), Matrix(M[:,j+1:k]'), Matrix(L[k+1:k+b,k+1:k+b]))
+    SBAL = SymBlockArrowHead(SymBandedPlusBulge(Diagonal(Λ[j+1:k]), b, b), Matrix(M[:,j+1:k]'), Matrix(L[k+1:k+b,k+1:k+b]))
     SBAC = SymBlockArrowHead(Diagonal(ones(T, k-j)), Matrix(N[:,j+1:k]'), Matrix(C[k+1:k+b,k+1:k+b]))
 
     push!(ALLEIGS, Λ[1:j]...)
@@ -173,7 +173,7 @@ function symmetric_eigen(L::Operator{T}, C::Operator{T}, n::Int; verbose::Bool =
         j = deflationcheck(M, N, Λ, tol^2, verbose)÷b*b
         verbose && println("This is the size of the deflation window: ",k," and this is the number of deflated eigenvalues: ",j)
 
-        SBAL = SymBlockArrowHead(SymBandedPlusBulge(Matrix(Diagonal(Λ[j+1:k])), b, b), Matrix(M[:,j+1:k]'), Matrix(L[ndef+k+1:ndef+k+b,ndef+k+1:ndef+k+b]))
+        SBAL = SymBlockArrowHead(SymBandedPlusBulge(Diagonal(Λ[j+1:k]), b, b), Matrix(M[:,j+1:k]'), Matrix(L[ndef+k+1:ndef+k+b,ndef+k+1:ndef+k+b]))
         SBAC = SymBlockArrowHead(Diagonal(ones(T, k-j)), Matrix(N[:,j+1:k]'), Matrix(C[ndef+k+1:ndef+k+b,ndef+k+1:ndef+k+b]))
 
         push!(ALLEIGS, Λ[1:j]...)
