@@ -19,3 +19,7 @@ include("RaggedMatrix.jl")
 
 
 include("rowvector.jl")
+
+include("deflationcheck.jl")
+include("SymBandedPlusBulge.jl")
+include("SymBlockArrowHead.jl")

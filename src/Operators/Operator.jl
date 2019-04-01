@@ -1,5 +1,5 @@
 export Operator
-export bandwidths, bandrange, \, periodic
+export bandwidth, bandwidths, bandrange, \, periodic
 export neumann
 export ldirichlet,rdirichlet,lneumann,rneumann
 export ldiffbc,rdiffbc,diffbcs
@@ -608,6 +608,7 @@ include("systems.jl")
 include("qr.jl")
 include("nullspace.jl")
 
+include("eigen.jl")
 
 
 
