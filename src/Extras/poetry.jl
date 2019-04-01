@@ -26,19 +26,9 @@ ChebyshevWeight(d)=ChebyshevWeight(d,0)
 ChebyshevWeight(k::Integer)=ChebyshevWeight(Segment(),k)
 ChebyshevWeight()=ChebyshevWeight(0)
 
-# shorthand for second order
 
-ivp(d) = ivp(d,2)
-bvp(d) = bvp(d,2)
 
 ## diff
-
-
-
-# use conj(transpose(f)) for ArraySpace
-adjoint(f::Fun)=differentiate(f)
-
-
 ∫(f::Fun)=integrate(f)
 ⨜(f::Fun)=cumsum(f)
 

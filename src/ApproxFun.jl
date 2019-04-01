@@ -7,6 +7,7 @@ module ApproxFun
 
 @reexport using ApproxFunBase    
 @reexport using ApproxFunFourier
+@reexport using ApproxFunOrthogonalPolynomials
 
 import ApproxFunBase: normalize!, flipsign, FiniteRange, MatrixFun, UnsetSpace, VFun, RowVector,
                     UnivariateSpace, AmbiguousSpace, IntervalOrSegment, RaggedMatrix, AlmostBandedMatrix,
@@ -85,6 +86,22 @@ import FillArrays: AbstractFill, getindex_value
 import LazyArrays: cache
 import InfiniteArrays: Infinity, InfRanges, AbstractInfUnitRange, OneToInf
 
+"""
+`Curve` Represents a domain defined by the image of a Fun.  Example
+usage would be
+
+```julia
+x=Fun(1..2)
+Curve(exp(im*x))  # represents an arc
+```
+"""
+const Curve{S,T} = Union{IntervalCurve{S,T},PeriodicCurve{S,T}}
+Curve(f::Fun{<:Space{<:PeriodicDomain}}) = PeriodicCurve(f)
+
+#TODO: Make type stable
+Curve(f::Fun{<:Space{<:ChebyshevInterval}}) = IntervalCurve(f) 
+
+export Curve
 
 const AffineDomain = Union{AbstractInterval,Segment,PeriodicSegment,Ray,Line}
 
