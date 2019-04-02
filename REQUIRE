@@ -2,6 +2,7 @@ julia 0.7
 Reexport v0.2.0
 ApproxFunBase
 ApproxFunFourier
+ApproxFunOrthogonalPolynomials
 FastGaussQuadrature 0.3.2
 FastTransforms 0.4.2
 RecipesBase 0.5
@@ -12,7 +13,7 @@ DomainSets 0.0.1
 IntervalSets 0.3.1
 StaticArrays 0.8.3
 BlockArrays 0.8
-BlockBandedMatrices 0.3.5
+BlockBandedMatrices 0.4
 BandedMatrices 0.9
 AbstractFFTs 0.3.1
 FFTW 0.2.4

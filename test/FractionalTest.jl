@@ -1,5 +1,5 @@
 using ApproxFun, Test
-    import ApproxFun: testfunctional, testbandedoperator
+    import ApproxFunBase: testfunctional, testbandedoperator
 
 @testset "Fractional" begin
     @testset "Jupyer example" begin
