@@ -5,7 +5,8 @@ using ApproxFun, Test
     @testset "Jupyer example" begin
         S = Legendre() ⊕ JacobiWeight(0.5,0.,Ultraspherical(1))
         Q½ = LeftIntegral(S,0.5)
-
+        testbandedoperator(Q½)
+        testbandedoperator(I+Q½)
         y = (I+Q½)\1
         @test values(y)[1] ≈ 0.33627096683893143
 
@@ -102,7 +103,7 @@ using ApproxFun, Test
     Q=gamma(.5)*LeftIntegral(S,.5)
     L=I+Q
     u=L\f
-    norm((u-1/(x+1)).coefficients) < 1000eps()   # 1.2011889731154679e-14
+    @test norm((u-1/(x+1)).coefficients) < 1000eps()   # 1.2011889731154679e-14
 
 
 
