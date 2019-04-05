@@ -1,4 +1,5 @@
-using ApproxFun, Test
+using ApproxFun, Random, Test
+import ApproxFunBase: testbandedblockbandedoperator, blocklengths
 
 @time include("ReadmeTest.jl")
 @time include("ExtrasTest.jl")

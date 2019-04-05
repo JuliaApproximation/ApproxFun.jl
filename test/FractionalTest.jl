@@ -1,13 +1,13 @@
 using ApproxFun, Test
     import ApproxFunBase: testfunctional, testbandedoperator
-
+    
 @testset "Fractional" begin
     @testset "Jupyer example" begin
         S = Legendre() ⊕ JacobiWeight(0.5,0.,Ultraspherical(1))
-        Q½ = LeftIntegral(S,0.5)
-        testbandedoperator(Q½)
-        testbandedoperator(I+Q½)
-        y = (I+Q½)\1
+        @time Q½ = LeftIntegral(S,0.5)
+        @time testbandedoperator(Q½)
+        @time testbandedoperator(I+Q½)
+        @time y = (I+Q½)\1
         @test values(y)[1] ≈ 0.33627096683893143
 
         S = Legendre()⊕JacobiWeight(0.5,0.,Ultraspherical(1))
@@ -23,7 +23,7 @@ using ApproxFun, Test
 
     x=Fun(0..1)
     Q=gamma(0.5)*LeftIntegral(0.5)
-    f=(2/105*sqrt(x)*(105-56x^2+48x^3))
+    @time f=(2/105*sqrt(x)*(105-56x^2+48x^3))
     u=Q\f
     @test norm(u-(x^3-x^2+1))<100eps()
 
@@ -33,7 +33,7 @@ using ApproxFun, Test
     x=Fun(0..1)
     Q=gamma(0.5)*LeftIntegral(0.5)
     u=Q\(exp(x)-1)
-    @test norm(u-exp(x)*erf(sqrt(x))/sqrt(π)) < 100eps() # 5.0036177384681187e-14
+    @time @test norm(u-exp(x)*erf(sqrt(x))/sqrt(π)) < 100eps() # 5.0036177384681187e-14
 
 
     # Example 3
@@ -58,12 +58,10 @@ using ApproxFun, Test
     Q=gamma(.5)*LeftIntegral(S,.5)
 
 
-    @test sum(f/sqrt(1-x)) ≈ last(Q*f)
+    @time @test sum(f/sqrt(1-x)) ≈ last(Q*f)
 
     L=I+Q
-
     @test last(L.ops[2]*f) ≈ last(Q*f)
-
     @test last(L*f) ≈ last(f)+last(Q*f)
 
     u=L\f
