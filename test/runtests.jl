@@ -1,4 +1,4 @@
-using ApproxFun, Random, Test
+using ApproxFun, Random, InfiniteArrays, Test
 import ApproxFunBase: testbandedblockbandedoperator, blocklengths
 
 @time include("ReadmeTest.jl")
@@ -179,6 +179,4 @@ x=sample(f,100000)
 x=sample(f,100000)
 @time x=sample(f,100000)
 println("Sample: Time should be ~0.13")
-# 0.213793292 with unsafe_view
-# 0.268162181 with inbounds
 
