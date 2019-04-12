@@ -11,6 +11,7 @@ import Calculus
 @reexport using ApproxFunBase    
 @reexport using ApproxFunFourier
 @reexport using ApproxFunOrthogonalPolynomials
+@reexport using ApproxFunSingularities
 
 import ApproxFunBase: normalize!, flipsign, FiniteRange, Fun, MatrixFun, UnsetSpace, VFun, RowVector,
                     UnivariateSpace, AmbiguousSpace, SumSpace, SubSpace, WeightSpace, NoSpace, Space,

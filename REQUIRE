@@ -3,6 +3,7 @@ Reexport v0.2.0
 ApproxFunBase 0.0.1
 ApproxFunFourier
 ApproxFunOrthogonalPolynomials
+ApproxFunSingularities
 FastGaussQuadrature 0.3.2
 FastTransforms 0.4.2
 RecipesBase 0.5
