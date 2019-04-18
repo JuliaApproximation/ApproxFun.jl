@@ -3,6 +3,24 @@
 
 ### notes on release changes, ongoing development, and future planned work
 
+#### 0.11
+ - Split into ApproxFunBase.jl, ApproxFunFourier.jl, ApproxFunOrthogonalPolynomials.jl, and ApproxFunSingularities.jl
+
+#### 0.10.4
+ - Update for latest BandedMatrices.jl
+ - Support for symmetric discretizations
+ - Bug fixes
+
+#### 0.10.3
+ - Bug fixes
+ - Update for latest BlockBandedMatrices.jl
+
+#### 0.10.2
+ - Bug fixes for special functions on large intervals
+
+#### 0.10.1 
+ - Update for latest BlockBandedMatrices.jl
+ 
 #### 0.10.0
  - Use DomainSets.jl for representing domains
  - Use InfiniteArrays.jl for representing block sizes
