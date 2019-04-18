@@ -51,7 +51,8 @@ import ApproxFunBase: normalize!, flipsign, FiniteRange, Fun, MatrixFun, UnsetSp
                     components, promoterangespace, promotedomainspace, choosedomainspace,
                     block, blockstart, blockstop, blocklengths, isblockbanded, pointscompatible,
                     AbstractProductSpace, MultivariateFun, BivariateSpace, 
-                    @wrapperstructure, @wrapperspaces, @wrapper, @calculus_operator, resizedata!, slnorm
+                    @wrapperstructure, @wrapperspaces, @wrapper, @calculus_operator, resizedata!, slnorm,
+                    sample
 
 import ApproxFunOrthogonalPolynomials: order
 
