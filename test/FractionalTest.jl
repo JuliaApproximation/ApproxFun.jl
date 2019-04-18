@@ -64,7 +64,7 @@ using ApproxFun, Test
     @test last(L.ops[2]*f) ≈ last(Q*f)
     @test last(L*f) ≈ last(f)+last(Q*f)
 
-    u=L\f
+    @time u=L\f
     @test norm(u-x)  < 10eps()
 
 
@@ -72,7 +72,7 @@ using ApproxFun, Test
 
     d=Interval(0,1)
     x=Fun(d)
-    f=x^2+16/15*x^(5/2)
+    @time f=x^2+16/15*x^(5/2)
     S=Legendre(d)⊕JacobiWeight(.5,0.,Jacobi(.5,.5,d))
     Q=gamma(.5)*LeftIntegral(S,.5)
     L=I+Q
@@ -96,7 +96,7 @@ using ApproxFun, Test
 
     d=Interval(0.,1.)
     x=Fun(d)
-    f=1/(x+1)+2*Fun(x->asinh(sqrt(x))/sqrt(1+x),JacobiWeight(.5,0.,d))
+    @time f=1/(x+1)+2*Fun(x->asinh(sqrt(x))/sqrt(1+x),JacobiWeight(.5,0.,d))
     S=Legendre(d)⊕JacobiWeight(.5,0.,Jacobi(.5,.5,d))
     Q=gamma(.5)*LeftIntegral(S,.5)
     L=I+Q
@@ -132,7 +132,7 @@ using ApproxFun, Test
     x=Fun()
     Q½=LeftIntegral(S,0.5)
 
-    y=(I+exp(-(1+x)/2)*Q½[exp((1+x)/2)])\exp(-(1+x)/2)
+    @time y=(I+exp(-(1+x)/2)*Q½[exp((1+x)/2)])\exp(-(1+x)/2)
 
     @test norm(y-exp((1+x)/2)*erfc(sqrt(1+x))) < 100eps()
 end
