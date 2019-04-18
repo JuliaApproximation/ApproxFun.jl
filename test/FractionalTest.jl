@@ -6,6 +6,7 @@ using ApproxFun, Test
         S = Legendre() ⊕ JacobiWeight(0.5,0.,Ultraspherical(1))
         @time Q½ = LeftIntegral(S,0.5)
         @time testbandedoperator(Q½)
+        @time I+Q½
         @time testbandedoperator(I+Q½)
         @time y = (I+Q½)\1
         @test values(y)[1] ≈ 0.33627096683893143
