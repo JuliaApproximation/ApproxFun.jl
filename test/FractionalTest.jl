@@ -76,7 +76,7 @@ using ApproxFun, Test
     S=Legendre(d)⊕JacobiWeight(.5,0.,Jacobi(.5,.5,d))
     Q=gamma(.5)*LeftIntegral(S,.5)
     L=I+Q
-    u=L\f
+    @time u=L\f
     @test norm(u-x^2) < 10eps()
 
     # Example 7
@@ -86,10 +86,10 @@ using ApproxFun, Test
     f=2sqrt(x)
     S=Legendre(d)⊕JacobiWeight(.5,0.,Jacobi(.5,.5,d))
     Q=gamma(.5)*LeftIntegral(S,.5)
-    L=I+Q
+    @time L=I+Q
     u=L\f
 
-    @test norm(1-exp(π*x)*erfc(sqrt(π*x))-u) < 100eps()
+    @time @test norm(1-exp(π*x)*erfc(sqrt(π*x))-u) < 100eps()
 
 
     # Example 8
@@ -113,7 +113,7 @@ using ApproxFun, Test
 
 
     λ=0.25
-    L=[λ*I QU; QL λ*I]
+    @time L=[λ*I QU; QL λ*I]
     @test L[2,5] ≈ 0.
 
 
@@ -126,7 +126,7 @@ using ApproxFun, Test
     y=(I+Q½)\1
 
     x=Fun()
-    @test norm(exp(1+x)*erfc(sqrt(1+x))-y) < 100eps()
+    @time @test norm(exp(1+x)*erfc(sqrt(1+x))-y) < 100eps()
 
     S=Legendre()⊕JacobiWeight(0.5,0.,Ultraspherical(1))
     x=Fun()
