@@ -1,5 +1,4 @@
-include("specialfunctions.jl")
-include("roots.jl")
+
 include("sample.jl")
 
 include("fftBigFloat.jl")
@@ -17,16 +16,10 @@ import FastTransforms: pochhammer
 include("show.jl")
 include("poetry.jl")
 
-
-
-
-
 include("ReImSpace.jl")
 include("simplify.jl")
 
 include("eigs.jl")
-include("hacks.jl")
-include("fastops.jl")
 
 include("autodifferentiation.jl")
 include("fractional.jl")

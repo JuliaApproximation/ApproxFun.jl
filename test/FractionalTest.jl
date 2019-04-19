@@ -1,12 +1,14 @@
 using ApproxFun, Test
-    import ApproxFun: testfunctional, testbandedoperator
-
+    import ApproxFunBase: testfunctional, testbandedoperator
+    
 @testset "Fractional" begin
     @testset "Jupyer example" begin
         S = Legendre() ⊕ JacobiWeight(0.5,0.,Ultraspherical(1))
-        Q½ = LeftIntegral(S,0.5)
-
-        y = (I+Q½)\1
+        @time Q½ = LeftIntegral(S,0.5)
+        @time testbandedoperator(Q½)
+        @time I+Q½
+        @time testbandedoperator(I+Q½)
+        @time y = (I+Q½)\1
         @test values(y)[1] ≈ 0.33627096683893143
 
         S = Legendre()⊕JacobiWeight(0.5,0.,Ultraspherical(1))
@@ -22,7 +24,7 @@ using ApproxFun, Test
 
     x=Fun(0..1)
     Q=gamma(0.5)*LeftIntegral(0.5)
-    f=(2/105*sqrt(x)*(105-56x^2+48x^3))
+    @time f=(2/105*sqrt(x)*(105-56x^2+48x^3))
     u=Q\f
     @test norm(u-(x^3-x^2+1))<100eps()
 
@@ -32,7 +34,7 @@ using ApproxFun, Test
     x=Fun(0..1)
     Q=gamma(0.5)*LeftIntegral(0.5)
     u=Q\(exp(x)-1)
-    @test norm(u-exp(x)*erf(sqrt(x))/sqrt(π)) < 100eps() # 5.0036177384681187e-14
+    @time @test norm(u-exp(x)*erf(sqrt(x))/sqrt(π)) < 100eps() # 5.0036177384681187e-14
 
 
     # Example 3
@@ -57,15 +59,13 @@ using ApproxFun, Test
     Q=gamma(.5)*LeftIntegral(S,.5)
 
 
-    @test sum(f/sqrt(1-x)) ≈ last(Q*f)
+    @time @test sum(f/sqrt(1-x)) ≈ last(Q*f)
 
     L=I+Q
-
     @test last(L.ops[2]*f) ≈ last(Q*f)
-
     @test last(L*f) ≈ last(f)+last(Q*f)
 
-    u=L\f
+    @time u=L\f
     @test norm(u-x)  < 10eps()
 
 
@@ -73,11 +73,11 @@ using ApproxFun, Test
 
     d=Interval(0,1)
     x=Fun(d)
-    f=x^2+16/15*x^(5/2)
+    @time f=x^2+16/15*x^(5/2)
     S=Legendre(d)⊕JacobiWeight(.5,0.,Jacobi(.5,.5,d))
     Q=gamma(.5)*LeftIntegral(S,.5)
     L=I+Q
-    u=L\f
+    @time u=L\f
     @test norm(u-x^2) < 10eps()
 
     # Example 7
@@ -87,22 +87,22 @@ using ApproxFun, Test
     f=2sqrt(x)
     S=Legendre(d)⊕JacobiWeight(.5,0.,Jacobi(.5,.5,d))
     Q=gamma(.5)*LeftIntegral(S,.5)
-    L=I+Q
+    @time L=I+Q
     u=L\f
 
-    @test norm(1-exp(π*x)*erfc(sqrt(π*x))-u) < 100eps()
+    @time @test norm(1-exp(π*x)*erfc(sqrt(π*x))-u) < 100eps()
 
 
     # Example 8
 
     d=Interval(0.,1.)
     x=Fun(d)
-    f=1/(x+1)+2*Fun(x->asinh(sqrt(x))/sqrt(1+x),JacobiWeight(.5,0.,d))
+    @time f=1/(x+1)+2*Fun(x->asinh(sqrt(x))/sqrt(1+x),JacobiWeight(.5,0.,d))
     S=Legendre(d)⊕JacobiWeight(.5,0.,Jacobi(.5,.5,d))
     Q=gamma(.5)*LeftIntegral(S,.5)
     L=I+Q
     u=L\f
-    norm((u-1/(x+1)).coefficients) < 1000eps()   # 1.2011889731154679e-14
+    @test norm((u-1/(x+1)).coefficients) < 1000eps()   # 1.2011889731154679e-14
 
 
 
@@ -114,7 +114,7 @@ using ApproxFun, Test
 
 
     λ=0.25
-    L=[λ*I QU; QL λ*I]
+    @time L=[λ*I QU; QL λ*I]
     @test L[2,5] ≈ 0.
 
 
@@ -127,13 +127,13 @@ using ApproxFun, Test
     y=(I+Q½)\1
 
     x=Fun()
-    @test norm(exp(1+x)*erfc(sqrt(1+x))-y) < 100eps()
+    @time @test norm(exp(1+x)*erfc(sqrt(1+x))-y) < 100eps()
 
     S=Legendre()⊕JacobiWeight(0.5,0.,Ultraspherical(1))
     x=Fun()
     Q½=LeftIntegral(S,0.5)
 
-    y=(I+exp(-(1+x)/2)*Q½[exp((1+x)/2)])\exp(-(1+x)/2)
+    @time y=(I+exp(-(1+x)/2)*Q½[exp((1+x)/2)])\exp(-(1+x)/2)
 
     @test norm(y-exp((1+x)/2)*erfc(sqrt(1+x))) < 100eps()
 end

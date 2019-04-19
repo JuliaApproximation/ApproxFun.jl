@@ -1,12 +1,60 @@
 __precompile__()
 
 module ApproxFun
-    using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers,
-            BlockArrays, BandedMatrices, BlockBandedMatrices, DomainSets, IntervalSets,
-            SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions, DSP,
-            LinearAlgebra, LowRankApprox, SparseArrays, FillArrays, InfiniteArrays #, Arpack
-    import StaticArrays, ToeplitzMatrices, Calculus
+    using Base, Reexport, BlockArrays, BandedMatrices, BlockBandedMatrices, DomainSets, IntervalSets,
+            SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions, DSP, DualNumbers, FastTransforms,
+            LinearAlgebra, SparseArrays, LowRankApprox, FillArrays, InfiniteArrays, RecipesBase,
+            FFTW, AbstractFFTs #, Arpack
 
+import Calculus
+
+@reexport using ApproxFunBase    
+@reexport using ApproxFunFourier
+@reexport using ApproxFunOrthogonalPolynomials
+@reexport using ApproxFunSingularities
+
+import ApproxFunBase: normalize!, flipsign, FiniteRange, Fun, MatrixFun, UnsetSpace, VFun, RowVector,
+                    UnivariateSpace, AmbiguousSpace, SumSpace, SubSpace, WeightSpace, NoSpace, Space,
+                    HeavisideSpace, PointSpace,
+                    IntervalOrSegment, RaggedMatrix, AlmostBandedMatrix,
+                    AnyDomain, ZeroSpace, ArraySpace, TrivialInterlacer, BlockInterlacer, 
+                    AbstractTransformPlan, TransformPlan, ITransformPlan,
+                    ConcreteConversion, ConcreteMultiplication, ConcreteDerivative, ConcreteIntegral, CalculusOperator,
+                    ConcreteVolterra, Volterra, VolterraWrapper,
+                    MultiplicationWrapper, ConversionWrapper, DerivativeWrapper, Evaluation, EvaluationWrapper,
+                    Conversion, defaultConversion, defaultcoefficients, default_Fun, Multiplication, Derivative, Integral, bandwidths, 
+                    ConcreteEvaluation, ConcreteDefiniteLineIntegral, ConcreteDefiniteIntegral, ConcreteIntegral,
+                    DefiniteLineIntegral, DefiniteIntegral, ConcreteDefiniteIntegral, ConcreteDefiniteLineIntegral, IntegralWrapper,
+                    ReverseOrientation, ReverseOrientationWrapper, ReverseWrapper, Reverse, NegateEven, 
+                    Dirichlet, ConcreteDirichlet, DirichletWrapper,
+                    TridiagonalOperator, SubOperator, Space, @containsconstants, spacescompatible,
+                    hasfasttransform, canonicalspace, domain, setdomain, prectype, domainscompatible, 
+                    plan_transform, plan_itransform, plan_transform!, plan_itransform!, transform, itransform, hasfasttransform, 
+                    CanonicalTransformPlan, ICanonicalTransformPlan,
+                    Integral, 
+                    domainspace, rangespace, boundary, 
+                    union_rule, conversion_rule, maxspace_rule, conversion_type, maxspace, hasconversion, points, 
+                    rdirichlet, ldirichlet, lneumann, rneumann, ivp, bvp, 
+                    linesum, differentiate, integrate, linebilinearform, bilinearform, 
+                    UnsetNumber, coefficienttimes, subspace_coefficients, sumspacecoefficients, specialfunctionnormalizationpoint,
+                    Segment, IntervalOrSegmentDomain, PiecewiseSegment, isambiguous, Vec, eps, isperiodic,
+                    arclength, complexlength,
+                    invfromcanonicalD, fromcanonical, tocanonical, fromcanonicalD, tocanonicalD, canonicaldomain, setcanonicaldomain, mappoint,
+                    reverseorientation, checkpoints, evaluate, mul_coefficients, coefficients, coefficientmatrix, isconvertible,
+                    clenshaw, ClenshawPlan, sineshaw,
+                    toeplitz_getindex, toeplitz_axpy!, sym_toeplitz_axpy!, hankel_axpy!, ToeplitzOperator, SymToeplitzOperator, hankel_getindex, 
+                    SpaceOperator, ZeroOperator, InterlaceOperator,
+                    interlace!, reverseeven!, negateeven!, cfstype, pad!, alternatesign!, mobius,
+                    extremal_args, hesseneigvals, chebyshev_clenshaw, recA, recB, recC, roots,splitatroots,
+                    chebmult_getindex, intpow, alternatingsum,
+                    domaintype, diagindshift, rangetype, weight, isapproxinteger, default_Dirichlet, scal!, dotu,
+                    components, promoterangespace, promotedomainspace, choosedomainspace,
+                    block, blockstart, blockstop, blocklengths, isblockbanded, pointscompatible,
+                    AbstractProductSpace, MultivariateFun, BivariateSpace, 
+                    @wrapperstructure, @wrapperspaces, @wrapper, @calculus_operator, resizedata!, slnorm,
+                    sample
+
+import ApproxFunOrthogonalPolynomials: order
 
 import DomainSets: Domain, indomain, UnionDomain, ProductDomain, FullSpace, Point, elements, DifferenceDomain,
             Interval, ChebyshevInterval, boundary, ∂, rightendpoint, leftendpoint,
@@ -15,7 +63,6 @@ import DomainSets: Domain, indomain, UnionDomain, ProductDomain, FullSpace, Poin
 import AbstractFFTs: Plan, fft, ifft
 import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
                 r2r!, r2r,  plan_fft, plan_ifft, plan_ifft!, plan_fft!
-
 
 import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, !=, eltype, iterate,
                 >=, /, ^, \, ∪, transpose, size, reindex, tail, broadcast, broadcast!, copyto!, copy, to_index, (:),
@@ -32,7 +79,7 @@ import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, 
 import Base.Broadcast: BroadcastStyle, Broadcasted, AbstractArrayStyle, broadcastable,
                         DefaultArrayStyle, broadcasted
 
-import Statistics: mean
+
 
 import LinearAlgebra: BlasInt, BlasFloat, norm, ldiv!, mul!, det, eigvals, dot, cross,
                         qr, qr!, rank, isdiag, istril, istriu, issymmetric, ishermitian,
@@ -64,7 +111,6 @@ import BlockArrays: nblocks, blocksize, global2blockindex, globalrange, BlockSiz
 
 import BandedMatrices: bandrange, bandshift,
                         inbands_getindex, inbands_setindex!, bandwidth, AbstractBandedMatrix,
-                        flipsign,
                         colstart, colstop, colrange, rowstart, rowstop, rowrange,
                         bandwidths, _BandedMatrix, BandedMatrix
 
@@ -82,11 +128,24 @@ import FillArrays: AbstractFill, getindex_value
 import LazyArrays: cache
 import InfiniteArrays: Infinity, InfRanges, AbstractInfUnitRange, OneToInf
 
+"""
+`Curve` Represents a domain defined by the image of a Fun.  Example
+usage would be
+
+```julia
+x=Fun(1..2)
+Curve(exp(im*x))  # represents an arc
+```
+"""
+const Curve{S,T} = Union{IntervalCurve{S,T},PeriodicCurve{S,T}}
+Curve(f::Fun{<:Space{<:PeriodicDomain}}) = PeriodicCurve(f)
+
+#TODO: Make type stable
+Curve(f::Fun{<:Space{<:ChebyshevInterval}}) = IntervalCurve(f) 
+
+export Curve
 
 
-
-# convenience for 1-d block ranges
-const BlockRange1 = BlockRange{1,Tuple{UnitRange{Int}}}
 
 import Base: view
 
@@ -95,42 +154,16 @@ import StaticArrays: StaticArray, SVector
 
 import IntervalSets: (..), endpoints
 
-const Vec{d,T} = SVector{d,T}
-
-export pad!, pad, chop!, sample,
-       complexroots, roots, svfft, isvfft,
-       reverseorientation, jumplocations
 
 ##Testing
 export bisectioninv
 
-export .., Interval, ChebyshevInterval, leftendpoint, rightendpoint, endpoints
-
-
-
-include("LinearAlgebra/LinearAlgebra.jl")
-
-
-include("Fun/Fun.jl")
-
-
-include("Domains/Domains.jl")
-include("Multivariate/Multivariate.jl")
-include("Operators/Operator.jl")
-
-include("Spaces/Spaces.jl")
-
-
-
 
 ## Further extra features
 
-include("PDE/PDE.jl")
-include("Caching/caching.jl")
 include("Extras/Extras.jl")
 include("Plot/Plot.jl")
 include("docs.jl")
-include("testing.jl")
 
 #include("precompile.jl")
 #_precompile_()

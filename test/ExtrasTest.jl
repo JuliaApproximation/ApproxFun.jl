@@ -71,23 +71,6 @@ using ApproxFun, Test, DualNumbers
         @test sort(real(filter(x->isreal(x),λ)))[5] ≈ 3.93759261234502 atol=1E-3
     end
 
-    @testset "Sampling" begin
-        ff=(x,y)->(x-y)^2*exp(-x^2/2-y^2/2)
-
-        f=Fun(ff,Domain(-4..4)^2)
-        r=ApproxFun.sample(f,5000)
-
-
-        #We can compare the histogram to the 1-point correlation
-        g=sum(f,1)/sum(f)
-        @test  g(0.1) ≈ 0.2004758624973169
-
-        # check bisection inv
-        f = Fun(x -> exp(-x^2/2),-5..5)
-        g = cumsum(f)
-        @test g(ApproxFun.bisectioninv(g,0.5)) ≈ 0.5
-    end
-
     @testset "findmin/max" begin
         f = Fun(x -> exp(0.25x) + sin(x) + 0.5cos(10x), -4..4)
         @test [findmax(f)...] ≈ [3.0531164509549584, 1.886754631165656]
