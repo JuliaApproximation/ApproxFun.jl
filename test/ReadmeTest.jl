@@ -7,7 +7,6 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
         f = sin(x^2)
         g = cos(x)
 
-
         @test ≈(f(.1),sin(.1^2);atol=1000eps())
 
         h = f + g^2
