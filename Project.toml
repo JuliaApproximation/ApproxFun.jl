@@ -1,6 +1,6 @@
 name = "ApproxFun"
 uuid = "28f2ccd6-bb30-5033-b560-165f7b14dc2f"
-version = "0.11"
+version = "0.11.1"
 
 [deps]
 AbstractFFTs = "621f4979-c628-5d54-868e-fcf4e3e8185c"
@@ -35,10 +35,10 @@ ToeplitzMatrices = "c751599d-da0a-543b-9d20-d0a503d91d24"
 
 [compat]
 AbstractFFTs = "≥ 0.3.1"
-ApproxFunBase = "0.0.3, 0.0.4, 0.0.5"
-ApproxFunFourier = "0.0.1, 0.0.2"
-ApproxFunSingularities = "0.0.1"
-ApproxFunOrthogonalPolynomials = "0.0.2"
+ApproxFunBase = "0.0.4, 0.0.5"
+ApproxFunFourier = "0.0.2"
+ApproxFunSingularities = "0.0.2"
+ApproxFunOrthogonalPolynomials = "0.0.3, 0.0.4"
 BandedMatrices = "0.9.0"
 BlockArrays = "0.8.0"
 BlockBandedMatrices = "0.4.0"
