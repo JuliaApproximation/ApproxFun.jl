@@ -52,7 +52,7 @@ import ApproxFunBase: normalize!, flipsign, FiniteRange, Fun, MatrixFun, UnsetSp
                     block, blockstart, blockstop, blocklengths, isblockbanded, pointscompatible,
                     AbstractProductSpace, MultivariateFun, BivariateSpace, 
                     @wrapperstructure, @wrapperspaces, @wrapper, @calculus_operator, resizedata!, slnorm,
-                    sample
+                    sample, chop!
 
 import ApproxFunOrthogonalPolynomials: order
 
