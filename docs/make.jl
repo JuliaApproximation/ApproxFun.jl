@@ -1,6 +1,6 @@
-using Documenter, ApproxFun, BandedMatrices, LinearAlgebra
+using Documenter, ApproxFun, BandedMatrices, DomainSets, LinearAlgebra
 
-makedocs(modules=[ApproxFun],
+makedocs(
 			doctest = false,
 			clean = true,
 			format = :html,
