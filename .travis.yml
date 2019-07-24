@@ -20,6 +20,6 @@ codecov: true
 
 
 # uncomment the following lines to override the default test script
-#script:
-#  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-#  - julia -e 'Pkg.clone(pwd()); Pkg.build("MyPackage"); Pkg.test("MyPackage"; coverage=true)'
+script:
+  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+  - travis_wait 20 julia -e 'Pkg.clone(pwd()); Pkg.build("ApproxFun"); Pkg.test("ApproxFun"; coverage=true)'
