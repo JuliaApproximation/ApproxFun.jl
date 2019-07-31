@@ -3,7 +3,7 @@ using Documenter, ApproxFun, BandedMatrices, DomainSets, LinearAlgebra
 makedocs(
 			doctest = false,
 			clean = true,
-			format = :html,
+			format = Documenter.HTML(),
 			sitename = "ApproxFun.jl",
 			authors = "Sheehan Olver",
 			pages = Any[
@@ -23,7 +23,7 @@ makedocs(
 
 deploydocs(
     repo   = "github.com/JuliaApproximation/ApproxFun.jl.git",
-    latest = "development",
+    devbranch = "development",
     julia  = "0.7",
     osname = "linux",
     target = "build",
