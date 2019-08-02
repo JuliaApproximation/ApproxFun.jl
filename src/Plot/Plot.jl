@@ -113,6 +113,12 @@ end
     [a[1],b[1]], [a[2],b[2]]
 end
 
+
+@recipe function f(dd::Segment{<:Complex})
+    a,b = endpoints(dd)
+    [real(a),real(b)], [imag(a),imag(b)]
+end
+
 @recipe function f(dd::UnionDomain)
     @series component(dd,1)
     for k=2:ncomponents(dd)
