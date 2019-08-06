@@ -162,7 +162,7 @@ to specify explicitly that the domain space for `B` is `Chebyshev()`.
 
 Behind the scenes, `A\b` where `A` is an `Operator` is implemented via
 an adaptive QR factorization.  That is, it is equivalent to
-`qr(A)\b`.  (There is a subtly here in space inferring: `A\b` can use
+`qr(A)\b`.  (There is a subtlety here in space inferring: `A\b` can use
     both `A` and `b` to determine the domain space, while `qr(A)` only
     sees the operator `A`.)
       Note that `qr` adaptively caches a partial QR Factorization
