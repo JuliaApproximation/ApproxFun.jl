@@ -11,7 +11,6 @@ julia:
 matrix:
   allow_failures:
     - julia: nightly
-    - julia: "1.2"    
 notifications:
   email: false
 after_script:
