@@ -1,10 +1,7 @@
-__precompile__()
-
 module ApproxFun
-    using Base, Reexport, BlockArrays, BandedMatrices, BlockBandedMatrices, DomainSets, IntervalSets,
-            SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions, DSP, DualNumbers, FastTransforms,
-            LinearAlgebra, SparseArrays, LowRankApprox, FillArrays, InfiniteArrays, RecipesBase,
-            FFTW, AbstractFFTs #, Arpack
+using Base, Reexport, BlockArrays, BandedMatrices, BlockBandedMatrices, DomainSets, IntervalSets,
+		SpecialFunctions, AbstractFFTs, FFTW, SpecialFunctions, DSP, DualNumbers, FastTransforms,
+		LinearAlgebra, SparseArrays, LowRankApprox, FillArrays, InfiniteArrays, RecipesBase #, Arpack
 
 import Calculus
 

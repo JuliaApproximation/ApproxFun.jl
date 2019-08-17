@@ -30,8 +30,6 @@ Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-ToeplitzMatrices = "c751599d-da0a-543b-9d20-d0a503d91d24"
 
 [compat]
 AbstractFFTs = "0.4"
@@ -57,6 +55,12 @@ LowRankApprox = "0.2"
 Reexport = "0.2"
 SpecialFunctions = "0.7"
 StaticArrays = "0.9, 0.10, 0.11"
-ToeplitzMatrices = "0.5"
+RecipesBase = "0.7"
 julia = "1"
 
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
