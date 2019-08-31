@@ -1,5 +1,5 @@
-using ApproxFun, Random, InfiniteArrays, Test
-import ApproxFunBase: testbandedblockbandedoperator, blocklengths
+using ApproxFun, Random, Test
+import ApproxFunBase: testbandedblockbandedoperator, blocklengths, ∞
 
 @time include("ReadmeTest.jl")
 @time include("ExtrasTest.jl")
@@ -85,8 +85,8 @@ end
 
     sp = Space(dom)
     Dr = Derivative(sp, [1,0])
-    @test ApproxFun.blockbandwidths(Dr) == (-1,1)
-    @test ApproxFun.subblockbandwidths(Dr)  == (1,3)
+    @test ApproxFunBase.blockbandwidths(Dr) == (-1,1)
+    @test ApproxFunBase.subblockbandwidths(Dr)  == (1,3)
 
     Dθ = Derivative(sp, [0,1])
     Mr = Multiplication(Fun( (r, θ) -> r, sp ), sp)
