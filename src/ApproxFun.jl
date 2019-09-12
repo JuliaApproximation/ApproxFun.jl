@@ -49,7 +49,7 @@ import ApproxFunBase: normalize!, flipsign, FiniteRange, Fun, MatrixFun, UnsetSp
                     block, blockstart, blockstop, blocklengths, isblockbanded, pointscompatible,
                     AbstractProductSpace, MultivariateFun, BivariateSpace, 
                     @wrapperstructure, @wrapperspaces, @wrapper, @calculus_operator, resizedata!, slnorm,
-                    sample, chop!, isbanded
+                    sample, chop!, isbanded, colrange, bandwidth
 
 import ApproxFunOrthogonalPolynomials: order
 
