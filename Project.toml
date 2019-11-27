@@ -27,14 +27,15 @@ Calculus = "0.5"
 DomainSets = "0.1"
 DualNumbers = "0.6.2"
 FFTW = "0.3, 1"
-Reexport = "0.2"
+FastTransforms = "0.8"
 RecipesBase = "0.7"
+Reexport = "0.2"
 julia = "1"
 
 [extras]
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test","Random","SpecialFunctions"]
+test = ["Test", "Random", "SpecialFunctions"]
