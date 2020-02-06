@@ -28,7 +28,7 @@ DomainSets = "0.1"
 DualNumbers = "0.6.2"
 FFTW = "0.3, 1"
 FastTransforms = "0.6, 0.8"
-RecipesBase = "0.7"
+RecipesBase = "0.7, 0.8"
 Reexport = "0.2"
 julia = "1"
 
