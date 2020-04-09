@@ -1,6 +1,6 @@
 name = "ApproxFun"
 uuid = "28f2ccd6-bb30-5033-b560-165f7b14dc2f"
-version = "0.11.9"
+version = "0.11.10"
 
 [deps]
 AbstractFFTs = "621f4979-c628-5d54-868e-fcf4e3e8185c"
@@ -24,11 +24,11 @@ ApproxFunFourier = "0.1.5, 0.2"
 ApproxFunOrthogonalPolynomials = "0.2.3, 0.3"
 ApproxFunSingularities = "0.1.3"
 Calculus = "0.5"
-DomainSets = "0.1"
+DomainSets = "0.1, 0.2"
 DualNumbers = "0.6.2"
 FFTW = "0.3, 1"
 FastTransforms = "0.6, 0.8"
-RecipesBase = "0.7"
+RecipesBase = "0.7, 0.8, 1.0"
 Reexport = "0.2"
 julia = "1"
 
