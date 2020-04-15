@@ -55,7 +55,7 @@ end
 
 
 @testset "Laplace in a strip" begin
-    d=PeriodicSegment() × ChebyshevInterval()
+    d = PeriodicSegment() × ChebyshevInterval()
     g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
 
 
