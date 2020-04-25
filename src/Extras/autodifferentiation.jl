@@ -12,8 +12,9 @@ domain(df::DualFun) = domain(df.f)
 differentiate(d::DualFun) = DualFun(d.f',Derivative(rangespace(d.J))*d.J)
 integrate(d::DualFun) = DualFun(integrate(d.f),Integral(rangespace(d.J))*d.J)
 function cumsum(d::DualFun)
-    Q=Integral(rangespace(d.J))*d.J
-    DualFun(cumsum(d.f),(I-Evaluation(rangespace(Q),leftendpoint))*Q)
+    Q = Integral(rangespace(d.J))*d.J
+    rs = rangespace(Q)
+    DualFun(cumsum(d.f),Q-ones(rs)*Evaluation(rs,leftendpoint)*Q)
 end
 
 # total definite integral of a function

@@ -1,5 +1,5 @@
 using ApproxFun, Test, DualNumbers
-    import ApproxFun: eigs
+import ApproxFun: eigs
 
 @testset "Extras" begin
     @testset "Dual numbers" begin
@@ -123,6 +123,10 @@ using ApproxFun, Test, DualNumbers
         u = 0.5*one(x)
         u = newton(N_single, [u])
         @test norm(u - u1) < 1e-15
+    end
 
+    @testset "cumsum (#701)" begin
+        d = ApproxFun.DualFun(Fun())
+        @test cumsum(d).J*Fun() ≈ Fun(x -> (x^2-1)/2)
     end
 end
