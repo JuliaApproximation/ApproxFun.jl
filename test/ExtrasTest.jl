@@ -128,5 +128,6 @@ import ApproxFun: eigs
     @testset "cumsum (#701)" begin
         d = ApproxFun.DualFun(Fun())
         @test cumsum(d).J*Fun() ≈ Fun(x -> (x^2-1)/2)
+        @test cumsum(d*d).J*Fun(1) ≈ cumsum(2d).f ≈ Fun(x -> x^2-1)
     end
 end
