@@ -26,7 +26,7 @@ end
 
 adjoint(d::DualFun) = differentiate(d)
 
-^(d::DualFun,k::Integer) = DualFun(d.f^k,k*d.f^(k-1)*d.J)
+^(d::DualFun, k::Number) = DualFun(d.f^k,k*d.f^(k-1)*d.J)
 
 # from DualNumbers
 for (funsym, exp) in Calculus.symbolic_derivatives_1arg()
