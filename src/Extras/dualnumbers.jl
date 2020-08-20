@@ -24,28 +24,19 @@ valsdomain_type_promote(::Type{Dual{T}},::Type{Complex{V}}) where {T<:Complex,V<
     Dual{promote_type(T,Complex{V})},Complex{promote_type(real(T),V)}
 
 
-plan_chebyshevtransform!(x::Vector{T};kind::Integer=1) where {T<:Dual} =
+plan_chebyshevtransform!(x::Vector{T}, _) where {T<:Dual} =
     error("In-place variant not implemented for Dual")
 
-plan_ichebyshevtransform!(x::Vector{T};kind::Integer=1) where {T<:Dual} =
+plan_ichebyshevtransform!(x::Vector{T}, _) where {T<:Dual} =
     error("In-place variant not implemented for Dual")
 
 
-function plan_chebyshevtransform(v::Vector{D};kind::Integer=1) where D<:Dual
-    plan = plan_chebyshevtransform(realpart.(v);kind=kind)
-    ChebyshevTransformPlan{D,kind,false,typeof(plan)}(plan)
-end
-
-function plan_ichebyshevtransform(v::Vector{D};kind::Integer=1) where D<:Dual
-    plan = plan_ichebyshevtransform(realpart.(v);kind=kind)
-    IChebyshevTransformPlan{D,kind,false,typeof(plan)}(plan)
-end
+plan_chebyshevtransform(v::Vector{D}, kind) where {D<:Dual} = plan_chebyshevtransform(realpart.(v), kind)
+plan_ichebyshevtransform(v::Vector{D}, kidn) where {D<:Dual} = plan_ichebyshevtransform(realpart.(v), kind)
 
 
 
-
-*(P::ChebyshevTransformPlan{D,k,false},v::Vector{D}) where {k,D<:Dual} =
-    dual.(P.plan*realpart.(v),P.plan*dualpart.(v))
+*(P::ChebyshevTransformPlan,v::Vector{D}) where {k,D<:Dual} = dual.(P*realpart.(v),P*dualpart.(v))
 
 #TODO: Hardy{false}
 for (OP,TransPlan) in ((:plan_transform,:TransformPlan),(:plan_itransform,:ITransformPlan)),

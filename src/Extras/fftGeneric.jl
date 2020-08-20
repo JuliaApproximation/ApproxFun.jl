@@ -96,7 +96,7 @@ function *(P::IChebyshevTransformPlan{T,2,false}, x::AbstractVector{T}) where T<
     else
         ##TODO: make thread safe
         x[1] *= 2;x[end] *= 2
-        ret = chebyshevtransform(x;kind=kind)
+        ret = chebyshevtransform(x, Val(2))
         x[1] /=2;x[end] /=2
         ret[1] *= 2;ret[end] *= 2
         ret *= .5*(n-1)
