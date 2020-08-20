@@ -39,17 +39,17 @@ plan_ifft!(x::Vector{F}) where {F<:Fun} = ifft
 
 # Chebyshev transforms and plans for BigFloats
 # no plan exists at the moment, so we make a dummy plan
-plan_chebyshevtransform!(x::Vector{T};kind::Integer=1) where {T<:BigFloats} =
+plan_chebyshevtransform!(x::Vector{T}, kind) where {T<:BigFloats} =
     error("In-place variant not implemented for BigFloat")
 
-plan_ichebyshevtransform!(x::Vector{T};kind::Integer=1) where {T<:BigFloats} =
+plan_ichebyshevtransform!(x::Vector{T}, kind) where {T<:BigFloats} =
     error("In-place variant not implemented for BigFloat")
 
 
-plan_chebyshevtransform(x::AbstractVector{T};kind::Integer=1) where {T<:BigFloats} =
-    ChebyshevTransformPlan{T,kind,false,Nothing}(nothing)
-plan_ichebyshevtransform(x::AbstractVector{T};kind::Integer=1) where {T<:BigFloats} =
-    IChebyshevTransformPlan{T,kind,false,Nothing}(nothing)
+plan_chebyshevtransform(x::AbstractVector{T}, ::Val{kind}) where {T<:BigFloats,kind} =
+    ChebyshevTransformPlan{T,kind,false,Nothing}()
+plan_ichebyshevtransform(x::AbstractVector{T}, ::Val{kind}) where {T<:BigFloats,kind} =
+    IChebyshevTransformPlan{T,kind,false,Nothing}()
 
 #following Chebfun's @Chebtech1/vals2coeffs.m and @Chebtech2/vals2coeffs.m
 function *(P::ChebyshevTransformPlan{T,1,false}, x::AbstractVector{T}) where T<:BigFloats
@@ -96,7 +96,7 @@ function *(P::IChebyshevTransformPlan{T,2,false}, x::AbstractVector{T}) where T<
     else
         ##TODO: make thread safe
         x[1] *= 2;x[end] *= 2
-        ret = chebyshevtransform(x;kind=kind)
+        ret = chebyshevtransform(x, Val(2))
         x[1] /=2;x[end] /=2
         ret[1] *= 2;ret[end] *= 2
         ret *= .5*(n-1)
