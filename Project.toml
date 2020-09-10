@@ -1,6 +1,6 @@
 name = "ApproxFun"
 uuid = "28f2ccd6-bb30-5033-b560-165f7b14dc2f"
-version = "0.12.1"
+version = "0.12.2"
 
 [deps]
 AbstractFFTs = "621f4979-c628-5d54-868e-fcf4e3e8185c"
