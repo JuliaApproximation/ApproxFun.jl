@@ -52,7 +52,7 @@ plan_ichebyshevtransform(x::AbstractVector{T}, ::Val{kind}) where {T<:BigFloats,
     IChebyshevTransformPlan{T,kind,false,Nothing}()
 
 #following Chebfun's @Chebtech1/vals2coeffs.m and @Chebtech2/vals2coeffs.m
-function *(P::ChebyshevTransformPlan{T,1,false}, x::AbstractVector{T}) where T<:BigFloats
+function *(P::ChebyshevTransformPlan{T,1,false,Nothing}, x::AbstractVector{T}) where T<:BigFloats
     n = length(x)
     if n == 1
         x
@@ -78,7 +78,7 @@ function *(P::ChebyshevTransformPlan{T,2,false}, x::AbstractVector{T}) where T<:
 end
 
 #following Chebfun's @Chebtech1/vals2coeffs.m and @Chebtech2/vals2coeffs.m
-function *(P::IChebyshevTransformPlan{T,1,false}, x::AbstractVector{T}) where T<:BigFloats
+function *(P::IChebyshevTransformPlan{T,1,false,Nothing}, x::AbstractVector{T}) where T<:BigFloats
     n = length(x)
     if n == 1
         x

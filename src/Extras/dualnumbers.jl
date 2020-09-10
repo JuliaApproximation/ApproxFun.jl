@@ -24,29 +24,29 @@ valsdomain_type_promote(::Type{Dual{T}},::Type{Complex{V}}) where {T<:Complex,V<
     Dual{promote_type(T,Complex{V})},Complex{promote_type(real(T),V)}
 
 
-plan_chebyshevtransform!(x::Vector{T}, _) where {T<:Dual} =
+plan_chebyshevtransform!(x::AbstractVector{T}, ::Val) where {T<:Dual} =
     error("In-place variant not implemented for Dual")
 
-plan_ichebyshevtransform!(x::Vector{T}, _) where {T<:Dual} =
+plan_ichebyshevtransform!(x::AbstractVector{T}, ::Val) where {T<:Dual} =
     error("In-place variant not implemented for Dual")
 
 
-plan_chebyshevtransform(v::Vector{D}, kind) where {D<:Dual} = plan_chebyshevtransform(realpart.(v), kind)
-plan_ichebyshevtransform(v::Vector{D}, kidn) where {D<:Dual} = plan_ichebyshevtransform(realpart.(v), kind)
+plan_chebyshevtransform(v::AbstractVector{D}, ::Val{kind}) where {D<:Dual,kind} = plan_chebyshevtransform(realpart.(v), Val(kind))
+plan_ichebyshevtransform(v::AbstractVector{D}, ::Val{kind}) where {D<:Dual,kind} = plan_ichebyshevtransform(realpart.(v), Val(kind))
 
 
 
-*(P::ChebyshevTransformPlan,v::Vector{D}) where {k,D<:Dual} = dual.(P*realpart.(v),P*dualpart.(v))
+*(P::ChebyshevTransformPlan,v::AbstractVector{D}) where {k,D<:Dual} = dual.(P*realpart.(v),P*dualpart.(v))
 
 #TODO: Hardy{false}
 for (OP,TransPlan) in ((:plan_transform,:TransformPlan),(:plan_itransform,:ITransformPlan)),
         TYP in  (:Fourier,:Laurent,:SinSpace)
     @eval begin
-        function $OP(sp::$TYP{D},x::Vector{T}) where {T<:Dual,D<:Domain}
+        function $OP(sp::$TYP{D},x::AbstractVector{T}) where {T<:Dual,D<:Domain}
             plan = $OP(sp,realpart.(x))
             $TransPlan{T,typeof(sp),false,typeof(plan)}(sp,plan)
         end
-        *(P::$TransPlan{T,$TYP{D},false},x::Vector{T}) where {T<:Dual,D<:Domain} =
+        *(P::$TransPlan{T,$TYP{D},false},x::AbstractVector{T}) where {T<:Dual,D<:Domain} =
             dual(P.plan*realpart.(x),P.plan*dualpart.(x))
     end
 end
@@ -55,7 +55,7 @@ chop!(f::Fun,d::Dual)=chop!(f,realpart(d))
 
 
 
-function simplifycfs!(cfs::Vector{DD},tol::Float64=4E-16) where DD<:Dual
+function simplifycfs!(cfs::AbstractVector{DD},tol::Float64=4E-16) where DD<:Dual
     for k=length(cfs):-2:2
         if maximum(abs,realpart.(cfs[k-1:k])) > maximum(abs,dualpart.(cfs[k-1:k]))*tol
             return resize!(cfs,k)
