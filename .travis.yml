@@ -16,13 +16,7 @@ after_script:
 codecov: true
 
 
-jobs:
-  include:
-    - stage: "Documentation"
-      julia: 1.5
-      os: linux
-      script:
-        - julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()));
-                                               Pkg.instantiate()'
-        - julia --project=docs/ docs/make.jl
-      after_success: skip
+# uncomment the following lines to override the default test script
+script:
+  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+  - travis_wait 30 julia --project -e 'using Pkg; Pkg.build(); Pkg.test(; coverage=true)';
