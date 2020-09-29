@@ -10,7 +10,9 @@ and for solving differential and integral equations.
 A basic approach of computational mathematics that ApproxFun exploits is expansion
 in a basis
 
-$f(x) \approx \sum_{k=1}^n c_k \psi_k(x)$
+```math
+f(x) \approx \sum_{k=1}^n c_k \psi_k(x)
+```
 
 Some traditional examples of bases $\psi_1(x),\psi_2(x),\ldots$ are
 1. Taylor series: $1,z,z^2,\ldots$
