@@ -4,7 +4,7 @@ import ApproxFunBase: testbandedblockbandedoperator, blocklengths, ∞
 @time include("ReadmeTest.jl")
 @time include("ExtrasTest.jl")
 @time include("NumberTypeTest.jl")
-# @time include("FractionalTest.jl")
+@time include("FractionalTest.jl")
 
 @testset "Chebyshev and Fourier" begin
     @test norm(Fun(x->Fun(cos,Fourier(-π .. π),20)(x),20)-Fun(cos,20)) <100eps()
