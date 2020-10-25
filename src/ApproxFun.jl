@@ -1,7 +1,7 @@
 module ApproxFun
 using Base, Reexport,
 		AbstractFFTs, FFTW, DualNumbers, FastTransforms,
-		LinearAlgebra, RecipesBase, DomainSets #, Arpack
+		LinearAlgebra, RecipesBase, DomainSets, SpecialFunctions #, Arpack
 
 import Calculus
 
