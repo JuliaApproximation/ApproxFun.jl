@@ -19,7 +19,7 @@ Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 
 [compat]
-AbstractFFTs = "0.5"
+AbstractFFTs = "0.5, 1.0"
 ApproxFunBase = "0.3.6"
 ApproxFunFourier = "0.2.5"
 ApproxFunOrthogonalPolynomials = "0.3.5"
