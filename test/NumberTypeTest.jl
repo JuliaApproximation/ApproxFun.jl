@@ -23,25 +23,17 @@ using ApproxFun, ApproxFunOrthogonalPolynomials, Test
 
 	@testset "BigFloat constructor (Fourier)" begin
 		f = exp ∘ cos
-		single_f = Fun(f,
-		  Fourier(Interval(Float32(0),2*Float32(π))))
 		double_f = Fun(f,
 		  Fourier(Interval(Float64(0),2*Float64(π))))
 		big_f = Fun(f,
 		  Fourier(Interval(BigFloat(0),2*BigFloat(π))))
-		@test ncoefficients(single_f) <= ncoefficients(double_f)
 		@test ncoefficients(double_f) <= ncoefficients(big_f)
 
-		@test eltype(coefficients(single_f)) == Float32
 		@test eltype(coefficients(double_f)) == Float64
 		@test eltype(coefficients(big_f)) == BigFloat
 
-
-		single_double_err = coefficients(single_f-double_f)[1:ncoefficients(single_f)]
-		@test norm(single_double_err) < 10eps(Float32)
-
-		single_double_err = coefficients(double_f-big_f)[1:ncoefficients(double_f)]
-		@test norm(single_double_err) < 10eps(Float64)
+		double_big_err = coefficients(double_f) - coefficients(big_f)[1:ncoefficients(double_f)]
+		@test norm(double_big_err) < 10eps(Float64)
 	end
 
     @testset "BigFloat roots" begin
