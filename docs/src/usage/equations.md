@@ -99,9 +99,7 @@ julia> u(0.1)
 ## Eigenvalue Problems
 
 In analogy to linear algebra, many differential equations may be posed as eigenvalue problems. That is, for some differential operator $L$, there are a family of functions $u_i(x)$ such that
-$$
-L~u_i(x) = \lambda_i u_i(x)
-$$
+$$L~u_i(x) = \lambda_i u_i(x)$$
 where $\lambda_i$ is the $i^{th}$ eigenvalue of the $L$ and has a corresponding *eigenfunction* $u_i(x)$. A classic eigenvalue problem is known as the quantum harmonic oscillator where
 $$L = -\frac{1}{2}\frac{d^2}{dx^2} + \frac{1}{2} x^2$$
 and one demands that $u(\infty) = u(-\infty) = 0$. Because we expect the solutions to be exponentially suppressed for large $x$, we can approximate this with Dirichlet boundary conditions at a 'reasonably large' $x$ without much difference.
