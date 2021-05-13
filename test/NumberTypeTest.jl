@@ -21,6 +21,21 @@ using ApproxFun, ApproxFunOrthogonalPolynomials, Test
         @test norm(single_double_err) < 10eps(Float64)
     end
 
+	@testset "BigFloat constructor (Fourier)" begin
+		f = exp ∘ cos
+		double_f = Fun(f,
+		  Fourier(Interval(Float64(0),2*Float64(π))))
+		big_f = Fun(f,
+		  Fourier(Interval(BigFloat(0),2*BigFloat(π))))
+		@test ncoefficients(double_f) <= ncoefficients(big_f)
+
+		@test eltype(coefficients(double_f)) == Float64
+		@test eltype(coefficients(big_f)) == BigFloat
+
+		double_big_err = coefficients(double_f) - coefficients(big_f)[1:ncoefficients(double_f)]
+		@test norm(double_big_err) < 10eps(Float64)
+	end
+
     @testset "BigFloat roots" begin
         a = Fun(ChebyshevInterval{BigFloat}(),BigFloat[1,2,3])
         # 12 is some bound on how accurately the polynomial can be evaluated

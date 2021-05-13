@@ -116,8 +116,8 @@ function *(::TransformPlan{T,Fourier{D,R},false},x::AbstractVector{T}) where {T<
     v = fft(x)
     rmul!(v,convert(T,2)/l)
     v[1] /= 2
-    mod(l,2) == 1 ? interlace(real(v[1:n]),-imag(v[2:n])) :
-      [interlace(real(v[1:n]),-imag(v[2:n]));-real(v[n+1])/2]
+    mod(l,2) == 1 ? ApproxFunBase.interlace(real(v[1:n]),-imag(v[2:n])) :
+      [ApproxFunBase.interlace(real(v[1:n]),-imag(v[2:n]));-real(v[n+1])/2]
 end
 
 function *(::ITransformPlan{T,Fourier{D,R},false},x::AbstractVector{T}) where {T<:BigFloat,D,R}
