@@ -99,7 +99,7 @@ plot(u; label="u")
 Solve a nonlinear boundary value problem satisfying the ODE `0.001u'' + 6*(1-x^2)*u' + u^2 = 1` with boundary conditions `u(-1)==1`, `u(1)==-0.5` on `[-1,1]`:
 
 ```julia
-x  = Fun()
+x = Fun()
 u₀ = 0.0x # initial guess
 N = u -> [u(-1)-1, u(1)+0.5, 0.001u'' + 6*(1-x^2)*u' + u^2 - 1]
 u = newton(N, u₀) # perform Newton iteration in function space
@@ -112,7 +112,7 @@ One can also solve a system nonlinear ODEs with potentially nonlinear boundary c
 
 ```julia
 
-x=Fun(identity, 0..1)
+x = Fun(identity, 0..1)
 N = (u1,u2) -> [u1'(0) - 0.5*u1(0)*u2(0);
                 u2'(0) + 1;
                 u1(1) - 1;
@@ -193,7 +193,7 @@ so we specify a lower tolerance to avoid resolving these singularities
 completely.
 
 ```julia
-d = ChebyshevInterval()^2                            # Defines a rectangle
+d = ChebyshevInterval()^2                   # Defines a rectangle
 Δ = Laplacian(d)                            # Represent the Laplacian
 f = ones(∂(d))                              # one at the boundary
 u = \([Dirichlet(d); Δ+100I], [f;0.];       # Solve the PDE
