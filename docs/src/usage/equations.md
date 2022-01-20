@@ -130,7 +130,7 @@ Systems of equations can be handled by creating a matrix of operators and functi
 ```math
 \begin{gathered}
     \mathop{u}'' - \mathop{u} + 2 \mathop{v} = \mathop{e}^x,  \\
-    \mathop{v}' + \mathop{v} = \cos{x}, \\
+    \mathop{u} + \mathop{v}' + \mathop{v} = \cos{x}, \\
     \mathop{u}(-1) = \mathop{u}'(-1) = \mathop{v}(-1) = 0
 \end{gathered}
 ```
