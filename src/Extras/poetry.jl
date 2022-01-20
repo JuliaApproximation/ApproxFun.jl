@@ -43,9 +43,9 @@ cross(∇::Function,F::Vector{M}) where {M<:MultivariateFun} = curl(F)
 
 ## Domains
 
-const 𝕀 = ChebyshevInterval()
-const ℝ = Line()
-const 𝕌 = Circle()
+const 𝕀 = ChebyshevInterval()  # \bbI<tab>
+const ℝ = Line()  # \bbR<tab>
+const 𝕌 = Circle()  # \bbU<tab>
 
-𝒟 = Derivative()
-∆ = Laplacian()
+𝒟 = Derivative()  # \scrD<tab>
+∆ = Laplacian()  # \increment<tab>, not \Delta<tab>
