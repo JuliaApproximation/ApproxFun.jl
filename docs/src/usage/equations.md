@@ -63,7 +63,7 @@ A common usage is two-point boundary value problems. Consider the singularly per
 
 ```math
 \begin{gathered}
-    ϵ \mathop{u}'' - x \mathop{u}' + \mathop{u} = \mathop{u}, \\
+    ϵ \mathop{u}'' - x \mathop{u}' + \mathop{u} = 0, \\
     \mathop{u}(-1) = 1, \mathop{u}(1) = 2.
 \end{gathered}
 ```
