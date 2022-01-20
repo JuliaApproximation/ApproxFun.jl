@@ -3,7 +3,7 @@
 #####
 
 
-export chebyshevt, chebyshevu, legendre, ∫, ⨜, ⨍, ChebyshevWeight, 𝕀, 𝕌, 𝒟, ∆
+export chebyshevt, chebyshevu, legendre, ∫, ⨜, ∑, ⨍, ChebyshevWeight, 𝕀, 𝕌, 𝒟, ∆
 
 ## Chebyshev & Legendre polynomials
 
@@ -32,7 +32,7 @@ ChebyshevWeight()=ChebyshevWeight(0)
 ∫(f::Fun)=integrate(f)
 ⨜(f::Fun)=cumsum(f)
 
-for OP in (:Σ,:∮,:⨍,:⨎)
+for OP in (:∑,:∮,:⨍,:⨎)  # ∑ entered by \sum<tab>, not \Sigma<tab>
     @eval $OP(f::Fun)=sum(f)
 end
 
