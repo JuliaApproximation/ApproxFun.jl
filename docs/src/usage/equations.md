@@ -14,9 +14,9 @@ where we want a solution that is periodic on ``[0,2π)``.  This can be solved su
 
 ```@repl using-pkgs
 b = Fun(cos,Fourier());
-c = 0.1; u = (𝒟+c*I)\b;
+c = 0.1; u = (𝒟+c*I) \ b;
 u(0.6)
-(c*cos(0.6)+sin(0.6))/(1+c^2)  # exact solution
+(c*cos(0.6)+sin(0.6)) / (1+c^2)  # exact solution
 ```
 
 Recall that `𝒟` is an alias to `Derivative() == Derivative(UnsetSpace(),1)`.
@@ -52,7 +52,7 @@ To pose this in ApproxFun, we want to find a `u` such that `Evaluation(0)*u == 1
 
 ```@repl using-pkgs
 t = Fun(0..1);
-u = [Evaluation(0); 𝒟 - t]  \ [1;0];
+u = [Evaluation(0); 𝒟-t] \ [1;0];
 u(0)
 norm(u'-t*u)
 ```
@@ -144,10 +144,10 @@ A = [B      0;
      0      B;
      𝒟^2-I  2I;
      I      𝒟+I];
-u,v = A\[0;0;0;exp(x);cos(x)];
+u,v = A \ [0;0;0;exp(x);cos(x)];
 u(-1),u'(-1),v(-1)
 norm(u''-u+2v-exp(x))
-norm(u + v'+v-cos(x))
+norm(u+v'+v-cos(x))
 ```
 
 In this example, the automatic space detection failed and so we needed to specify explicitly that the domain space for `B` is `Chebyshev()`.
