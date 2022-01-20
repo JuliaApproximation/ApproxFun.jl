@@ -3,7 +3,7 @@
 #####
 
 
-export chebyshevt, chebyshevu, legendre, ∫, ⨜, ⨍, ChebyshevWeight, 𝕀, 𝕌, 𝒟
+export chebyshevt, chebyshevu, legendre, ∫, ⨜, ⨍, ChebyshevWeight, 𝕀, 𝕌, 𝒟, ∆
 
 ## Chebyshev & Legendre polynomials
 
@@ -48,4 +48,4 @@ const ℝ = Line()
 const 𝕌 = Circle()
 
 𝒟 = Derivative()
-Δ = Laplacian()
+∆ = Laplacian()
