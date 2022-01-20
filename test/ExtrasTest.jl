@@ -2,6 +2,12 @@ using ApproxFun, Test, DualNumbers
 import ApproxFun: eigs
 
 @testset "Extras" begin
+    @testset "Exported symbols" begin
+        f = Fun()
+        @test ∑(f)==sum(f)==0
+        @test ∆ == Laplacian()
+    end
+
     @testset "Dual numbers" begin
         @test dual(1.5,1) ∈  Segment(dual(1.0,1),dual(2.0))
 
