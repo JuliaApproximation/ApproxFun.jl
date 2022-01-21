@@ -108,7 +108,7 @@ and one demands that ``\mathop{u}(∞) = \mathop{u}(-∞) = 0``. Because we expe
 We can express this in ApproxFun as the following:
 
 ```julia
-x = Fun(-8 .. 8)
+x = Fun(-8..8)
 L = -𝒟^2/2 + x^2/2
 S = space(x)
 B = Dirichlet(S)

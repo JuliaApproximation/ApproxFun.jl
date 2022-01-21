@@ -122,8 +122,8 @@ Some spaces are built out of other spaces:
 
 ### `JacobiWeight`
 
-`JacobiWeight(β,α,space)`  weights `space`, which is typically `Chebyshev()` or `Jacobi(b,a)`, by a Jacobi weight `(1+x)^α*(1-x)^β`: in other words, if the basis for `space` is ``\mathop{ψ}_k(x)`` and the domain is the unit interval `-1 .. 1`, then the basis for `JacobiWeight(β,α,space)` is ``(1+x)^α(1-x)^β \mathop{ψ}_k(x)``. If the domain is
-not the unit interval, then the basis is determined by mapping back to the unit interval: that is, if ``\mathop{M}(x)`` is the map dictated by `tocanonical(space, x)`, where the canonical domain is the unit interval, then the basis is ``(1+\mathop{M}(x))^α(1-\mathop{M}(x))^β \mathop{ψ}_k(x)``. For example, if the domain is another interval `a .. b`, then
+`JacobiWeight(β,α,space)`  weights `space`, which is typically `Chebyshev()` or `Jacobi(b,a)`, by a Jacobi weight `(1+x)^α*(1-x)^β`: in other words, if the basis for `space` is ``\mathop{ψ}_k(x)`` and the domain is the unit interval `-1..1`, then the basis for `JacobiWeight(β,α,space)` is ``(1+x)^α(1-x)^β \mathop{ψ}_k(x)``. If the domain is
+not the unit interval, then the basis is determined by mapping back to the unit interval: that is, if ``\mathop{M}(x)`` is the map dictated by `tocanonical(space, x)`, where the canonical domain is the unit interval, then the basis is ``(1+\mathop{M}(x))^α(1-\mathop{M}(x))^β \mathop{ψ}_k(x)``. For example, if the domain is another interval `a..b`, then
 
 ```math
 \mathop{M}(x) = \frac{2x-b-a}{b-a},
