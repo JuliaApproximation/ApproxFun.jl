@@ -71,10 +71,10 @@ A common usage is two-point boundary value problems. Consider the singularly per
 This can be solved in ApproxFun via:
 
 ```@repl using-pkgs
-x = Fun();
+ϵ = 1/70; x = Fun();
 u = [Evaluation(-1);
      Evaluation(1);
-     1/70*𝒟^2-x*𝒟+I] \ [1,2,0];
+     ϵ*𝒟^2-x*𝒟+I] \ [1,2,0];
 u(0.1)
 ```
 
@@ -196,10 +196,12 @@ There is preliminary support for nonlinear equations, via Newton iteration in fu
 \end{gathered}
 ```
 
-This can be solved using
+This can be solved as follows:
 
-```julia
-x = Fun()
-N = u -> [u(-1.)-c; u(1.); ε*u'' + 6*(1-x^2)*u' + u^2 - 1.0]
-u = newton(N,u0)
+```@repl using-pkgs
+ϵ = 1/70; x = Fun();
+N = u -> [u(-1); u(1); ϵ*u''+6*(1-x^2)*u'+u^2-1];
+u0 = x; u = newton(N,u0);
+u(-1), u(1)
+norm(ϵ*u''+6*(1-x^2)*u'+u^2-1)
 ```
