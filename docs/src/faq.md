@@ -57,7 +57,7 @@ We can use this same approach for multivariate functions:
 S = Chebyshev(0..1)^2;
 n = 1000; m = 50;
 Random.seed!(0); x = rand(n); y = rand(n);
-v = exp.(x .* \cos{y});  # values at the non-default grid
+v = exp.(x .* cos.(y));  # values at the non-default grid
 V = Array{Float64}(undef,n,m);  # Create a Vandermonde matrix by evaluating the basis at the grid
 for k = 1:m
    V[:,k] = Fun(S,[zeros(k-1);1]).(x,y)
