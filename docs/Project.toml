@@ -1,3 +1,6 @@
 [deps]
+ApproxFun = "28f2ccd6-bb30-5033-b560-165f7b14dc2f"
 BandedMatrices = "aae01518-5342-5314-be14-df237901396f"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+DomainSets = "5b8099bc-c8ec-5219-889f-1d9e522a28bf"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
