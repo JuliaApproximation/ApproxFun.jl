@@ -3,7 +3,7 @@
 #####
 
 
-export chebyshevt, chebyshevu, legendre, ∫, ⨜, ⨍, ChebyshevWeight, 𝕀, 𝕌, 𝒟
+export chebyshevt, chebyshevu, legendre, ∫, ⨜, ∑, ⨍, ChebyshevWeight, 𝕀, 𝕌, 𝒟, ∆
 
 ## Chebyshev & Legendre polynomials
 
@@ -32,7 +32,7 @@ ChebyshevWeight()=ChebyshevWeight(0)
 ∫(f::Fun)=integrate(f)
 ⨜(f::Fun)=cumsum(f)
 
-for OP in (:Σ,:∮,:⨍,:⨎)
+for OP in (:∑,:∮,:⨍,:⨎)  # ∑ entered by \sum<tab>, not \Sigma<tab>
     @eval $OP(f::Fun)=sum(f)
 end
 
@@ -43,9 +43,9 @@ cross(∇::Function,F::Vector{M}) where {M<:MultivariateFun} = curl(F)
 
 ## Domains
 
-const 𝕀 = ChebyshevInterval()
-const ℝ = Line()
-const 𝕌 = Circle()
+const 𝕀 = ChebyshevInterval()  # \bbI<tab>
+const ℝ = Line()  # \bbR<tab>
+const 𝕌 = Circle()  # \bbU<tab>
 
-𝒟 = Derivative()
-Δ = Laplacian()
+𝒟 = Derivative()  # \scrD<tab>
+∆ = Laplacian()  # \increment<tab>, not \Delta<tab>
