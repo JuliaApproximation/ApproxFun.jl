@@ -216,3 +216,15 @@ end
     u = newton(N, u₀) # perform Newton iteration in function space
     @test u(0.1) ≈ 0.9983370741307388
 end
+
+@testset "show" begin
+    op = Derivative(Chebyshev())
+    io = IOBuffer()
+    @test summary(io, op) isa Nothing
+    @test contains(String(take!(io)), " : $(domainspace(op)) → $(rangespace(op))")
+    show(io, op)
+    @test contains(String(take!(io)), " : $(domainspace(op)) → $(rangespace(op))")
+
+    @test summary(io, ApproxFun.ArraySpace(Chebyshev(), 2)) isa Nothing
+    @test contains(String(take!(io)), "ArraySpace")
+end

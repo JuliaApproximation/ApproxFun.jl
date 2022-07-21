@@ -132,9 +132,10 @@ function show(io::IO,ss::PiecewiseSpace)
     end
 end
 
-summary(ss::ArraySpace) = string(Base.dims2string(length.(axes(ss))), " ArraySpace")
+summarystr(ss::ArraySpace) = string(Base.dims2string(length.(axes(ss))), " ArraySpace")
+summary(io::IO, ss::ArraySpace) = print(io, summarystr(ss))
 function show(io::IO,ss::ArraySpace;header::Bool=true)
-    header && print(io,summary(ss)*":\n")
+    header && print(io,summarystr(ss)*":\n")
     show(io, ss.spaces)
 end
 
@@ -182,10 +183,8 @@ end
 
 ## Operator
 
-function summary(io::IO, B::Operator)
-    s = string(typeof(B).name.name)*" : "*string(domainspace(B))*" → "*string(rangespace(B))
-    print(io, s)
-end
+summarystr(B::Operator) = string(typeof(B).name.name, " : ", domainspace(B), " → ", rangespace(B))
+summary(io::IO, B::Operator) = print(io, summarystr(B))
 
 struct PrintShow
     str
@@ -195,7 +194,7 @@ Base.show(io::IO,N::PrintShow) = print(io,N.str)
 show(io::IO, B::Operator) = summary(io, B)
 
 function show(io::IO, ::MIME"text/plain", B::Operator;header::Bool=true)
-    header && println(io,summary(B))
+    header && println(io, summarystr(B))
     dsp=domainspace(B)
 
     if !isambiguous(domainspace(B)) && (eltype(B) <: Number)
