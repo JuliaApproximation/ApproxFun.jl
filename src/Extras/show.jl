@@ -182,16 +182,19 @@ end
 
 ## Operator
 
-summary(B::Operator) =
-    string(typeof(B).name.name)*" : "*string(domainspace(B))*" → "*string(rangespace(B))
+function summary(io::IO, B::Operator)
+    s = string(typeof(B).name.name)*" : "*string(domainspace(B))*" → "*string(rangespace(B))
+    print(io, s)
+end
 
 struct PrintShow
     str
 end
 Base.show(io::IO,N::PrintShow) = print(io,N.str)
 
+show(io::IO, B::Operator) = summary(io, B)
 
-function show(io::IO,B::Operator;header::Bool=true)
+function show(io::IO, ::MIME"text/plain", B::Operator;header::Bool=true)
     header && println(io,summary(B))
     dsp=domainspace(B)
 
