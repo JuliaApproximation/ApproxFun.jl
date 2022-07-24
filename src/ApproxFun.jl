@@ -5,7 +5,7 @@ using Base, Reexport,
 
 import Calculus
 
-@reexport using ApproxFunBase    
+@reexport using ApproxFunBase
 @reexport using ApproxFunFourier
 @reexport using ApproxFunOrthogonalPolynomials
 @reexport using ApproxFunSingularities
@@ -14,32 +14,32 @@ import ApproxFunBase: normalize!, flipsign, FiniteRange, Fun, MatrixFun, UnsetSp
                     UnivariateSpace, AmbiguousSpace, SumSpace, SubSpace, WeightSpace, NoSpace, Space,
                     HeavisideSpace, PointSpace,
                     IntervalOrSegment, RaggedMatrix, AlmostBandedMatrix,
-                    AnyDomain, ZeroSpace, ArraySpace, TrivialInterlacer, BlockInterlacer, 
+                    AnyDomain, ZeroSpace, ArraySpace, TrivialInterlacer, BlockInterlacer,
                     AbstractTransformPlan, TransformPlan, ITransformPlan,
                     ConcreteConversion, ConcreteMultiplication, ConcreteDerivative, ConcreteIntegral, CalculusOperator,
                     ConcreteVolterra, Volterra, VolterraWrapper,
                     MultiplicationWrapper, ConversionWrapper, DerivativeWrapper, Evaluation, EvaluationWrapper,
-                    Conversion, defaultConversion, defaultcoefficients, default_Fun, Multiplication, Derivative, Integral, bandwidths, 
+                    Conversion, defaultConversion, defaultcoefficients, default_Fun, Multiplication, Derivative, Integral, bandwidths,
                     ConcreteEvaluation, ConcreteDefiniteLineIntegral, ConcreteDefiniteIntegral, ConcreteIntegral,
                     DefiniteLineIntegral, DefiniteIntegral, ConcreteDefiniteIntegral, ConcreteDefiniteLineIntegral, IntegralWrapper,
-                    ReverseOrientation, ReverseOrientationWrapper, ReverseWrapper, Reverse, NegateEven, 
+                    ReverseOrientation, ReverseOrientationWrapper, ReverseWrapper, Reverse, NegateEven,
                     Dirichlet, ConcreteDirichlet, DirichletWrapper,
                     TridiagonalOperator, SubOperator, Space, @containsconstants, spacescompatible,
-                    hasfasttransform, canonicalspace, domain, setdomain, prectype, domainscompatible, 
-                    plan_transform, plan_itransform, plan_transform!, plan_itransform!, transform, itransform, hasfasttransform, 
+                    hasfasttransform, canonicalspace, domain, setdomain, prectype, domainscompatible,
+                    plan_transform, plan_itransform, plan_transform!, plan_itransform!, transform, itransform, hasfasttransform,
                     CanonicalTransformPlan, ICanonicalTransformPlan,
-                    Integral, 
-                    domainspace, rangespace, boundary, 
-                    union_rule, conversion_rule, maxspace_rule, conversion_type, maxspace, hasconversion, points, 
-                    rdirichlet, ldirichlet, lneumann, rneumann, ivp, bvp, 
-                    linesum, differentiate, integrate, linebilinearform, bilinearform, 
+                    Integral,
+                    domainspace, rangespace, boundary,
+                    union_rule, conversion_rule, maxspace_rule, conversion_type, maxspace, hasconversion, points,
+                    rdirichlet, ldirichlet, lneumann, rneumann, ivp, bvp,
+                    linesum, differentiate, integrate, linebilinearform, bilinearform,
                     UnsetNumber, coefficienttimes, subspace_coefficients, sumspacecoefficients, specialfunctionnormalizationpoint,
                     Segment, IntervalOrSegmentDomain, PiecewiseSegment, isambiguous, Vec, eps, isperiodic,
                     arclength, complexlength,
                     invfromcanonicalD, fromcanonical, tocanonical, fromcanonicalD, tocanonicalD, canonicaldomain, setcanonicaldomain, mappoint,
                     reverseorientation, checkpoints, evaluate, mul_coefficients, coefficients, coefficientmatrix, isconvertible,
                     clenshaw, ClenshawPlan, sineshaw,
-                    toeplitz_getindex, toeplitz_axpy!, sym_toeplitz_axpy!, hankel_axpy!, ToeplitzOperator, SymToeplitzOperator, hankel_getindex, 
+                    toeplitz_getindex, toeplitz_axpy!, sym_toeplitz_axpy!, hankel_axpy!, ToeplitzOperator, SymToeplitzOperator, hankel_getindex,
                     SpaceOperator, ZeroOperator, InterlaceOperator,
                     interlace!, reverseeven!, negateeven!, cfstype, pad!, alternatesign!, mobius,
                     extremal_args, hesseneigvals, chebyshev_clenshaw, recA, recB, recC, roots,splitatroots,
@@ -47,7 +47,7 @@ import ApproxFunBase: normalize!, flipsign, FiniteRange, Fun, MatrixFun, UnsetSp
                     domaintype, diagindshift, rangetype, weight, isapproxinteger, default_Dirichlet, scal!, dotu,
                     components, promoterangespace, promotedomainspace, choosedomainspace,
                     block, blockstart, blockstop, blocklengths, isblockbanded, pointscompatible,
-                    AbstractProductSpace, MultivariateFun, BivariateSpace, 
+                    AbstractProductSpace, MultivariateFun, BivariateSpace,
                     @wrapperstructure, @wrapperspaces, @wrapper, @calculus_operator, resizedata!, slnorm,
                     sample, chop!, isbanded, colrange, bandwidth
 
@@ -99,7 +99,7 @@ const Curve{S,T} = Union{IntervalCurve{S,T},PeriodicCurve{S,T}}
 Curve(f::Fun{<:Space{<:PeriodicDomain}}) = PeriodicCurve(f)
 
 #TODO: Make type stable
-Curve(f::Fun{<:Space{<:ChebyshevInterval}}) = IntervalCurve(f) 
+Curve(f::Fun{<:Space{<:ChebyshevInterval}}) = IntervalCurve(f)
 
 export Curve
 
