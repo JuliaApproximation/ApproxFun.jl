@@ -117,9 +117,9 @@ end
 #       NOTE: these initial Funs should be "chopped" as much as possible for optimal speed
 #
 # KSS and ZJS
-function newton(N, u0::Array{T,1}; maxiterations=15, tolerance=1E-15) where T <: Fun
+function newton(N, u0::Vector{<:Fun}; maxiterations=15, tolerance=1E-15)
     u = copy(u0)
-    err = Inf
+    maxerr::Float64 = Inf
 
     numf = length(u0)   # number of functions
 
@@ -127,36 +127,36 @@ function newton(N, u0::Array{T,1}; maxiterations=15, tolerance=1E-15) where T <:
         error("u0 must contain at least 1 function")
     end
 
-    Js = Array{Any,2}(undef,1,numf) # jacobians
+    Js = Vector{Any}(undef,numf) # jacobians
 
     for k = 1:maxiterations
         # ------ calculate Jacobian for each function - O(numf^2) ----
 
         # use the first call to populate the value of the functions
         # this saves one call to N()
-        F = N([ (j == 1 ? DualFun(u[j]) : u[j]) for j = 1:numf ]...)
-        @inbounds Js[1] = jacobian.(F)
-        F = map(d -> typeof(d) <: DualFun ? d.f : d, F)
+        F = N(DualFun(u[1]), u[2:numf]...)
+        # F = N([ (j == 1 ? DualFun(u[j]) : u[j]) for j = 1:numf ]...)
+        Js[1] = jacobian.(F)
 
         for i = 2:numf
-            @inbounds Js[i] = jacobian.(N([ (j == i ? DualFun(u[j]) : u[j]) for j = 1:numf ]...))
+            Js[i] = jacobian.(N([ (j == i ? DualFun(u[j]) : u[j]) for j = 1:numf ]...))
         end
 
         F = N(u...)
         J = Base.typed_hcat(Operator, Js...)
 
-        # ------- update step ---------
-        unew = u .- J\F
-        err = maximum(norm.(unew-u)) # use the max norm error as the overall error
+        # # ------- update step ---------
+        unew::typeof(u) = u .- J\F
+        maxerr = maximum(((x,y),) -> norm(x-y), zip(unew, u)) # use the max norm error as the overall error
 
-        if err ≤ 10*tolerance
+        if maxerr ≤ 10*tolerance
             return unew
         else
-            u = map(q -> chop(q, tolerance), unew)
+            map!(q -> chop!(q, tolerance), u, unew)
         end
     end
 
-    @warn "Maximum number of iterations $maxiterations reached, with approximate accuracy of $err."
+    @warn "Maximum number of iterations $maxiterations reached, with approximate accuracy of $maxerr."
 
     return u
 end

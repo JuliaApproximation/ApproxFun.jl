@@ -56,7 +56,7 @@ import FastTransforms: ChebyshevTransformPlan, plan_chebyshevtransform,
                         plan_chebyshevtransform!, plan_ichebyshevtransform,
                         plan_ichebyshevtransform!
 
-using StaticArrays: SVector
+using StaticArrays: SVector, SizedArray
 
 """
 `Curve` Represents a domain defined by the image of a Fun.  Example

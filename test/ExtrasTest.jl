@@ -87,16 +87,16 @@ using DualNumbers
         x=Fun(Chebyshev(0..1))
 
         # Test two coupled systems of nonlinear ODEs with nonlinear BCs
-        u1 = 0.5*one(x)
-        u2 = 0.5*one(x)
+        u1_init = 0.5*one(x)
+        u2_init = 0.5*one(x)
 
-        N_dep = (u1,u2) -> [
+        N_dep(u1, u2) = [
                 u1(0)*u1(0)*u1(0) - 0.125;
                 u2(0) - 1;
                 u1' - u1*u1;
                 u2' + u1*u1*u2;
             ]
-        u1,u2 = newton(N_dep, [u1,u2])
+        u1,u2 = newton(N_dep, [u1_init,u2_init])
 
         u1_exact = -1 / (x - 2)
         u2_exact = exp(1 / (x - 2) + 1/2)
@@ -104,10 +104,10 @@ using DualNumbers
         @test norm(u1 - u1_exact) < 1e-15
 
         # Test two independent systems of nonlinear ODEs with nonlinear BCs
-        u1 = 0.5*one(x)
-        u2 = 0.5*one(x)
+        u1_init = 0.5*one(x)
+        u2_init = 0.5*one(x)
 
-        N_ind = (u1,u2) -> [
+        N_ind(u1,u2) = [
                 u1(0)*u1(0)*u1(0) - 0.125;
                 u2(0)*u2(0)*u2(0) + 0.125;
                 u1' - u1*u1;
@@ -115,7 +115,7 @@ using DualNumbers
             ]
 
         # note takes a few more iterations to converge to accuracy
-        u1,u2 = newton(N_ind, [u1,u2], maxiterations=25)
+        u1,u2 = newton(N_ind, [u1_init,u2_init], maxiterations=25)
 
         u1_exact = -1 / (x - 2)
         u2_exact = -1 / (x + 2)
@@ -123,11 +123,11 @@ using DualNumbers
         @test norm(u1 - u1_exact) < 1e-15
 
         # Compare to original newton for one equation and verify all solutions correct
-        N_single = u -> [u(0)*u(0)*u(0) - 0.125;
+        N_single(u) = [u(0)*u(0)*u(0) - 0.125;
                         u' - u*u]
 
-        u = 0.5*one(x)
-        u = newton(N_single, [u])
+        u_init = 0.5*one(x)
+        u = newton(N_single, [u_init])
         @test norm(u - u1) < 1e-15
     end
 
