@@ -120,44 +120,44 @@ end
 function newton(N, u0::Array{T,1}; maxiterations=15, tolerance=1E-15) where T <: Fun
     u = copy(u0)
     err = Inf
-    
+
     numf = length(u0)   # number of functions
 
     if numf == 0
         error("u0 must contain at least 1 function")
     end
-    
+
     Js = Array{Any,2}(undef,1,numf) # jacobians
-    
+
     for k = 1:maxiterations
         # ------ calculate Jacobian for each function - O(numf^2) ----
-        
+
         # use the first call to populate the value of the functions
         # this saves one call to N()
         F = N([ (j == 1 ? DualFun(u[j]) : u[j]) for j = 1:numf ]...)
         @inbounds Js[1] = jacobian.(F)
         F = map(d -> typeof(d) <: DualFun ? d.f : d, F)
-        
+
         for i = 2:numf
             @inbounds Js[i] = jacobian.(N([ (j == i ? DualFun(u[j]) : u[j]) for j = 1:numf ]...))
         end
-        
+
         F = N(u...)
         J = Base.typed_hcat(Operator, Js...)
-        
+
         # ------- update step ---------
         unew = u .- J\F
         err = maximum(norm.(unew-u)) # use the max norm error as the overall error
-        
+
         if err ≤ 10*tolerance
             return unew
         else
             u = map(q -> chop(q, tolerance), unew)
         end
     end
-    
+
     @warn "Maximum number of iterations $maxiterations reached, with approximate accuracy of $err."
-    
+
     return u
 end
 

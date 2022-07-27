@@ -87,9 +87,9 @@ import ApproxFun: eigs
         N_dep = (u1,u2) -> [
                 u1(0)*u1(0)*u1(0) - 0.125;
                 u2(0) - 1;
-                u1' - u1*u1;  
+                u1' - u1*u1;
                 u2' + u1*u1*u2;
-            ] 
+            ]
         u1,u2 = newton(N_dep, [u1,u2])
 
         u1_exact = -1 / (x - 2)
@@ -104,12 +104,12 @@ import ApproxFun: eigs
         N_ind = (u1,u2) -> [
                 u1(0)*u1(0)*u1(0) - 0.125;
                 u2(0)*u2(0)*u2(0) + 0.125;
-                u1' - u1*u1;  
+                u1' - u1*u1;
                 u2' - u2*u2;
-            ] 
+            ]
 
         # note takes a few more iterations to converge to accuracy
-        u1,u2 = newton(N_ind, [u1,u2], maxiterations=25) 
+        u1,u2 = newton(N_ind, [u1,u2], maxiterations=25)
 
         u1_exact = -1 / (x - 2)
         u2_exact = -1 / (x + 2)

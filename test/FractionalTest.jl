@@ -1,6 +1,6 @@
 using ApproxFun, Test
     import ApproxFunBase: testfunctional, testbandedoperator
-    
+
 @testset "Fractional" begin
     @testset "Jupyer example" begin
         S = Legendre() ⊕ JacobiWeight(0.5,0.,Ultraspherical(1))
