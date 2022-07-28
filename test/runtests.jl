@@ -227,4 +227,10 @@ end
 
     @test summary(io, ApproxFun.ArraySpace(Chebyshev(), 2)) isa Nothing
     @test contains(String(take!(io)), "ArraySpace")
+
+    Q = QuotientSpace(Dirichlet(Chebyshev()))
+    @test startswith(repr(Q), "Chebyshev() /")
+    show(io, MIME"text/plain"(), Q)
+    s = String(take!(io))
+    @test startswith(s, "Chebyshev() /")
 end
