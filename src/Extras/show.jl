@@ -109,7 +109,13 @@ end
 function show(io::IO,s::QuotientSpace)
     show(io,s.space)
     print(io," /\n")
-    show(io,s.bcs;header=false)
+    show(io,s.bcs)
+end
+
+function show(io::IO, m::MIME"text/plain", s::QuotientSpace)
+    show(io,s.space)
+    print(io," /\n")
+    show(io, m, s.bcs)
 end
 
 
@@ -191,7 +197,7 @@ struct PrintShow
 end
 Base.show(io::IO,N::PrintShow) = print(io,N.str)
 
-show(io::IO, B::Operator) = summary(io, B)
+show(io::IO, B::Operator; kw...) = summary(io, B)
 
 function show(io::IO, ::MIME"text/plain", B::Operator;header::Bool=true)
     header && println(io, summarystr(B))
