@@ -233,4 +233,8 @@ end
     show(io, MIME"text/plain"(), Q)
     s = String(take!(io))
     @test startswith(s, "Chebyshev() /")
+
+    f = Fun(Chebyshev()^2, [1,3,4])
+    @test contains(repr(f), repr(space(f)))
+    @test contains(repr(f), repr(coefficients(f)))
 end
