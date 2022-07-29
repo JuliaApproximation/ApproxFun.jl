@@ -194,7 +194,7 @@ space
 ```
 
 ```@docs
-ApproxFun.values
+values(::Fun)
 ```
 
 ```@docs
