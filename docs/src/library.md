@@ -30,10 +30,6 @@ Curve
 ```
 
 ```@docs
-Disk
-```
-
-```@docs
 Segment
 ```
 
@@ -84,7 +80,7 @@ transform
 ```
 
 ```@docs
-evaluate(::Space,::AbstractVector,::)
+evaluate
 ```
 
 ```@docs
@@ -201,7 +197,6 @@ ApproxFun.values
 stride(::Fun)
 ```
 
-
 ## Modify a Fun
 
 
@@ -213,8 +208,9 @@ reverseorientation
 ApproxFun.setdomain
 ```
 
+
 ```@docs
-chop
+chop(::Fun, ::Any)
 ```
 
 
@@ -237,7 +233,7 @@ rangespace
 ```
 
 ```@docs
-getindex(::Operator,::,::)
+getindex(::Operator,::Any,::Any)
 ```
 
 ```@docs
@@ -246,7 +242,7 @@ getindex(::Operator,::Fun)
 
 
 ```@docs
-\(::Operator,::)
+\(::Operator,::Any)
 ```
 
 ```@docs
