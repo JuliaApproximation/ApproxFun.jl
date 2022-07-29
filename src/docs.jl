@@ -171,7 +171,7 @@ stride(::Fun)
 ## Modifiers
 
 """
-   chop(f::Fun,tol) -> Fun
+    chop(f::Fun,tol) -> Fun
 
 reduces the number of coefficients by dropping the tail that is below the specified tolerance.
 """

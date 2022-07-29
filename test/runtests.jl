@@ -1,6 +1,13 @@
 using ApproxFun, Random, Test
 import ApproxFunBase: testbandedblockbandedoperator, blocklengths, ∞
 
+using Documenter
+DocMeta.setdocmeta!(ApproxFun, :DocTestSetup, :(using ApproxFun); recursive=true)
+
+@testset "doctests" begin
+    doctest(ApproxFun, manual = false)
+end
+
 @time include("ReadmeTest.jl")
 @time include("ExtrasTest.jl")
 @time include("NumberTypeTest.jl")
