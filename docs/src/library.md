@@ -1,21 +1,5 @@
 # Library
 
-
-## Constructing a Fun
-
-```@docs
-Fun
-```
-
-```@docs
-ones(::Space)
-```
-
-```@docs
-zeros(::Space)
-```
-
-
 ## Domains
 ```@docs
 Arc
@@ -146,9 +130,6 @@ CosSpace
 SinSpace
 ```
 
-
-
-
 ```@docs
 JacobiWeight
 ```
@@ -165,6 +146,19 @@ ApproxFun.ArraySpace
 TensorSpace
 ```
 
+## Constructing a Fun
+
+```@docs
+Fun
+```
+
+```@docs
+ones(::Space)
+```
+
+```@docs
+zeros(::Space)
+```
 
 ## Accessing information about a Fun
 
@@ -187,7 +181,6 @@ ncoefficients
 ```@docs
 points
 ```
-
 
 ```@docs
 space
@@ -212,9 +205,14 @@ reverseorientation
 ApproxFun.setdomain
 ```
 
-
 ```@docs
 chop(::Fun, ::Any)
+```
+
+## Bivariate Fun
+
+```@docs
+LowRankFun
 ```
 
 
@@ -291,10 +289,4 @@ Multiplication
 
 ```@docs
 Neumann
-```
-
-## Bivariate
-
-```@docs
-LowRankFun
 ```

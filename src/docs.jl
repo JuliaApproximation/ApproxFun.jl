@@ -1,7 +1,3 @@
-
-
-
-
 ## Fun.jl docs
 
 # Constructors
@@ -409,7 +405,22 @@ Defaults to `coefficients(transform(canonicalspace(space),values),canonicalspace
 
 # Examples
 ```jldoctest
-julia> v = map(x -> x^2, points(Chebyshev(), 4));
+julia> f = x -> x^2;
+
+julia> F = Fun(f, Chebyshev());
+
+julia> coefficients(F)
+3-element Vector{Float64}:
+ 0.5
+ 0.0
+ 0.5
+
+julia> v = map(f, points(Chebyshev(), 3));
+
+julia> transform(Chebyshev(), v) ≈ coefficients(F)
+true
+
+julia> v = map(f, points(Chebyshev(), 4));
 
 julia> transform(Chebyshev(), v)
 4-element Vector{Float64}:
