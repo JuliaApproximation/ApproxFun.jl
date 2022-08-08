@@ -52,8 +52,7 @@ domain.
 
 # Examples
 ```jldoctest
-julia> f = Fun(x->x^2, 0..1)
-Fun(Chebyshev(0..1), [0.375, 0.5, 0.12499999999999997])
+julia> f = Fun(x->x^2, 0..1);
 
 julia> f(0.1) ≈ (0.1)^2
 true
@@ -145,11 +144,15 @@ Return the domain that `f` is defined on.
 
 # Examples
 ```jldoctest
-julia> f = Fun(x->x^2)
-Fun(Chebyshev(), [0.5, 0.0, 0.5])
+julia> f = Fun(x->x^2);
 
 julia> domain(f)
 -1.0..1.0 (Chebyshev)
+
+julia> f = Fun(x->x^2, 0..1);
+
+julia> domain(f)
+0..1
 ```
 """
 domain(fun::Fun)
@@ -226,14 +229,12 @@ and back.
 
 # Examples
 ```jldoctest
-julia> f = Fun(x->x^2)
-Fun(Chebyshev(), [0.5, 0.0, 0.5])
+julia> f = Fun(x->x^2);
 
-julia> points(f)
-3-element Vector{Float64}:
-  0.8660254037844386
-  0.0
- -0.8660254037844386
+julia> chebypts(n) = [cos((2i+1)pi/2n) for i in 0:n-1];
+
+julia> points(f) ≈ chebypts(ncoefficients(f))
+true
 ```
 """
 points(::Fun)
@@ -246,12 +247,10 @@ from values at the grid to coefficients in the space `s`.
 
 # Examples
 ```jldoctest
-julia> points(Chebyshev(), 4)
-4-element Vector{Float64}:
-  0.9238795325112867
-  0.3826834323650898
- -0.3826834323650898
- -0.9238795325112867
+julia> chebypts(n) = [cos((2i+1)pi/2n) for i in 0:n-1];
+
+julia> points(Chebyshev(), 4) ≈ chebypts(4)
+true
 ```
 """
 points(::Space,::Integer)
@@ -304,20 +303,10 @@ may not be the same as `space(f)`.
 
 # Examples
 ```jldoctest
-julia> f = Fun(x->x^2)
-Fun(Chebyshev(), [0.5, 0.0, 0.5])
+julia> f = Fun(x->(3x^2-1)/2);
 
-julia> coefficients(f, NormalizedChebyshev())
-3-element Vector{Float64}:
- 0.8862269254527579
- 0.0
- 0.6266570686577501
-
-julia> coefficients(f, Legendre())
-3-element Vector{Float64}:
- 0.33333333333333337
- 0.0
- 0.6666666666666666
+julia> coefficients(f, Legendre()) ≈ [0, 0, 1]
+true
 ```
 """
 coefficients(::Fun,::Space)
@@ -329,17 +318,15 @@ Convert coefficients in `fromspace` to coefficients in `tospace`
 
 # Examples
 ```jldoctest
-julia> f = Fun(x->x^2)
-Fun(Chebyshev(), [0.5, 0.0, 0.5])
+julia> f = Fun(x->(3x^2-1)/2);
 
-julia> coefficients(f, Chebyshev(), Legendre())
-3-element Vector{Float64}:
- 0.33333333333333337
- 0.0
- 0.6666666666666666
+julia> coefficients(f, Chebyshev(), Legendre()) ≈ [0,0,1]
+true
 
-julia> Fun(x->x^2, Legendre())
-Fun(Legendre(), [0.33333333333333337, 0.0, 0.6666666666666666])
+julia> g = Fun(x->(3x^2-1)/2, Legendre());
+
+julia> coefficients(f, Chebyshev(), Legendre()) ≈ coefficients(g)
+true
 ```
 """
 coefficients(::AbstractVector,::Space,::Space)
@@ -406,8 +393,7 @@ e.g., evaluation.  Implement a `Conversion` operator or override `coefficients` 
 
 # Examples
 ```jldoctest
-julia> f = Fun(x->x^2, NormalizedLegendre())
-Fun(NormalizedLegendre(), [0.4714045207910318, 0.0, 0.4216370213557839])
+julia> f = Fun(x->x^2, NormalizedLegendre());
 
 julia> ApproxFunBase.canonicalspace(f)
 Legendre()
