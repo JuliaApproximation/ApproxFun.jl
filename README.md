@@ -2,7 +2,7 @@
 
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://JuliaApproximation.github.io/ApproxFun.jl/stable)
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://JuliaApproximation.github.io/ApproxFun.jl/latest)
-[![Build Status](https://travis-ci.org/JuliaApproximation/ApproxFun.jl.svg?branch=master)](https://travis-ci.org/JuliaApproximation/ApproxFun.jl) 
+[![Build Status](https://travis-ci.org/JuliaApproximation/ApproxFun.jl.svg?branch=master)](https://travis-ci.org/JuliaApproximation/ApproxFun.jl)
 [![Build status](https://ci.appveyor.com/api/projects/status/40qmoxp189pwtuda?svg=true)](https://ci.appveyor.com/project/dlfivefifty/approxfun-jl)
 [![codecov](https://codecov.io/gh/JuliaApproximation/ApproxFun.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaApproximation/ApproxFun.jl)
 [![Join the chat at https://gitter.im/JuliaApproximation/ApproxFun.jl](https://badges.gitter.im/JuliaApproximation/ApproxFun.jl.svg)](https://gitter.im/JuliaApproximation/ApproxFun.jl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
@@ -10,7 +10,7 @@
 
 
 ApproxFun is a package for approximating functions. It is in a similar vein to the Matlab
-package [`Chebfun`](http://www.chebfun.org) and the Mathematica package [`RHPackage`](https://github.com/dlfivefifty/RHPackage).  
+package [`Chebfun`](http://www.chebfun.org) and the Mathematica package [`RHPackage`](https://github.com/dlfivefifty/RHPackage).
 
 The  [`ApproxFun Documentation`](https://JuliaApproximation.github.io/ApproxFun.jl/latest) contains detailed information, or read on for a brief overview of the package.
 
@@ -197,7 +197,7 @@ d = ChebyshevInterval()^2                   # Defines a rectangle
 Δ = Laplacian(d)                            # Represent the Laplacian
 f = ones(∂(d))                              # one at the boundary
 u = \([Dirichlet(d); Δ+100I], [f;0.];       # Solve the PDE
-                tolerance=1E-5)             
+                tolerance=1E-5)
 surface(u)                                  # Surface plot
 ```
 

@@ -44,6 +44,10 @@ import ApproxFun: eigs
             ud = [B;D+a] \ [2.0,0.0]
             @test absdual(u(0.5)  - dual(ur(0.5),ud(0.5))) < 10eps()
         end
+
+        f=Fun(x->exp(dual(x,1)),-1..1)
+        @test coefficients(realpart(f)) == realpart.(coefficients(f))
+        @test coefficients(dualpart(f)) == dualpart.(coefficients(f))
     end
 
     @testset "Eig test #336" begin
