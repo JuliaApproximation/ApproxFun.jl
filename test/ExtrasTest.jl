@@ -69,7 +69,7 @@ import ApproxFun: eigs
         A = transport_*Derivative(d) + damping
         P = -DefiniteIntegral(Chebyshev(d))[LowRankFun((x,y)->gp(x)*(y+f(y)),d^2)];
         λ,V = eigs(A,100)
-        @test norm(sort(real(filter(x->isreal(x),λ)))[1:5]-(0:4)) ≤ 100000eps()
+        @test norm(sort(real(filter(x->isreal(x),λ)))[1:5]-(0:4)) ≤ 100000eps()
 
         λ,V = eigs(A+P,100)
         @test sort(real(filter(x->isreal(x),λ)))[5] ≈ 3.93759261234502 atol=1E-3
