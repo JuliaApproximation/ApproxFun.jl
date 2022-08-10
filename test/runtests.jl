@@ -136,7 +136,7 @@ end
     f = Fun(t->exp(sin(10t)), s)
     @time uFourier = L\f
 
-    @test norm(uFourier-uChebyshev) ≤ 100eps()
+    @test norm(uFourier-uChebyshev) ≤ 100eps()
 end
 
 @testset "Conversion" begin
