@@ -109,9 +109,9 @@ using ApproxFun, SpecialFunctions, LinearAlgebra, Test
 
         # this is broken on v1.6 (on BandedArrays < v0.16.16), so we skip on errors
         if VERSION >= v"1.7"
-            QR = qr([Dirichlet(d);Laplacian()+100I])
-            @time ApproxFun.resizedata!(QR,:,4000)
-            @time u = \(QR, [ones(∂(d)); 0.]; tolerance=1E-7)
+            Q = qr([Dirichlet(d);Laplacian()+100I]);
+            @time ApproxFun.resizedata!(Q,:,4000);
+            @time u = \(Q, [ones(∂(d)); 0.]; tolerance=1E-7)
             @test u(0.1,1.) ≈ 1.0
             @test ≈(u(0.1,0.2),-0.02768276827514463;atol=1E-8)
         end
