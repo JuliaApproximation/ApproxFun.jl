@@ -4,7 +4,7 @@ using ApproxFun, ApproxFunOrthogonalPolynomials, Test
     @testset "BigFloat constructor" begin
         single_sin = Fun(sin,Interval(0.f0,1.f0))
         double_sin = Fun(sin,Interval(0.,1.))
-        big_sin = Fun(sin,Interval(parse(BigFloat,"0.0"), parse(BigFloat,"1.0")))
+        big_sin = Fun(sin,Interval(big"0.0", big"1.0"))
 
         @test ncoefficients(single_sin) <= ncoefficients(double_sin)
         @test ncoefficients(double_sin) <= ncoefficients(big_sin)
@@ -53,7 +53,7 @@ using ApproxFun, ApproxFunOrthogonalPolynomials, Test
 	        f = x^(ν/2-1) * exp(-x/2)
 	        # TODO: JacobiWeight should support general types to avoid warning here
 	        @test f(10.0) ≈ 10.0^(ν/2-1) * exp(-10.0/2) rtol=eps()
-	        ex_mathematica = parse(BigFloat, "8.6494114955713766301430915207861966687081153e778")
+	        ex_mathematica = big"8.6494114955713766301430915207861966687081153e778"
 	        @test (cumsum(f)(10.0) - ex_mathematica)/ex_mathematica ≤ eps()
 
 	        x = Fun(BigFloat(0)..BigFloat(Inf))
