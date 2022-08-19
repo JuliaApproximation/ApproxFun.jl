@@ -405,9 +405,7 @@ Defaults to `coefficients(transform(canonicalspace(space),values),canonicalspace
 
 # Examples
 ```jldoctest
-julia> f = x -> x^2;
-
-julia> F = Fun(f, Chebyshev());
+julia> F = Fun(x -> x^2, Chebyshev());
 
 julia> coefficients(F)
 3-element Vector{Float64}:
@@ -415,12 +413,10 @@ julia> coefficients(F)
  0.0
  0.5
 
-julia> v = map(f, points(Chebyshev(), 3));
-
-julia> transform(Chebyshev(), v) ≈ coefficients(F)
+julia> transform(Chebyshev(), values(F)) ≈ coefficients(F)
 true
 
-julia> v = map(f, points(Chebyshev(), 4));
+julia> v = map(F, points(Chebyshev(), 4)); # custom grid
 
 julia> transform(Chebyshev(), v)
 4-element Vector{Float64}:
@@ -439,16 +435,13 @@ Transform coefficients back to values.  Defaults to using `canonicalspace` as in
 
 # Examples
 ```jldoctest
-julia> v = itransform(Chebyshev(), [0.5, 0, 0.5])
-3-element Vector{Float64}:
- 0.75
- 0.0
- 0.75
-
-julia> f = Fun(x->x^2, Chebyshev())
+julia> F = Fun(x->x^2, Chebyshev())
 Fun(Chebyshev(), [0.5, 0.0, 0.5])
 
-julia> values(f)
+julia> itransform(Chebyshev(), coefficients(F)) ≈ values(F)
+true
+
+julia> itransform(Chebyshev(), [0.5, 0, 0.5])
 3-element Vector{Float64}:
  0.75
  0.0
