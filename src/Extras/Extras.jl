@@ -13,7 +13,6 @@ digits() = round(Int,floor(get_bigfloat_precision()*log10(2)))
 
 import FastTransforms: pochhammer
 
-include("show.jl")
 include("poetry.jl")
 
 include("ReImSpace.jl")
