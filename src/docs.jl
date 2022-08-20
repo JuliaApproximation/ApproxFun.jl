@@ -454,8 +454,10 @@ itransform(::Space, ::AbstractVector)
 """
     evaluate(coefficients::AbstractVector, sp::Space, x)
 
-Evaluates the expansion at a point `x`.
-If `x` is in the domain, then this should return zero.
+Evaluates the expansion at a point `x` that lies in `domain(sp)`.
+If `x` is not in the domain, the returned value will depend on the space,
+and should not be relied upon. See [`extrapolate`](@ref) to evaluate a function
+at a value outside the domain.
 """
 evaluate(::AbstractVector, ::Space, _)
 
