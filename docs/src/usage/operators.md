@@ -6,7 +6,7 @@ using ApproxFun, LinearAlgebra
 
 Linear operators between two spaces in ApproxFun are represented by subtypes of `Operator`.  Every operator has a `domainspace` and `rangespace`.  That is, if a `Fun` `f` has the space `domainspace(op)`, then`op*f` is a `Fun` with space `rangespace(op)`.
 
-Note that the size of an operator is specified by the dimension of the domain and range space.  
+Note that the size of an operator is specified by the dimension of the domain and range space.
 
 ## Calculus operators
 
@@ -129,7 +129,7 @@ C = Conversion(Chebyshev(),Ultraspherical(1))
 D + C
 ```
 
-ApproxFun can automatically determine the spaces, so if one writes `D + I` it will translate it to `D + C`.  
+ApproxFun can automatically determine the spaces, so if one writes `D + I` it will translate it to `D + C`.
 
 Now consider the Fredholm integral operator of the second kind:
 
@@ -172,13 +172,26 @@ f = Fun(cos,Chebyshev(0..1)); (𝒟*f)(0.1)
 f = Fun(cos,Fourier()); (𝒟*f)(0.1)
 ```
 
-Behind the scenes, `Derivative()` is equivalent to `Derivative(UnsetSpace(),1)`.  When multiplying a function `f`, the domain space is promoted before multiplying, that is, `Derivative()*f` is equivalent to `Derivative(space(f))*f`.  
+Behind the scenes, `Derivative()` is equivalent to `Derivative(UnsetSpace(),1)`.  When multiplying a function `f`, the domain space is promoted before multiplying, that is, `Derivative()*f` is equivalent to `Derivative(space(f))*f`.
 
 This promotion of the domain space happens even when operators have spaces attached.  This facilitates the following construction:
 
-```@repl using-pkgs
-D = Derivative(Chebyshev());
-D^2
+```jldoctest
+julia> D = Derivative(Chebyshev());
+
+julia> D^2
+ConcreteDerivative : Chebyshev() → Ultraspherical(2)
+ ⋅  ⋅  4.0   ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋅
+ ⋅  ⋅   ⋅   6.0   ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋅
+ ⋅  ⋅   ⋅    ⋅   8.0    ⋅     ⋅     ⋅     ⋅     ⋅   ⋅
+ ⋅  ⋅   ⋅    ⋅    ⋅   10.0    ⋅     ⋅     ⋅     ⋅   ⋅
+ ⋅  ⋅   ⋅    ⋅    ⋅     ⋅   12.0    ⋅     ⋅     ⋅   ⋅
+ ⋅  ⋅   ⋅    ⋅    ⋅     ⋅     ⋅   14.0    ⋅     ⋅   ⋅
+ ⋅  ⋅   ⋅    ⋅    ⋅     ⋅     ⋅     ⋅   16.0    ⋅   ⋅
+ ⋅  ⋅   ⋅    ⋅    ⋅     ⋅     ⋅     ⋅     ⋅   18.0  ⋅
+ ⋅  ⋅   ⋅    ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋱
+ ⋅  ⋅   ⋅    ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋱
+ ⋅  ⋅   ⋅    ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋱
 ```
 
 Note that `rangespace(D) ≠ Chebyshev()`, hence the operators are not compatible.  Therefore, it has thrown away its domain space, and thus this is equivalent to `Derivative(rangespace(D))*D`.
