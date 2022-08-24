@@ -1,22 +1,21 @@
-const BigFloats = Union{BigFloat,Complex{BigFloat}}
-
-function fft(x::AbstractVector{F}) where F<:Fun
-    n,T = length(x),mapreduce(eltype,promote_type,x)
+function fft(x::AbstractVector{<:Fun})
+    n,T = length(x),mapreduce(cfstype,promote_type,x)
     if ispow2(n) return fft_pow2(x) end
     ks = range(zero(real(T)),stop=n-one(real(T)),length=n)
-    Wks = exp(-im*convert(T,π)*ks.^2/n)
-    xq,wq = x.*Wks,conj([exp(-im*convert(T,π)*n);reverse(Wks);Wks[2:end]])
-    return Wks.*conv(xq,wq)[n+1:2n]
+    Wks = cis.(-convert(T,π)/n .* ks.^2)
+    xq,wq = x.*Wks,conj([cis(-convert(T,π)*n);reverse(Wks); @view Wks[2:end]])
+    return Wks.* @view conv(xq,wq)[n+1:2n]
 end
 
-ifft(x::AbstractVector{F}) where {F<:Fun} = conj(fft(conj(x)))/length(x)
-function ifft!(x::AbstractVector{F}) where F<:Fun
+ifft(x::AbstractVector{<:Fun}) = conj(fft(conj(x)))/length(x)
+function ifft!(x::AbstractVector{<:Fun})
     y = conj(fft(conj(x)))/length(x)
-    x[:] = y
+    x .= y
     return x
 end
 
-function conv(u::StridedVector{F}, v::StridedVector) where F<:Fun
+nextpow2(n) = 2^ceil(Int, Base.log2(n))
+function conv(u::StridedVector{<:Fun}, v::StridedVector)
     nu,nv = length(u),length(v)
     n = nu + nv - 1
     np2 = nextpow2(n)
@@ -24,7 +23,7 @@ function conv(u::StridedVector{F}, v::StridedVector) where F<:Fun
     y = ifft_pow2(fft_pow2(u).*fft_pow2(v))
     #TODO This would not handle Dual/ComplexDual numbers correctly
     T = promote_type(mapreduce(eltype,promote_type,u),mapreduce(eltype,promote_type,v))
-    y = T<:Real ? real(y[1:n]) : y[1:n]
+    y = T<:Real ? real(@view y[1:n]) : y[1:n]
 end
 
 ######################################################################
@@ -33,9 +32,9 @@ end
 
 # plan_fft for BigFloats (covers Laurent svfft)
 
-plan_fft(x::Vector{F}) where {F<:Fun} = fft
-plan_ifft(x::Vector{F}) where {F<:Fun} = ifft
-plan_ifft!(x::Vector{F}) where {F<:Fun} = ifft
+plan_fft(x::Vector{<:Fun}) = fft
+plan_ifft(x::Vector{<:Fun}) = ifft
+plan_ifft!(x::Vector{<:Fun}) = ifft
 
 
 # Fourier space plans for BigFloat

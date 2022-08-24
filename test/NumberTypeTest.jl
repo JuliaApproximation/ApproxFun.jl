@@ -1,4 +1,4 @@
-using ApproxFun, ApproxFunOrthogonalPolynomials, Test
+using ApproxFun, ApproxFunOrthogonalPolynomials, Test, FFTW
 
 @testset "BigFloat" begin
     @testset "BigFloat constructor" begin
@@ -79,5 +79,23 @@ using ApproxFun, ApproxFunOrthogonalPolynomials, Test
         b = BigFloat(30.5)
         w = (1-x^2)^b
         @test w(BigFloat(1)/10) ≈ (1-(BigFloat(1)/10)^2)^b
+    end
+
+    @testset "fft" begin
+        @testset "Fun" begin
+            f = Fun(x->1, Fourier())
+            g = ApproxFun.fft(fill(f, 3))
+            @test g[1] ≈ Fun(x->3, Fourier())
+            @test g[2] ≈ Fun(x->0, Fourier()) atol=1e-10
+            @test g[3] ≈ Fun(x->0, Fourier()) atol=1e-10
+        end
+
+        @testset "BigFloat" begin
+            for n in 1:10
+                v = BigFloat[i for i in 1:n]
+                fv = ApproxFunBase.fft(v)
+                @test fv ≈ FFTW.fft(Float64.(v)) rtol=1e-8
+            end
+        end
     end
 end
