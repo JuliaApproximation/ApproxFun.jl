@@ -5,6 +5,8 @@
 [![Build Status](https://travis-ci.org/JuliaApproximation/ApproxFun.jl.svg?branch=master)](https://travis-ci.org/JuliaApproximation/ApproxFun.jl)
 [![Build status](https://ci.appveyor.com/api/projects/status/40qmoxp189pwtuda?svg=true)](https://ci.appveyor.com/project/dlfivefifty/approxfun-jl)
 [![codecov](https://codecov.io/gh/JuliaApproximation/ApproxFun.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaApproximation/ApproxFun.jl)
+[![deps](https://juliahub.com/docs/ApproxFun/deps.svg)](https://juliahub.com/ui/Packages/ApproxFun/jGqLz?t=2)
+[![version](https://juliahub.com/docs/ApproxFun/version.svg)](https://juliahub.com/ui/Packages/ApproxFun/jGqLz)
 [![Join the chat at https://gitter.im/JuliaApproximation/ApproxFun.jl](https://badges.gitter.im/JuliaApproximation/ApproxFun.jl.svg)](https://gitter.im/JuliaApproximation/ApproxFun.jl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 
