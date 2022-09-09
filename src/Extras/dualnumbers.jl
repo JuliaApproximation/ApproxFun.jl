@@ -36,7 +36,7 @@ plan_ichebyshevtransform(v::AbstractVector{D}, ::Val{kind}) where {D<:Dual,kind}
 
 
 
-*(P::ChebyshevTransformPlan,v::AbstractVector{D}) where {k,D<:Dual} = dual.(P*realpart.(v),P*dualpart.(v))
+*(P::ChebyshevTransformPlan,v::AbstractVector{<:Dual}) = dual.(P*realpart.(v),P*dualpart.(v))
 
 #TODO: Hardy{false}
 for (OP,TransPlan) in ((:plan_transform,:TransformPlan),(:plan_itransform,:ITransformPlan)),
