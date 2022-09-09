@@ -1,6 +1,11 @@
 using ApproxFun, Random, Test
 import ApproxFunBase: testbandedblockbandedoperator, blocklengths, ∞
 
+using Aqua
+@testset "Project quality" begin
+    Aqua.test_all(ApproxFun, ambiguities=false, undefined_exports=false)
+end
+
 using Documenter
 DocMeta.setdocmeta!(ApproxFun, :DocTestSetup, :(using ApproxFun); recursive=true)
 
@@ -8,10 +13,10 @@ DocMeta.setdocmeta!(ApproxFun, :DocTestSetup, :(using ApproxFun); recursive=true
     doctest(ApproxFun, manual = false)
 end
 
-@time include("ReadmeTest.jl")
-@time include("ExtrasTest.jl")
-@time include("NumberTypeTest.jl")
-@time include("FractionalTest.jl")
+include("ReadmeTest.jl")
+include("ExtrasTest.jl")
+include("NumberTypeTest.jl")
+include("FractionalTest.jl")
 
 @testset "Chebyshev and Fourier" begin
     @test norm(Fun(x->Fun(cos,Fourier(-π .. π),20)(x),20)-Fun(cos,20)) <100eps()
