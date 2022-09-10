@@ -22,5 +22,6 @@ makedocs(
 
 
 deploydocs(
-    repo   = "github.com/JuliaApproximation/ApproxFun.jl.git"
+    repo   = "github.com/JuliaApproximation/ApproxFun.jl.git",
+    push_preview = true,
     )
