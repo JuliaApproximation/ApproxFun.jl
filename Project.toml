@@ -30,7 +30,6 @@ DomainSets = "0.3, 0.4, 0.5"
 DualNumbers = "0.6.2"
 FFTW = "1"
 FastTransforms = "0.13, 0.14"
-Plots = "1"
 RecipesBase = "1.0"
 Reexport = "1.0"
 SpecialFunctions = "1.1, 2"
@@ -39,9 +38,8 @@ julia = "1.6"
 [extras]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Aqua", "Documenter", "Plots", "Random", "Test"]
+test = ["Aqua", "Documenter", "Random", "Test"]
