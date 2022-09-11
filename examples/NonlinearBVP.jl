@@ -1,15 +1,14 @@
 # # Nonlinear Boundary Value Problem
 
-# ## Non-linear differential equation
+# There is preliminary support for nonlinear equations, via Newton iteration in function space.
+# Here is a simple two-point boundary value problem:
+
 # We solve
 # ```math
 # Du = 0.001u^{\prime\prime} + 6(1-x^2)u^{\prime} + u^2 - 1 = 0,
 # ```
 # subject to the boundary conditions ``u(-1)=1`` and ``u(1)=-0.5``.
-# We collectively express the system as
-# ```math
-    # Nu = [u(-1)-1,\,u(1)+0.5,\,Du] = [0,0,0].
-# ```
+
 include("NonlinearBVP1.jl")
 
 # We plot the solution
