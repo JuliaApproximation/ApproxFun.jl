@@ -54,11 +54,10 @@ scatter!(rp, h.(rp); label="extrema")
 
 
 Notice from above that to find the extrema, we used `'` overridden for the `differentiate` function. Several other `Julia`
-base functions are overridden for the purposes of calculus. Because the exponential is its own
-derivative, the `norm` is small:
+base functions are overridden for the purposes of calculus. We may check that the exponential is its own derivative, by evaluating the norm of the difference and checking that it is small:
 
 ```julia
-f = Fun(x->exp(x), -1..1)
+f = Fun(exp, -1..1)
 norm(f-f')  # 4.4391656415701095e-14
 ```
 
@@ -70,7 +69,7 @@ g = g + f(-1)
 norm(f-g) # 3.4989733283850415e-15d
 ```
 
-Algebraic and differential operations are also implemented where possible, and most of Julia's built-in functions are overridden to accept `Fun`s:
+Algebraic and differential operations are also implemented where possible, and most of Julia's built-in functions (and special functions from [`SpecialFunctions.jl`](https://github.com/JuliaMath/SpecialFunctions.jl)) are overridden to accept `Fun`s:
 
 ```julia
 x = Fun()
@@ -78,6 +77,10 @@ f = erf(x)
 g = besselj(3,exp(f))
 h = airyai(10asin(f)+2g)
 ```
+
+## Examples of Usage
+
+Check the [documentation](https://JuliaApproximation.github.io/ApproxFun.jl/latest) for examples of usage.
 
 ## References
 
