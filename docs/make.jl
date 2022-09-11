@@ -1,4 +1,16 @@
 using Documenter, ApproxFun, BandedMatrices, DomainSets, LinearAlgebra
+using Literate
+
+# Generate examples using Literate
+# See https://github.com/fredrikekre/Literate.jl/blob/master/docs/make.jl
+example_dir = joinpath(@__DIR__, "..", "examples")
+output_dir = joinpath(@__DIR__, "src/generated")
+
+for example in ["ODE.jl", "PDE.jl", "Sampling.jl", "Periodic.jl",
+		"Eigenvalue.jl", "NonlinearBVP.jl"]
+    filename = joinpath(example_dir, example)
+    Literate.markdown(filename, output_dir, documenter=true)
+end
 
 makedocs(
 			doctest = false,
@@ -15,6 +27,14 @@ makedocs(
 						"Operators" => "usage/operators.md",
 						"Linear Equations" => "usage/equations.md"
 					],
+					"Examples" => [
+			            "generated/ODE.md",
+			            "generated/PDE.md",
+			            "generated/Sampling.md",
+			            "generated/Periodic.md",
+			            "generated/Eigenvalue.md",
+			            "generated/NonlinearBVP.md",
+			        ],
 					"Frequently Asked Questions" => "faq.md",
 					"Library" => "library.md"
 				]
