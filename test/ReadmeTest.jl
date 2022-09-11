@@ -51,21 +51,22 @@ const EXAMPLES_DIR = joinpath(dirname(dirname(pathof(ApproxFun))), "examples")
     end
 
     @testset "NonlinearBVP" begin
-        include(joinpath(EXAMPLES_DIR, "NonlinearBVP.jl"))
+        include(joinpath(EXAMPLES_DIR, "NonlinearBVP1.jl"))
     end
 
     @testset "ODE" begin
-        include(joinpath(EXAMPLES_DIR, "ODE.jl"))
+        include(joinpath(EXAMPLES_DIR, "ODE_BVP.jl"))
+        include(joinpath(EXAMPLES_DIR, "ODE_increaseprec.jl"))
     end
 
     @testset "Periodic" begin
-        include(joinpath(EXAMPLES_DIR, "Periodic.jl"))
+        include(joinpath(EXAMPLES_DIR, "Periodic1.jl"))
     end
 
     # this is broken on v1.6 (on BandedArrays < v0.16.16), so we only test on higher versions
     if VERSION >= v"1.7"
         @testset "PDE" begin
-            include(joinpath(EXAMPLES_DIR, "PDE.jl"))
+            include(joinpath(EXAMPLES_DIR, "PDE1.jl"))
         end
     end
 
