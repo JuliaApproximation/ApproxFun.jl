@@ -2,10 +2,10 @@
 
 # We solve
 # ```math
-# (Δ + 100)y(x,y) = 0
+# (Δ + 100)u(x,y) = 0
 # ```
 # on the rectangle `-1..1 × -1..1`,
-# subject to the condition that ``y=1`` on the boundary.
+# subject to the condition that ``u=1`` on the boundary of the domain.
 
 include("PDE1.jl")
 
