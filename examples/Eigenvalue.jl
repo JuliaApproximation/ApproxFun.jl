@@ -75,7 +75,7 @@ Q = Conversion(QS, S)
 R = D1*Q;
 
 # This inversion is computed approximately, such that
-# $\mathrm{C}^{-1} * \mathrm{C} ≈ \mathrm{I}$ up to a certain bandwidth
+# ``\mathrm{C}^{-1} \mathrm{C} ≈ \mathrm{I}`` up to a certain bandwidth
 C = Conversion(domainspace(L), rangespace(L))
 P = cache(PartialInverseOperator(C, (0, ApproxFun.bandwidth(L, 1) + ApproxFun.bandwidth(R, 1) + ApproxFun.bandwidth(C, 2))));
 
