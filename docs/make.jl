@@ -20,7 +20,8 @@ for (example, included) in [
             ("Sampling.jl", String[]),
             ("Periodic.jl", ["Periodic1.jl"]),
             ("Eigenvalue.jl", String[]),
-            ("NonlinearBVP.jl", ["NonlinearBVP1.jl"])
+            ("NonlinearBVP.jl", ["NonlinearBVP1.jl"]),
+            ("system_of_eqn.jl", String[])
             ]
     filename = joinpath(example_dir, example)
     Literate.markdown(filename, output_dir, documenter=true,
@@ -44,6 +45,7 @@ makedocs(
                     ],
                     "Examples" => [
                         "generated/ODE.md",
+                        "generated/system_of_eqn.md",
                         "generated/PDE.md",
                         "generated/Sampling.md",
                         "generated/Periodic.md",
