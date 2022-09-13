@@ -93,31 +93,3 @@ u(0.1)
 
 Behind the scenes, `A\b` where `A` is an `Operator` is implemented via an adaptive QR factorization.  That is, it is equivalent to `qr(A)\b`.  (There is a subtlety here in space inferring: `A\b` can use both `A` and `b` to determine the domain space, while `qr(A)` only sees the operator `A`.)  Note that `qr` adaptively caches a partial QR Factorization
 as it is applied to different right-hand sides, so the same operator can be inverted much more efficiently in subsequent problems.
-
-## Partial differential equations
-
-Partial differential operators are also supported.  Here's an example
-of solving the Poisson equation with zero boundary conditions:
-
-```julia
-d = Domain(-1..1)^2
-x,y = Fun(d)
-f = exp.(-10(x+0.3)^2-20(y-0.2)^2)  # use broadcasting as exp(f) not implemented in 2D
-A = [Dirichlet(d);Δ]  # Δ is an alias for Laplacian()
-@time u = A \ [zeros(∂(d));f]  # 4s for ~3k coefficients
-```
-
-Using a QR Factorization reduces the cost of subsequent calls substantially:
-
-```julia
-QR = qr(A)
-@time QR \ [zeros(∂(d));f]  # 4s
-g = exp.(-10(x+0.2)^2-20(y-0.1)^2)
-@time QR \ [zeros(∂(d));g]  # 0.09s
-```
-
-Many PDEs have weak singularities at the corners, in which case it is beneficial to specify a tolerance to reduce the time:
-
-```julia
-\(A, [zeros(∂(d));f]; tolerance=1E-6)
-```
