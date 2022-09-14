@@ -42,11 +42,25 @@ end
 
 
 @recipe function f(g::Fun{S,T}) where {S,T<:Real}
-    plotptsvals(g)
+    x, y = plotptsvals(g)
+    ymin, ymax = extrema(y)
+    Δy = ymax - ymin
+    ymax += Δy*0.05
+    ymin -= Δy*0.05
+    ylim --> (ymin, ymax)
+    x, y
 end
 @recipe function f(g::Fun{S,Complex{T}}) where {S,T<:Real}
     x,v=plotptsvals(g)
-    x,Vector{T}[real(v),imag(v)]
+    r,i = real(v),imag(v)
+    yrmin, yrmax = extrema(r)
+    yimin, yimax = extrema(i)
+    ymin, ymax = min(yrmin, yimin), max(yrmax, yimax)
+    Δy = ymax - ymin
+    ymax += Δy*0.05
+    ymin -= Δy*0.05
+    ylim --> (ymin, ymax)
+    x,Vector{T}[r,i]
 end
 
 
