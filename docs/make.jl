@@ -16,12 +16,12 @@ end
 
 for (example, included) in [
             ("ODE.jl", ["ODE_BVP.jl", "ODE_increaseprec.jl"]),
-            ("PDE.jl", ["PDE1.jl"]),
-            ("Sampling.jl", String[]),
+            ("PDE.jl", ["PDE_Poisson.jl", "PDE_Helmholtz.jl"]),
+            ("Sampling.jl", ["Sampling1.jl"]),
             ("Periodic.jl", ["Periodic1.jl"]),
-            ("Eigenvalue.jl", String[]),
-            ("NonlinearBVP.jl", ["NonlinearBVP1.jl"]),
-            ("system_of_eqn.jl", String[])
+            ("Eigenvalue.jl", ["Eigenvalue_standard.jl", "Eigenvalue_symmetric.jl"]),
+            ("NonlinearBVP.jl", ["NonlinearBVP1.jl", "NonlinearBVP2.jl"]),
+            ("system_of_eqn.jl", ["System1.jl"])
             ]
     filename = joinpath(example_dir, example)
     Literate.markdown(filename, output_dir, documenter=true,

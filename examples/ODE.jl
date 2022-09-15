@@ -9,8 +9,6 @@
 # and ``y(b)=\mathrm{Ai}(b)``, where ``\mathrm{Ai}`` represents the Airy function of the
 # first kind.
 
-using ApproxFun
-
 include("ODE_BVP.jl")
 
 # We plot the solution
@@ -24,5 +22,5 @@ Plots.plot(u, xlabel="x", ylabel="u(x)", legend=false)
 # The following calculates ``e`` to 300 digits by solving the ODE ``u^\prime = u``:
 
 include("ODE_increaseprec.jl")
-
+import Plots
 Plots.plot(u; legend=false, xlabel="x", ylabel="u(x)")

@@ -1,4 +1,5 @@
-using ApproxFun #src
+using ApproxFun
+using SpecialFunctions
 # Construct the domain
 a, b = -20, 10
 d = a..b;
@@ -16,7 +17,6 @@ B = Dirichlet(d);
 
 # The right hand side for the boundary condition is obtained by evaluating the Airy function
 # We use `airyai` from `SpecialFunctions.jl` for this
-using SpecialFunctions
 B_vals = [airyai(a), airyai(b)];
 
 # The main step, where we solve the differential equation
