@@ -10,7 +10,7 @@
 using ApproxFun
 using LinearAlgebra
 
-d = (-1.0..1.0)^2
+d = (-1..1)^2
 x,y = Fun(d)
 f = exp.(-10(x+0.3)^2-20(y-0.2)^2)  # use broadcasting as exp(f) not implemented in 2D
 A = [Dirichlet(d); Laplacian()]
