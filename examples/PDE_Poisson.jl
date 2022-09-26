@@ -2,7 +2,7 @@
 
 # We solve the Poisson equation
 # ```math
-# Δu(x,y) = 0
+# Δu(x,y) = f(x,y)
 # ```
 # on the rectangle `-1..1 × -1..1`,
 # with zero boundary conditions:
