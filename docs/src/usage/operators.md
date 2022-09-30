@@ -178,7 +178,7 @@ Behind the scenes, `Derivative()` is equivalent to `Derivative(UnsetSpace(),1)`.
 
 This promotion of the domain space happens even when operators have spaces attached.  This facilitates the following construction:
 
-```jldoctest; setup=:(using ApproxFun)
+```jldoctest
 julia> D = Derivative(Chebyshev());
 
 julia> D^2
