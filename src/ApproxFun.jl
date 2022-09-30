@@ -116,7 +116,6 @@ export bisectioninv
 
 include("Extras/Extras.jl")
 include("Plot/Plot.jl")
-include("docs.jl")
 
 #include("precompile.jl")
 #_precompile_()
