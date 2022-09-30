@@ -1,5 +1,7 @@
-```@setup using-pkgs
-using ApproxFun, LinearAlgebra
+```@meta
+DocTestSetup  = quote
+    using ApproxFun, LinearAlgebra
+end
 ```
 
 # Linear equations
@@ -12,7 +14,7 @@ Linear equations such as ordinary and partial differential equations, fractional
 
 where we want a solution that is periodic on ``[0,2π)``.  This can be solved succinctly as follows:
 
-```@repl using-pkgs
+```@repl
 b = Fun(cos,Fourier());
 c = 0.1; u = (𝒟+c*I) \ b;
 u(0.6)
@@ -29,7 +31,7 @@ As another example, consider the Fredholm integral equation
 
 We can solve this equation as follows:
 
-```@repl using-pkgs
+```@repl
 Σ = DefiniteIntegral(Chebyshev()); x = Fun();
 u = (I+exp(x)*Σ[cos(x)]) \ cos(exp(x));
 u(0.1)
@@ -50,7 +52,7 @@ Incorporating boundary conditions into differential equations is important so th
 
 To pose this in ApproxFun, we want to find a `u` such that `Evaluation(0)*u == 1` and `(𝒟 - t)*u == 0`.  This is accomplished via:
 
-```@repl using-pkgs
+```@repl
 t = Fun(0..1);
 u = [Evaluation(0); 𝒟-t] \ [1;0];
 u(0)
@@ -70,7 +72,7 @@ A common usage is two-point boundary value problems. Consider the singularly per
 
 This can be solved in ApproxFun via:
 
-```@repl using-pkgs
+```@repl
 ϵ = 1/70; x = Fun();
 u = [Evaluation(-1);
      Evaluation(1);
@@ -82,7 +84,7 @@ Note in this case the space is inferred from the variable coefficient `x`.
 
 This ODE can also be solved using the `Dirichlet` operator:
 
-```@repl using-pkgs
+```@repl
 x = Fun();
 u = [Dirichlet();
      1/70*𝒟^2-x*𝒟+I] \ [[1,2],0];

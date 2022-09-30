@@ -1,12 +1,14 @@
-```@setup using-pkgs
-using ApproxFun
+```@meta
+DocTestSetup  = quote
+    using ApproxFun, LinearAlgebra
+end
 ```
 
 # Constructors
 
 `Fun`s in ApproxFun are instances of Julia types with one field to store coefficients and another to describe the function space. Similarly, each function space has one field describing its domain, or another function space. Let's explore:
 
-```@repl using-pkgs
+```@repl
 x = Fun(identity,-1..1);
 f = exp(x);
 g = f/sqrt(1-x^2);
@@ -16,7 +18,7 @@ space(g)  # Output is pretty version of JacobiWeight(-0.5,-0.5,Interval(-1.0,1.0
 
 The absolute value is another case where the space of the output is inferred from the operation:
 
-```@repl using-pkgs
+```@repl
 f = Fun(x->cospi(5x),-1..1);
 g = abs(f);
 space(f)
@@ -51,7 +53,7 @@ x = Fun()
 
 It is sometimes necessary to specify coefficients explicitly.  This is possible via specifying the space followed by a vector of coefficients:
 
-```@repl using-pkgs
+```@repl
 f = Fun(Taylor(), [1,2,3]);  # represents 1 + 2z + 3z^2
 f(0.1)
 1 + 2*0.1 + 3*0.1^2
@@ -77,7 +79,7 @@ For example, if we are in the two dimensional CosSpace space and we have coeffic
 
 This is illustrated in the following code:
 
-```@repl using-pkgs
+```@repl
 f = Fun(CosSpace()^2, [1,2,3])
 f(1,2)
 1cos(0*1)*cos(0*2) + 2cos(0*1)*cos(1*2) + 3cos(1*1)*cos(0*2)

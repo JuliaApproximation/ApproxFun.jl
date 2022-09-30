@@ -1,5 +1,7 @@
-```@setup using-pkgs
-using ApproxFun, LinearAlgebra
+```@meta
+DocTestSetup  = quote
+    using ApproxFun, LinearAlgebra
+end
 ```
 
 # Operators
@@ -12,7 +14,7 @@ Note that the size of an operator is specified by the dimension of the domain an
 
 Differential and integral operators are perhaps the most useful type of operators in mathematics.  Consider the derivative operator on `CosSpace`:
 
-```@repl using-pkgs
+```@repl
 D = Derivative(CosSpace())
 f = Fun(θ->cos(cos(θ)), CosSpace());
 fp = D*f;
@@ -49,7 +51,7 @@ D[k,j] ≈ (D*ej).coefficients[k] ≈ -k
 
 The `Chebyshev` space has the property that its derivatives are given by ultraspherical spaces:
 
-```@repl using-pkgs
+```@repl
 Derivative(Chebyshev())
 ```
 
@@ -59,7 +61,7 @@ A particularly useful class of operators are _functionals_, which map from funct
 
 As an example, the evaluation functional `f(0)` on `CosSpace` has the form:
 
-```@repl using-pkgs
+```@repl
 B = Evaluation(CosSpace(),0)
 B*f ≈ f(0)
 ```
@@ -68,7 +70,7 @@ As can be seen from the output, `rangespace(B)` is a `ConstantSpace(Point(0))`, 
 
 Closely related to functionals are operators with finite-dimensional range.  For example, the `Dirichlet` operator represents the restriction of a space to its boundary.  In the case, of `Chebyshev()`, this amounts to evaluation at the endpoints `±1`:
 
-```@repl using-pkgs
+```@repl
 B = Dirichlet(Chebyshev())
 size(B)
 B*Fun(exp)
@@ -79,7 +81,7 @@ B*Fun(exp) ≈ Fun([exp(-1),exp(1)])
 
 A `Multiplication` operator sends a `Fun` to a `Fun` in the corresponding space by multiplying a given function. The `Multiplication` operators are presented in matrix form in `ApproxFun`.
 
-```@repl using-pkgs
+```@repl
 x = Fun();
 M = Multiplication(1 + 2x + x^2, Chebyshev())
 (M * x).coefficients == ((1 + 2x + x^2) * x).coefficients == M[1:4,1:2] * x.coefficients
@@ -87,7 +89,7 @@ M = Multiplication(1 + 2x + x^2, Chebyshev())
 
 It is possible for domain space and range space to be different under `Mulitplication`.
 
-```@repl using-pkgs
+```@repl
 c = Fun(θ -> cos(θ), CosSpace());
 Multiplication(c, SinSpace())
 ```
@@ -116,14 +118,14 @@ where ``f_0 = 0``.
 Operators can be algebraically manipulated, provided that the domain and range spaces are compatible, or can be made compatible.  As a simple example, we can add the second derivative of a Fourier space to the
 identity operator:
 
-```@repl using-pkgs
+```@repl
 D2 = Derivative(Fourier(),2)
 D2 + I
 ```
 
 When the domain and range space are not the same, the identity operator becomes a conversion operator.  That is, to represent `D+I` acting on the Chebyshev space, we would do the following:
 
-```@repl using-pkgs
+```@repl
 D = Derivative(Chebyshev())
 C = Conversion(Chebyshev(),Ultraspherical(1))
 D + C
@@ -139,7 +141,7 @@ Now consider the Fredholm integral operator of the second kind:
 
 We can construct this using
 
-```@repl using-pkgs
+```@repl
 x = Fun();
 Σ = DefiniteIntegral(Chebyshev())
 L = I + exp(x)*Σ
@@ -167,7 +169,7 @@ Note that `Σ*exp(x)` applies the operator to a function.  To construct the oper
 
 It is often more convenient to not specify a space explicitly, but rather infer it when the operator is used.  For example, we can construct `Derivative()`, which has the alias `𝒟`, and represents the first derivative on any space:
 
-```@repl using-pkgs
+```@repl
 f = Fun(cos,Chebyshev(0..1)); (𝒟*f)(0.1)
 f = Fun(cos,Fourier()); (𝒟*f)(0.1)
 ```
@@ -176,7 +178,7 @@ Behind the scenes, `Derivative()` is equivalent to `Derivative(UnsetSpace(),1)`.
 
 This promotion of the domain space happens even when operators have spaces attached.  This facilitates the following construction:
 
-```jldoctest; setup=:(using ApproxFun)
+```jldoctest
 julia> D = Derivative(Chebyshev());
 
 julia> D^2
