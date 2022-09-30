@@ -290,3 +290,7 @@ Multiplication
 ```@docs
 Neumann
 ```
+
+```@docs
+PartialInverseOperator
+```

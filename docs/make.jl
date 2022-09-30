@@ -29,8 +29,6 @@ for (example, included) in [
 end
 
 makedocs(
-            doctest = false,
-            clean = true,
             format = Documenter.HTML(),
             sitename = "ApproxFun.jl",
             authors = "Sheehan Olver",
