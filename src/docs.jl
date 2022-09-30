@@ -385,7 +385,7 @@ reverseorientation(::Fun)
     canonicalspace(s::Space)
 
 Return a space that is used as a default to implement missing functionality,
-e.g., evaluation.  Implement a `Conversion` operator or override `coefficients` to support this.
+e.g., evaluation.  Implement a [`Conversion`](@ref) operator or override `coefficients` to support this.
 
 # Examples
 ```jldoctest
@@ -454,7 +454,7 @@ itransform(::Space, ::AbstractVector)
 """
     evaluate(coefficients::AbstractVector, sp::Space, x)
 
-Evaluates the expansion at a point `x` that lies in `domain(sp)`.
+Evaluate the expansion at a point `x` that lies in `domain(sp)`.
 If `x` is not in the domain, the returned value will depend on the space,
 and should not be relied upon. See [`extrapolate`](@ref) to evaluate a function
 at a value outside the domain.
@@ -473,7 +473,7 @@ spacescompatible(::Space,::Space)
 """
     conversion_type(a::Space,b::Space)
 
-Return a `Space` that has a banded conversion operator to both `a` and `b`.
+Return a `Space` that has a banded [`conversion`](@ref) operator to both `a` and `b`.
 Override `ApproxFun.conversion_rule` when adding new `Conversion` operators.
 """
 conversion_type(::Space,::Space)
@@ -491,14 +491,14 @@ dimension(::Space)
 """
     Operator{T}
 
-is an abstract type to represent linear operators between spaces.
+Abstract type to represent linear operators between spaces.
 """
 Operator
 
 """
     domainspace(op::Operator)
 
-gives the domain space of `op`.  That is, `op*f` will first convert `f` to
+Return the domain space of `op`.  That is, `op*f` will first convert `f` to
 a `Fun` in the space `domainspace(op)` before applying the operator.
 """
 domainspace(::Operator)
@@ -506,7 +506,7 @@ domainspace(::Operator)
 """
     rangespace(op::Operator)
 
-gives the range space of `op`.  That is, `op*f` will return a `Fun` in the
+Return the range space of `op`.  That is, `op*f` will return a `Fun` in the
 space `rangespace(op)`, provided `f` can be converted to a `Fun` in
 `domainspace(op)`.
 """
@@ -546,7 +546,7 @@ choosedomainspace(::Operator,::Space)
 
 
 """
-    op[k,j]
+    (op::Operator)[k,j]
 
 Return the `k`th coefficient of `op*Fun([zeros(j-1);1],domainspace(op))`.
 """
@@ -554,9 +554,9 @@ getindex(::Operator,k,j)
 
 
 """
-    op[f::Fun]
+    (op::Operator)[f::Fun]
 
-constructs the operator `op * Multiplication(f)`, that is, it multiplies on the right
+Construct the operator `op * Multiplication(f)`, that is, it multiplies on the right
 by `f` first.  Note that `op * f` is different: it applies `op` to `f`.
 
 # Examples
@@ -567,10 +567,10 @@ Fun(Chebyshev(), [0.0, 1.0])
 julia> D = Derivative()
 ConcreteDerivative : ApproxFunBase.UnsetSpace() → ApproxFunBase.UnsetSpace()
 
-julia> D2 = D[x]
+julia> Dx = D[x] # construct the operator y -> d/dx * (x * y)
 TimesOperator : ApproxFunBase.UnsetSpace() → ApproxFunBase.UnsetSpace()
 
-julia> twox = D2 * x
+julia> twox = Dx * x # Evaluate d/dx * (x * x)
 Fun(Ultraspherical(1), [0.0, 1.0])
 
 julia> twox(0.1) ≈ 2 * 0.1
@@ -584,5 +584,8 @@ getindex(::Operator,::Fun)
     Conversion(fromspace::Space,tospace::Space)
 
 Represent a conversion operator between `fromspace` and `tospace`, when available.
+
+See also [`PartialInverseOperator`](@ref) that might be able to represent the inverse,
+even if this isn't banded.
 """
 Conversion(::Space,::Space)

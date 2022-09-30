@@ -176,7 +176,7 @@ Behind the scenes, `Derivative()` is equivalent to `Derivative(UnsetSpace(),1)`.
 
 This promotion of the domain space happens even when operators have spaces attached.  This facilitates the following construction:
 
-```jldoctest
+```jldoctest; setup=:(using ApproxFun)
 julia> D = Derivative(Chebyshev());
 
 julia> D^2
@@ -194,7 +194,7 @@ ConcreteDerivative : Chebyshev() → Ultraspherical(2)
  ⋅  ⋅   ⋅    ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋱
 ```
 
-Note that `rangespace(D) ≠ Chebyshev()`, hence the operators are not compatible.  Therefore, it has thrown away its domain space, and thus this is equivalent to `Derivative(rangespace(D))*D`.
+Note that `rangespace(D) ≠ Chebyshev()`, hence the operators are not compatible.  Therefore, it has thrown away its domain space, and thus this is equivalent to `Derivative(rangespace(D))*D`.
 
 ## Concatenating operators
 

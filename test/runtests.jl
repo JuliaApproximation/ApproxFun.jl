@@ -7,10 +7,12 @@ using Aqua
 end
 
 using Documenter
+DocMeta.setdocmeta!(ApproxFunBase, :DocTestSetup, :(using ApproxFun); recursive=true)
 DocMeta.setdocmeta!(ApproxFun, :DocTestSetup, :(using ApproxFun); recursive=true)
 
 @testset "doctests" begin
-    doctest(ApproxFun, manual = false)
+    doctest(ApproxFun)
+    doctest(ApproxFunBase, manual=false)
 end
 
 include("ReadmeTest.jl")
@@ -186,13 +188,12 @@ end
     @test minimum(r) ≥ -5
 end
 
-f=Fun(exp)
-x=sample(f,100000)
-x=sample(f,100000)
-@time x=sample(f,100000)
-println("Sample: Time should be ~0.13")
-
-
+@testset "sample" begin
+    f=Fun(exp)
+    x=sample(f,100000)
+    x=sample(f,100000)
+    @time x=sample(f,100000)
+end
 
 @testset "Null space" begin
     d=ChebyshevInterval()
