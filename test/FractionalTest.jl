@@ -1,4 +1,9 @@
-using ApproxFun, Test
+module FractionalTest
+
+using ApproxFun
+using Test
+using LinearAlgebra
+using SpecialFunctions
 using ApproxFunBaseTest: testfunctional, testbandedoperator
 
 @testset "Fractional" begin
@@ -137,3 +142,5 @@ using ApproxFunBaseTest: testfunctional, testbandedoperator
 
     @test norm(y-exp((1+x)/2)*erfc(sqrt(1+x))) < 100eps()
 end
+
+end # module

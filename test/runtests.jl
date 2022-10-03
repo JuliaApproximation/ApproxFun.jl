@@ -1,6 +1,11 @@
-using ApproxFun, Random, Test
-using ApproxFunBase: testbandedblockbandedoperator, blocklengths, ∞
-using BlockBandedMatrices: blockbandwidths, subblockbandwidths
+using ApproxFun
+using Random
+using Test
+using LinearAlgebra
+using SpecialFunctions
+using ApproxFunBase
+using ApproxFunBase: blocklengths, ∞, blockbandwidths, subblockbandwidths
+using ApproxFunBaseTest: testbandedblockbandedoperator
 
 using Aqua
 @testset "Project quality" begin
