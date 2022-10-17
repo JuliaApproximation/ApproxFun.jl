@@ -215,6 +215,9 @@ chop(::Fun, ::Any)
 LowRankFun
 ```
 
+```@docs
+ProductFun
+```
 
 ## Operators
 
