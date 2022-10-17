@@ -1,8 +1,8 @@
 using ApproxFun, Test
-    import ApproxFunBase: testfunctional, testbandedoperator
+using ApproxFunBaseTest: testfunctional, testbandedoperator
 
 @testset "Fractional" begin
-    @testset "Jupyer example" begin
+    @testset "Jupyter example" begin
         S = Legendre() ⊕ JacobiWeight(0.5,0.,Ultraspherical(1))
         @time Q½ = LeftIntegral(S,0.5)
         @time testbandedoperator(Q½)
@@ -109,8 +109,8 @@ using ApproxFun, Test
 
     ## Test for bug
 
-    QL = LeftIntegral(0.5)	: Legendre()					→	JacobiWeight(0.5,0.,Ultraspherical(1))
-    QU = LeftIntegral(0.5)	: JacobiWeight(0.5,0.,Ultraspherical(1))	→	Legendre()
+    QL = LeftIntegral(0.5)	: Legendre() →	JacobiWeight(0.5,0.,Ultraspherical(1))
+    QU = LeftIntegral(0.5)	: JacobiWeight(0.5,0.,Ultraspherical(1)) → Legendre()
 
 
     λ=0.25

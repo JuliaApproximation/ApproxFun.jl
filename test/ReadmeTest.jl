@@ -1,4 +1,7 @@
-using ApproxFun, SpecialFunctions, LinearAlgebra, Test
+using ApproxFun
+using SpecialFunctions
+using LinearAlgebra
+using Test
 
 const EXAMPLES_DIR = joinpath(dirname(dirname(pathof(ApproxFun))), "examples")
 

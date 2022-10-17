@@ -1,4 +1,7 @@
-using ApproxFun, ApproxFunOrthogonalPolynomials, Test, FFTW
+using ApproxFun
+using ApproxFunOrthogonalPolynomials
+using Test
+using FFTW
 
 @testset "BigFloat" begin
     @testset "BigFloat constructor" begin
