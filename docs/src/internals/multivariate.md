@@ -1,3 +1,5 @@
+# Multivariate functions
+
 Bivariate functions can also be represented in ApproxFun.  For example,
 
 ```julia

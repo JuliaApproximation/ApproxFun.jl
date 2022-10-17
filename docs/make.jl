@@ -50,6 +50,11 @@ makedocs(
                         "generated/Eigenvalue.md",
                         "generated/NonlinearBVP.md",
                     ],
+                    "Internals" => [
+                        "internals/multivariate.md",
+                        "internals/blocks.md",
+                        "internals/spaces.md",
+                    ],
                     "Frequently Asked Questions" => "faq.md",
                     "Library" => "library.md"
                 ]
