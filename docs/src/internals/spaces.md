@@ -1,3 +1,5 @@
+# Spaces
+
 ## UnsetSpace
 
 `UnsetSpace` is used to indicate that an operator has not had spaces specified.
