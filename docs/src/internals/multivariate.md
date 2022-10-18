@@ -14,14 +14,18 @@ In the example above, the resulting space is a [`TensorSpace`](@ref).
 
 ## AbstractProductSpace
 
-A `TensorSpace` is a subtype of `AbstractProductSpace`.  The purpose of `AbstractProductSpace`s beyond `TensorSpace` is that it is often convenient to use different bases in one-dimension depending on the order.  Thus we want to be able to represent functions in the basis `φ_k^j(x)ζ_j(y)`: for example, we could have the basis `(1-x^2)^j P_k^{(j,j)}(x) e^{ijy}` which is related to spherical harmonics, where `P_k^{(a,b)}` are the Jacobi polynomials.
+A `TensorSpace` is a subtype of `AbstractProductSpace`.  The purpose of `AbstractProductSpace`s beyond `TensorSpace` is that it is often convenient to use different bases in one-dimension depending on the order.  Thus we want to be able to represent functions in the basis `φ_k^j(x)ζ_j(y)`: for example, we could have the basis
+```math
+(1-x^2)^{m/2} \mathrm{P}_k^{(m,m)}(x) e^{imy}
+```
+(which is related to spherical harmonics), where ``\mathrm{P}_k^{(m,m)}(x)`` are Jacobi polynomials.
 
-To handle this more general setting, an `AbstractProductSpace` implements `ApproxFunBase.columnspace`:  In the `(1-x^2)^j P_k^{(j,j)}(x) e^{ijy}` example, we would have
+To handle this more general setting, an `AbstractProductSpace` implements `ApproxFunBase.columnspace`:  In the `(1-x^2)^(m/2) P_k^{(m,m)}(x) e^{imy}` example, we would have
 
 ```julia
 columnspace(myproductspace,1)  ==  JacobiWeight(0,0,Legendre()),
-columnspace(myproductspace,2)  ==  JacobiWeight(1,1,Jacobi(1,1)),
-columnspace(myproductspace,k)  ==  JacobiWeight(k-1,k-1,Jacobi(k-1,k-1))
+columnspace(myproductspace,2)  ==  JacobiWeight(0.5,0.5,Jacobi(1,1)),
+columnspace(myproductspace,k)  ==  JacobiWeight((k-1)/2,(k-1)/2,Jacobi(k-1,k-1))
 ```
 
 The basis is then interlaced as in `TensorSpace`.
