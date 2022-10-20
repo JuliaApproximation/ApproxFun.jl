@@ -1,5 +1,5 @@
 using ApproxFun, Random, Test
-import ApproxFunBase: testbandedblockbandedoperator, blocklengths, ∞
+using ApproxFunBase: testbandedblockbandedoperator, blocklengths, ∞
 
 using Aqua
 @testset "Project quality" begin
