@@ -27,7 +27,7 @@ The absolute value is another case where the space of the output is inferred fro
 ```@meta
 DocTestFilters = r"ContinuousSpace{Float64, Float64}\(PiecewiseSegment{Float64}\(\[[0-9,\.\s\-]+\]\)\)"
 ```
-```jldoctest
+```jldoctest abs_space
 julia> f = Fun(x->cospi(5x),-1..1);
 
 julia> g = abs(f);
@@ -37,19 +37,22 @@ Chebyshev(-1..1)
 
 julia> space(g)
 ContinuousSpace{Float64, Float64}(PiecewiseSegment{Float64}([-1.0, -0.9, -0.7000000000000014, -0.5000000000000008, -0.2999999999999996, -0.10000000000000027, 0.09999999999999978, 0.29999999999999993, 0.4999999999999999, 0.6999999999999998, 0.9, 1.0]))
-
+```
+```@meta
+DocTestFilters = nothing
+```
+We may check that the domain corresponds to segments separated by the roots of `f`, and the space is
+that of continuous functions over the piecewise domain:
+```jldoctest abs_space
 julia> p = [-1; roots(f); 1];
 
-julia> segments = [Segment(x,y) for (x,y) in zip(p[1:end-1], p[2:end])];
+julia> segments = @views [Segment(x,y) for (x,y) in zip(p[1:end-1], p[2:end])];
 
 julia> components(domain(g)) == segments
 true
 
 julia> space(g) == ContinuousSpace(PiecewiseSegment(reverse(segments)))
 true
-```
-```@meta
-DocTestFilters = nothing
 ```
 
 ## Convenience constructors
