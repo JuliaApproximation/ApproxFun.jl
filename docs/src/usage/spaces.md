@@ -187,9 +187,8 @@ julia> x = Fun(identity, -1..1);
 
 julia> f = [exp(x); sqrt(1-x^2)*cos(x-0.1)];
 
-julia> space(f)
-2-element ArraySpace:
-Space{ClosedInterval{Int64}, Float64}[Chebyshev(-1..1), (1-x^2)^0.5[Chebyshev(-1..1)]]
+julia> space(f) isa ApproxFun.ArraySpace
+true
 
 julia> a, b = components(f);
 

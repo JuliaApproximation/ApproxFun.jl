@@ -37,7 +37,10 @@ As another example, consider the Fredholm integral equation
 
 We can solve this equation as follows:
 
-```jldoctest
+```@meta
+DocTestFilters = r"[0-9\.]+"
+```
+```jldoctest fredholm
 julia> Σ = DefiniteIntegral(Chebyshev());
 
 julia> x = Fun();
@@ -46,6 +49,9 @@ julia> u = (I+exp(x)*Σ[cos(x)]) \ cos(exp(x));
 
 julia> u(0.1)
 0.21864294855628819
+```
+```@meta
+DocTestFilters = nothing
 ```
 
 !!! note
@@ -96,8 +102,8 @@ julia> x = Fun();
 
 julia> u = [Evaluation(-1); Evaluation(1); ϵ*𝒟^2-x*𝒟+I] \ [1,2,0];
 
-julia> u(0.1)
-0.04999999999996016
+julia> u(0.1) ≈ 0.05 # compare with the analytical solution
+true
 ```
 
 !!! note
@@ -108,8 +114,8 @@ This ODE can also be solved using the [`Dirichlet`](@ref) operator:
 ```jldoctest twopt
 julia> u = [Dirichlet(); ϵ*𝒟^2-x*𝒟+I] \ [[1,2],0];
 
-julia> u(0.1)
-0.04999999999996017
+julia> u(0.1) ≈ 0.05 # compare with the analytical solution
+true
 ```
 
 ## QR Factorization
