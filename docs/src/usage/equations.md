@@ -14,11 +14,17 @@ Linear equations such as ordinary and partial differential equations, fractional
 
 where we want a solution that is periodic on ``[0,2π)``.  This can be solved succinctly as follows:
 
-```@repl
-b = Fun(cos,Fourier());
-c = 0.1; u = (𝒟+c*I) \ b;
-u(0.6)
-(c*cos(0.6)+sin(0.6)) / (1+c^2)  # exact solution
+```jldoctest
+julia> b = Fun(cos, Fourier());
+
+julia> c = 0.1;
+
+julia> u = (𝒟 + c*I) \ b;
+
+julia> t = 0.6; # choose a point to verify the solution
+
+julia> u(t) ≈ (c*cos(t)+sin(t)) / (1+c^2) # exact solution
+true
 ```
 
 Recall that `𝒟` is an alias to `Derivative() == Derivative(UnsetSpace(),1)`.
@@ -31,13 +37,19 @@ As another example, consider the Fredholm integral equation
 
 We can solve this equation as follows:
 
-```@repl
-Σ = DefiniteIntegral(Chebyshev()); x = Fun();
-u = (I+exp(x)*Σ[cos(x)]) \ cos(exp(x));
-u(0.1)
+```jldoctest
+julia> Σ = DefiniteIntegral(Chebyshev());
+
+julia> x = Fun();
+
+julia> u = (I+exp(x)*Σ[cos(x)]) \ cos(exp(x));
+
+julia> u(0.1)
+0.21864294855628819
 ```
 
-Note that we used the syntax `op[f::Fun]`, which is a shorthand for `op*Multiplication(f)`.
+!!! note
+    We used the syntax `op[f::Fun]`, which is a shorthand for `op * Multiplication(f)`.
 
 ## Boundary conditions
 
@@ -52,11 +64,16 @@ Incorporating boundary conditions into differential equations is important so th
 
 To pose this in ApproxFun, we want to find a `u` such that `Evaluation(0)*u == 1` and `(𝒟 - t)*u == 0`.  This is accomplished via:
 
-```@repl
-t = Fun(0..1);
-u = [Evaluation(0); 𝒟-t] \ [1;0];
-u(0)
-norm(u'-t*u)
+```jldoctest
+julia> t = Fun(0..1);
+
+julia> u = [Evaluation(0); 𝒟-t] \ [1;0];
+
+julia> u(0) ≈ 1
+true
+
+julia> norm(u'-t*u) < eps()
+true
 ```
 
 Behind the scenes, the `Vector{Operator{T}}` representing the functionals and operators are combined into a single `InterlaceOperator`.
@@ -72,23 +89,27 @@ A common usage is two-point boundary value problems. Consider the singularly per
 
 This can be solved in ApproxFun via:
 
-```@repl
-ϵ = 1/70; x = Fun();
-u = [Evaluation(-1);
-     Evaluation(1);
-     ϵ*𝒟^2-x*𝒟+I] \ [1,2,0];
-u(0.1)
+```jldoctest twopt
+julia> ϵ = 1/70;
+
+julia> x = Fun();
+
+julia> u = [Evaluation(-1); Evaluation(1); ϵ*𝒟^2-x*𝒟+I] \ [1,2,0];
+
+julia> u(0.1)
+0.04999999999996016
 ```
 
-Note in this case the space is inferred from the variable coefficient `x`.
+!!! note
+    In this case the space is inferred from the variable coefficient `x`.
 
-This ODE can also be solved using the `Dirichlet` operator:
+This ODE can also be solved using the [`Dirichlet`](@ref) operator:
 
-```@repl
-x = Fun();
-u = [Dirichlet();
-     1/70*𝒟^2-x*𝒟+I] \ [[1,2],0];
-u(0.1)
+```jldoctest twopt
+julia> u = [Dirichlet(); ϵ*𝒟^2-x*𝒟+I] \ [[1,2],0];
+
+julia> u(0.1)
+0.04999999999996017
 ```
 
 ## QR Factorization
