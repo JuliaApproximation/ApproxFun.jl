@@ -136,4 +136,13 @@ using DualNumbers
         @test cumsum(d).J*Fun() ≈ Fun(x -> (x^2-1)/2)
         @test cumsum(d*d).J*Fun(1) ≈ cumsum(2d).f ≈ Fun(x -> x^2-1)
     end
+
+    @testset "real-imag" begin
+        A = (3 + 2im) * I : Chebyshev()
+        @test real(A)[1:4, 1:4] == diagm(0=>fill(3,4))
+        @test imag(A)[1:4, 1:4] == diagm(0=>fill(2,4))
+        A = (3 - 2im) * I : Chebyshev()
+        @test real(A)[1:4, 1:4] == diagm(0=>fill(3,4))
+        @test imag(A)[1:4, 1:4] == diagm(0=>fill(-2,4))
+    end
 end

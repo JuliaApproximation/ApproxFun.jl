@@ -6,7 +6,7 @@ struct ReOperator{O,T} <: Operator{T}
     op::O
 end
 
-ReOperator(op)=ReOperator{typeof(op),Float64}(op)
+ReOperator(op)=ReOperator{typeof(op),real(eltype(op))}(op)
 convert(::Type{Operator{T}},R::ReOperator) where {T} = ReOperator{typeof(R.op),T}(R.op)
 
 @wrapperstructure ReOperator
@@ -32,3 +32,4 @@ end
 # TODO: can't do this because UnsetSpace might change type
 #real{T<:Real}(op::Operator{T})=op
 real(op::Operator) = ReOperator(op)
+imag(op::Operator) = real(-im * op)
