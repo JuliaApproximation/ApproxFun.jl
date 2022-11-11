@@ -60,7 +60,7 @@ import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC
 
 import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, !=, eltype, iterate,
                 >=, /, ^, \, ∪, transpose, size, tail, broadcast, broadcast!, copyto!, copy, to_index, (:),
-                similar, map, vcat, hcat, hvcat, show, summary, stride, sum, cumsum, sign, imag, conj, inv,
+                similar, map, vcat, hcat, hvcat, show, summary, stride, sum, cumsum, sign, conj, inv,
                 complex, reverse, exp, sqrt, abs, abs2, sign, issubset, values, in, first, last, rand, intersect, setdiff,
                 isless, union, angle, join, isnan, isapprox, isempty, sort, merge, promote_rule,
                 minimum, maximum, extrema, argmax, argmin, findmax, findmin, isfinite,

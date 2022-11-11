@@ -33,3 +33,4 @@ end
 #real{T<:Real}(op::Operator{T})=op
 real(op::Operator) = ReOperator(op)
 imag(op::Operator) = real(-im * op)
+conj(op::Operator) = real(op) - im * imag(op)

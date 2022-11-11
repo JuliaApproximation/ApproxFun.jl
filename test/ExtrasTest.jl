@@ -141,8 +141,10 @@ using DualNumbers
         A = (3 + 2im) * I : Chebyshev()
         @test real(A)[1:4, 1:4] == diagm(0=>fill(3,4))
         @test imag(A)[1:4, 1:4] == diagm(0=>fill(2,4))
+        @test conj(A)[1:4, 1:4] == conj(A[1:4, 1:4])
         A = (3 - 2im) * I : Chebyshev()
         @test real(A)[1:4, 1:4] == diagm(0=>fill(3,4))
         @test imag(A)[1:4, 1:4] == diagm(0=>fill(-2,4))
+        @test conj(A)[1:4, 1:4] == conj(A[1:4, 1:4])
     end
 end
