@@ -20,7 +20,7 @@ SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 
 [compat]
 AbstractFFTs = "1.0"
-ApproxFunBase = "0.7"
+ApproxFunBase = "0.7.29"
 ApproxFunBaseTest = "0.1"
 ApproxFunFourier = "0.3"
 ApproxFunOrthogonalPolynomials = "0.5"
