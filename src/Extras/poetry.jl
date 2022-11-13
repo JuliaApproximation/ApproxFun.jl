@@ -3,7 +3,7 @@
 #####
 
 
-export chebyshevt, chebyshevu, legendre, ∫, ⨜, ⨍, ChebyshevWeight, 𝕀, 𝕌, 𝒟
+export chebyshevt, chebyshevu, legendre, ChebyshevWeight, 𝕀, 𝕌
 
 ## Chebyshev & Legendre polynomials
 
@@ -26,26 +26,8 @@ ChebyshevWeight(d)=ChebyshevWeight(d,0)
 ChebyshevWeight(k::Integer)=ChebyshevWeight(Segment(),k)
 ChebyshevWeight()=ChebyshevWeight(0)
 
-
-
-## diff
-∫(f::Fun)=integrate(f)
-⨜(f::Fun)=cumsum(f)
-
-for OP in (:Σ,:∮,:⨍,:⨎)
-    @eval $OP(f::Fun)=sum(f)
-end
-
-∇(F::MultivariateFun) = grad(F)
-dot(∇::Function,F::Vector{M}) where {M<:MultivariateFun} = div(F)
-cross(∇::Function,F::Vector{M}) where {M<:MultivariateFun} = curl(F)
-
-
 ## Domains
 
 const 𝕀 = ChebyshevInterval()
 const ℝ = Line()
 const 𝕌 = Circle()
-
-𝒟 = Derivative()
-Δ = Laplacian()
