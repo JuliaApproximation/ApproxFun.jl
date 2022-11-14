@@ -50,7 +50,7 @@ import ApproxFunBase: normalize!, flipsign, FiniteRange, Fun, MatrixFun, UnsetSp
                     AbstractProductSpace, MultivariateFun, BivariateSpace,
                     @wrapperstructure, @wrapperspaces, @wrapper, @calculus_operator, resizedata!, slnorm,
                     sample, chop!, isbanded, colrange, bandwidth,
-                    ∇, 𝒟, Δ, ∫, Σ, ∮, ⨍, ⨎
+                    ∇, 𝒟, Δ, ∫, ⨜, Σ, ∮, ⨍, ⨎
 
 export ∫, ⨜, ⨍, 𝒟
 
