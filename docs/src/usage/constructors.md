@@ -35,7 +35,7 @@ Chebyshev(-1..1)
 julia> space(g) isa ContinuousSpace # Piecewise continous functions
 true
 
-julia> domain(g) isa PiecewiseSegment # Segments interspersed by the roots of `f`
+julia> domain(g) isa PiecewiseSegment # Segments interspersed by the roots of f
 true
 ```
 We may check that the domain corresponds to segments separated by the roots of `f`, and the space is
