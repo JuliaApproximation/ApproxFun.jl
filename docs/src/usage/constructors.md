@@ -24,9 +24,6 @@ julia> space(g)  # Output is pretty version of JacobiWeight(-0.5, -0.5, -1..1)
 
 The absolute value is another case where the space of the output is inferred from the operation:
 
-```@meta
-DocTestFilters = r"ContinuousSpace{Float64, Float64}\(PiecewiseSegment{Float64}\(\[[0-9,\.\s\-]+\]\)\)"
-```
 ```jldoctest abs_space
 julia> f = Fun(x->cospi(5x),-1..1);
 
@@ -35,11 +32,11 @@ julia> g = abs(f);
 julia> space(f)
 Chebyshev(-1..1)
 
-julia> space(g)
-ContinuousSpace{Float64, Float64}(PiecewiseSegment{Float64}([-1.0, -0.9, -0.7000000000000014, -0.5000000000000008, -0.2999999999999996, -0.10000000000000027, 0.09999999999999978, 0.29999999999999993, 0.4999999999999999, 0.6999999999999998, 0.9, 1.0]))
-```
-```@meta
-DocTestFilters = nothing
+julia> space(g) isa ContinuousSpace # Piecewise continous functions
+true
+
+julia> domain(g) isa PiecewiseSegment # Segments interspersed by the roots of f
+true
 ```
 We may check that the domain corresponds to segments separated by the roots of `f`, and the space is
 that of continuous functions over the piecewise domain:
