@@ -1,5 +1,6 @@
 using ApproxFun, Random, Test
 using ApproxFunBase: testbandedblockbandedoperator, blocklengths, ∞
+using BlockBandedMatrices: blockbandwidths, subblockbandwidths
 
 using Aqua
 @testset "Project quality" begin
@@ -99,8 +100,8 @@ end
 
     sp = Space(dom)
     Dr = Derivative(sp, [1,0])
-    @test ApproxFunBase.blockbandwidths(Dr) == (-1,1)
-    @test ApproxFunBase.subblockbandwidths(Dr)  == (1,3)
+    @test blockbandwidths(Dr) == (-1,1)
+    @test subblockbandwidths(Dr)  == (1,3)
 
     Dθ = Derivative(sp, [0,1])
     Mr = Multiplication(Fun( (r, θ) -> r, sp ), sp)

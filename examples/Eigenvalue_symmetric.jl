@@ -10,6 +10,7 @@
 
 using ApproxFun
 using LinearAlgebra
+using BandedMatrices
 
 # Define parameters
 ω = 25.0
@@ -32,7 +33,7 @@ R = D1*Q;
 # This inversion is computed approximately, such that
 # ``\mathrm{C}^{-1} \mathrm{C} ≈ \mathrm{I}`` up to a certain bandwidth
 C = Conversion(domainspace(L), rangespace(L))
-P = cache(PartialInverseOperator(C, (0, ApproxFun.bandwidth(L, 1) + ApproxFun.bandwidth(R, 1) + ApproxFun.bandwidth(C, 2))));
+P = cache(PartialInverseOperator(C, (0, bandwidth(L, 1) + bandwidth(R, 1) + bandwidth(C, 2))));
 
 A = R'D1*P*L*D2*R
 B = R'R;

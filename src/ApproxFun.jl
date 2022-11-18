@@ -10,84 +10,53 @@ import Calculus
 @reexport using ApproxFunOrthogonalPolynomials
 @reexport using ApproxFunSingularities
 
-import ApproxFunBase: normalize!, flipsign, FiniteRange, Fun, MatrixFun, UnsetSpace, VFun, RowVector,
-                    UnivariateSpace, AmbiguousSpace, SumSpace, SubSpace, WeightSpace, NoSpace, Space,
-                    HeavisideSpace, PointSpace,
-                    IntervalOrSegment, RaggedMatrix, AlmostBandedMatrix,
-                    AnyDomain, ZeroSpace, ArraySpace, TrivialInterlacer, BlockInterlacer,
-                    AbstractTransformPlan, TransformPlan, ITransformPlan,
-                    ConcreteConversion, ConcreteMultiplication, ConcreteDerivative, ConcreteIntegral, CalculusOperator,
-                    ConcreteVolterra, Volterra, VolterraWrapper,
-                    MultiplicationWrapper, ConversionWrapper, DerivativeWrapper, Evaluation, EvaluationWrapper,
-                    Conversion, defaultConversion, defaultcoefficients, default_Fun, Multiplication, Derivative, Integral, bandwidths,
-                    ConcreteEvaluation, ConcreteDefiniteLineIntegral, ConcreteDefiniteIntegral, ConcreteIntegral,
-                    DefiniteLineIntegral, DefiniteIntegral, ConcreteDefiniteIntegral, ConcreteDefiniteLineIntegral, IntegralWrapper,
-                    ReverseOrientation, ReverseOrientationWrapper, ReverseWrapper, Reverse, NegateEven,
-                    Dirichlet, ConcreteDirichlet, DirichletWrapper,
-                    TridiagonalOperator, SubOperator, Space, @containsconstants, spacescompatible,
-                    hasfasttransform, canonicalspace, domain, setdomain, prectype, domainscompatible,
-                    plan_transform, plan_itransform, plan_transform!, plan_itransform!, transform, itransform, hasfasttransform,
-                    CanonicalTransformPlan, ICanonicalTransformPlan,
-                    Integral,
-                    domainspace, rangespace, boundary,
-                    union_rule, conversion_rule, maxspace_rule, conversion_type, maxspace, hasconversion, points,
-                    rdirichlet, ldirichlet, lneumann, rneumann, ivp, bvp,
-                    linesum, differentiate, integrate, linebilinearform, bilinearform,
-                    UnsetNumber, coefficienttimes, subspace_coefficients, sumspacecoefficients, specialfunctionnormalizationpoint,
-                    Segment, IntervalOrSegmentDomain, PiecewiseSegment, isambiguous, Vec, eps, isperiodic,
-                    arclength, complexlength,
-                    invfromcanonicalD, fromcanonical, tocanonical, fromcanonicalD, tocanonicalD, canonicaldomain, setcanonicaldomain, mappoint,
-                    reverseorientation, checkpoints, evaluate, mul_coefficients, coefficients, coefficientmatrix, isconvertible,
-                    clenshaw, ClenshawPlan, sineshaw,
-                    toeplitz_getindex, toeplitz_axpy!, sym_toeplitz_axpy!, hankel_axpy!, ToeplitzOperator, SymToeplitzOperator, hankel_getindex,
-                    SpaceOperator, ZeroOperator, InterlaceOperator,
-                    interlace!, reverseeven!, negateeven!, cfstype, pad!, alternatesign!, mobius,
-                    extremal_args, hesseneigvals, chebyshev_clenshaw, recA, recB, recC, roots,splitatroots,
-                    chebmult_getindex, intpow, alternatingsum,
-                    domaintype, diagindshift, rangetype, weight, isapproxinteger, default_Dirichlet, scal!, dotu,
-                    components, promoterangespace, promotedomainspace, choosedomainspace,
-                    block, blockstart, blockstop, blocklengths, isblockbanded, pointscompatible,
+import ApproxFunBase: Fun, UnsetSpace, VFun, UnivariateSpace, SumSpace, Space,
+                    HeavisideSpace, PointSpace, IntervalOrSegment, ArraySpace,
+                    TransformPlan, ITransformPlan, Evaluation,
+                    Conversion, default_Fun, Derivative, Integral,
+                    Dirichlet, domain, plan_transform,
+                    plan_itransform, transform, domainspace,
+                    rangespace, boundary, points, differentiate, integrate,
+                    Segment, arclength, fromcanonical, checkpoints, evaluate,
+                    coefficients, coefficientmatrix, clenshaw, ClenshawPlan,
+                    SpaceOperator, InterlaceOperator, cfstype, pad!,
+                    isapproxinteger, components, promotedomainspace, choosedomainspace,
                     AbstractProductSpace, MultivariateFun, BivariateSpace,
-                    @wrapperstructure, @wrapperspaces, @wrapper, @calculus_operator, resizedata!, slnorm,
-                    sample, chop!, isbanded, colrange, bandwidth,
-                    ∇, 𝒟, Δ, ∫, ⨜, Σ, ∮, ⨍, ⨎
+                    @calculus_operator, slnorm, sample, chop!, 𝒟, ∫, ⨜, ⨍
 
 export ∫, ⨜, ⨍, 𝒟
 
 import ApproxFunOrthogonalPolynomials: order
 
+import BandedMatrices: bandwidths
 
 import AbstractFFTs: Plan, fft, ifft
-import FFTW: plan_r2r!, fftwNumber, REDFT10, REDFT01, REDFT00, RODFT00, R2HC, HC2R,
-                r2r!, r2r,  plan_fft, plan_ifft, plan_ifft!, plan_fft!
+import FFTW: plan_fft, plan_ifft, plan_ifft!
 
-import Base: values, convert, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, !=, eltype, iterate,
-                >=, /, ^, \, ∪, transpose, size, tail, broadcast, broadcast!, copyto!, copy, to_index, (:),
-                similar, map, vcat, hcat, hvcat, show, summary, stride, sum, cumsum, sign, conj, inv,
-                complex, reverse, exp, sqrt, abs, abs2, sign, issubset, values, in, first, last, rand, intersect, setdiff,
-                isless, union, angle, join, isnan, isapprox, isempty, sort, merge, promote_rule,
-                minimum, maximum, extrema, argmax, argmin, findmax, findmin, isfinite,
-                zeros, zero, one, promote_rule, repeat, length, resize!, isinf,
-                getproperty, findfirst, unsafe_getindex, fld, cld, div, real, imag,
-                @_inline_meta, eachindex, firstindex, lastindex, keys, isreal, OneTo,
-                Array, Vector, Matrix, view, ones, @propagate_inbounds, print_array,
-                split
+import Base: convert, getindex, *, +, -, /, ^, \, sum, cumsum,
+                first, last, isempty, zeros, promote_rule, real,
+                # the following functions names are listed in Calculus.symbolic_derivatives_1arg(),
+                # and methods are added to them here
+                sqrt, cbrt, abs2, inv, log, log10, log2, log1p,
+                exp, exp2, expm1, sin, cos, tan, sec, csc, cot,
+                sind, cosd, tand, secd, cscd, cotd, asin, acos, atan, asec, acsc, acot,
+                asind, acosd, atand, asecd, acscd, acotd, sinh, cosh, tanh, sech, csch,
+                coth, asinh, acosh, atanh, asech, acsch, acoth, deg2rad, rad2deg
 
-import Base.Broadcast: BroadcastStyle, Broadcasted, AbstractArrayStyle, broadcastable,
-                        DefaultArrayStyle, broadcasted
+import LinearAlgebra: eigvals, dot, adjoint
 
-
-
-import LinearAlgebra: BlasInt, BlasFloat, norm, ldiv!, mul!, det, eigvals, dot, cross,
-                        qr, qr!, rank, isdiag, istril, istriu, issymmetric, ishermitian,
-                        Tridiagonal, diagm, diagm_container, factorize, nullspace,
-                        Hermitian, Symmetric, adjoint, transpose, char_uplo
+import SpecialFunctions: erf, erfinv, erfc, erfcinv, erfi, gamma, lgamma, digamma, invdigamma,
+                trigamma, airyai, airybi, airyaiprime, airybiprime, besselj0, besselj1,
+                bessely0, bessely1, erfcx, dawson
 
 # import Arpack: eigs
 
 
-import FastTransforms: ChebyshevTransformPlan, IChebyshevTransformPlan, plan_chebyshevtransform,
-                        plan_chebyshevtransform!, plan_ichebyshevtransform, plan_ichebyshevtransform!
+import FastTransforms: ChebyshevTransformPlan, plan_chebyshevtransform,
+                        plan_chebyshevtransform!, plan_ichebyshevtransform,
+                        plan_ichebyshevtransform!
+
+using StaticArrays: SVector
 
 """
 `Curve` Represents a domain defined by the image of a Fun.  Example
@@ -105,11 +74,6 @@ Curve(f::Fun{<:Space{<:PeriodicDomain}}) = PeriodicCurve(f)
 Curve(f::Fun{<:Space{<:ChebyshevInterval}}) = IntervalCurve(f)
 
 export Curve
-
-
-
-import Base: view
-
 
 ##Testing
 export bisectioninv

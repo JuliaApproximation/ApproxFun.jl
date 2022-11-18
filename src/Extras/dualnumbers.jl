@@ -71,10 +71,7 @@ function dualFun(f,S,n)
 end
 
 function dualcfsFun(f,S)
-    T = float(eltype(domain(S)))
-    if T <: Complex
-        T = T.parameters[1] #get underlying real representation
-    end
+    T = real(float(eltype(domain(S))))
     r=checkpoints(S)
     f0=f(first(r))
 
@@ -82,7 +79,7 @@ function dualcfsFun(f,S)
         return dualcfsFun(f,Space(fill(S,size(f0))))
     end
 
-    tol =T==Any ? 100eps() : 100eps(T)
+    tol = 100eps(T)
 
 
     fr=typeof(f0)[f(x) for x=r]
