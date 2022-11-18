@@ -18,7 +18,7 @@ L = [Dirichlet(d); Laplacian()+100I];
 
 # We compute the QR decomposition of the operator to speed up the solution
 Q = qr(L);
-ApproxFun.resizedata!(Q,:,4000);
+ApproxFunBase.resizedata!(Q,:,4000);
 
 # The boundary condition is a function that is equal to one on each edge
 boundary_cond = ones(∂(d));
