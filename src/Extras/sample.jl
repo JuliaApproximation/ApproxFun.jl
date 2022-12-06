@@ -5,7 +5,7 @@ export samplecdf,normalizedcumsum!
 ##bisection inverse
 
 
-bisectioninv(f::Fun{S,T},x::Real;opts...) where {S,T} = first(bisectioninv(f,[x];opts...))
+bisectioninv(f::Fun, x::Real; opts...) = first(bisectioninv(f,[x];opts...))
 
 # gives a generalization of midpoint for when `a` or `b` is infinite
 function genmidpoint(a::T,b::T) where T
@@ -20,7 +20,7 @@ function genmidpoint(a::T,b::T) where T
     end
 end
 
-function bisectioninv(f::Fun{S,T},x::Float64;numits::Int=47) where {S,T}
+function bisectioninv(f::Fun, x::Float64; numits::Int=47)
     d=domain(f)
     a = minimum(d);b = maximum(d)
 
@@ -33,7 +33,7 @@ function bisectioninv(f::Fun{S,T},x::Float64;numits::Int=47) where {S,T}
     .5*(a+b)
 end
 
-bisectioninv(f::Fun{S,T},x::AbstractVector;opts...) where {S,T} = Float64[bisectioninv(f,xx;opts...) for xx in x]
+bisectioninv(f::Fun, x::AbstractVector; opts...) = Float64[bisectioninv(f,xx;opts...) for xx in x]
 
 
 ## Clenshaw bisection
@@ -54,7 +54,10 @@ end
 
 chebbisectioninv(c::AbstractVector{Float64},xl::AbstractVector{Float64}) =
     (n=length(xl);chebbisectioninv(c,xl,ClenshawPlan(Float64,Chebyshev(),length(c),n)))
-function chebbisectioninv(c::AbstractVector{Float64},xl::AbstractVector{Float64},plan::ClenshawPlan{Chebyshev{D,R},Float64}) where {D<:Domain,R}
+
+function chebbisectioninv(c::AbstractVector{Float64}, xl::AbstractVector{Float64},
+        plan::ClenshawPlan{<:Chebyshev,Float64})
+
     n = length(xl)
     a = -fill(1.0,n)
     b = fill(1.0,n)
@@ -73,9 +76,12 @@ end
 
 
 #here, xl is vector w/ length == #cols of c
-chebbisectioninv(c::AbstractMatrix{Float64},xl::AbstractVector{Float64}) =
+chebbisectioninv(c::AbstractMatrix{Float64}, xl::AbstractVector{Float64}) =
     (n=length(xl);chebbisectioninv(c,xl,ClenshawPlan(Float64,Chebyshev(),size(c,1),n)))
-function chebbisectioninv(c::AbstractMatrix{Float64},xl::AbstractVector{Float64},plan::ClenshawPlan{Chebyshev{D,R},Float64}) where {D<:Domain,R}
+
+function chebbisectioninv(c::AbstractMatrix{Float64}, xl::AbstractVector{Float64},
+        plan::ClenshawPlan{<:Chebyshev,Float64})
+
     @assert size(c)[2] == length(xl)
 
     n = length(xl)
@@ -96,7 +102,7 @@ end
 
 for TYP in (:Vector,:Float64)
     @eval begin
-        bisectioninv(cf::Fun{SP,Float64},x::$TYP;opts...) where {SP<:Chebyshev} =
+        bisectioninv(cf::Fun{<:Chebyshev,Float64}, x::$TYP; opts...) =
             fromcanonical.(Ref(space(cf)),chebbisectioninv(coefficients(cf),x;opts...))
 #        bisectioninv{SP<:LineSpace}(cf::Fun{SP,Float64},x::$TYP;opts...)=fromcanonical(cf,chebbisectioninv(coefficients(cf),x;opts...))
     end
@@ -187,7 +193,7 @@ samplecdf(v::AbstractVector) = chebbisectioninv(v,rand())
 
 ##2D sample
 
-sample(f::Fun{TS},k::Integer) where {TS<:AbstractProductSpace}  =sample(ProductFun(f),k)
+sample(f::Fun{<:AbstractProductSpace}, k::Integer) = sample(ProductFun(f),k)
 
 function sample(f::LowRankFun,n::Integer)
     rx=sample(sum(f,2),n)
@@ -196,7 +202,8 @@ function sample(f::LowRankFun,n::Integer)
     [rx ry]
 end
 
-function sample(f::LowRankFun{C,C,TensorSpace{Tuple{C,C},DD,RR},Float64},n::Integer) where {C<:Chebyshev,DD<:EuclideanDomain{2},RR<:Real}
+function sample(f::LowRankFun{C,C,TensorSpace{Tuple{C,C},<:EuclideanDomain{2},<:Real},Float64},
+        n::Integer) where {C<:Chebyshev}
     ry=sample(sum(f,1),n)
     fA=evaluate.(f.A,ry')
     CB=coefficientmatrix(f.B)
@@ -217,7 +224,7 @@ sample(f::MultivariateFun)=sample(f,1)[1,:]
 ## Special spaces
 
 # Rays may be schwartz at right endpoint so we project
-function sample(f::Fun{JacobiWeight{SS,DD,RR,TT},Float64}, n::Integer) where {SS,DD<:Ray,RR,TT}
+function sample(f::Fun{<:JacobiWeight{<:Any,<:Ray},Float64}, n::Integer)
     if space(f).α == 0
         samplecdf(normalizedcumsum(f),n)
     else
