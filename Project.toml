@@ -1,6 +1,6 @@
 name = "ApproxFun"
 uuid = "28f2ccd6-bb30-5033-b560-165f7b14dc2f"
-version = "0.13.12"
+version = "0.13.13"
 
 [deps]
 AbstractFFTs = "621f4979-c628-5d54-868e-fcf4e3e8185c"
@@ -29,7 +29,9 @@ ApproxFunOrthogonalPolynomials = "0.5"
 ApproxFunSingularities = "0.3"
 Aqua = "0.5"
 BandedMatrices = "0.16, 0.17"
+BlockBandedMatrices = "0.11"
 Calculus = "0.5"
+Documenter = "0.27"
 DomainSets = "0.3, 0.4, 0.5, 0.6"
 DualNumbers = "0.6.2"
 FFTW = "1"
