@@ -8,7 +8,12 @@ on:
       lookback:
         default: 3
 permissions:
+  actions: write
+  checks: write
   contents: write
+  deployments: write
+  issues: write
+  pages: write
 jobs:
   TagBot:
     if: github.event_name == 'workflow_dispatch' || github.actor == 'JuliaTagBot'
