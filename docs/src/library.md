@@ -56,7 +56,7 @@ UnionDomain
 ## Accessing information about a spaces
 
 ```@docs
-ApproxFun.canonicalspace
+ApproxFunBase.canonicalspace
 ```
 
 ```@docs
