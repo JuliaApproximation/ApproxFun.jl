@@ -1,3 +1,5 @@
+module _ApproxFun_Runtests
+
 using ApproxFun
 using Random
 using Test
@@ -258,3 +260,5 @@ end
     @test contains(repr(f), repr(space(f)))
     @test contains(repr(f), repr(coefficients(f)))
 end
+
+end # module
