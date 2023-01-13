@@ -1,4 +1,4 @@
-module _ApproxFun_Runtests
+module ApproxFun_Runtests
 
 using ApproxFun
 using Random
