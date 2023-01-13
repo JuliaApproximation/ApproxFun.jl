@@ -1,7 +1,11 @@
+module ExtrasTest
+
 using ApproxFun
 using ApproxFun: eigs
-using Test
 using DualNumbers
+using LinearAlgebra
+using SpecialFunctions
+using Test
 
 @testset "Extras" begin
     @testset "Dual numbers" begin
@@ -148,3 +152,5 @@ using DualNumbers
         @test conj(A)[1:4, 1:4] == conj(A[1:4, 1:4])
     end
 end
+
+end # module

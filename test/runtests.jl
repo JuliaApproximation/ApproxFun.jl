@@ -1,6 +1,13 @@
-using ApproxFun, Random, Test
-using ApproxFunBase: testbandedblockbandedoperator, blocklengths, ∞
-using BlockBandedMatrices: blockbandwidths, subblockbandwidths
+module ApproxFun_Runtests
+
+using ApproxFun
+using Random
+using Test
+using LinearAlgebra
+using SpecialFunctions
+using ApproxFunBase
+using ApproxFunBase: blocklengths, ∞, blockbandwidths, subblockbandwidths
+using ApproxFunBaseTest: testbandedblockbandedoperator
 
 using Aqua
 @testset "Project quality" begin
@@ -253,3 +260,5 @@ end
     @test contains(repr(f), repr(space(f)))
     @test contains(repr(f), repr(coefficients(f)))
 end
+
+end # module

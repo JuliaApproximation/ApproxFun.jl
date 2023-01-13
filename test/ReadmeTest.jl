@@ -1,3 +1,5 @@
+module ReadmeTests
+
 using ApproxFun
 using SpecialFunctions
 using LinearAlgebra
@@ -95,3 +97,5 @@ const EXAMPLES_DIR = joinpath(dirname(dirname(pathof(ApproxFun))), "examples")
         end
     end
 end
+
+end # module

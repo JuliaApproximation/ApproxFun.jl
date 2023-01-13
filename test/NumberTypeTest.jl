@@ -1,7 +1,10 @@
+module NumberTypeTest
+
 using ApproxFun
 using ApproxFunOrthogonalPolynomials
 using Test
 using FFTW
+using LinearAlgebra
 
 @testset "BigFloat" begin
     @testset "BigFloat constructor" begin
@@ -102,3 +105,5 @@ using FFTW
         end
     end
 end
+
+end # module
