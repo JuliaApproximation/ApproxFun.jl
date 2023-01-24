@@ -20,7 +20,7 @@ function LeftIntegral(S::Jacobi,k)
     if S.b==0
         ConcreteLeftIntegral(S,k)
     else
-        J=Jacobi(0.,S.a,domain(S))
+        J=Jacobi(zero(S.a),S.a,domain(S))
         LeftIntegralWrapper(LeftIntegral(J,k)*Conversion(S,J),k)
     end
 end
