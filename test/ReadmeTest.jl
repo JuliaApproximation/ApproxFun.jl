@@ -7,7 +7,9 @@ using Test
 
 const EXAMPLES_DIR = joinpath(dirname(dirname(pathof(ApproxFun))), "examples")
 
-@testset "Readme" begin
+include(joinpath(@__DIR__, "testutils.jl"))
+
+@verbose @testset "Readme" begin
     @testset "Calculus and algebra" begin
         x = Fun(identity,0..10)
         f = sin(x^2)
