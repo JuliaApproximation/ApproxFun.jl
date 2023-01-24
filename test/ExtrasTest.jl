@@ -7,7 +7,9 @@ using LinearAlgebra
 using SpecialFunctions
 using Test
 
-@testset "Extras" begin
+include(joinpath(@__DIR__, "testutils.jl"))
+
+@verbose @testset "Extras" begin
     @testset "Dual numbers" begin
         @test dual(1.5,1) ∈  Segment(dual(1.0,1),dual(2.0))
 

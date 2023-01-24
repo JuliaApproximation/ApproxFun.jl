@@ -24,6 +24,8 @@ DocMeta.setdocmeta!(ApproxFun, :DocTestSetup, :(using ApproxFun); recursive=true
     doctest(ApproxFunBase, manual=false)
 end
 
+include(joinpath(@__DIR__, "testutils.jl"))
+
 include("ReadmeTest.jl")
 include("ExtrasTest.jl")
 include("NumberTypeTest.jl")

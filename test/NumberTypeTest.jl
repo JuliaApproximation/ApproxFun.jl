@@ -6,7 +6,9 @@ using Test
 using FFTW
 using LinearAlgebra
 
-@testset "BigFloat" begin
+include(joinpath(@__DIR__, "testutils.jl"))
+
+@verbose @testset "BigFloat" begin
     @testset "BigFloat constructor" begin
         single_sin = Fun(sin,Interval(0.f0,1.f0))
         double_sin = Fun(sin,Interval(0.,1.))
