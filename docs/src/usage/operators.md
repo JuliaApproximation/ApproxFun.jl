@@ -141,22 +141,16 @@ true
 It is possible for domain space and range space to be different under `Mulitplication`.
 
 ```jldoctest
-julia> c = Fun(θ -> cos(θ), CosSpace())
-Fun(CosSpace(【0.0,6.283185307179586❫), [8.974302782386682e-17, 1.0])
+julia> cosθ = Fun(cos, CosSpace());
 
-julia> Multiplication(c, SinSpace())
-ConcreteMultiplication : SinSpace(【0.0,6.283185307179586❫) → SinSpace(【0.0,6.283185307179586❫)
- 8.9743e-17  0.5          ⋅           ⋅          …   ⋅           ⋅          ⋅
- 0.5         8.9743e-17  0.5          ⋅              ⋅           ⋅          ⋅
-  ⋅          0.5         8.9743e-17  0.5             ⋅           ⋅          ⋅
-  ⋅           ⋅          0.5         8.9743e-17      ⋅           ⋅          ⋅
-  ⋅           ⋅           ⋅          0.5             ⋅           ⋅          ⋅
-  ⋅           ⋅           ⋅           ⋅          …   ⋅           ⋅          ⋅
-  ⋅           ⋅           ⋅           ⋅              ⋅           ⋅          ⋅
-  ⋅           ⋅           ⋅           ⋅             0.5          ⋅          ⋅
-  ⋅           ⋅           ⋅           ⋅             8.9743e-17  0.5         ⋅
-  ⋅           ⋅           ⋅           ⋅             0.5         8.9743e-17  ⋱
-  ⋅           ⋅           ⋅           ⋅          …   ⋅           ⋱          ⋱
+julia> sinθ = Fun(sin, SinSpace());
+
+julia> sin2θ = Fun(x->sin(2x), SinSpace());
+
+julia> cosθM = Multiplication(cosθ, SinSpace());
+
+julia> cosθM * 2sinθ ≈ sin2θ
+true
 ```
 
 If a function is given by the expansion
