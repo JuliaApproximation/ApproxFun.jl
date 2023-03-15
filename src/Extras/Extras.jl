@@ -15,7 +15,6 @@ import FastTransforms: pochhammer
 
 include("poetry.jl")
 
-include("ReImSpace.jl")
 include("simplify.jl")
 
 include("eigs.jl")
