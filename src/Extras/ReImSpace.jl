@@ -1,1 +1,1 @@
-real(op::Operator) = ApproxFunBase.real(op)
+real(op::Operator) = ApproxFunBase.ReOperator(op)
