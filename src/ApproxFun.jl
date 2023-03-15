@@ -34,7 +34,7 @@ import AbstractFFTs: Plan, fft, ifft
 import FFTW: plan_fft, plan_ifft, plan_ifft!
 
 import Base: convert, getindex, *, +, -, /, ^, \, sum, cumsum,
-                first, last, isempty, zeros, promote_rule, real,
+                first, last, isempty, zeros, promote_rule,
                 # the following functions names are listed in Calculus.symbolic_derivatives_1arg(),
                 # and methods are added to them here
                 sqrt, cbrt, abs2, inv, log, log10, log2, log1p,
