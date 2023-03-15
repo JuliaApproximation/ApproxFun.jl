@@ -1,6 +1,3 @@
-# We need to implement some functionality for the ApproxFun constructor to work
-real(::Type{Dual{T}}) where {T} = Dual{ApproxFun.real(T)}
-
 # Dual number support. Should there be realpart and dualpart of Space and Domain?
 DualNumbers.realpart(f::Fun{S,T}) where {S,T<:Dual} = Fun(space(f),realpart.(coefficients(f)))
 DualNumbers.dualpart(f::Fun{S,T}) where {S,T<:Dual} = Fun(space(f),dualpart.(coefficients(f)))
