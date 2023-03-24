@@ -1,5 +1,6 @@
 using Documenter
 using Literate
+using ApproxFun, DomainSets, LinearAlgebra, BandedMatrices # these packages are needed for the docs library
 
 # Generate examples using Literate
 # See https://github.com/fredrikekre/Literate.jl/blob/master/docs/make.jl
