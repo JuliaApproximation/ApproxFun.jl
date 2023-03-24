@@ -1,4 +1,4 @@
-using Documenter, ApproxFun, BandedMatrices, DomainSets, LinearAlgebra
+using Documenter
 using Literate
 
 # Generate examples using Literate
