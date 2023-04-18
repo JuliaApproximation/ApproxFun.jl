@@ -5,10 +5,12 @@ using Base, Reexport,
 
 import Calculus
 
-@reexport using ApproxFunBase
-@reexport using ApproxFunFourier
-@reexport using ApproxFunOrthogonalPolynomials
-@reexport using ApproxFunSingularities
+using ApproxFunBase
+using ApproxFunFourier
+using ApproxFunOrthogonalPolynomials
+using ApproxFunSingularities
+
+include("exports.jl")
 
 import ApproxFunBase: Fun, UnsetSpace, VFun, UnivariateSpace, SumSpace, Space,
                     HeavisideSpace, PointSpace, IntervalOrSegment, ArraySpace,
@@ -23,8 +25,6 @@ import ApproxFunBase: Fun, UnsetSpace, VFun, UnivariateSpace, SumSpace, Space,
                     isapproxinteger, components, promotedomainspace, choosedomainspace,
                     AbstractProductSpace, MultivariateFun, BivariateSpace,
                     @calculus_operator, slnorm, sample, chop!, 𝒟, ∫, ⨜, ⨍
-
-export ∫, ⨜, ⨍, 𝒟
 
 import ApproxFunOrthogonalPolynomials: order
 
@@ -72,12 +72,6 @@ Curve(f::Fun{<:Space{<:PeriodicDomain}}) = PeriodicCurve(f)
 
 #TODO: Make type stable
 Curve(f::Fun{<:Space{<:ChebyshevInterval}}) = IntervalCurve(f)
-
-export Curve
-
-##Testing
-export bisectioninv
-
 
 ## Further extra features
 

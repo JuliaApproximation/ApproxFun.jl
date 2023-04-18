@@ -3,11 +3,6 @@
 #
 # defined as
 ####
-
-
-
-export LeftIntegral,LeftDerivative, RightDerivative, RightIntegral
-
 @calculus_operator LeftIntegral
 @calculus_operator LeftDerivative
 

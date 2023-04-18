@@ -1,6 +1,3 @@
-export lanczos
-
-
 # this finds the OPs and recurrence for a
 function lanczos(w,N)
     x = Fun(identity,space(w))

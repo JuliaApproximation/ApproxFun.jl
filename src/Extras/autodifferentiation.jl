@@ -1,5 +1,3 @@
-export newton, linop
-
 struct DualFun{F,T}
     f::F
     J::T
