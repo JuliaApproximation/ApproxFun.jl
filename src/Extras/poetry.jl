@@ -1,10 +1,6 @@
 #####
 # This includes short-hands that are convenient but perhaps confusing
 #####
-
-
-export chebyshevt, chebyshevu, legendre, ChebyshevWeight, 𝕀, 𝕌
-
 ## Chebyshev & Legendre polynomials
 
 chebyshevt(n::Int,d::IntervalOrSegment{T}) where {T<:Number} = Fun(Chebyshev(d),[zeros(T,n);one(T)])

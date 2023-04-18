@@ -1,7 +1,3 @@
-
-export samplecdf,normalizedcumsum!
-
-
 ##bisection inverse
 
 
