@@ -15,15 +15,16 @@ function replace_includes(str, included)
     return str
 end
 
-for (example, included) in [
-            ("ODE.jl", ["ODE_BVP.jl", "ODE_increaseprec.jl"]),
-            ("PDE.jl", ["PDE_Poisson.jl", "PDE_Helmholtz.jl"]),
-            ("Sampling.jl", ["Sampling1.jl"]),
-            ("Periodic.jl", ["Periodic1.jl"]),
-            ("Eigenvalue.jl", ["Eigenvalue_standard.jl", "Eigenvalue_symmetric.jl"]),
-            ("NonlinearBVP.jl", ["NonlinearBVP1.jl", "NonlinearBVP2.jl"]),
-            ("system_of_eqn.jl", ["System1.jl"])
-            ]
+function get_included_files(filename)
+    v = [l for l in eachline(joinpath(example_dir, filename)) if contains(l, "include")]
+    strip.(getindex.(split.(getindex.(split.(v, "include("), 2), ")"), 1), '\"')
+end
+
+file_with_includes(filename) = (filename, get_included_files(filename))
+
+for (example, included) in map(file_with_includes,
+                ["ODE.jl", "PDE.jl", "Sampling.jl", "Periodic.jl",
+                "Eigenvalue.jl", "NonlinearBVP.jl", "system_of_eqn.jl"])
     filename = joinpath(example_dir, example)
     Literate.markdown(filename, output_dir, documenter=true,
         preprocess = str -> replace_includes(str, included))
@@ -32,7 +33,7 @@ end
 makedocs(
             format = Documenter.HTML(),
             sitename = "ApproxFun.jl",
-            authors = "Sheehan Olver",
+            authors = "Sheehan Olver, Jishnu Bhattacharya and contributors",
             pages = Any[
                     "Home" => "index.md",
                     "Usage" => Any[

@@ -14,10 +14,6 @@ Curve
 ```
 
 ```@docs
-ApproxFunFourier.Disk
-```
-
-```@docs
 Segment
 ```
 

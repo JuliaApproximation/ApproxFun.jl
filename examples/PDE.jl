@@ -15,3 +15,14 @@ include("PDE_Helmholtz.jl")
 # Plot the solution
 import Plots
 Plots.plot(u; st=:surface, legend=false)
+
+include("PDE_Heat.jl")
+
+# Plot the solution
+import Plots
+xplot = -1:0.02:1
+p = Plots.plot(xplot, u.(xplot, 0), label="t=0", legend=true, linewidth=2)
+for t in [0.05, 0.1, 0.2, 0.5, 0.8]
+	Plots.plot!(xplot, u.(xplot, t), label="t=$t")
+end
+p
