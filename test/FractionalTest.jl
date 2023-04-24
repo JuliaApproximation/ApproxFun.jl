@@ -148,6 +148,7 @@ include(joinpath(@__DIR__, "testutils.jl"))
         @inferred (() -> RightIntegral(Legendre()))()
         @inferred (() -> RightIntegral(JacobiWeight(0,0,Legendre())))()
         @inferred (() -> RightIntegral(JacobiWeight(0,-0.5,Chebyshev())))()
+        @inferred (() -> LeftIntegral(Legendre() ⊕ JacobiWeight(0.5,0.,Ultraspherical(1)),0.5))()
     end
 end
 
