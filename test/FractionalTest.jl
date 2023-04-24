@@ -138,7 +138,7 @@ include(joinpath(@__DIR__, "testutils.jl"))
     end
 
     @testset "type inference" begin
-        if VERSION >= v"1.8" begin
+        if VERSION >= v"1.8"
             @inferred (() -> LeftIntegral(Jacobi(-1,0)))()
             @inferred (() -> LeftIntegral(Legendre()))()
             @inferred (() -> LeftIntegral(Chebyshev()))()
