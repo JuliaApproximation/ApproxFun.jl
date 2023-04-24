@@ -22,7 +22,8 @@ import ApproxFunBase: Fun, UnsetSpace, VFun, UnivariateSpace, SumSpace, Space,
                     SpaceOperator, InterlaceOperator, cfstype, pad!,
                     isapproxinteger, components, promotedomainspace, choosedomainspace,
                     AbstractProductSpace, MultivariateFun, BivariateSpace,
-                    @calculus_operator, slnorm, sample, chop!, 𝒟, ∫, ⨜, ⨍
+                    @calculus_operator, slnorm, sample, chop!, 𝒟, ∫, ⨜, ⨍,
+                    InterlaceOperator_Diagonal
 
 export ∫, ⨜, ⨍, 𝒟
 
