@@ -138,17 +138,19 @@ include(joinpath(@__DIR__, "testutils.jl"))
     end
 
     @testset "type inference" begin
-        @inferred (() -> LeftIntegral(Jacobi(-1,0)))()
-        @inferred (() -> LeftIntegral(Legendre()))()
-        @inferred (() -> LeftIntegral(Chebyshev()))()
-        @inferred (() -> LeftIntegral(Ultraspherical(0.5)))()
-        @inferred (() -> LeftIntegral(JacobiWeight(0,0,Legendre())))()
-        @inferred (() -> LeftIntegral(JacobiWeight(-0.5,0,Chebyshev())))()
-        @inferred (() -> RightIntegral(Jacobi(-1,0)))()
-        @inferred (() -> RightIntegral(Legendre()))()
-        @inferred (() -> RightIntegral(JacobiWeight(0,0,Legendre())))()
-        @inferred (() -> RightIntegral(JacobiWeight(0,-0.5,Chebyshev())))()
-        @inferred (() -> LeftIntegral(Legendre() ⊕ JacobiWeight(0.5,0.,Ultraspherical(1)),0.5))()
+        if VERSION >= v"1.8" begin
+            @inferred (() -> LeftIntegral(Jacobi(-1,0)))()
+            @inferred (() -> LeftIntegral(Legendre()))()
+            @inferred (() -> LeftIntegral(Chebyshev()))()
+            @inferred (() -> LeftIntegral(Ultraspherical(0.5)))()
+            @inferred (() -> LeftIntegral(JacobiWeight(0,0,Legendre())))()
+            @inferred (() -> LeftIntegral(JacobiWeight(-0.5,0,Chebyshev())))()
+            @inferred (() -> RightIntegral(Jacobi(-1,0)))()
+            @inferred (() -> RightIntegral(Legendre()))()
+            @inferred (() -> RightIntegral(JacobiWeight(0,0,Legendre())))()
+            @inferred (() -> RightIntegral(JacobiWeight(0,-0.5,Chebyshev())))()
+            @inferred (() -> LeftIntegral(Legendre() ⊕ JacobiWeight(0.5,0.,Ultraspherical(1)),0.5))()
+        end
     end
 end
 
