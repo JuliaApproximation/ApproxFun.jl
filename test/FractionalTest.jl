@@ -136,6 +136,19 @@ include(joinpath(@__DIR__, "testutils.jl"))
 
         @test norm(y-exp((1+x)/2)*erfc(sqrt(1+x))) < 100eps()
     end
+
+    @testset "type inference" begin
+        @inferred (() -> LeftIntegral(Jacobi(-1,0)))()
+        @inferred (() -> LeftIntegral(Legendre()))()
+        @inferred (() -> LeftIntegral(Chebyshev()))()
+        @inferred (() -> LeftIntegral(Ultraspherical(0.5)))()
+        @inferred (() -> LeftIntegral(JacobiWeight(0,0,Legendre())))()
+        @inferred (() -> LeftIntegral(JacobiWeight(-0.5,0,Chebyshev())))()
+        @inferred (() -> RightIntegral(Jacobi(-1,0)))()
+        @inferred (() -> RightIntegral(Legendre()))()
+        @inferred (() -> RightIntegral(JacobiWeight(0,0,Legendre())))()
+        @inferred (() -> RightIntegral(JacobiWeight(0,-0.5,Chebyshev())))()
+    end
 end
 
 end # module

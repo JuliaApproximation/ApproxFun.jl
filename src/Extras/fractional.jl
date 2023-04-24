@@ -21,18 +21,23 @@ function LeftIntegral(S::Jacobi,k)
         ConcreteLeftIntegral(S,k)
     else
         J=Jacobi(zero(S.a),S.a,domain(S))
-        LeftIntegralWrapper(LeftIntegral(J,k)*Conversion(S,J),k)
+        CLI = ConcreteLeftIntegral(J,k)
+        LeftIntegralWrapper(CLI*Conversion(S,J),k,S,rangespace(CLI))
     end
 end
 
 function LeftIntegral(S::Ultraspherical,k)
     J = Jacobi(S)
-    LeftIntegralWrapper(LeftIntegral(J,k)*Conversion(S,J),0.5)
+    LI = LeftIntegral(J,k)
+    LeftIntegralWrapper(LI*Conversion(S,J),0.5,S,rangespace(LI))
 end
 
-LeftIntegral(S::Chebyshev,k) = LeftIntegralWrapper(
-    LeftIntegral(Ultraspherical(1//2,domain(S)),k)*Conversion(S,Ultraspherical(1//2,domain(S))),
-    0.5)
+function LeftIntegral(S::Chebyshev,k)
+    LI = LeftIntegral(Ultraspherical(1//2,domain(S)),k)
+    LeftIntegralWrapper(
+        LI*Conversion(S,Ultraspherical(1//2,domain(S))),
+            0.5,S,rangespace(LI))
+end
 
 
 function rangespace(Q::ConcreteLeftIntegral{<:Jacobi{<:IntervalOrSegment}})
@@ -47,7 +52,8 @@ function RightIntegral(S::Jacobi,k)
         ConcreteRightIntegral(S,k)
     else
         J=Jacobi(S.b,zero(S.b),domain(S))
-        RightIntegralWrapper(RightIntegral(J,k)*Conversion(S,J),k)
+        CRI = ConcreteRightIntegral(J,k)
+        RightIntegralWrapper(CRI*Conversion(S,J),k,S,rangespace(CRI))
     end
 end
 
@@ -111,13 +117,13 @@ end
 function LeftIntegral(S::JacobiWeight{<:Chebyshev},k)
     # convert to Jacobi
     Q=LeftIntegral(JacobiWeight(S.β,S.α,Jacobi(S.space)),k)
-    LeftIntegralWrapper(Q*Conversion(S,domainspace(Q)),k)
+    LeftIntegralWrapper(Q*Conversion(S,domainspace(Q)),k,S,rangespace(Q))
 end
 
 function RightIntegral(S::JacobiWeight{<:Chebyshev},k)
     # convert to Jacobi
     Q=RightIntegral(JacobiWeight(S.β,S.α,Jacobi(S.space)),k)
-    RightIntegralWrapper(Q*Conversion(S,domainspace(Q)),k)
+    RightIntegralWrapper(Q*Conversion(S,domainspace(Q)),k,S,rangespace(Q))
 end
 
 for (TYP,WRAP) in ((:LeftIntegral,:LeftIntegralWrapper),
@@ -125,7 +131,8 @@ for (TYP,WRAP) in ((:LeftIntegral,:LeftIntegralWrapper),
 
     @eval function $TYP(S::JacobiWeight{<:PolynomialSpace}, k)
         JS = JacobiWeight(S.β,S.α,Jacobi(S.space))
-        $WRAP($TYP(JS,k)*Conversion(S,JS),k)
+        IOP = $TYP(JS,k)
+        $WRAP(IOP*Conversion(S,JS),k,S,rangespace(IOP))
     end
 end
 
@@ -202,8 +209,8 @@ for (DTYP,QTYP,DWRAP,QWRAP) in ((:LeftDerivative,:LeftIntegral,:LeftDerivativeWr
         function $DTYP(S::Space,k::Real)
             i=ceil(Int,k)
             r=i-k
-            $DWRAP(i<0 ? $QTYP(S,-k) : Derivative(i)*$QTYP(S,r),k)
+            $DWRAP(i<0 ? $QTYP(S,-k) : Derivative(i)*$QTYP(S,r),k,S)
         end
-        $QTYP(S::SumSpace,k) = $QWRAP(InterlaceOperator(Diagonal([map(s->$QTYP(s,k),S.spaces)...]),SumSpace),k)
+        $QTYP(S::SumSpace,k) = $QWRAP(InterlaceOperator(Diagonal([map(s->$QTYP(s,k),S.spaces)...]),SumSpace),k,S)
     end
 end
