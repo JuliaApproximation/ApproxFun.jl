@@ -2,8 +2,7 @@
 
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://JuliaApproximation.github.io/ApproxFun.jl/stable)
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://JuliaApproximation.github.io/ApproxFun.jl/latest)
-[![Build Status](https://travis-ci.org/JuliaApproximation/ApproxFun.jl.svg?branch=master)](https://travis-ci.org/JuliaApproximation/ApproxFun.jl)
-[![Build status](https://ci.appveyor.com/api/projects/status/40qmoxp189pwtuda?svg=true)](https://ci.appveyor.com/project/dlfivefifty/approxfun-jl)
+[![CI](https://github.com/JuliaApproximation/ApproxFun.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/JuliaApproximation/ApproxFun.jl/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/JuliaApproximation/ApproxFun.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaApproximation/ApproxFun.jl)
 [![deps](https://juliahub.com/docs/ApproxFun/deps.svg)](https://juliahub.com/ui/Packages/ApproxFun/jGqLz?t=2)
 [![version](https://juliahub.com/docs/ApproxFun/version.svg)](https://juliahub.com/ui/Packages/ApproxFun/jGqLz)
