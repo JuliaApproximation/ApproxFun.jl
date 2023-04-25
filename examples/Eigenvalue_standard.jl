@@ -8,6 +8,9 @@
 # ```
 # where ``λ_i`` is the ``i^{th}`` eigenvalue of the ``L`` and has a corresponding
 # *eigenfunction* ``\mathop{u}_i(x)``.
+
+### Quantum harmonic oscillator
+
 # A classic eigenvalue problem is known as the quantum harmonic oscillator where
 # ```math
 # \mathop{L} = -\frac{1}{2}\frac{\mathop{d}^2}{\mathop{dx}^2} + \frac{1}{2} x^2,
