@@ -201,9 +201,8 @@ end
 
 @testset "sample" begin
     f=Fun(exp)
-    x=sample(f,100000)
-    x=sample(f,100000)
-    @time x=sample(f,100000)
+    sample(f,100000)
+    @time sample(f,100000)
 end
 
 @testset "Null space" begin

@@ -17,8 +17,6 @@ include("poetry.jl")
 
 include("simplify.jl")
 
-include("eigs.jl")
-
 include("autodifferentiation.jl")
 include("fractional.jl")
 
