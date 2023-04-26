@@ -16,26 +16,16 @@ p
 # If the solutions are not relatively constant near the boundary then one should push
 # the boundaries further out.
 
-include("Eigenvalue_tunnelling.jl")
-
-# We plot the first few eigenfunctions
-p = Plots.plot(V, legend=false)
-Plots.vline!([-Lx/2, Lx/2], linecolor=:black)
-p_twin = Plots.twinx(p)
-for k=1:6
-    Plots.plot!(p_twin, real(v[k]/norm(v[k]) + λ[k]), label="$k")
-end
-p
-
-# Note that the parity symmetry isn't preserved exactly at finite matrix sizes.
-# In general, it's better to preserve the symmetry of the operator matrices (see section below),
-# and projecting them on to the appropriate subspaces.
-
 # For problems with different contraints or boundary conditions,
 # `B` can be any zero functional constraint, e.g., `DefiniteIntegral()`.
 
-include("Eigenvalue_symmetric.jl")
+include("Eigenvalue_anharmonic.jl")
 
 # We plot the eigenvalues
 import Plots
-Plots.plot(λ; title = "Eigenvalues", legend=false)
+Plots.plot(λ, title = "Eigenvalues", legend=false)
+
+include("Eigenvalue_tunnelling.jl")
+
+# We plot the first few eigenvalues
+Plots.plot(λ, title="Eigenvalues", legend=false)

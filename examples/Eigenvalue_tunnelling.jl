@@ -6,14 +6,34 @@
 # ```
 # where we choose a smoothed barrier potential ``V(x)``.
 
+# We note that the system has parity symmetry, so the solutions may be separated into odd and even functions.
+# We may therefore solve the problem only for half the domain, with Dirichlet boundary conditions at the midpoint
+# for odd functions, and Neumann conditions for even functions.
+# This projection to subspaces allows us to halve the sizes of matrices that we need to diagonalize
+
 Lx = 4 # size of the domain
 d = 1 # size of the barrier
 Δ = 0.1 # smoothing scale of the barrier
-x = Fun(-Lx/2..Lx/2)
-V = 5 * (1 + tanh((x + d/2)/Δ)) * (1 - tanh((x - d/2)/Δ));
-H = -𝒟^2/2 + V;
+S = Legendre(0..Lx/2)
+x = Fun(S)
+V = 5 * (1 - tanh((x - d/2)/Δ));
+H = -Derivative(S)^2/2 + V;
 
-S = space(x)
+# Odd solutions
 B = Dirichlet(S);
+SEg = ApproxFun.SymmetricEigensystem(H, B);
 
-λ, v = ApproxFun.eigs(B, H, 1000, tolerance=1E-8);
+# Diagonalize `n × n` matrix representations of the basis-recombined operators
+n = 100
+λodd = eigvals(SEg, n);
+λodd = λodd[1:round(Int, 3n/5)];
+
+# Even solutions
+B = [lneumann(S); rdirichlet(S)];
+
+SEg = ApproxFun.SymmetricEigensystem(H, B);
+λeven = eigvals(SEg, n);
+λeven = λeven[1:round(Int, 3n/5)];
+
+# We interlace the eigenvalues to obtain the entire spectrum
+λ = vec([λeven λodd]');
