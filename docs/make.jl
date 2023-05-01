@@ -33,7 +33,7 @@ end
 makedocs(
             format = Documenter.HTML(),
             sitename = "ApproxFun.jl",
-            authors = "Sheehan Olver, Jishnu Bhattacharya and contributors",
+            authors = "Sheehan Olver, Mikael Slevinsky, Jishnu Bhattacharya and contributors",
             pages = Any[
                     "Home" => "index.md",
                     "Usage" => Any[

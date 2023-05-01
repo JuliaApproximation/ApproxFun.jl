@@ -9,6 +9,11 @@ const EXAMPLES_DIR = joinpath(dirname(dirname(pathof(ApproxFun))), "examples")
 
 include(joinpath(@__DIR__, "testutils.jl"))
 
+function get_included_files(filename)
+    v = [l for l in eachline(joinpath(EXAMPLES_DIR, filename)) if contains(l, "include")]
+    strip.(getindex.(split.(getindex.(split.(v, "include("), 2), ")"), 1), '\"')
+end
+
 @verbose @testset "Readme" begin
     @testset "Calculus and algebra" begin
         x = Fun(identity,0..10)
@@ -58,34 +63,44 @@ include(joinpath(@__DIR__, "testutils.jl"))
     end
 
     @testset "NonlinearBVP" begin
-        include(joinpath(EXAMPLES_DIR, "NonlinearBVP1.jl"))
-        include(joinpath(EXAMPLES_DIR, "NonlinearBVP2.jl"))
+        for f in get_included_files("NonlinearBVP.jl")
+            include(joinpath(EXAMPLES_DIR, f))
+        end
     end
 
     @testset "ODE" begin
-        include(joinpath(EXAMPLES_DIR, "ODE_BVP.jl"))
-        include(joinpath(EXAMPLES_DIR, "ODE_increaseprec.jl"))
+        for f in get_included_files("ODE.jl")
+            include(joinpath(EXAMPLES_DIR, f))
+        end
     end
     @testset "System of Equations" begin
-        include(joinpath(EXAMPLES_DIR, "System1.jl"))
+        for f in get_included_files("system_of_eqn.jl")
+            include(joinpath(EXAMPLES_DIR, f))
+        end
     end
 
     @testset "Periodic" begin
-        include(joinpath(EXAMPLES_DIR, "Periodic1.jl"))
+        for f in get_included_files("Periodic.jl")
+            include(joinpath(EXAMPLES_DIR, f))
+        end
     end
     @testset "Sampling" begin
-        include(joinpath(EXAMPLES_DIR, "Sampling1.jl"))
+        for f in get_included_files("Sampling.jl")
+            include(joinpath(EXAMPLES_DIR, f))
+        end
     end
     @testset "Eigenvalue" begin
-        include(joinpath(EXAMPLES_DIR, "Eigenvalue_standard.jl"))
-        include(joinpath(EXAMPLES_DIR, "Eigenvalue_symmetric.jl"))
+        for f in get_included_files("Eigenvalue.jl")
+            include(joinpath(EXAMPLES_DIR, f))
+        end
     end
 
     # this is broken on v1.6 (on BandedArrays < v0.16.16), so we only test on higher versions
     if VERSION >= v"1.7"
         @testset "PDE" begin
-            include(joinpath(EXAMPLES_DIR, "PDE_Poisson.jl"))
-            include(joinpath(EXAMPLES_DIR, "PDE_Helmholtz.jl"))
+            for f in get_included_files("PDE.jl")
+                include(joinpath(EXAMPLES_DIR, f))
+            end
         end
     end
 
