@@ -34,10 +34,13 @@ Scomplement = Legendre(-Lx/2..0);
 # We use the fact that Legendre polynomials of odd orders are odd functions,
 # and those of even orders are even functions
 # Using this, for the odd solutions, we negate the even-order coefficients to construct the odd image in `-Lx/2..0`
-oddimage(f, Scomplement) = Fun(Scomplement, [(-1)^isodd(m) * c for (m,c) in enumerate(coefficients(f))]);
+function oddimage(f, Scomplement)
+	coeffs = [(-1)^isodd(m) * c for (m,c) in enumerate(coefficients(f))]
+	Fun(Scomplement, coeffs)
+end;
 voddimage = oddimage.(vodd, Scomplement);
 
-# construct the functions over the entire domain `-Lx/2..Lx/2` as piecewise sums over the two half domains `-Lx/2..0` and `0..Lx/2`
+# Construct the functions over the entire domain `-Lx/2..Lx/2` as piecewise sums over the two half domains `-Lx/2..0` and `0..Lx/2`
 voddfull = voddimage .+ vodd;
 
 # Even solutions, with a Neumann condition at `0` representing the symmetry of the function
@@ -47,7 +50,10 @@ Seig = ApproxFun.SymmetricEigensystem(H, B);
 λeven, veven = ApproxFun.eigs(Seig, n, tolerance=1e-8);
 
 # For the even solutions, we negate the odd-order coefficients to construct the even image in `-Lx/2..0`
-evenimage(f, Scomplement) = Fun(Scomplement, [(-1)^iseven(m) * c for (m,c) in enumerate(coefficients(f))]);
+function evenimage(f, Scomplement)
+	coeffs = [(-1)^iseven(m) * c for (m,c) in enumerate(coefficients(f))]
+	Fun(Scomplement, coeffs)
+end;
 vevenimage = evenimage.(veven, Scomplement);
 vevenfull = vevenimage .+ veven;
 
