@@ -74,7 +74,7 @@ end
         end
     end
     @testset "System of Equations" begin
-        for f in get_included_files("System.jl")
+        for f in get_included_files("system_of_eqn.jl")
             include(joinpath(EXAMPLES_DIR, f))
         end
     end
