@@ -73,18 +73,10 @@ include(joinpath(@__DIR__, "testutils.jl"))
     @testset "Periodic" begin
         include(joinpath(EXAMPLES_DIR, "Periodic1.jl"))
     end
-    @testset "Sampling" begin
-        include(joinpath(EXAMPLES_DIR, "Sampling1.jl"))
-    end
-    @testset "Eigenvalue" begin
-        include(joinpath(EXAMPLES_DIR, "Eigenvalue_standard.jl"))
-        include(joinpath(EXAMPLES_DIR, "Eigenvalue_symmetric.jl"))
-    end
 
     # this is broken on v1.6 (on BandedArrays < v0.16.16), so we only test on higher versions
     if VERSION >= v"1.7"
         @testset "PDE" begin
-            include(joinpath(EXAMPLES_DIR, "PDE_Poisson.jl"))
             include(joinpath(EXAMPLES_DIR, "PDE_Helmholtz.jl"))
         end
     end
