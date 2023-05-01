@@ -58,9 +58,12 @@ vevenimage = evenimage.(veven, Scomplement);
 vevenfull = vevenimage .+ veven;
 
 # We interlace the eigenvalues and eigenvectors to obtain the entire spectrum
-λ = vec(permutedims([λeven λodd]));
-v = vec(permutedims([vevenfull voddfull]));
+function interlace(a::AbstractVector, b::AbstractVector)
+	vec(permutedims([a b]))
+end;
+λ = interlace(λeven, λodd);
+v = interlace(vevenfull, voddfull);
 
-# Construct the potential on the full domain for plotting using an even image
+# Symmetrize the potential using an even image (this is mainly for plotting/post-processing)
 Vevenimage = evenimage(V, Scomplement);
 Vfull = Vevenimage + V;
