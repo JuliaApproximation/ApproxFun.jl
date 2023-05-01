@@ -1,4 +1,4 @@
-# ### Tunnelling
+# ### Infinite well with a barrier
 
 # We solve the Schrodinger equation in an infinite square well in the domain `-Lx/2..Lx/2`, with a finite barrier in the middle from `-d/2..d/2`
 # ```math
@@ -21,12 +21,12 @@ H = -Derivative(S)^2/2 + V;
 
 # Odd solutions, with a zero Dirichlet condition at `0` representing a node
 B = Dirichlet(S);
-SEg = ApproxFun.SymmetricEigensystem(H, B);
+Seig = ApproxFun.SymmetricEigensystem(H, B);
 
 # Diagonalize `n × n` matrix representations of the basis-recombined operators
 # We specify a tolerance to reject spurious solutions arising from the discretization
 n = 100
-λodd, vodd = ApproxFun.eigs(SEg, n, tolerance=1e-8);
+λodd, vodd = ApproxFun.eigs(Seig, n, tolerance=1e-8);
 
 # To extend the solutions to the full domain, we construct the left-half space.
 Scomplement = Legendre(-Lx/2..0);
@@ -43,8 +43,8 @@ voddfull = voddimage .+ vodd;
 # Even solutions, with a Neumann condition at `0` representing the symmetry of the function
 B = [lneumann(S); rdirichlet(S)];
 
-SEg = ApproxFun.SymmetricEigensystem(H, B);
-λeven, veven = ApproxFun.eigs(SEg, n, tolerance=1e-8);
+Seig = ApproxFun.SymmetricEigensystem(H, B);
+λeven, veven = ApproxFun.eigs(Seig, n, tolerance=1e-8);
 
 # For the even solutions, we negate the odd-order coefficients to construct the even image in `-Lx/2..0`
 evenimage(f, Scomplement) = Fun(Scomplement, [(-1)^iseven(m) * c for (m,c) in enumerate(coefficients(f))]);

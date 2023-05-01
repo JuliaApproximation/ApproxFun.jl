@@ -25,7 +25,7 @@ include("Eigenvalue_anharmonic.jl")
 import Plots
 Plots.plot(λ, title = "Eigenvalues", legend=false)
 
-include("Eigenvalue_tunnelling.jl")
+include("Eigenvalue_well_barrier.jl")
 
 # We plot the first few eigenfunctions offset by their eigenvalues.
 # The eigenfunctions appear in odd-even pairs as expected.
