@@ -22,7 +22,7 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
 AbstractFFTs = "1.0"
-ApproxFunBase = "0.8.20"
+ApproxFunBase = "0.8.24"
 ApproxFunBaseTest = "0.1"
 ApproxFunFourier = "0.3"
 ApproxFunOrthogonalPolynomials = "0.5, 0.6"

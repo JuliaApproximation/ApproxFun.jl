@@ -35,13 +35,14 @@ Scomplement = Legendre(-Lx/2..0);
 # and those of even orders are even functions
 # Using this, for the odd solutions, we negate the even-order coefficients to construct the odd image in `-Lx/2..0`
 function oddimage(f, Scomplement)
-	coeffs = [(-1)^isodd(m) * c for (m,c) in enumerate(coefficients(f))]
-	Fun(Scomplement, coeffs)
-end;
+    coeffs = [(-1)^isodd(m) * c for (m,c) in enumerate(coefficients(f))]
+    Fun(Scomplement, coeffs)
+end
 voddimage = oddimage.(vodd, Scomplement);
 
 # Construct the functions over the entire domain `-Lx/2..Lx/2` as piecewise sums over the two half domains `-Lx/2..0` and `0..Lx/2`
-voddfull = voddimage .+ vodd;
+# The eigenfunctions `vodd` are normalized on the half-domain, so we normalize the sum by dividing it by `√2`
+voddfull = (voddimage .+ vodd)./√2;
 
 # Even solutions, with a Neumann condition at `0` representing the symmetry of the function
 B = [lneumann(S); rdirichlet(S)];
@@ -51,16 +52,16 @@ Seig = ApproxFun.SymmetricEigensystem(H, B);
 
 # For the even solutions, we negate the odd-order coefficients to construct the even image in `-Lx/2..0`
 function evenimage(f, Scomplement)
-	coeffs = [(-1)^iseven(m) * c for (m,c) in enumerate(coefficients(f))]
-	Fun(Scomplement, coeffs)
-end;
+    coeffs = [(-1)^iseven(m) * c for (m,c) in enumerate(coefficients(f))]
+    Fun(Scomplement, coeffs)
+end
 vevenimage = evenimage.(veven, Scomplement);
-vevenfull = vevenimage .+ veven;
+vevenfull = (vevenimage .+ veven)./√2;
 
 # We interlace the eigenvalues and eigenvectors to obtain the entire spectrum
 function interlace(a::AbstractVector, b::AbstractVector)
-	vec(permutedims([a b]))
-end;
+    vec(permutedims([a b]))
+end
 λ = interlace(λeven, λodd);
 v = interlace(vevenfull, voddfull);
 
