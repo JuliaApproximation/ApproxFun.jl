@@ -29,13 +29,13 @@ end
 function LeftIntegral(S::Ultraspherical,k)
     J = Jacobi(S)
     LI = LeftIntegral(J,k)
-    LeftIntegralWrapper(LI*Conversion(S,J),0.5,S,rangespace(LI))
+    LeftIntegralWrapper(LI*ConcreteConversion(S,J),0.5,S,rangespace(LI))
 end
 
 function LeftIntegral(S::Chebyshev,k)
     SU = Ultraspherical(Legendre(domain(S)))
     LI = LeftIntegral(SU,k)
-    LeftIntegralWrapper(LI*Conversion(S,SU),0.5,S,rangespace(LI))
+    LeftIntegralWrapper(LI*ConcreteConversion(S,SU),0.5,S,rangespace(LI))
 end
 
 
