@@ -33,10 +33,9 @@ function LeftIntegral(S::Ultraspherical,k)
 end
 
 function LeftIntegral(S::Chebyshev,k)
-    LI = LeftIntegral(Ultraspherical(1//2,domain(S)),k)
-    LeftIntegralWrapper(
-        LI*Conversion(S,Ultraspherical(1//2,domain(S))),
-            0.5,S,rangespace(LI))
+    SU = Ultraspherical(Legendre(domain(S)))
+    LI = LeftIntegral(SU,k)
+    LeftIntegralWrapper(LI*Conversion(S,SU),0.5,S,rangespace(LI))
 end
 
 

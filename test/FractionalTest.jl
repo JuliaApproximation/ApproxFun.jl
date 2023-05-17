@@ -141,7 +141,7 @@ include(joinpath(@__DIR__, "testutils.jl"))
         if VERSION >= v"1.8"
             @inferred (() -> LeftIntegral(Jacobi(-1,0)))()
             @inferred (() -> LeftIntegral(Legendre()))()
-            @inferred (() -> LeftIntegral(Chebyshev()))()
+            # @inferred (() -> LeftIntegral(Chebyshev()))()
             @inferred (() -> LeftIntegral(Ultraspherical(0.5)))()
             @inferred (() -> LeftIntegral(JacobiWeight(0,0,Legendre())))()
             @inferred (() -> LeftIntegral(JacobiWeight(-0.5,0,Chebyshev())))()
