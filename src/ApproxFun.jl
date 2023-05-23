@@ -10,24 +10,24 @@ import Calculus
 @reexport using ApproxFunOrthogonalPolynomials
 @reexport using ApproxFunSingularities
 
-import ApproxFunBase: Fun, UnsetSpace, VFun, UnivariateSpace, SumSpace, Space,
+import ApproxFunBase: Fun, UnsetSpace, UnivariateSpace, Space,
                     HeavisideSpace, PointSpace, IntervalOrSegment, ArraySpace,
                     TransformPlan, ITransformPlan, Evaluation,
                     Conversion, default_Fun, Derivative, Integral,
-                    Dirichlet, domain, plan_transform,
+                    domain, plan_transform,
                     plan_itransform, transform, domainspace,
-                    rangespace, boundary, points, differentiate, integrate,
-                    Segment, arclength, fromcanonical, checkpoints, evaluate,
+                    rangespace, points, differentiate, integrate,
+                    Segment, fromcanonical, checkpoints, evaluate,
                     coefficients, coefficientmatrix, clenshaw, ClenshawPlan,
-                    SpaceOperator, InterlaceOperator, cfstype, pad!,
-                    isapproxinteger, components, promotedomainspace, choosedomainspace,
+                    SpaceOperator, cfstype, pad!, components,
                     AbstractProductSpace, MultivariateFun, BivariateSpace,
-                    @calculus_operator, slnorm, sample, chop!, 𝒟, ∫, ⨜, ⨍,
-                    InterlaceOperator_Diagonal, eigs, ConcreteConversion
+                    sample, chop!, 𝒟, ∫, ⨜, ⨍, eigs
 
 export ∫, ⨜, ⨍, 𝒟
 
 import ApproxFunOrthogonalPolynomials: order
+
+using ApproxFunSingularities: LeftIntegral, LeftDerivative, RightDerivative, RightIntegral
 
 import BandedMatrices: bandwidths
 
