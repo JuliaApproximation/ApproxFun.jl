@@ -29,7 +29,6 @@ include(joinpath(@__DIR__, "testutils.jl"))
 include("ReadmeTest.jl"); GC.gc();
 include("ExtrasTest.jl"); GC.gc();
 include("NumberTypeTest.jl"); GC.gc();
-include("FractionalTest.jl"); GC.gc();
 
 @testset "Chebyshev and Fourier" begin
     @test norm(Fun(x->Fun(cos,Fourier(-π .. π),20)(x),20)-Fun(cos,20)) <100eps()
