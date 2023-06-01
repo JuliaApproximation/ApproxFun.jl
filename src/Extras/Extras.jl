@@ -20,9 +20,10 @@ include("simplify.jl")
 include("autodifferentiation.jl")
 include("fractional.jl")
 
+function dualFun end
 function dualcfsFun end
 
 if !isdefined(Base, :get_extension)
-	include("../ext/ApproxFunDualNumbersExt.jl")
+	include(joinpath(dirname(dirname(pathof(@__MODULE__))), "ext", "ApproxFunDualNumbersExt.jl"))
 end
 include("lanczos.jl")

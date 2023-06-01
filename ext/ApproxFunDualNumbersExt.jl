@@ -73,7 +73,7 @@ function simplifycfs!(cfs::AbstractVector{DD},tol::Float64=4E-16) where DD<:Dual
 end
 
 
-function dualFun(f,S,n)
+function ApproxFun.dualFun(f,S,n)
     pts=points(S,n) + Dual{Float64}[dual(0.,rand(Bool)) for k=1:n]
     Fun(transform(S,map(f,pts)),S)
 end
