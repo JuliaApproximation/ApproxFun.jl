@@ -20,7 +20,6 @@ include("simplify.jl")
 include("autodifferentiation.jl")
 include("fractional.jl")
 
-function dualFun end
 function dualcfsFun end
 
 if !isdefined(Base, :get_extension)

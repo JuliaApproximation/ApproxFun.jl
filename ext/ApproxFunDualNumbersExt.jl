@@ -73,7 +73,7 @@ function simplifycfs!(cfs::AbstractVector{DD},tol::Float64=4E-16) where DD<:Dual
 end
 
 
-function ApproxFun.dualFun(f,S,n)
+function dualFun(f,S,n)
     pts=points(S,n) + Dual{Float64}[dual(0.,rand(Bool)) for k=1:n]
     Fun(transform(S,map(f,pts)),S)
 end
@@ -84,7 +84,7 @@ function ApproxFun.dualcfsFun(f,S)
     f0=f(first(r))
 
     if isa(f0,AbstractArray) && size(S) ≠ size(f0)
-        return ApproxFun.dualcfsFun(f,Space(fill(S,size(f0))))
+        return dualcfsFun(f,Space(fill(S,size(f0))))
     end
 
     tol = 100eps(T)
@@ -95,7 +95,7 @@ function ApproxFun.dualcfsFun(f,S)
     for logn = 4:20
         n=2^logn
 
-        cf=ApproxFun.dualFun(f,S,n)
+        cf = dualFun(f,S,n)
 
         if maximum(abs,realpart(cf.coefficients[end-8:end]))<maximum(abs,dualpart(cf.coefficients[end-8:end]))*tol &&
                                 all(k->norm(cf(r[k])-fr[k],1)<1E-4,1:length(r))
