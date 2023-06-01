@@ -20,6 +20,10 @@ include("simplify.jl")
 include("autodifferentiation.jl")
 include("fractional.jl")
 
+function dualFun end
+function dualcfsFun end
 
-include("dualnumbers.jl")
+if !isdefined(Base, :get_extension)
+	include("../ext/ApproxFunDualNumbersExt.jl")
+end
 include("lanczos.jl")

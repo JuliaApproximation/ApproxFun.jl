@@ -1,3 +1,14 @@
+module ApproxFunDualNumbersExt
+
+using DualNumbers
+using ApproxFun
+using ApproxFun: TransformPlan, ITransformPlan
+import ApproxFunBase: valsdomain_type_promote
+using DomainSets
+import FastTransforms: ChebyshevTransformPlan, plan_chebyshevtransform,
+                        plan_chebyshevtransform!, plan_ichebyshevtransform,
+                        plan_ichebyshevtransform!
+
 # Dual number support. Should there be realpart and dualpart of Space and Domain?
 DualNumbers.realpart(f::Fun{S,T}) where {S,T<:Dual} = Fun(space(f),realpart.(coefficients(f)))
 DualNumbers.dualpart(f::Fun{S,T}) where {S,T<:Dual} = Fun(space(f),dualpart.(coefficients(f)))
@@ -5,9 +16,9 @@ DualNumbers.dualpart(f::Fun{S,T}) where {S,T<:Dual} = Fun(space(f),dualpart.(coe
 
 DualNumbers.realpart(d::Segment{<:Dual}) = Segment(realpart(leftendpoint(d)),realpart(rightendpoint(d)))
 
-indomain(x::Number, d::Segment{<:Dual}) = in(x,realpart(d))
-indomain(x::Dual, d::Segment{<:Dual}) = in(realpart(x),realpart(d))
-isempty(d::Segment{<:Dual}) = isempty(realpart(d))
+DomainSets.indomain(x::Number, d::Segment{<:Dual}) = in(x,realpart(d))
+DomainSets.indomain(x::Dual, d::Segment{<:Dual}) = in(realpart(x),realpart(d))
+Base.isempty(d::Segment{<:Dual}) = isempty(realpart(d))
 
 
 
@@ -33,22 +44,22 @@ plan_ichebyshevtransform(v::AbstractVector{D}, ::Val{kind}) where {D<:Dual,kind}
 
 
 
-*(P::ChebyshevTransformPlan,v::AbstractVector{<:Dual}) = dual.(P*realpart.(v),P*dualpart.(v))
+Base.:(*)(P::ChebyshevTransformPlan,v::AbstractVector{<:Dual}) = dual.(P*realpart.(v),P*dualpart.(v))
 
 #TODO: Hardy{false}
 for (OP,TransPlan) in ((:plan_transform,:TransformPlan),(:plan_itransform,:ITransformPlan)),
         TYP in  (:Fourier,:Laurent,:SinSpace)
     @eval begin
-        function $OP(sp::$TYP{D},x::AbstractVector{T}) where {T<:Dual,D<:Domain}
+        function ApproxFun.$OP(sp::$TYP{D},x::AbstractVector{T}) where {T<:Dual,D<:Domain}
             plan = $OP(sp,realpart.(x))
             $TransPlan{T,typeof(sp),false,typeof(plan)}(sp,plan)
         end
-        *(P::$TransPlan{T,$TYP{D},false},x::AbstractVector{T}) where {T<:Dual,D<:Domain} =
+        Base.:(*)(P::$TransPlan{T,$TYP{D},false},x::AbstractVector{T}) where {T<:Dual,D<:Domain} =
             dual(P.plan*realpart.(x),P.plan*dualpart.(x))
     end
 end
 
-chop!(f::Fun,d::Dual)=chop!(f,realpart(d))
+ApproxFun.chop!(f::Fun,d::Dual)=chop!(f,realpart(d))
 
 
 
@@ -62,18 +73,18 @@ function simplifycfs!(cfs::AbstractVector{DD},tol::Float64=4E-16) where DD<:Dual
 end
 
 
-function dualFun(f,S,n)
+function ApproxFun.dualFun(f,S,n)
     pts=points(S,n) + Dual{Float64}[dual(0.,rand(Bool)) for k=1:n]
     Fun(transform(S,map(f,pts)),S)
 end
 
-function dualcfsFun(f,S)
+function ApproxFun.dualcfsFun(f,S)
     T = real(float(eltype(domain(S))))
     r=checkpoints(S)
     f0=f(first(r))
 
     if isa(f0,AbstractArray) && size(S) ≠ size(f0)
-        return dualcfsFun(f,Space(fill(S,size(f0))))
+        return ApproxFun.dualcfsFun(f,Space(fill(S,size(f0))))
     end
 
     tol = 100eps(T)
@@ -84,7 +95,7 @@ function dualcfsFun(f,S)
     for logn = 4:20
         n=2^logn
 
-        cf=dualFun(f,S,n)
+        cf=ApproxFun.dualFun(f,S,n)
 
         if maximum(abs,realpart(cf.coefficients[end-8:end]))<maximum(abs,dualpart(cf.coefficients[end-8:end]))*tol &&
                                 all(k->norm(cf(r[k])-fr[k],1)<1E-4,1:length(r))
@@ -94,4 +105,6 @@ function dualcfsFun(f,S)
     @warn "Maximum length "*string(2^20+1)*" reached"
 
     Fun(f,S,2^21)
+end
+
 end
