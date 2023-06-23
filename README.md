@@ -1,7 +1,7 @@
 # ApproxFun.jl
 
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://JuliaApproximation.github.io/ApproxFun.jl/stable)
-[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://JuliaApproximation.github.io/ApproxFun.jl/latest)
+[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://JuliaApproximation.github.io/ApproxFun.jl/dev)
 [![CI](https://github.com/JuliaApproximation/ApproxFun.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/JuliaApproximation/ApproxFun.jl/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/JuliaApproximation/ApproxFun.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaApproximation/ApproxFun.jl)
 [![deps](https://juliahub.com/docs/ApproxFun/deps.svg)](https://juliahub.com/ui/Packages/ApproxFun/jGqLz?t=2)
@@ -13,7 +13,7 @@
 ApproxFun is a package for approximating functions. It is in a similar vein to the Matlab
 package [`Chebfun`](http://www.chebfun.org) and the Mathematica package [`RHPackage`](https://github.com/dlfivefifty/RHPackage).
 
-The  [`ApproxFun Documentation`](https://JuliaApproximation.github.io/ApproxFun.jl/latest) contains detailed information, or read on for a brief overview of the package. The documentation contains examples of usage, such as solving ordinary and partial differential equations.
+The  [`ApproxFun Documentation`](https://JuliaApproximation.github.io/ApproxFun.jl/dev) contains detailed information, or read on for a brief overview of the package. The documentation contains examples of usage, such as solving ordinary and partial differential equations.
 
 The  [`ApproxFun Examples`](https://github.com/JuliaApproximation/ApproxFunExamples) repo contains many examples of
 using this package, in Jupyter notebooks and Julia scripts. Note that this is independently maintained, so it might not always be in sync with the latest version of `ApproxFun`. We recommend checking the examples in the documentation first, as these will always be compatible with the latest version of the package.
@@ -79,7 +79,7 @@ h = airyai(10asin(f)+2g)
 
 ## Examples of Usage
 
-Check the [documentation](https://JuliaApproximation.github.io/ApproxFun.jl/latest) for examples of usage.
+Check the [documentation](https://JuliaApproximation.github.io/ApproxFun.jl/dev) for examples of usage.
 
 ## References
 
