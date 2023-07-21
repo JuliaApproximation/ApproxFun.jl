@@ -11,8 +11,6 @@ include("fftGeneric.jl")
 digits(n::Int) = set_bigfloat_precision(round(Int,ceil(n*log2(10))))
 digits() = round(Int,floor(get_bigfloat_precision()*log10(2)))
 
-import FastTransforms: pochhammer
-
 include("poetry.jl")
 
 include("simplify.jl")
@@ -24,6 +22,7 @@ function dualFun end
 function dualcfsFun end
 
 if !isdefined(Base, :get_extension)
-	include(joinpath(dirname(dirname(pathof(@__MODULE__))), "ext", "ApproxFunDualNumbersExt.jl"))
+	parentdir = dirname(dirname(pathof(@__MODULE__)))
+	include(joinpath(parentdir, "ext", "ApproxFunDualNumbersExt.jl"))
 end
 include("lanczos.jl")

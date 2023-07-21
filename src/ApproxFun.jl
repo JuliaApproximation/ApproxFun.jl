@@ -1,7 +1,12 @@
 module ApproxFun
-using Base, Reexport,
-		AbstractFFTs, FFTW, FastTransforms,
-		LinearAlgebra, RecipesBase, DomainSets, SpecialFunctions #, Arpack
+
+using AbstractFFTs
+using DomainSets
+using FastTransforms
+using LinearAlgebra
+using RecipesBase
+using Reexport
+using SpecialFunctions
 
 import Calculus
 
@@ -29,10 +34,7 @@ import ApproxFunOrthogonalPolynomials: order
 
 using ApproxFunSingularities: LeftIntegral, LeftDerivative, RightDerivative, RightIntegral
 
-import BandedMatrices: bandwidths
-
-import AbstractFFTs: Plan, fft, ifft
-import FFTW: plan_fft, plan_ifft, plan_ifft!
+import AbstractFFTs: Plan, fft, ifft, plan_fft, plan_ifft, plan_ifft!
 
 import Base: convert, getindex, *, +, -, /, ^, \, sum, cumsum,
                 first, last, isempty, zeros, promote_rule,
@@ -44,18 +46,11 @@ import Base: convert, getindex, *, +, -, /, ^, \, sum, cumsum,
                 asind, acosd, atand, asecd, acscd, acotd, sinh, cosh, tanh, sech, csch,
                 coth, asinh, acosh, atanh, asech, acsch, acoth, deg2rad, rad2deg
 
-import LinearAlgebra: eigvals, dot, adjoint
+import LinearAlgebra: adjoint
 
 import SpecialFunctions: erf, erfinv, erfc, erfcinv, erfi, gamma, lgamma, digamma, invdigamma,
                 trigamma, airyai, airybi, airyaiprime, airybiprime, besselj0, besselj1,
                 bessely0, bessely1, erfcx, dawson
-
-# import Arpack: eigs
-
-
-import FastTransforms: ChebyshevTransformPlan, plan_chebyshevtransform,
-                        plan_chebyshevtransform!, plan_ichebyshevtransform,
-                        plan_ichebyshevtransform!
 
 using StaticArrays: SVector
 

@@ -1,6 +1,6 @@
 name = "ApproxFun"
 uuid = "28f2ccd6-bb30-5033-b560-165f7b14dc2f"
-version = "0.13.20"
+version = "0.13.21"
 
 [deps]
 AbstractFFTs = "621f4979-c628-5d54-868e-fcf4e3e8185c"
@@ -8,11 +8,9 @@ ApproxFunBase = "fbd15aa5-315a-5a7d-a8a4-24992e37be05"
 ApproxFunFourier = "59844689-9c9d-51bf-9583-5b794ec66d30"
 ApproxFunOrthogonalPolynomials = "b70543e2-c0d9-56b8-a290-0d4d6d4de211"
 ApproxFunSingularities = "f8fcb915-6b99-5be2-b79a-d6dbef8e6e7e"
-BandedMatrices = "aae01518-5342-5314-be14-df237901396f"
 Calculus = "49dc2e85-a5d0-5ad3-a950-438e2897f1b9"
 DomainSets = "5b8099bc-c8ec-5219-889f-1d9e522a28bf"
 DualNumbers = "fa6b7ba4-c1ee-5f82-b5fc-ecf0adba8f74"
-FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
 FastTransforms = "057dd010-8810-581a-b7be-e3fc3b93f78c"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
@@ -51,11 +49,13 @@ julia = "1.6"
 [extras]
 ApproxFunBaseTest = "a931bfaf-0cfd-4a5c-b69c-bf2eed002b43"
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+BandedMatrices = "aae01518-5342-5314-be14-df237901396f"
 BlockBandedMatrices = "ffab5731-97b5-5995-9138-79e8c1846df0"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 DualNumbers = "fa6b7ba4-c1ee-5f82-b5fc-ecf0adba8f74"
+FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["ApproxFunBaseTest", "Aqua", "BlockBandedMatrices", "Documenter", "DualNumbers", "Random", "Test"]
+test = ["ApproxFunBaseTest", "Aqua", "BandedMatrices", "BlockBandedMatrices", "Documenter", "DualNumbers", "FFTW", "Random", "Test"]
