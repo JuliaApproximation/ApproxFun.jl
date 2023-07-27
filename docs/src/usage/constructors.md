@@ -16,10 +16,10 @@ julia> f = exp(x);
 julia> g = f/sqrt(1-x^2);
 
 julia> space(f)  # Output is pretty version of Chebyshev(Interval(-1.0,1.0))
-Chebyshev(-1..1)
+Chebyshev(-1 .. 1)
 
 julia> space(g)  # Output is pretty version of JacobiWeight(-0.5, -0.5, -1..1)
-(1-x^2)^-0.5[Chebyshev(-1..1)]
+(1-x^2)^-0.5[Chebyshev(-1 .. 1)]
 ```
 
 The absolute value is another case where the space of the output is inferred from the operation:
@@ -30,7 +30,7 @@ julia> f = Fun(x->cospi(5x),-1..1);
 julia> g = abs(f);
 
 julia> space(f)
-Chebyshev(-1..1)
+Chebyshev(-1 .. 1)
 
 julia> space(g) isa ContinuousSpace # Piecewise continous functions
 true

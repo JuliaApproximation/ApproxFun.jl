@@ -154,7 +154,7 @@ julia> x = Fun(identity, -1..1);
 julia> f = cos(x-0.1)*sqrt(1-x^2) + exp(x);
 
 julia> space(f)  # isa SumSpace
-(1-x^2)^0.5[Chebyshev(-1..1)] ⊕ Chebyshev(-1..1)
+(1-x^2)^0.5[Chebyshev(-1 .. 1)] ⊕ Chebyshev(-1 .. 1)
 
 julia> a, b = components(f);
 
