@@ -24,8 +24,7 @@ DocMeta.setdocmeta!(ApproxFun, :DocTestSetup, :(using ApproxFun); recursive=true
 
 @testset "doctests" begin
     doctest(ApproxFun)
-    # Temporarily disabled to allow https://github.com/JuliaApproximation/ApproxFunBase.jl/pull/507
-    # doctest(ApproxFunBase, manual=false)
+    doctest(ApproxFunBase, manual=false)
 end
 
 include(joinpath(@__DIR__, "testutils.jl"))
