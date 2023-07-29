@@ -148,13 +148,13 @@ and the basis becomes
 
 `SumSpace((space_1,space_2,…,space_n))` represents the direct sum of the spaces, where evaluation is defined by adding up each component. A simple example is the following, showing that the coefficients are stored by interlacing:
 
-```jldoctest
+```jldoctest sumspace
 julia> x = Fun(identity, -1..1);
 
 julia> f = cos(x-0.1)*sqrt(1-x^2) + exp(x);
 
-julia> space(f)  # isa SumSpace
-(1-x^2)^0.5[Chebyshev(-1 .. 1)] ⊕ Chebyshev(-1 .. 1)
+julia> space(f) == JacobiWeight(0.5, 0.5, Chebyshev(-1..1)) + Chebyshev(-1..1)
+true
 
 julia> a, b = components(f);
 
