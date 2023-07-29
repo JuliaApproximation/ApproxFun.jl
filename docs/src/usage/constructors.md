@@ -8,29 +8,31 @@ end
 
 `Fun`s in ApproxFun are instances of Julia types with one field to store coefficients and another to describe the function space. Similarly, each function space has one field describing its domain, or another function space. Let's explore:
 
-```jldoctest
+```jldoctest Fun
 julia> x = Fun(identity,-1..1);
 
 julia> f = exp(x);
 
+julia> space(f) == Chebyshev(-1..1)
+true
+```
+In this example, `f` is a `Fun` that corresponds to a Chebyshev interpolant to `exp(x)`, and evaluating `f(x)` will generate a close approximation to `exp(x)`. In this case, the space is automatically inferred from the domain.
+
+`Fun`s may also incorporate singularities at the edges of the domain. In such cases, if the variable is in a polynomial space, the resulting space is a [`JacobiWeight`](@ref), which factors out the singularity and interpolates the residual analytical component. Perhaps this is best illustrated through an example:
+```jldoctest Fun
 julia> g = f/sqrt(1-x^2);
 
-julia> space(f)  # Output is pretty version of Chebyshev(Interval(-1.0,1.0))
-Chebyshev(-1 .. 1)
-
-julia> space(g)  # Output is pretty version of JacobiWeight(-0.5, -0.5, -1..1)
-(1-x^2)^-0.5[Chebyshev(-1 .. 1)]
+julia> space(g) == JacobiWeight(-0.5, -0.5, Chebyshev(-1..1))
+true
 ```
+The function `g` in this case is expanded the basis ``(1-x^2)^{1/2}\;T_n(x)``, where ``T_n(x)`` are Chebyshev polynomials. This is equivalent to expanding the function `f` in a Chebyshev basis.
 
 The absolute value is another case where the space of the output is inferred from the operation:
 
 ```jldoctest abs_space
-julia> f = Fun(x->cospi(5x),-1..1);
+julia> f = Fun(x->cospi(5x), -1..1);
 
 julia> g = abs(f);
-
-julia> space(f)
-Chebyshev(-1 .. 1)
 
 julia> space(g) isa ContinuousSpace # Piecewise continous functions
 true
@@ -43,7 +45,7 @@ that of continuous functions over the piecewise domain:
 ```jldoctest abs_space
 julia> p = [-1; roots(f); 1];
 
-julia> segments = @views [Segment(x,y) for (x,y) in zip(p[1:end-1], p[2:end])];
+julia> segments = [Segment(x,y) for (x,y) in zip(p[1:end-1], p[2:end])];
 
 julia> components(domain(g)) == segments
 true

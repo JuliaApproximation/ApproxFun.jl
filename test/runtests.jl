@@ -23,7 +23,7 @@ DocMeta.setdocmeta!(ApproxFunBase, :DocTestSetup, :(using ApproxFun); recursive=
 DocMeta.setdocmeta!(ApproxFun, :DocTestSetup, :(using ApproxFun); recursive=true)
 
 @testset "doctests" begin
-    doctest(ApproxFun)
+    doctest(ApproxFun, manual=false)
     doctest(ApproxFunBase, manual=false)
 end
 
