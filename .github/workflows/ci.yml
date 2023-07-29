@@ -39,7 +39,6 @@ jobs:
         version:
           - '1.6'
           - '1'
-          - '~1.10.0-0'
         os:
           - ubuntu-latest
           - macOS-latest
