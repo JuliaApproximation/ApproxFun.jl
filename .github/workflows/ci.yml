@@ -7,11 +7,13 @@ on:
       - 'LICENSE.md'
       - 'README.md'
       - '.github/workflows/TagBot.yml'
+      - 'docs/*'
   pull_request:
     paths-ignore:
       - 'LICENSE.md'
       - 'README.md'
       - '.github/workflows/TagBot.yml'
+      - 'docs/*'
 
 concurrency:
   group: build-${{ github.event.pull_request.number || github.ref }}
