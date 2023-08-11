@@ -56,6 +56,9 @@ include(joinpath(@__DIR__, "testutils.jl"))
         f=Fun(x->exp(dual(x,1)),-1..1)
         @test coefficients(realpart(f)) == realpart.(coefficients(f))
         @test coefficients(dualpart(f)) == dualpart.(coefficients(f))
+
+        # Test inverse Chebyshev transform for dual numbers
+        @test all(absdual.(transform(space(f),values(f)) - coefficients(f)) .< 10eps())
     end
 
     @testset "Eig test #336" begin
