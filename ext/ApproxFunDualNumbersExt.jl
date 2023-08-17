@@ -5,9 +5,9 @@ using ApproxFun
 using ApproxFun: TransformPlan, ITransformPlan
 import ApproxFunBase: valsdomain_type_promote
 using DomainSets
-import FastTransforms: ChebyshevTransformPlan, plan_chebyshevtransform,
-                        plan_chebyshevtransform!, plan_ichebyshevtransform,
-                        plan_ichebyshevtransform!
+import FastTransforms: ChebyshevTransformPlan, IChebyshevTransformPlan,
+                        plan_chebyshevtransform, plan_chebyshevtransform!,
+                        plan_ichebyshevtransform, plan_ichebyshevtransform!
 
 # Dual number support. Should there be realpart and dualpart of Space and Domain?
 DualNumbers.realpart(f::Fun{S,T}) where {S,T<:Dual} = Fun(space(f),realpart.(coefficients(f)))
@@ -45,6 +45,7 @@ plan_ichebyshevtransform(v::AbstractVector{D}, ::Val{kind}) where {D<:Dual,kind}
 
 
 Base.:(*)(P::ChebyshevTransformPlan,v::AbstractVector{<:Dual}) = dual.(P*realpart.(v),P*dualpart.(v))
+Base.:(*)(P::IChebyshevTransformPlan,v::AbstractVector{<:Dual}) = dual.(P*realpart.(v),P*dualpart.(v))
 
 #TODO: Hardy{false}
 for (OP,TransPlan) in ((:plan_transform,:TransformPlan),(:plan_itransform,:ITransformPlan)),
