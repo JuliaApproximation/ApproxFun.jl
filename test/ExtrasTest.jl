@@ -123,8 +123,7 @@ include(joinpath(@__DIR__, "testutils.jl"))
                 u2' - u2*u2;
             ]
 
-        # note takes a few more iterations to converge to accuracy
-        u1,u2 = newton(N_ind, [u1,u2], maxiterations=25)
+        u1,u2 = newton(N_ind, [u1,u2])
 
         u1_exact = -1 / (x - 2)
         u2_exact = -1 / (x + 2)
