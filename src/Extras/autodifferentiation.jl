@@ -61,7 +61,7 @@ last(d::DualFun) = DualFun(last(d.f),Evaluation(rangespace(d.J),rightendpoint)*d
 
 jacobian(d::DualFun) = d.J
 jacobian(a::Number) = zero(a)
-jacobian(f::Fun) = Operator(I,space(f))
+jacobian(f::Fun) = zero(Operator(I,space(f)))
 
 promote_rule(::Type{DF},::Type{T}) where {DF<:DualFun,T<:Number}=DualFun
 convert(::Type{DualFun},b::Number) = DualFun(b,0)
