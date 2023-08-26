@@ -6,6 +6,7 @@
 [![codecov](https://codecov.io/gh/JuliaApproximation/ApproxFun.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaApproximation/ApproxFun.jl)
 [![deps](https://juliahub.com/docs/ApproxFun/deps.svg)](https://juliahub.com/ui/Packages/ApproxFun/jGqLz?t=2)
 [![version](https://juliahub.com/docs/ApproxFun/version.svg)](https://juliahub.com/ui/Packages/ApproxFun/jGqLz)
+[![pkgeval](https://juliahub.com/docs/General/ApproxFun/stable/pkgeval.svg)](https://juliahub.com/ui/Packages/General/ApproxFun)
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 [![Join the chat at https://gitter.im/JuliaApproximation/ApproxFun.jl](https://badges.gitter.im/JuliaApproximation/ApproxFun.jl.svg)](https://gitter.im/JuliaApproximation/ApproxFun.jl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
