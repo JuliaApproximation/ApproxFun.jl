@@ -11,7 +11,7 @@ SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 [compat]
 ApproxFun = "0.13"
 BandedMatrices = "0.17"
-Documenter = "0.27"
+Documenter = "1"
 DomainSets = "0.6"
 Literate = "2"
 Plots = "1"
