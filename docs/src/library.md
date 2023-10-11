@@ -159,7 +159,7 @@ zeros(::Space)
 ## Accessing information about a Fun
 
 ```@docs
-domain
+ApproxFun.domain
 ```
 
 ```@docs
@@ -222,7 +222,7 @@ Operator
 ```
 
 ```@docs
-BandedMatrices.bandwidths(::Operator)
+bandwidths(::Operator)
 ```
 
 ```@docs
