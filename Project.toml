@@ -1,6 +1,6 @@
 name = "ApproxFun"
 uuid = "28f2ccd6-bb30-5033-b560-165f7b14dc2f"
-version = "0.13.23"
+version = "0.13.24"
 
 [deps]
 AbstractFFTs = "621f4979-c628-5d54-868e-fcf4e3e8185c"
@@ -36,7 +36,7 @@ BandedMatrices = "0.16, 0.17"
 BlockBandedMatrices = "0.11, 0.12"
 Calculus = "0.5"
 Documenter = "0.27"
-DomainSets = "0.3, 0.4, 0.5, 0.6"
+DomainSets = "0.3, 0.4, 0.5, 0.6, 0.7"
 DualNumbers = "0.6.2"
 FFTW = "1"
 FastTransforms = "0.13, 0.14, 0.15"
