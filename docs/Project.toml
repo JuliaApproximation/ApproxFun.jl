@@ -9,10 +9,9 @@ Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 
 [compat]
-ApproxFun = "0.13"
-BandedMatrices = "0.17"
+BandedMatrices = "0.17, 1"
 Documenter = "1"
-DomainSets = "0.6"
+DomainSets = "0.6, 0.7"
 Literate = "2"
 Plots = "1"
 SpecialFunctions = "2"
