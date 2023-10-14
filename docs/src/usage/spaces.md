@@ -53,7 +53,7 @@ true
 A key tool for solving differential equations are the ultraspherical spaces, encoded as `Ultraspherical(λ)` for `λ ≠ 0`,
 which can be defined by the span of derivatives of Chebyshev polynomials, or alternatively as polynomials orthogonal with respect to the weight ``(1-x^2)^{λ - \frac{1}{2}}`` for ``-1 ≤ x ≤ 1``.
 
-Note that `Ultraspherical(1)` corresponds to the Chebyshev basis of the second kind: ``\mathop{U}_k(x) = \frac{\sin((k+1)\arccos{x})}{\sin(\arccos{x})}``.  The relationship with Chebyshev polynomials follows from trigonemetric identities: ``\mathop{T}_k'(x) = k \mathop{U}_{k-1}(x)``.
+Note that `Ultraspherical(1)` corresponds to the Chebyshev basis of the second kind: ``\mathop{U}_k(x) = \frac{\sin((k+1)\arccos{x})}{\sin(\arccos{x})}``.  The relationship with Chebyshev polynomials follows from trigonometric identities: ``\mathop{T}_k'(x) = k \mathop{U}_{k-1}(x)``.
 
 Converting between ultraspherical polynomials (with integer orders) is extremely efficient: it requires ``\mathop{O}(n)`` operations, where ``n`` is the number of coefficients.
 

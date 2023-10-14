@@ -50,7 +50,7 @@
 - Fix several bugs and performance enhancements
 
 #### 0.7.1
-- `F` was renamed `DFunction` for dynamic funtion
+- `F` was renamed `DFunction` for dynamic function
 - `Fun`s are now subtypes of `Function`
 - Support `f^k` for polynomial `f` and real `k`
 - Fix several bugs and performance enhancements
@@ -75,7 +75,7 @@ evaluating at the boundary of an interval
 
 #### 0.6.0
 - Adds support for Julia v0.6
-- Replaces FixedSizeArrays.jl dependancy with StaticArrays.jl
+- Replaces FixedSizeArrays.jl dependency with StaticArrays.jl
 - Auto-vectorization `f([1,2,3])` is removed in favour of broadcasting `f.([1,2,3])`
 
 
