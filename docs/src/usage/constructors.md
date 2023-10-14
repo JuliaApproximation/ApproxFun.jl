@@ -34,7 +34,7 @@ julia> f = Fun(x->cospi(5x), -1..1);
 
 julia> g = abs(f);
 
-julia> space(g) isa ContinuousSpace # Piecewise continous functions
+julia> space(g) isa ContinuousSpace # Piecewise continuous functions
 true
 
 julia> domain(g) isa PiecewiseSegment # Segments interspersed by the roots of f

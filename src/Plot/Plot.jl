@@ -297,7 +297,7 @@ end
     seriestype --> :surface
 
     if norm(imag(vals),Inf)>10e-9
-        @warn "Imaginary part is non-neglible.  Only plotting real part."
+        @warn "Imaginary part is non-negligible.  Only plotting real part."
     end
 
     # sort the points
@@ -318,7 +318,7 @@ end
     seriestype --> :surface
 
     if norm(imag(vals),Inf)>10e-9
-        @warn "Imaginary part is non-neglible.  Only plotting real part."
+        @warn "Imaginary part is non-negligible.  Only plotting real part."
     end
 
 

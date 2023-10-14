@@ -30,7 +30,7 @@ B = Dirichlet(S);
 
 SEg = ApproxFun.SymmetricEigensystem(L, B);
 
-# We construct `n × n` matrix representations of the opertors that we diagonalize
+# We construct `n × n` matrix representations of the operators that we diagonalize
 n = 3000
 λ = eigvals(SEg, n);
 

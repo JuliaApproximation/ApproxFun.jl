@@ -16,7 +16,7 @@ p
 # If the solutions are not relatively constant near the boundary then one should push
 # the boundaries further out.
 
-# For problems with different contraints or boundary conditions,
+# For problems with different constraints or boundary conditions,
 # `B` can be any zero functional constraint, e.g., `DefiniteIntegral()`.
 
 include("Eigenvalue_anharmonic.jl")
