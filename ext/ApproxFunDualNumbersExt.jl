@@ -2,10 +2,12 @@ module ApproxFunDualNumbersExt
 
 using DualNumbers
 using ApproxFun
-using ApproxFun: TransformPlan, ITransformPlan
-import ApproxFunBase: valsdomain_type_promote
-using DomainSets
-import FastTransforms: ChebyshevTransformPlan, IChebyshevTransformPlan,
+# Specifying the full namespace is necessary because of https://github.com/JuliaLang/julia/issues/48533
+# See https://github.com/JuliaStats/LogExpFunctions.jl/pull/63
+using ApproxFun.ApproxFunBase: TransformPlan, ITransformPlan
+import ApproxFun.ApproxFunBase: valsdomain_type_promote
+using ApproxFun.DomainSets
+import ApproxFun.FastTransforms: ChebyshevTransformPlan, IChebyshevTransformPlan,
                         plan_chebyshevtransform, plan_chebyshevtransform!,
                         plan_ichebyshevtransform, plan_ichebyshevtransform!
 
