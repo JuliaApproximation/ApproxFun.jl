@@ -2,10 +2,10 @@ module ApproxFunDualNumbersExt
 
 using DualNumbers
 using ApproxFun
-using ApproxFun: TransformPlan, ITransformPlan
-import ApproxFunBase: valsdomain_type_promote
-using DomainSets
-import FastTransforms: ChebyshevTransformPlan, IChebyshevTransformPlan,
+using ApproxFun.ApproxFunBase: TransformPlan, ITransformPlan
+import ApproxFun.ApproxFunBase: valsdomain_type_promote
+using ApproxFun.DomainSets
+import ApproxFun.FastTransforms: ChebyshevTransformPlan, IChebyshevTransformPlan,
                         plan_chebyshevtransform, plan_chebyshevtransform!,
                         plan_ichebyshevtransform, plan_ichebyshevtransform!
 
