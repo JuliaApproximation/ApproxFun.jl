@@ -4,7 +4,7 @@
 using ApproxFun
 using LinearAlgebra
 
-N(u1, u2) = [u1'(0) - 0.5*u1(0)*u2(0);
+N2(u1, u2) = [u1'(0) - 0.5*u1(0)*u2(0);
                 u2'(0) + 1;
                 u1(1) - 1;
                 u2(1) - 1;
@@ -15,6 +15,6 @@ function nbvpsolver2()
     x = Fun(0..1)
     u10 = one(x)
     u20 = one(x)
-    newton(N, [u10,u20])
+    newton(N2, [u10,u20])
 end
 u1,u2 = nbvpsolver2();

@@ -93,7 +93,7 @@ end
     b = rangespace(A)
 
     @test Fun(component(v[1],1), component(b[1],1))(0.1,-1.0) ≈ v(0.1,-1.0)[1]
-    @test Fun(component(v[1],2), component(b[1],2))(0.1,-1.0) ≈ v(0.1,-1.0)[1]
+    @test Fun(component(v[1],2), component(b[1],2))(0.1,1.0) ≈ v(0.1,1.0)[1]
     @test ApproxFun.default_Fun(v[1] , b[1])(0.1,1.0) ≈ v(0.1,1.0)[1]
 end
 
