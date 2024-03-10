@@ -5,3 +5,4 @@ docs/src/generated
 src/.DS_Store
 .DS_Store
 Manifest.toml
+Manifest-v*.*.toml
