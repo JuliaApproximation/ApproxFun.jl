@@ -1,0 +1,116 @@
+<!DOCTYPE html><HTML lang="en"><head><meta charset="UTF-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>Frequently Asked Questions · ApproxFun.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script data-main="assets/documenter.js" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link href="assets/documenter.css" rel="stylesheet" type="text/css"/><script data-outdated-warner="">function maybeAddWarning () {
+    const head = document.getElementsByTagName('head')[0];
+
+    // Add a noindex meta tag (unless one exists) so that search engines don't index this version of the docs.
+    if (document.body.querySelector('meta[name="robots"]') === null) {
+        const meta = document.createElement('meta');
+        meta.name = 'robots';
+        meta.content = 'noindex';
+
+        head.appendChild(meta);
+    };
+
+    // Add a stylesheet to avoid inline styling
+    const style = document.createElement('style');
+    style.type = 'text/css';
+    style.appendChild(document.createTextNode('.outdated-warning-overlay {  position: fixed;  top: 0;  left: 0;  right: 0;  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);  z-index: 999;  background-color: #ffaba7;  color: rgba(0, 0, 0, 0.7);  border-bottom: 3px solid #da0b00;  padding: 10px 35px;  text-align: center;  font-size: 15px; }  .outdated-warning-overlay .outdated-warning-closer {    position: absolute;    top: calc(50% - 10px);    right: 18px;    cursor: pointer;    width: 12px; }  .outdated-warning-overlay a {    color: #2e63b8; }    .outdated-warning-overlay a:hover {      color: #363636; }'));
+    head.appendChild(style);
+
+    const div = document.createElement('div');
+    div.classList.add('outdated-warning-overlay');
+    const closer = document.createElement('div');
+    closer.classList.add('outdated-warning-closer');
+
+    // Icon by font-awesome (license: https://fontawesome.com/license, link: https://fontawesome.com/icons/times?style=solid)
+    closer.innerHTML = '<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="times" class="svg-inline--fa fa-times fa-w-11" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 352 512"><path fill="currentColor" d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"></path></svg>';
+    closer.addEventListener('click', function () {
+        document.body.removeChild(div);
+    });
+    let href = '/stable';
+    if (window.documenterBaseURL) {
+        href = window.documenterBaseURL + '/../stable';
+    }
+    div.innerHTML = 'This documentation is not for the latest version. <br> <a href="' + href + '">Go to the latest documentation</a>.';
+    div.appendChild(closer);
+    document.body.appendChild(div);
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', maybeAddWarning);
+} else {
+    maybeAddWarning();
+};
+</script></head><body><nav class="toc"><a href="index.html"><img alt="ApproxFun.jl logo" class="logo" src="assets/logo.png"/></a><h1>ApproxFun.jl</h1><select id="version-selector" onchange="window.location.href=this.value" style="visibility: hidden"></select><form action="search.html" class="search"><input id="search-query" name="q" placeholder="Search docs" type="text"/></form><ul><li><a class="toctext" href="index.html">Home</a></li><li><span class="toctext">Usage</span><ul><li><a class="toctext" href="usage/domains.html">Domains</a></li><li><a class="toctext" href="usage/spaces.html">Spaces</a></li><li><a class="toctext" href="usage/constructors.html">Constructors</a></li><li><a class="toctext" href="usage/operators.html">Operators</a></li><li><a class="toctext" href="usage/equations.html">Linear Equations</a></li></ul></li><li class="current"><a class="toctext" href="faq.html">Frequently Asked Questions</a><ul class="internal"><li><a class="toctext" href="#Approximating-functions-1">Approximating functions</a></li></ul></li><li><a class="toctext" href="library.html">Library</a></li></ul></nav><article id="docs"><header><nav><ul><li><a href="faq.html">Frequently Asked Questions</a></li></ul><a class="edit-page" href="https://github.com/JuliaApproximation/ApproxFun.jl/tree/a4141f6562eec07ec85752af355e744bf1a3a5f7/docs/src/faq.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Frequently Asked Questions</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" href="#Frequently-Asked-Questions-1" id="Frequently-Asked-Questions-1">Frequently Asked Questions</a></h1><h2><a class="nav-anchor" href="#Approximating-functions-1" id="Approximating-functions-1">Approximating functions</a></h2><h3><a class="nav-anchor" href="#How-do-I-interpolate-a-function-at-a-specified-grid?-1" id="How-do-I-interpolate-a-function-at-a-specified-grid?-1">How do I interpolate a function at a specified grid?</a></h3><p>In the case where the grid is specified by <code>points(space,n)</code>, you can apply the default transform to data:</p><pre><code class="language-julia-repl">julia&gt; S = Chebyshev(1..2);
+
+julia&gt; p = points(S,20); # the default grid
+
+julia&gt; v = exp.(p);      # values at the default grid
+
+julia&gt; f = Fun(S,ApproxFun.transform(S,v));
+
+julia&gt; f(1.1)
+3.0041660239464347
+
+julia&gt; exp(1.1)
+3.0041660239464334</code></pre><p>ApproxFun has no inbuilt support for interpolating functions at other sets of points, but this can be accomplished manually by evaluating the basis at the set of points and using \:</p><pre><code class="language-julia-repl">julia&gt; S = Chebyshev(1..2);
+
+julia&gt; n = 50;
+
+julia&gt; p = linspace(1,2,n);   # a non-default grid
+
+julia&gt; v = exp.(p);           # values at the non-default grid
+
+julia&gt; V = Array(Float64,n,n); # Create a Vandermonde matrix by evaluating the basis at the grid
+
+julia&gt; for k = 1:n
+           V[:,k] = Fun(S,[zeros(k-1);1]).(p)
+       end
+
+julia&gt; f = Fun(S,V\v);
+
+julia&gt; f(1.1)
+3.0041660228311926
+
+julia&gt; exp(1.1)
+3.0041660239464334</code></pre><p>Note that an evenly spaced grid suffers from instability for large <code>n</code>.  The easiest way around this is to use least squares with more points than coefficients, instead of interpolation:</p><pre><code class="language-julia-repl">julia&gt; S = Chebyshev(1..2);
+
+julia&gt; n = 100; m = 50;
+
+julia&gt; p = linspace(1,2,n);   # a non-default grid
+
+julia&gt; v = exp.(p);           # values at the non-default grid
+
+julia&gt; V = Array(Float64,n,m); # Create a Vandermonde matrix by evaluating the basis at the grid
+
+julia&gt; for k = 1:m
+           V[:,k] = Fun(S,[zeros(k-1);1]).(p)
+       end
+
+julia&gt; f = Fun(S,V\v);
+
+julia&gt; f(1.1)
+3.004166023946434
+
+julia&gt; exp(1.1)
+3.0041660239464334</code></pre><p>We can use this same approach for multivariate functions:</p><pre><code class="language-julia-repl">julia&gt; S = Chebyshev(0..1)^2;
+
+julia&gt; n = 1000; m = 50;
+
+julia&gt; srand(0); x = rand(n); y = rand(n);
+
+julia&gt; v = exp.(x .* cos(y));  # values at the non-default grid
+
+julia&gt; V = Array(Float64,n,m); # Create a Vandermonde matrix by evaluating the basis at the grid
+
+julia&gt; for k = 1:m
+          V[:,k] = Fun(S,[zeros(k-1);1]).(x,y)
+       end
+
+
+julia&gt; f = Fun(S,V\v);
+
+julia&gt; f(0.1,0.2)
+1.1029700685084018
+
+julia&gt; exp(0.1*cos(0.2))
+1.1029701284210731</code></pre><footer><hr/><a class="previous" href="usage/equations.html"><span class="direction">Previous</span><span class="title">Linear Equations</span></a><a class="next" href="library.html"><span class="direction">Next</span><span class="title">Library</span></a></footer></article></body></HTML>
