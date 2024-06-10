@@ -46,6 +46,10 @@ UnionDomain
 ```
 
 ```@docs
+uniondomain
+```
+
+```@docs
 ∂
 ```
 
