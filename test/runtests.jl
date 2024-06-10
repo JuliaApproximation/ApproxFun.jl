@@ -7,7 +7,7 @@ using LinearAlgebra
 using SpecialFunctions
 using ApproxFunBase
 using ApproxFunBase: blocklengths, ∞, blockbandwidths, subblockbandwidths
-using ApproxFunBaseTest: testbandedblockbandedoperator
+using ApproxFunBase.TestUtils: testbandedblockbandedoperator
 
 using Aqua
 @testset "Project quality" begin
