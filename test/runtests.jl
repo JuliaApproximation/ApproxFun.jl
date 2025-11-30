@@ -11,7 +11,7 @@ args = parse_args(ARGS)
 
 if filter_tests!(testsuite, args)
     # Remove tests that shouldn't run on Windows
-    delete!(testsuite, "testutils.jl")
+    delete!(testsuite, "testutils")
 end
 
 const init_code = quote
