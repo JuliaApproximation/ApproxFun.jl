@@ -41,6 +41,7 @@ FFTW = "1"
 FastTransforms = "0.13, 0.14, 0.15, 0.16, 0.17"
 IntervalSets = "0.7.5"
 LinearAlgebra = "1"
+ParallelTestRunner = "2"
 Random = "1"
 RecipesBase = "1.0"
 Reexport = "1.0"
@@ -57,8 +58,9 @@ Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 DualNumbers = "fa6b7ba4-c1ee-5f82-b5fc-ecf0adba8f74"
 FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
 IntervalSets = "8197267c-284f-5f27-9208-e0e47529a953"
+ParallelTestRunner = "d3525ed8-44d0-4b2c-a655-542cee43accc"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Aqua", "BandedMatrices", "BlockBandedMatrices", "Documenter", "DualNumbers", "FFTW", "Random", "Test"]
+test = ["Aqua", "BandedMatrices", "BlockBandedMatrices", "Documenter", "DualNumbers", "FFTW", "ParallelTestRunner", "Random", "Test"]
