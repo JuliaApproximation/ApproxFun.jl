@@ -8,12 +8,9 @@ f=Fun((x,y)->exp(-x^2-y^2), ChebyshevInterval()^2)
 
 constructs a function on the rectangle `[-1,1]^2`.  Just as in the 1D case, `f.coefficients` is a `Vector` of coefficients, and `f.space` is a `Space` that tells how to interpret the coefficients.
 
-## TensorSpace
-
-In the example above, the resulting space is a [`TensorSpace`](@ref).
-
 ## AbstractProductSpace
 
+In the example above, the resulting space is a [`ApproxFunBase.TensorSpace`](@ref).
 A `TensorSpace` is a subtype of `AbstractProductSpace`.  The purpose of `AbstractProductSpace`s beyond `TensorSpace` is that it is often convenient to use different bases in one-dimension depending on the order.  Thus we want to be able to represent functions in the basis `φ_k^j(x)ζ_j(y)`: for example, we could have the basis
 ```math
 (1-x^2)^{m/2} \mathrm{P}_k^{(m,m)}(x) e^{imy}

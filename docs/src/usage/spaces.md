@@ -207,7 +207,7 @@ More complicated examples may interlace the coefficients using a different strat
 ### `TensorSpace`
 
 `TensorSpace((space_1,space_2))` represents the tensor product of two spaces.
-See the documentation of [`TensorSpace`](@ref) for more details on how the coefficients are interlaced.
+See the documentation of [`ApproxFunBase.TensorSpace`](@ref) for more details on how the coefficients are interlaced.
 Note that more than two spaces is only partially supported.
 
 ## Unset space
