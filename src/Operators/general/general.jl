@@ -1,0 +1,6 @@
+include("algebra.jl")
+include("CachedOperator.jl")
+include("FiniteOperator.jl")
+include("TransposeOperator.jl")
+include("InterlaceOperator.jl")
+include("OperatorFunction.jl")
