@@ -17,10 +17,6 @@ on:
       - '.github/workflows/TagBot.yml'
   release:
     types: [published]
-    paths-ignore:
-      - 'LICENSE.md'
-      - 'README.md'
-      - '.github/workflows/TagBot.yml'
 
 jobs:
   build:
