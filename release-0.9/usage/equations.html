@@ -1,0 +1,114 @@
+<!DOCTYPE html><HTML lang="en"><head><meta charset="UTF-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>Linear Equations · ApproxFun.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script data-main="../assets/documenter.js" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/><script data-outdated-warner="">function maybeAddWarning () {
+    const head = document.getElementsByTagName('head')[0];
+
+    // Add a noindex meta tag (unless one exists) so that search engines don't index this version of the docs.
+    if (document.body.querySelector('meta[name="robots"]') === null) {
+        const meta = document.createElement('meta');
+        meta.name = 'robots';
+        meta.content = 'noindex';
+
+        head.appendChild(meta);
+    };
+
+    // Add a stylesheet to avoid inline styling
+    const style = document.createElement('style');
+    style.type = 'text/css';
+    style.appendChild(document.createTextNode('.outdated-warning-overlay {  position: fixed;  top: 0;  left: 0;  right: 0;  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);  z-index: 999;  background-color: #ffaba7;  color: rgba(0, 0, 0, 0.7);  border-bottom: 3px solid #da0b00;  padding: 10px 35px;  text-align: center;  font-size: 15px; }  .outdated-warning-overlay .outdated-warning-closer {    position: absolute;    top: calc(50% - 10px);    right: 18px;    cursor: pointer;    width: 12px; }  .outdated-warning-overlay a {    color: #2e63b8; }    .outdated-warning-overlay a:hover {      color: #363636; }'));
+    head.appendChild(style);
+
+    const div = document.createElement('div');
+    div.classList.add('outdated-warning-overlay');
+    const closer = document.createElement('div');
+    closer.classList.add('outdated-warning-closer');
+
+    // Icon by font-awesome (license: https://fontawesome.com/license, link: https://fontawesome.com/icons/times?style=solid)
+    closer.innerHTML = '<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="times" class="svg-inline--fa fa-times fa-w-11" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 352 512"><path fill="currentColor" d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"></path></svg>';
+    closer.addEventListener('click', function () {
+        document.body.removeChild(div);
+    });
+    let href = '/stable';
+    if (window.documenterBaseURL) {
+        href = window.documenterBaseURL + '/../stable';
+    }
+    div.innerHTML = 'This documentation is not for the latest version. <br> <a href="' + href + '">Go to the latest documentation</a>.';
+    div.appendChild(closer);
+    document.body.appendChild(div);
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', maybeAddWarning);
+} else {
+    maybeAddWarning();
+};
+</script></head><body><nav class="toc"><a href="../index.html"><img alt="ApproxFun.jl logo" class="logo" src="../assets/logo.png"/></a><h1>ApproxFun.jl</h1><select id="version-selector" onchange="window.location.href=this.value" style="visibility: hidden"></select><form action="../search.html" class="search" id="search-form"><input id="search-query" name="q" placeholder="Search docs" type="text"/></form><ul><li><a class="toctext" href="../index.html">Home</a></li><li><span class="toctext">Usage</span><ul><li><a class="toctext" href="domains.html">Domains</a></li><li><a class="toctext" href="spaces.html">Spaces</a></li><li><a class="toctext" href="constructors.html">Constructors</a></li><li><a class="toctext" href="operators.html">Operators</a></li><li class="current"><a class="toctext" href="equations.html">Linear Equations</a><ul class="internal"><li><a class="toctext" href="#Boundary-conditions-1">Boundary conditions</a></li><li><a class="toctext" href="#Eigenvalue-Problems-1">Eigenvalue Problems</a></li><li><a class="toctext" href="#Systems-of-equations-1">Systems of equations</a></li><li><a class="toctext" href="#QR-Factorization-1">QR Factorization</a></li><li><a class="toctext" href="#Partial-differential-equations-1">Partial differential equations</a></li><li><a class="toctext" href="#Nonlinear-equations-1">Nonlinear equations</a></li></ul></li></ul></li><li><a class="toctext" href="../faq.html">Frequently Asked Questions</a></li><li><a class="toctext" href="../library.html">Library</a></li></ul></nav><article id="docs"><header><nav><ul><li>Usage</li><li><a href="equations.html">Linear Equations</a></li></ul><a class="edit-page" href="https://github.com/JuliaApproximation/ApproxFun.jl/blob/master/docs/src/usage/equations.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Linear Equations</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" href="#Linear-equations-1" id="Linear-equations-1">Linear equations</a></h1><p>Linear equations such as ordinary and partial differential equations,  fractional differential equations and integral equations can be solved using ApproxFun. This is accomplished using <code>A\b</code> where <code>A</code> is an <code>Operator</code> and <code>b</code> is a <code>Fun</code>.  As a simple example, consider the equation</p><div>\[u'(\theta) + cu(\theta) = \cos\theta\]</div><p>where we want a solution that is periodic on <span>$[0,2\pi)$</span>.  This can be solved succinctly as follows:</p><pre><code class="language-julia-repl">julia&gt; b = Fun(cos,Fourier());
+
+julia&gt; c = 0.1; u = (𝒟+c*I)\b;
+
+julia&gt; u(0.6)
+0.64076835137228
+
+julia&gt; (c*cos(0.6)+sin(0.6))/(1+c^2)  # exact solution
+0.6407683513722804</code></pre><p>Recall that <code>𝒟</code> is an alias to <code>Derivative() == Derivative(UnsetSpace(),1)</code>.</p><p>As another example, consider the Fredholm integral equation</p><div>\[u + {\rm e}^x \int_{-1}^1 \cos x \, u(x) {\rm d}x = \cos {\rm e}^x\]</div><p>We can solve this equation as follows:</p><pre><code class="language-julia-repl">julia&gt; Σ = DefiniteIntegral(Chebyshev()); x = Fun();
+
+julia&gt; u = (I+exp(x)*Σ[cos(x)]) \ cos(exp(x));
+
+julia&gt; u(0.1)
+0.21864294855628802</code></pre><p>Note that we used the syntax <code>op[f::Fun]</code>, which is a shorthand for <code>op*Multiplication(f)</code>.</p><h2><a class="nav-anchor" href="#Boundary-conditions-1" id="Boundary-conditions-1">Boundary conditions</a></h2><p>Incorporating boundary conditions into differential equations is important so that the equation is well-posed.  This is accomplished via combining operators and functionals (i.e., <code>1 × ∞</code> operators).  As a simple example, consider the first order initial value problem</p><div>\[u' = t u \qquad\hbox{and}\qquad u(0) = 1\]</div><p>To pose this in ApproxFun, we want to find a <code>u</code> such that <code>Evaluation(0)*u == 1</code> and <code>(𝒟 - t)*u == 0</code>.  This is accomplished via:</p><pre><code class="language-julia-repl">julia&gt; t = Fun(0..1);
+
+julia&gt; u = [Evaluation(0); 𝒟 - t]  \ [1;0];
+
+julia&gt; u(0)
+0.9999999999999996
+
+julia&gt; norm(u'-t*u)
+1.2016080299388273e-16</code></pre><p>Behind the scenes, the <code>Vector{Operator{T}}</code> representing the functionals and operators are combined into a single <code>InterlaceOperator</code>.</p><p>A common usage is two-point boundary value problems. Consider the singularly perturbed boundary value problem:</p><div>\[\epsilon u''-xu'+u = u \qquad u(-1) = 1,\quad u(1) = 2\]</div><p>This can be solved in ApproxFun via:</p><pre><code class="language-julia-repl">julia&gt; x = Fun();
+
+julia&gt; u = [Evaluation(-1);
+            Evaluation(1);
+            1/70*𝒟^2-x*𝒟+I] \ [1,2,0];
+
+julia&gt; u(0.1)
+0.049999999999960326</code></pre><p>Note in this case the space is inferred from the variable coefficient <code>x</code>.</p><p>This ODE can also be solved using the <code>Dirichlet</code> operator:</p><pre><code class="language-julia-repl">julia&gt; x = Fun();
+
+julia&gt; u = [Dirichlet();
+            1/70*𝒟^2-x*𝒟+I] \ [[1,2],0];
+
+julia&gt; u(0.1)
+0.04999999999996019</code></pre><h2><a class="nav-anchor" href="#Eigenvalue-Problems-1" id="Eigenvalue-Problems-1">Eigenvalue Problems</a></h2><p>In analogy to linear algebra, many differential equations may be posed as eigenvalue problems. That is, for some differential operator <span>$L$</span>, there are a family of functions <span>$u_i(x)$</span> such that $ L~u<em>i(x) = \lambda</em>i u<em>i(x) $ where \lambda</em>i$ is the <span>$i^{th}$</span> eigenvalue of the <span>$L$</span> and has a corresponding <em>eigenfunction</em><span>$u_i(x)$</span>. A classic eigenvalue problem is known as the quantum harmonic oscillator where <span>$L = -\frac{1}{2}\frac{d^2}{dx^2} + \frac{1}{2} x^2$</span> and one demands that <span>$u(\infty) = u(-\infty) = 0$</span>. Because we expect the solutions to be exponentially suppressed for large <span>$x$</span>, we can approximate this with Dirichlet boundary conditions at a 'reasonably large' <span>$x$</span> without much difference.</p><p>We can express this in ApproxFun as the following:</p><pre><code class="language-julia">x = Fun(-8 .. 8)
+L = -𝒟^2/2 + x^2/2
+S = space(x)
+B = Dirichlet(S)
+λ, v = eigs(B, L, 500,tolerance=1E-10)</code></pre><p>note that boundary conditions must be specified in the call to <code>eigs</code>. Plotting the first <span>$20$</span> eigenfunctions offset vertically by their eigenvalue, we see</p><p><img alt="harmonic_eigs" src="../assets/Harmonic_eigs.pdf"/></p><p>If the solutions are not relatively constant near the boundary then one should push the boundaries further out.</p><p>For problems with different contraints or boundary conditions, <code>B</code> can be any zero functional constraint, eg. <code>DefiniteIntegral()</code>.</p><h2><a class="nav-anchor" href="#Systems-of-equations-1" id="Systems-of-equations-1">Systems of equations</a></h2><p>Systems of equations can be handled by creating a matrix of operators and functionals.  For example, we can solve the system</p><div>\[\begin{align*}
+    u'' - u + 2v &amp;= {\rm e}^x  \cr
+    v' + v &amp;= cos(x) \cr
+    u(-1) &amp;= u'(-1) = v(-1) = 0
+\end{align*}\]</div><p>using the following code:</p><pre><code class="language-julia-repl">julia&gt; x = Fun(); B = Evaluation(Chebyshev(),-1);
+
+julia&gt; A = [B      0;
+            B*𝒟    0;
+            0      B;
+            𝒟^2-I  2I;
+            I      𝒟+I];
+
+julia&gt; u,v = A\[0;0;0;exp(x);cos(x)];
+
+julia&gt; u(-1),u'(-1),v(-1)
+(-4.163336342344337e-17,-2.7755575615628914e-16,-2.220446049250313e-16)
+
+julia&gt; norm(u''-u+2v-exp(x))
+5.981056979045254e-16
+
+julia&gt; norm(u + v'+v-cos(x))
+2.3189209621240424e-16</code></pre><p>In this example, the automatic space detection failed and so we needed to specify explicitly that the domain space for <code>B</code> is <code>Chebyshev()</code>.</p><h2><a class="nav-anchor" href="#QR-Factorization-1" id="QR-Factorization-1">QR Factorization</a></h2><p>Behind the scenes, <code>A\b</code> where <code>A</code> is an <code>Operator</code> is implemented via an adaptive QR factorization.  That is, it is equivalent to <code>qr(A)\b</code>.  (There is a subtly here in space inferring: <code>A\b</code> can use     both <code>A</code> and <code>b</code> to determine the domain space, while <code>qr(A)</code> only     sees the operator <code>A</code>.)       Note that <code>qr</code> adaptively caches a partial QR Factorization as it is applied to different right-hand sides, so the same operator can be inverted much more efficiently in subsequent problems.</p><h2><a class="nav-anchor" href="#Partial-differential-equations-1" id="Partial-differential-equations-1">Partial differential equations</a></h2><p>Partial differential operators are also supported.  Here's an example of solving the Poisson equation with zero boundary conditions:</p><pre><code class="language-julia">d = Domain(-1..1)^2
+x,y = Fun(d)
+f = exp.(-10(x+0.3)^2-20(y-0.2)^2)  # use broadcasting as exp(f) not implemented in 2D
+A = [Dirichlet(d);Δ]              # Δ is an alias for Laplacian()
+@time u = A \ [zeros(∂(d));f]     #4s for ~3k coefficients</code></pre><p>Using a QR Factorization reduces the cost of subsequent calls substantially:</p><pre><code class="language-julia">QR = qr(A)
+@time QR \ [zeros(∂(d));f]   # 4s
+g = exp.(-10(x+0.2)^2-20(y-0.1)^2)
+@time QR \ [zeros(∂(d));g]  # 0.09s</code></pre><p>Many PDEs have weak singularities at the corners, in which case it is beneficial to specify a tolerance to reduce the time:</p><pre><code class="language-julia">\(A, [zeros(∂(d));f]; tolerance=1E-6)</code></pre><h2><a class="nav-anchor" href="#Nonlinear-equations-1" id="Nonlinear-equations-1">Nonlinear equations</a></h2><p>There is preliminary support for nonlinear equations, via Newton iteration in function space.  Here is a simple two-point boundary value problem:</p><div>\[\begin{align*}
+    \epsilon u'' &amp;+ 6(1-x^2)u' +u^2=1 \cr
+    u(-1)&amp;=u(1)=0
+\end{align*}\]</div><p>This can be solved using</p><pre><code class="language-julia">x = Fun()
+N = u -&gt; [u(-1.)-c; u(1.); ε*u'' + 6*(1-x^2)*u' + u^2 - 1.0]
+u = newton(N,u0)</code></pre><footer><hr/><a class="previous" href="operators.html"><span class="direction">Previous</span><span class="title">Operators</span></a><a class="next" href="../faq.html"><span class="direction">Next</span><span class="title">Frequently Asked Questions</span></a></footer></article></body></HTML>

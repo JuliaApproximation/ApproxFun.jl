@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Operators · ApproxFun.jl</title><meta name="title" content="Operators · ApproxFun.jl"/><meta property="og:title" content="Operators · ApproxFun.jl"/><meta property="twitter:title" content="Operators · ApproxFun.jl"/><meta name="description" content="Documentation for ApproxFun.jl."/><meta property="og:description" content="Documentation for ApproxFun.jl."/><meta property="twitter:description" content="Documentation for ApproxFun.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.png" alt="ApproxFun.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">ApproxFun.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Usage</span><ul><li><a class="tocitem" href="../domains/">Domains</a></li><li><a class="tocitem" href="../spaces/">Spaces</a></li><li><a class="tocitem" href="../constructors/">Constructors</a></li><li class="is-active"><a class="tocitem" href>Operators</a><ul class="internal"><li><a class="tocitem" href="#Calculus-operators"><span>Calculus operators</span></a></li><li><a class="tocitem" href="#Functionals"><span>Functionals</span></a></li><li><a class="tocitem" href="#Multiplication"><span>Multiplication</span></a></li><li><a class="tocitem" href="#Algebraic-manipulation-of-operators"><span>Algebraic manipulation of operators</span></a></li><li><a class="tocitem" href="#Operators-and-space-promotion"><span>Operators and space promotion</span></a></li><li><a class="tocitem" href="#Concatenating-operators"><span>Concatenating operators</span></a></li></ul></li><li><a class="tocitem" href="../equations/">Linear Equations</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../generated/ODE/">Solving ODEs</a></li><li><a class="tocitem" href="../../generated/system_of_eqn/">System of equations</a></li><li><a class="tocitem" href="../../generated/PDE/">Solving PDEs</a></li><li><a class="tocitem" href="../../generated/Sampling/">Sampling</a></li><li><a class="tocitem" href="../../generated/Periodic/">Periodic Domains</a></li><li><a class="tocitem" href="../../generated/Eigenvalue/">Eigenvalue problem</a></li><li><a class="tocitem" href="../../generated/NonlinearBVP/">Nonlinear Boundary Value Problem</a></li></ul></li><li><span class="tocitem">Internals</span><ul><li><a class="tocitem" href="../../internals/multivariate/">Multivariate functions</a></li><li><a class="tocitem" href="../../internals/blocks/">Blocks</a></li><li><a class="tocitem" href="../../internals/spaces/">Spaces</a></li></ul></li><li><a class="tocitem" href="../../faq/">Frequently Asked Questions</a></li><li><a class="tocitem" href="../../library/">Library</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Usage</a></li><li class="is-active"><a href>Operators</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Operators</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/JuliaApproximation/ApproxFun.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/JuliaApproximation/ApproxFun.jl/blob/master/docs/src/usage/operators.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Operators"><a class="docs-heading-anchor" href="#Operators">Operators</a><a id="Operators-1"></a><a class="docs-heading-anchor-permalink" href="#Operators" title="Permalink"></a></h1><p>Linear operators between two spaces in ApproxFun are represented by subtypes of <code>Operator</code>.  Every operator has a <code>domainspace</code> and <code>rangespace</code>.  That is, if a <code>Fun</code> <code>f</code> has the space <code>domainspace(op)</code>, then<code>op * f</code> is a <code>Fun</code> with space <code>rangespace(op)</code>.</p><p>Note that the size of an operator is specified by the dimension of the domain and range space.</p><h2 id="Calculus-operators"><a class="docs-heading-anchor" href="#Calculus-operators">Calculus operators</a><a id="Calculus-operators-1"></a><a class="docs-heading-anchor-permalink" href="#Calculus-operators" title="Permalink"></a></h2><p>Differential and integral operators are perhaps the most useful type of operators in mathematics.  Consider the derivative operator on <code>CosSpace</code>:</p><pre><code class="language-julia-repl hljs">julia&gt; D = Derivative(CosSpace());
+
+julia&gt; f = Fun(θ-&gt;cos(cos(θ)), CosSpace());
+
+julia&gt; fp = D * f;
+
+julia&gt; fp(0.1) ≈ f&#39;(0.1) ≈ sin(cos(0.1))*sin(0.1)
+true</code></pre><p>Here, we specified the domain space for the derivative operator, and it automatically determined the range space:</p><pre><code class="language-julia-repl hljs">julia&gt; rangespace(D) == space(fp) == SinSpace()
+true</code></pre><p>Operators can be identified with infinite-dimensional matrices, whose entries are given by the canonical bases in the domain and range space.  In this case, the relevant formula is</p><p class="math-container">\[\mathop{D} \cos{kθ} = -k \sin{kθ}.\]</p><p>That is, the <code>(k,k+1)</code>th entry is as follows:</p><pre><code class="language-julia-repl hljs">julia&gt; k,j = 5,6;
+
+julia&gt; ej = Fun(domainspace(D), [zeros(j-1);1]);
+
+julia&gt; D[k,j] ≈ coefficient(D * ej, k) ≈ -k
+true</code></pre><p>The <code>Chebyshev</code> space has the property that its derivatives are given by ultraspherical spaces:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; Derivative(Chebyshev())</code><code class="nohighlight hljs ansi" style="display:block;">ConcreteDerivative : Chebyshev() → Ultraspherical(1)
+  ⋅   1.0   ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   ⋅
+  ⋅    ⋅   2.0   ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   ⋅
+  ⋅    ⋅    ⋅   3.0   ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   ⋅
+  ⋅    ⋅    ⋅    ⋅   4.0   ⋅    ⋅    ⋅    ⋅    ⋅   ⋅
+  ⋅    ⋅    ⋅    ⋅    ⋅   5.0   ⋅    ⋅    ⋅    ⋅   ⋅
+  ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   6.0   ⋅    ⋅    ⋅   ⋅
+  ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   7.0   ⋅    ⋅   ⋅
+  ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   8.0   ⋅   ⋅
+  ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   9.0  ⋅
+  ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   ⋱
+  ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅    ⋅   ⋅</code></pre><h2 id="Functionals"><a class="docs-heading-anchor" href="#Functionals">Functionals</a><a id="Functionals-1"></a><a class="docs-heading-anchor-permalink" href="#Functionals" title="Permalink"></a></h2><p>A particularly useful class of operators are <em>functionals</em>, which map from functions to scalar numbers.  These are represented by operators of size <code>1 × ∞</code>: that is, infinite-dimensional analogues of row vectors.</p><p>As an example, the evaluation functional <code>f(0)</code> on <code>CosSpace</code> has the form:</p><pre><code class="language-julia-repl hljs">julia&gt; B = Evaluation(CosSpace(), 0);
+
+julia&gt; B * f ≈ f(0)
+true</code></pre><p>As can be seen from the output, <code>rangespace(B)</code> is a <code>ConstantSpace(Point(0))</code>, a one-dimensional space used to represent scalars whose domain is a single point, <code>0</code>.</p><p>Closely related to functionals are operators with finite-dimensional range.  For example, the <code>Dirichlet</code> operator represents the restriction of a space to its boundary.  In the case, of <code>Chebyshev()</code>, this amounts to evaluation at the endpoints <code>±1</code>:</p><pre><code class="language-jldocetst hljs">julia&gt; B = Dirichlet(Chebyshev());
+
+julia&gt; size(B)
+(2, ℵ₀)
+
+julia&gt; B * Fun(exp) ≈ Fun([exp(-1), exp(1)])
+true</code></pre><h2 id="Multiplication"><a class="docs-heading-anchor" href="#Multiplication">Multiplication</a><a id="Multiplication-1"></a><a class="docs-heading-anchor-permalink" href="#Multiplication" title="Permalink"></a></h2><p>A <code>Multiplication</code> operator sends a <code>Fun</code> to a <code>Fun</code> in the corresponding space by multiplying a given function. The <code>Multiplication</code> operators are presented in matrix form in <code>ApproxFun</code>.</p><pre><code class="language-julia-repl hljs">julia&gt; x = Fun();
+
+julia&gt; M = Multiplication(1 + 2x + x^2, Chebyshev());
+
+julia&gt; coefficients(M * x) == coefficients((1 + 2x + x^2) * x) == M[1:4,1:2] * coefficients(x)
+true</code></pre><p>It is possible for domain space and range space to be different under <code>Mulitplication</code>.</p><pre><code class="language-julia-repl hljs">julia&gt; cosθ = Fun(cos, CosSpace());
+
+julia&gt; sinθ = Fun(sin, SinSpace());
+
+julia&gt; sin2θ = Fun(x-&gt;sin(2x), SinSpace());
+
+julia&gt; cosθM = Multiplication(cosθ, SinSpace());
+
+julia&gt; cosθM * 2sinθ ≈ sin2θ
+true</code></pre><p>If a function is given by the expansion</p><p class="math-container">\[\mathop{f}(θ) = \sum_{n=1}^∞  f_n \sin{nθ}.\]</p><p>Then the matrix above can be easily derived from</p><p class="math-container">\[\begin{aligned}
+\cos{θ} \mathop{f}(θ) &amp;= \cos{θ} \sum_{n=1}^∞ f_n \sin{nθ} \\
+                          &amp;= \sum_{n=1}^∞ f_n \cos{θ} \sin{nθ} \\
+                          &amp;= \sum_{n=1}^∞ \frac{1}{2} f_n \left(\sin{(n-1)θ} + \sin{(n+1)θ}\right) \\
+                          &amp;= \sum_{n=1}^∞ \frac{1}{2} \left(f_{n-1} + f_{n+1}\right) \sin{nθ},
+\end{aligned}\]</p><p>where <span>$f_0 = 0$</span>.</p><h2 id="Algebraic-manipulation-of-operators"><a class="docs-heading-anchor" href="#Algebraic-manipulation-of-operators">Algebraic manipulation of operators</a><a id="Algebraic-manipulation-of-operators-1"></a><a class="docs-heading-anchor-permalink" href="#Algebraic-manipulation-of-operators" title="Permalink"></a></h2><p>Operators can be algebraically manipulated, provided that the domain and range spaces are compatible, or can be made compatible.  As a simple example, we can add the second derivative of a Fourier space to the identity operator:</p><pre><code class="language-julia-repl hljs">julia&gt; D2 = Derivative(Fourier(),2);
+
+julia&gt; (D2 + I) * Fun(x -&gt; cos(2x), Fourier()) ≈ Fun(x -&gt; -3cos(2x), Fourier())
+true</code></pre><p>When the domain and range space are not the same, the identity operator becomes a conversion operator.  That is, to represent <code>D+I</code> acting on the Chebyshev space, we would do the following:</p><pre><code class="language-julia-repl hljs">julia&gt; f = Fun(x-&gt;x^3, Chebyshev());
+
+julia&gt; D = Derivative(Chebyshev());
+
+julia&gt; (D + I) * f ≈ Fun(x-&gt;x^3 + 3x^2)
+true
+
+julia&gt; C = Conversion(Chebyshev(), Ultraspherical(1));
+
+julia&gt; (D + C) * f ≈ Fun(x-&gt;x^3 + 3x^2)
+true</code></pre><p>ApproxFun can automatically determine the spaces, so if one writes <code>D + I</code> it will translate it to <code>D + C</code>.</p><p>Now consider the Fredholm integral operator of the second kind:</p><p class="math-container">\[\mathop{L} \mathop{u} = \mathop{u} + \mathop{e}^x \int_{-1}^1 \mathop{u}(x) \mathop{dx}.\]</p><p>We can construct this using</p><pre><code class="language-julia-repl hljs">julia&gt; x = Fun();
+
+julia&gt; Σ = DefiniteIntegral(Chebyshev());
+
+julia&gt; L = I + exp(x)*Σ;
+
+julia&gt; u = cos(10x^2);
+
+julia&gt; (L * u)(0.1) ≈ u(0.1) + exp(0.1) * sum(u)
+true</code></pre><p>Note that <code>DefiniteIntegral</code> is a functional, i.e., a 1 × ∞ operator.  when multiplied on the left by a function, it automatically constructs the operator <span>$\mathrm{L}=\mathop{e}^x \int_{-1}^1 \mathop{f}(x) \mathop{dx}$</span> via</p><pre><code class="language-julia-repl hljs">julia&gt; x = Fun();
+
+julia&gt; Σ = DefiniteIntegral();
+
+julia&gt; M = Multiplication(exp(x));
+
+julia&gt; L = M * Σ;
+
+julia&gt; L * Fun(x-&gt;3x^2/2, Chebyshev()) ≈ Fun(exp, Chebyshev())
+true</code></pre><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p><code>Σ * exp(x)</code> applies the operator to a function.  To construct the operator that first multiplies by <code>exp(x)</code>, use <code>Σ[exp(x)]</code>.  This is equivalent to <code>Σ * Multiplication(exp(x))</code>.</p></div></div><h2 id="Operators-and-space-promotion"><a class="docs-heading-anchor" href="#Operators-and-space-promotion">Operators and space promotion</a><a id="Operators-and-space-promotion-1"></a><a class="docs-heading-anchor-permalink" href="#Operators-and-space-promotion" title="Permalink"></a></h2><p>It is often more convenient to not specify a space explicitly, but rather infer it when the operator is used.  For example, we can construct <code>Derivative()</code>, which has the alias <code>𝒟</code> (typed as <code>\scrD&lt;tab&gt;</code>), and represents the first derivative on any space:</p><pre><code class="language-julia-repl hljs">julia&gt; f = Fun(cos, Chebyshev(0..1));
+
+julia&gt; (𝒟 * f)(0.1) ≈ -sin(0.1)
+true
+
+julia&gt; f = Fun(cos, Fourier());
+
+julia&gt; (𝒟 * f)(0.1) ≈ -sin(0.1)
+true</code></pre><p>Behind the scenes, <code>Derivative()</code> is equivalent to <code>Derivative(UnsetSpace(),1)</code>.  When multiplying a function <code>f</code>, the domain space is promoted before multiplying, that is, <code>Derivative() * f</code> is equivalent to <code>Derivative(space(f)) * f</code>.</p><p>This promotion of the domain space happens even when operators have spaces attached.  This facilitates the following construction:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; D = Derivative(Chebyshev());</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; D^2</code><code class="nohighlight hljs ansi" style="display:block;">ConcreteDerivative : Chebyshev() → Ultraspherical(2)
+  ⋅    ⋅   4.0   ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋅
+  ⋅    ⋅    ⋅   6.0   ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋅
+  ⋅    ⋅    ⋅    ⋅   8.0    ⋅     ⋅     ⋅     ⋅     ⋅   ⋅
+  ⋅    ⋅    ⋅    ⋅    ⋅   10.0    ⋅     ⋅     ⋅     ⋅   ⋅
+  ⋅    ⋅    ⋅    ⋅    ⋅     ⋅   12.0    ⋅     ⋅     ⋅   ⋅
+  ⋅    ⋅    ⋅    ⋅    ⋅     ⋅     ⋅   14.0    ⋅     ⋅   ⋅
+  ⋅    ⋅    ⋅    ⋅    ⋅     ⋅     ⋅     ⋅   16.0    ⋅   ⋅
+  ⋅    ⋅    ⋅    ⋅    ⋅     ⋅     ⋅     ⋅     ⋅   18.0  ⋅
+  ⋅    ⋅    ⋅    ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋱
+  ⋅    ⋅    ⋅    ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋅
+  ⋅    ⋅    ⋅    ⋅    ⋅     ⋅     ⋅     ⋅     ⋅     ⋅   ⋅</code></pre><p>Note that <code>rangespace(D) ≠ Chebyshev()</code>, hence the operators are not compatible.  Therefore, it has thrown away its domain space, and thus this is equivalent to <code>Derivative(rangespace(D))*D</code>.</p><h2 id="Concatenating-operators"><a class="docs-heading-anchor" href="#Concatenating-operators">Concatenating operators</a><a id="Concatenating-operators-1"></a><a class="docs-heading-anchor-permalink" href="#Concatenating-operators" title="Permalink"></a></h2><p>The concatenation functions <code>vcat</code>, <code>hcat</code> and <code>hvcat</code> are overriden for operators to represent the resulting combined operator, now with a <code>rangespace</code> or <code>domainspace</code> that is an <code>ArraySpace</code>.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../constructors/">« Constructors</a><a class="docs-footer-nextpage" href="../equations/">Linear Equations »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Tuesday 28 January 2025 16:18">Tuesday 28 January 2025</span>. Using Julia version 1.11.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
