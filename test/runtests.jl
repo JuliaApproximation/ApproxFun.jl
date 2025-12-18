@@ -7,7 +7,7 @@ using ParallelTestRunner
 testsuite = find_tests(pwd())
 
 if "--downstream_integration_test" in ARGS
-    delete!(testsuite, "test_aqua")
+    delete!(testsuite, "AquaTest")
 end
 filtered_args = filter(!=("--downstream_integration_test"), ARGS)
 
