@@ -1,0 +1,118 @@
+<!DOCTYPE html><HTML lang="en"><head><meta charset="UTF-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>Spaces · ApproxFun.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script data-main="../assets/documenter.js" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/><script data-outdated-warner="">function maybeAddWarning () {
+    const head = document.getElementsByTagName('head')[0];
+
+    // Add a noindex meta tag (unless one exists) so that search engines don't index this version of the docs.
+    if (document.body.querySelector('meta[name="robots"]') === null) {
+        const meta = document.createElement('meta');
+        meta.name = 'robots';
+        meta.content = 'noindex';
+
+        head.appendChild(meta);
+    };
+
+    // Add a stylesheet to avoid inline styling
+    const style = document.createElement('style');
+    style.type = 'text/css';
+    style.appendChild(document.createTextNode('.outdated-warning-overlay {  position: fixed;  top: 0;  left: 0;  right: 0;  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);  z-index: 999;  background-color: #ffaba7;  color: rgba(0, 0, 0, 0.7);  border-bottom: 3px solid #da0b00;  padding: 10px 35px;  text-align: center;  font-size: 15px; }  .outdated-warning-overlay .outdated-warning-closer {    position: absolute;    top: calc(50% - 10px);    right: 18px;    cursor: pointer;    width: 12px; }  .outdated-warning-overlay a {    color: #2e63b8; }    .outdated-warning-overlay a:hover {      color: #363636; }'));
+    head.appendChild(style);
+
+    const div = document.createElement('div');
+    div.classList.add('outdated-warning-overlay');
+    const closer = document.createElement('div');
+    closer.classList.add('outdated-warning-closer');
+
+    // Icon by font-awesome (license: https://fontawesome.com/license, link: https://fontawesome.com/icons/times?style=solid)
+    closer.innerHTML = '<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="times" class="svg-inline--fa fa-times fa-w-11" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 352 512"><path fill="currentColor" d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"></path></svg>';
+    closer.addEventListener('click', function () {
+        document.body.removeChild(div);
+    });
+    let href = '/stable';
+    if (window.documenterBaseURL) {
+        href = window.documenterBaseURL + '/../stable';
+    }
+    div.innerHTML = 'This documentation is not for the latest version. <br> <a href="' + href + '">Go to the latest documentation</a>.';
+    div.appendChild(closer);
+    document.body.appendChild(div);
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', maybeAddWarning);
+} else {
+    maybeAddWarning();
+};
+</script></head><body><nav class="toc"><a href="../index.html"><img alt="ApproxFun.jl logo" class="logo" src="../assets/logo.png"/></a><h1>ApproxFun.jl</h1><select id="version-selector" onchange="window.location.href=this.value" style="visibility: hidden"></select><form action="../search.html" class="search" id="search-form"><input id="search-query" name="q" placeholder="Search docs" type="text"/></form><ul><li><a class="toctext" href="../index.html">Home</a></li><li><span class="toctext">Usage</span><ul><li><a class="toctext" href="domains.html">Domains</a></li><li class="current"><a class="toctext" href="spaces.html">Spaces</a><ul class="internal"><li><a class="toctext" href="#Classical-orthogonal-polynomial-spaces-1">Classical orthogonal polynomial spaces</a></li><li><a class="toctext" href="#Fourier-and-Laurent-spaces-1">Fourier and Laurent spaces</a></li><li><a class="toctext" href="#Modifier-spaces-1">Modifier spaces</a></li><li><a class="toctext" href="#Unset-space-1">Unset space</a></li></ul></li><li><a class="toctext" href="constructors.html">Constructors</a></li><li><a class="toctext" href="operators.html">Operators</a></li><li><a class="toctext" href="equations.html">Linear Equations</a></li></ul></li><li><a class="toctext" href="../faq.html">Frequently Asked Questions</a></li><li><a class="toctext" href="../library.html">Library</a></li></ul></nav><article id="docs"><header><nav><ul><li>Usage</li><li><a href="spaces.html">Spaces</a></li></ul><a class="edit-page" href="https://github.com/JuliaApproximation/ApproxFun.jl/blob/master/docs/src/usage/spaces.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Spaces</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" href="#Spaces-1" id="Spaces-1">Spaces</a></h1><p>A <code>Space</code> is an abstract type whose subtypes indicate which space a function lives in. This typically corresponds to the span of a (possibly infinite) basis.</p><h2><a class="nav-anchor" href="#Classical-orthogonal-polynomial-spaces-1" id="Classical-orthogonal-polynomial-spaces-1">Classical orthogonal polynomial spaces</a></h2><p><code>Chebyshev</code>, <code>Ultraspherical</code>, <code>Jacobi</code>, <code>Hermite</code>, and <code>Laguerre</code> are spaces corresponding to expansion in classical orthogonal polynomials.</p><p>Note that we always use the classical normalization: the basis are _not_ orthonormal. This is because this normalization leads to rational recurrence relationships, which are more efficient than their normalized counterparts. See the <a href="https://dlmf.nist.gov/18">Digital Library of Mathematical Functions</a> for more information.</p><h3><a class="nav-anchor" href="#Chebyshev-space-1" id="Chebyshev-space-1">Chebyshev space</a></h3><p>The default space in ApproxFun is <code>Chebyshev</code>, which represents expansions in Chebyshev polynomials:</p><div>\[f(x) = \sum_{k=0}^\infty f_k T_k(x)\]</div><p>where <span>$T_k(x) = \cos k \,{\rm acos} x$</span>, which are orthogonal polynomials with respect to the weight $ {1 \over \sqrt{1-x^2} \qquad\hbox{for}\qquad -1 \leq x \leq 1. $ Note that there is an intrinsic link between <code>Chebyshev</code> and <code>CosSpace</code>:  </p><div>\[g(\theta) = f(\cos \theta) = \sum_{k=0}^\infty f_k \cos k \theta\]</div><p>In other words:</p><pre><code class="language-julia-repl">julia&gt; f=Fun(exp,Chebyshev());
+
+julia&gt; g=Fun(CosSpace(),f.coefficients); # specify the coefficients directly
+
+julia&gt; f(cos(0.1))
+2.70473560723178
+
+julia&gt; g(0.1)
+2.7047356072317794</code></pre><h3><a class="nav-anchor" href="#Ultraspherical-spaces-1" id="Ultraspherical-spaces-1">Ultraspherical spaces</a></h3><p>A key tool for solving differential equations are the ultraspherical spaces, encoded as <code>Ultraspherical(λ)</code> for <code>λ ≠ 0</code>, which can be defined by the span of derivatives of Chebyshev polynomials, or alternatively as polynomials orthogonal with respect to the weight $ (1-x^2)^{\lambda - 1/2} \qquad\hbox{for}\qquad -1 \leq x \leq 1. $</p><p>Note that <code>Ultraspherical(1)</code> corresponds to the Chebyshev basis of the second kind: <span>$U_k(x) = {\sin (k+1) {\rm acos} x \over \sin {\rm acos} x}$</span>.   The relationship with Chebyshev polynomials follows from trigonemetric identities: <span>$T_k'(x) = k U_{k-1}(x)$</span>.  </p><p>Converting between ultraspherical polynomials (with integer orders) is extremely efficient: it requires <span>$O(n)$</span> operations, where <span>$n$</span> is the number of coefficients.</p><h3><a class="nav-anchor" href="#Jacobi-spaces-1" id="Jacobi-spaces-1">Jacobi spaces</a></h3><p><code>Jacobi(b,a)</code> represents the space spanned by the Jacobi polynomials, which are orthogonal polynomials with respect to the weight $ (1+x)^b(1-x)^a $ using the standard normalization.</p><h2><a class="nav-anchor" href="#Fourier-and-Laurent-spaces-1" id="Fourier-and-Laurent-spaces-1">Fourier and Laurent spaces</a></h2><p>There are several different spaces to represent functions on periodic domains, which are typically a <code>PeriodicInterval</code>, <code>Circle</code> or <code>PeriodicLine</code>.  </p><p><code>CosSpace</code> represents expansion in cosine series:</p><div>\[f(\theta) = \sum_{k=0}^\infty f_k \cos k \theta\]</div><p><code>SinSpace</code> represents expansion in sine series:</p><div>\[f(\theta) = \sum_{k=0}^\infty f_k \sin (k+1) \theta\]</div><p><code>Taylor</code> represents expansion with only non-negative complex exponential terms:</p><div>\[f(\theta) = \sum_{k=0}^\infty f_k {\rm e}^{{\rm i} k \theta}\]</div><p><code>Hardy{false}</code> represents expansion with only negative complex exponential terms:</p><div>\[f(\theta) = \sum_{k=0}^\infty f_k {\rm e}^{-{\rm i} (k+1) \theta}\]</div><p><code>Fourier</code> represents functions that are sums of sines and cosines.  Note that if a function has the form</p><div>\[f(\theta) = f_0 + \sum_{k=1}^\infty f_k^{\rm c} \cos k \theta + f_k^{\rm s} \sin k\theta\]</div><p>then the coefficients of the resulting <code>Fun</code> are order as <span>$[f_0,f_1^{\rm s},f_1^{\rm c},…]$</span>. For example:</p><pre><code class="language-julia-repl">julia&gt; f = Fun(Fourier(),[1,2,3,4]);
+
+julia&gt; f(0.1)
+4.979356652307978
+
+julia&gt; 1 + 2sin(0.1) + 3cos(0.1) + 4sin(2*0.1)
+4.979356652307979</code></pre><p><code>Laurent</code> represents functions that are sums of complex exponentials.  Note that if a function has the form</p><div>\[f(\theta) = \sum_{k=-\infty}^\infty f_k {\rm e}^{{\rm i} k \theta}\]</div><p>then the coefficients of the resulting <code>Fun</code> are order as <span>$[f_0,f_{-1},f_1,…]$</span>. For example:</p><pre><code class="language-julia-repl">julia&gt; f = Fun(Laurent(),[1,2,3,4]);
+
+julia&gt; f(0.1)
+9.895287137755096 - 0.694843906533417im
+
+julia&gt; 1 + 2exp(-im*0.1) + 3exp(im*0.1) + 4exp(-2im*0.1)
+9.895287137755094 - 0.6948439065334167im</code></pre><h2><a class="nav-anchor" href="#Modifier-spaces-1" id="Modifier-spaces-1">Modifier spaces</a></h2><p>Some spaces are built out of other spaces:</p><h3><a class="nav-anchor" href="#JacobiWeight-1" id="JacobiWeight-1"><code>JacobiWeight</code></a></h3><p><code>JacobiWeight(β,α,space)</code>  weights <code>space</code>, which is typically <code>Chebyshev()</code> or <code>Jacobi(b,a)</code>,  by a Jacobi weight <code>(1+x)^α*(1-x)^β</code>: in other words, if the basis for <code>space</code> is <span>$\psi_k(x)$</span> and the domain is the unit interval <code>-1 .. 1</code>, then the basis for <code>JacobiWeight(β,α,space)</code> is <span>$(1+x)^α(1-x)^β \psi_k(x)$</span>. If the domain is not the unit interval, then the basis is determined by mapping back to the unit interval: that is, if <span>$M(x)$</span> is the map dictated by <code>tocanonical(space, x)</code>, where the canonical domain is the unit interval, then the basis is <span>$(1+M(x))^α(1-M(x))^β \psi_k(x)$</span>. For example, if the domain is another interval <code>a .. b</code>, then $ M(x) = {2x-b-a \over b-a} $ and the basis becomes $ \left({2 \over (b-a)}\right)^{\alpha+\eta}  (x-a)^α(b-x)^β \psi_k(x) $</p><h3><a class="nav-anchor" href="#SumSpace-1" id="SumSpace-1"><code>SumSpace</code></a></h3><p><code>SumSpace((space_1,space_2,…,space_n))</code> represents the direct sum of the spaces, where evaluation is defined by adding up each component. A simple example is the following, showing that the coefficients are stored by interlacing:</p><pre><code class="language-julia-repl">julia&gt; f = cos(x-0.1)*sqrt(1-x^2) + exp(x);
+
+julia&gt; space(f) # isa SumSpace
+(1-x^2)^0.5[Chebyshev(【-1.0,1.0】)]⊕Chebyshev(【-1.0,1.0】)
+
+julia&gt; a, b = components(f);
+
+julia&gt; a(0.2) # cos(0.2-0.1)*sqrt(1-0.2^2)
+0.9749009987500246
+
+julia&gt; b(0.2) # exp(0.2)
+1.2214027581601699
+
+julia&gt; f(0.2) # a(0.2) + b(0.2)
+2.1963037569101944
+
+julia&gt; norm(f.coefficients[1:2:end] - a.coefficients)
+0.0
+
+julia&gt; norm(f.coefficients[2:2:end] - b.coefficients)
+0.0</code></pre><p>More complicated examples may interlace the coefficients using a different strategy.</p><p>Note that <code>Fourier</code> and <code>Laurent</code> are currently implemented as <code>SumSpace</code>, but this may change in the future.</p><h3><a class="nav-anchor" href="#PiecewiseSpace-1" id="PiecewiseSpace-1"><code>PiecewiseSpace</code></a></h3><p><code>PiecewiseSpace((space_1,space_2,…,space_n))</code> represents the direct sum of the spaces, where evaluation is defined in a piecewise way. A simple example is the following:</p><pre><code class="language-julia-repl">julia&gt; x = Fun(Domain(-1 .. 0) ∪ Domain( 1 .. 2));
+
+julia&gt; f = exp(x);
+
+julia&gt; a, b = components(f);
+
+julia&gt; f(-0.5) - a(-0.5)
+0.0
+
+julia&gt; f(1.5) - b(1.5)
+0.0
+
+julia&gt; f(0.5) # outside domain components
+0.0
+
+julia&gt; norm(f.coefficients[2:2:end] - b.coefficients)
+0.0
+
+julia&gt; norm(f.coefficients[1:2:end] - a.coefficients)
+0.0</code></pre><p>More complicated examples may interlace the coefficients using a different strategy.</p><h3><a class="nav-anchor" href="#ArraySpace-1" id="ArraySpace-1"><code>ArraySpace</code></a></h3><p><code>ArraySpace(::Array{&lt;:Space})</code> represents the direct sum of the spaces, where evaluation is defined in an array-wise manner. A simple example is the following:</p><pre><code class="language-julia-repl">julia&gt; f = [exp(x); sqrt(1-x^2)*cos(x-0.1)];
+
+julia&gt; space(f)
+2-element ArraySpace:
+ Chebyshev(【-1.0,1.0】)             
+ (1-x^2)^0.5[Chebyshev(【-1.0,1.0】)]
+
+julia&gt; a, b = components(f);
+
+julia&gt; norm(f(0.5) - [a(0.5); b(0.5)])
+0.0
+
+julia&gt; norm(f.coefficients[1:2:end] - a.coefficients)
+0.0
+
+julia&gt; norm(f.coefficients[2:2:end] - b.coefficients)
+0.0</code></pre><p>More complicated examples may interlace the coefficients using a different strategy.</p><h3><a class="nav-anchor" href="#TensorSpace-1" id="TensorSpace-1"><code>TensorSpace</code></a></h3><p><code>TensorSpace((space_1,space_2))</code> represents the tensor product of two spaces. See documentation of <code>TensorSpace</code> for more details on how the coefficients are interlaced. Note that more than two spaces is only partially supported.</p><h2><a class="nav-anchor" href="#Unset-space-1" id="Unset-space-1">Unset space</a></h2><p><code>UnsetSpace</code> is a special space that is used as a stand in when a space has not yet been determined, particularly by operators.  </p><footer><hr/><a class="previous" href="domains.html"><span class="direction">Previous</span><span class="title">Domains</span></a><a class="next" href="constructors.html"><span class="direction">Next</span><span class="title">Constructors</span></a></footer></article></body></HTML>
