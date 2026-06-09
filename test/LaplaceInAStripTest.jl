@@ -1,8 +1,9 @@
 using Test
 using ApproxFun
+using ApproxFunBase: cartesianproduct
 
 @testset "Laplace in a strip" begin
-    d = PeriodicSegment() × ChebyshevInterval()
+    d = cartesianproduct(PeriodicSegment(), ChebyshevInterval())
     g=Fun((x,y)->real(cos(x+im*y)),∂(d))
     @test g(0.1,1.0) ≈ real(cos(0.1+im))
     @test g(0.1,-1.0) ≈ real(cos(0.1-im))

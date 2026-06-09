@@ -3,6 +3,7 @@ using ApproxFun
 using Random
 using LinearAlgebra
 using ApproxFunBase
+using ApproxFunBase: cartesianproduct
 
 @testset "periodic x interval" begin
     dθ=PeriodicSegment(-2.,2.)
@@ -19,7 +20,7 @@ using ApproxFunBase
     u=\([I⊗ldirichlet(dt); Dt+Dθ], [u0; 0.0]; tolerance=1E-6)
     @test ≈(u(0.2,0.1),u0(0.1);atol=1E-6)
 
-    d=PeriodicSegment() × ChebyshevInterval()
+    d=cartesianproduct(PeriodicSegment(), ChebyshevInterval())
     u_ex=Fun((x,y)->real(cos(x+im*y)),d)
     @test u_ex(1.0,0.1) ≈ real(cos(1.0+im*0.1)) atol=10eps()
     B=Dirichlet(Space(d))

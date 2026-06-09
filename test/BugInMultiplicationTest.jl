@@ -1,9 +1,10 @@
 using Test
 using ApproxFun
 using ApproxFunBase
+using ApproxFunBase: cartesianproduct
 
 @testset "Bug in Multiplication" begin
-    dom = Interval(0.001, 1) × PeriodicSegment(-pi, pi)
+    dom = cartesianproduct(Interval(0.001, 1), PeriodicSegment(-pi, pi))
     @test blocklengths(Space(dom)) == 2:2:∞
     r,r2 = Fun((r,t) -> [r;r^2], dom)
     @test r(0.1,0.2) ≈ 0.1
