@@ -1,5 +1,6 @@
 [deps]
 ApproxFun = "28f2ccd6-bb30-5033-b560-165f7b14dc2f"
+ApproxFunBase = "fbd15aa5-315a-5a7d-a8a4-24992e37be05"
 BandedMatrices = "aae01518-5342-5314-be14-df237901396f"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 DomainSets = "5b8099bc-c8ec-5219-889f-1d9e522a28bf"
@@ -12,10 +13,11 @@ SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 ApproxFun = {path = ".."}
 
 [compat]
+ApproxFunBase = "0.9.35"
 BandedMatrices = "0.17, 1"
 Documenter = "1"
-DomainSets = "0.6, 0.7"
+DomainSets = "0.6, 0.7, 0.8"
 Literate = "2"
 Plots = "1"
 SpecialFunctions = "2"
-julia = "1.6"
+julia = "1.10"

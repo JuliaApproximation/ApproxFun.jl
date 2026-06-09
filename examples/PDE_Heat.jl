@@ -9,13 +9,14 @@
 # ``u(x,0) = u_0(x)``, where we choose ``u_0(x)`` to be a sharp Gaussian.
 
 using ApproxFun
+using ApproxFunBase: cartesianproduct
 using LinearAlgebra
 
 dx = -1..1;
 dt = 0..1;
 
 # We construct a 2D domain that is the tensor product of x and t
-d = dx × dt;
+d = cartesianproduct(dx, dt);
 
 # The initial condition
 u0 = Fun(x->exp(-x^2/(2*0.2^2)), dx);
