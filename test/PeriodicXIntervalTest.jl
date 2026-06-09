@@ -8,7 +8,7 @@ using ApproxFunBase: cartesianproduct
 @testset "periodic x interval" begin
     dθ=PeriodicSegment(-2.,2.)
     dt=Interval(0,1.)
-    d=dθ×dt
+    d=cartesianproduct(dθ, dt)
     Dθ=Derivative(d,[1,0])
     Dt=Derivative(d,[0,1])
     u0=Fun(θ->exp(-20θ^2), dθ)
