@@ -121,12 +121,15 @@ end
     [real(a),real(b)], [imag(a),imag(b)]
 end
 
-@recipe function f(dd::UnionDomain)
-    @series component(dd,1)
-    for k=2:ncomponents(dd)
-        @series begin
-            primary := false
-            component(dd,k)
+# DomainSets v0.8.3 and later provide this recipe in DomainSetsRecipesBaseExt
+if Base.get_extension(DomainSets, :DomainSetsRecipesBaseExt) === nothing
+    @recipe function f(dd::UnionDomain)
+        @series component(dd,1)
+        for k=2:ncomponents(dd)
+            @series begin
+                primary := false
+                component(dd,k)
+            end
         end
     end
 end
