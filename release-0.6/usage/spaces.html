@@ -1,0 +1,63 @@
+<!DOCTYPE html><HTML lang="en"><head><meta charset="UTF-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>Spaces · ApproxFun.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Ubuntu+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script data-main="../assets/documenter.js" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/highlightjs/default.css" rel="stylesheet" type="text/css"/><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/><script data-outdated-warner="">function maybeAddWarning () {
+    const head = document.getElementsByTagName('head')[0];
+
+    // Add a noindex meta tag (unless one exists) so that search engines don't index this version of the docs.
+    if (document.body.querySelector('meta[name="robots"]') === null) {
+        const meta = document.createElement('meta');
+        meta.name = 'robots';
+        meta.content = 'noindex';
+
+        head.appendChild(meta);
+    };
+
+    // Add a stylesheet to avoid inline styling
+    const style = document.createElement('style');
+    style.type = 'text/css';
+    style.appendChild(document.createTextNode('.outdated-warning-overlay {  position: fixed;  top: 0;  left: 0;  right: 0;  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);  z-index: 999;  background-color: #ffaba7;  color: rgba(0, 0, 0, 0.7);  border-bottom: 3px solid #da0b00;  padding: 10px 35px;  text-align: center;  font-size: 15px; }  .outdated-warning-overlay .outdated-warning-closer {    position: absolute;    top: calc(50% - 10px);    right: 18px;    cursor: pointer;    width: 12px; }  .outdated-warning-overlay a {    color: #2e63b8; }    .outdated-warning-overlay a:hover {      color: #363636; }'));
+    head.appendChild(style);
+
+    const div = document.createElement('div');
+    div.classList.add('outdated-warning-overlay');
+    const closer = document.createElement('div');
+    closer.classList.add('outdated-warning-closer');
+
+    // Icon by font-awesome (license: https://fontawesome.com/license, link: https://fontawesome.com/icons/times?style=solid)
+    closer.innerHTML = '<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="times" class="svg-inline--fa fa-times fa-w-11" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 352 512"><path fill="currentColor" d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"></path></svg>';
+    closer.addEventListener('click', function () {
+        document.body.removeChild(div);
+    });
+    let href = '/stable';
+    if (window.documenterBaseURL) {
+        href = window.documenterBaseURL + '/../stable';
+    }
+    div.innerHTML = 'This documentation is not for the latest version. <br> <a href="' + href + '">Go to the latest documentation</a>.';
+    div.appendChild(closer);
+    document.body.appendChild(div);
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', maybeAddWarning);
+} else {
+    maybeAddWarning();
+};
+</script></head><body><nav class="toc"><a href="../index.html"><img alt="ApproxFun.jl logo" class="logo" src="../assets/logo.png"/></a><h1>ApproxFun.jl</h1><select id="version-selector" onchange="window.location.href=this.value" style="visibility: hidden"></select><form action="../search.html" class="search"><input id="search-query" name="q" placeholder="Search docs" type="text"/></form><ul><li><a class="toctext" href="../index.html">Home</a></li><li><span class="toctext">Usage</span><ul><li><a class="toctext" href="domains.html">Domains</a></li><li class="current"><a class="toctext" href="spaces.html">Spaces</a><ul class="internal"><li><a class="toctext" href="#Chebyshev-space-1">Chebyshev space</a></li><li><a class="toctext" href="#Ultraspherical-spaces-1">Ultraspherical spaces</a></li><li><a class="toctext" href="#Fourier-and-Laurent-spaces-1">Fourier and Laurent spaces</a></li><li><a class="toctext" href="#Modifier-spaces-1">Modifier spaces</a></li><li><a class="toctext" href="#Unset-space-1">Unset space</a></li></ul></li><li><a class="toctext" href="constructors.html">Constructors</a></li><li><a class="toctext" href="operators.html">Operators</a></li><li><a class="toctext" href="equations.html">Linear Equations</a></li></ul></li><li><a class="toctext" href="../faq.html">Frequently Asked Questions</a></li><li><a class="toctext" href="../library.html">Library</a></li></ul></nav><article id="docs"><header><nav><ul><li>Usage</li><li><a href="spaces.html">Spaces</a></li></ul><a class="edit-page" href="https://github.com/JuliaApproximation/ApproxFun.jl/tree/7a20a13d029560ad7dc95ec897fcf12ed1d0ca3a/docs/src/usage/spaces.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/></header><h1><a class="nav-anchor" href="#Spaces-1" id="Spaces-1">Spaces</a></h1><p>A <code>Space</code> is an abstract type whose subtypes indicate which space a function lives in. This typically corresponds to the span of a (possibly infinite) basis.</p><h2><a class="nav-anchor" href="#Chebyshev-space-1" id="Chebyshev-space-1">Chebyshev space</a></h2><p>The default space in ApproxFun is <code>Chebyshev</code>, which represents expansions in Chebyshev polynomials:</p><div>\[f(x) = \sum_{k=0}^\infty f_k T_k(x)\]</div><p>where <span>$T_k(x) = \cos k \,{\rm acos} x$</span>.   Note that there is an intrinsic link between <code>Chebyshev</code> and <code>CosSpace</code>:  </p><div>\[g(\theta) = f(\cos \theta) = \sum_{k=0}^\infty f_k \cos k \theta\]</div><p>In other words:</p><pre><code class="language-julia-repl">julia&gt; f=Fun(exp,Chebyshev());
+
+julia&gt; g=Fun(CosSpace(),f.coefficients); # specify the coefficients directly
+
+julia&gt; f(cos(0.1))
+2.70473560723178
+
+julia&gt; g(0.1)
+2.7047356072317794</code></pre><h2><a class="nav-anchor" href="#Ultraspherical-spaces-1" id="Ultraspherical-spaces-1">Ultraspherical spaces</a></h2><p>A key tool for solving differential equations are the ultraspherical spaces, which can be defined by the span of derivatives of Chebyshev polynomials.  </p><p>Note that <code>Ultraspherical(1)</code> corresponds to the Chebyshev basis of the second kind: <span>$U_k(x) = {\sin (k+1) {\rm acos} x \over \sin {\rm acos} x}$</span>.   The relationship with Chebyshev polynomials follows from trigonemetric identities: <span>$T_k'(x) = k U_{k-1}(x)$</span>.  </p><p>Converting between ultraspherical polynomials (with integer orders) is extremely efficient: it requires <span>$O(n)$</span> operations, where <span>$n$</span> is the number of coefficients.</p><h2><a class="nav-anchor" href="#Fourier-and-Laurent-spaces-1" id="Fourier-and-Laurent-spaces-1">Fourier and Laurent spaces</a></h2><p>There are several different spaces to represent functions on periodic domains, which are typically a <code>PeriodicInterval</code>, <code>Circle</code> or <code>PeriodicLine</code>.  </p><p><code>CosSpace</code> represents expansion in cosine series:</p><div>\[f(\theta) = \sum_{k=0}^\infty f_k \cos k \theta\]</div><p><code>SinSpace</code> represents expansion in sine series:</p><div>\[f(\theta) = \sum_{k=0}^\infty f_k \sin (k+1) \theta\]</div><p><code>Taylor</code> represents expansion with only non-negative complex exponential terms:</p><div>\[f(\theta) = \sum_{k=0}^\infty f_k {\rm e}^{{\rm i} k \theta}\]</div><p><code>Hardy{false}</code> represents expansion with only negative complex exponential terms:</p><div>\[f(\theta) = \sum_{k=0}^\infty f_k {\rm e}^{-{\rm i} (k+1) \theta}\]</div><p><code>Fourier</code> represents functions that are sums of sines and cosines.  Note that if a function has the form</p><div>\[f(\theta) = f_0 + \sum_{k=1}^\infty f_k^{\rm c} \cos k \theta + f_k^{\rm s} \sin k\theta\]</div><p>then the coefficients of the resulting <code>Fun</code> are order as <span>$[f_0,f_1^{\rm s},f_1^{\rm c},…]$</span>. For example:</p><pre><code class="language-julia-repl">julia&gt; f = Fun(Fourier(),[1,2,3,4]);
+
+julia&gt; f(0.1)
+4.979356652307978
+
+julia&gt; 1 + 2sin(0.1) + 3cos(0.1) + 4sin(2*0.1)
+4.979356652307979</code></pre><p><code>Laurent</code> represents functions that are sums of complex exponentials.  Note that if a function has the form</p><div>\[f(\theta) = \sum_{k=-\infty}^\infty f_k {\rm e}^{{\rm i} k \theta}\]</div><p>then the coefficients of the resulting <code>Fun</code> are order as <span>$[f_0,f_{-1},f_1,…]$</span>. For example:</p><pre><code class="language-julia-repl">julia&gt; f = Fun(Laurent(),[1,2,3,4]);
+
+julia&gt; f(0.1)
+9.895287137755096 - 0.694843906533417im
+
+julia&gt; 1 + 2exp(-im*0.1) + 3exp(im*0.1) + 4exp(-2im*0.1)
+9.895287137755094 - 0.6948439065334167im</code></pre><h2><a class="nav-anchor" href="#Modifier-spaces-1" id="Modifier-spaces-1">Modifier spaces</a></h2><p>Some spaces are built out of other spaces.  A simple example is <code>JacobiWeight(β,α,space)</code> which weights <code>space</code>, which is typically <code>Chebyshev()</code> or <code>Jacobi(b,a)</code>,  by a Jacobi weight <code>(1+x)^b*(1-x)^a</code>.</p><p><code>@meta  DocTestSetup = nothing</code></p><h2><a class="nav-anchor" href="#Unset-space-1" id="Unset-space-1">Unset space</a></h2><p><code>UnsetSpace</code> is a special space that is used as a stand in when a space has not yet been determined, particularly by operators.  </p><footer><hr/><a class="previous" href="domains.html"><span class="direction">Previous</span><span class="title">Domains</span></a><a class="next" href="constructors.html"><span class="direction">Next</span><span class="title">Constructors</span></a></footer></article></body></HTML>

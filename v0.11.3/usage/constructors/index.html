@@ -1,0 +1,84 @@
+<!DOCTYPE html><HTML lang="en"><head><meta charset="UTF-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>Constructors · ApproxFun.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script data-main="../../assets/documenter.js" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link href="../../assets/documenter.css" rel="stylesheet" type="text/css"/><script data-outdated-warner="">function maybeAddWarning () {
+    const head = document.getElementsByTagName('head')[0];
+
+    // Add a noindex meta tag (unless one exists) so that search engines don't index this version of the docs.
+    if (document.body.querySelector('meta[name="robots"]') === null) {
+        const meta = document.createElement('meta');
+        meta.name = 'robots';
+        meta.content = 'noindex';
+
+        head.appendChild(meta);
+    };
+
+    // Add a stylesheet to avoid inline styling
+    const style = document.createElement('style');
+    style.type = 'text/css';
+    style.appendChild(document.createTextNode('.outdated-warning-overlay {  position: fixed;  top: 0;  left: 0;  right: 0;  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);  z-index: 999;  background-color: #ffaba7;  color: rgba(0, 0, 0, 0.7);  border-bottom: 3px solid #da0b00;  padding: 10px 35px;  text-align: center;  font-size: 15px; }  .outdated-warning-overlay .outdated-warning-closer {    position: absolute;    top: calc(50% - 10px);    right: 18px;    cursor: pointer;    width: 12px; }  .outdated-warning-overlay a {    color: #2e63b8; }    .outdated-warning-overlay a:hover {      color: #363636; }'));
+    head.appendChild(style);
+
+    const div = document.createElement('div');
+    div.classList.add('outdated-warning-overlay');
+    const closer = document.createElement('div');
+    closer.classList.add('outdated-warning-closer');
+
+    // Icon by font-awesome (license: https://fontawesome.com/license, link: https://fontawesome.com/icons/times?style=solid)
+    closer.innerHTML = '<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="times" class="svg-inline--fa fa-times fa-w-11" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 352 512"><path fill="currentColor" d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"></path></svg>';
+    closer.addEventListener('click', function () {
+        document.body.removeChild(div);
+    });
+    let href = '/stable';
+    if (window.documenterBaseURL) {
+        href = window.documenterBaseURL + '/../stable';
+    }
+    div.innerHTML = 'This documentation is not for the latest version. <br> <a href="' + href + '">Go to the latest documentation</a>.';
+    div.appendChild(closer);
+    document.body.appendChild(div);
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', maybeAddWarning);
+} else {
+    maybeAddWarning();
+};
+</script></head><body><nav class="toc"><a href="../../"><img alt="ApproxFun.jl logo" class="logo" src="../../assets/logo.png"/></a><h1>ApproxFun.jl</h1><select id="version-selector" onchange="window.location.href=this.value" style="visibility: hidden"></select><form action="../../search/" class="search" id="search-form"><input id="search-query" name="q" placeholder="Search docs" type="text"/></form><ul><li><a class="toctext" href="../../">Home</a></li><li><span class="toctext">Usage</span><ul><li><a class="toctext" href="../domains/">Domains</a></li><li><a class="toctext" href="../spaces/">Spaces</a></li><li class="current"><a class="toctext" href="">Constructors</a><ul class="internal"><li><a class="toctext" href="#Convenience-constructors-1">Convenience constructors</a></li><li><a class="toctext" href="#Specifying-coefficients-explicitly-1">Specifying coefficients explicitly</a></li><li><a class="toctext" href="#Using-ApproxFun-for-“manual”-interpolation-1">Using ApproxFun for “manual” interpolation</a></li></ul></li><li><a class="toctext" href="../operators/">Operators</a></li><li><a class="toctext" href="../equations/">Linear Equations</a></li></ul></li><li><a class="toctext" href="../../faq/">Frequently Asked Questions</a></li><li><a class="toctext" href="../../library/">Library</a></li></ul></nav><article id="docs"><header><nav><ul><li>Usage</li><li><a href="">Constructors</a></li></ul><a class="edit-page" href="https://github.com/JuliaApproximation/ApproxFun.jl/blob/master/docs/src/usage/constructors.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Constructors</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" href="#Constructors-1" id="Constructors-1">Constructors</a></h1><p><code>Fun</code>s in ApproxFun are instances of Julia types with one field to store coefficients and another to describe the function space. Similarly, each function space has one field describing its domain, or another function space. Let's explore:</p><pre><code class="language-julia-repl">julia&gt; x = Fun(identity,-1..1);
+
+julia&gt; f = exp(x);
+
+julia&gt; g = f/sqrt(1-x^2);
+
+julia&gt; space(f)   # Output is pretty version of Chebyshev(Interval(-1.0,1.0))
+Chebyshev(【-1.0,1.0】)
+
+julia&gt; space(g)   # Output is pretty version of  JacobiWeight(-0.5,-0.5,Interval(-1.0,1.0))
+(1-x^2)^-0.5[Chebyshev(【-1.0,1.0】)]</code></pre><p>The absolute value is another case where the space of the output is inferred from the operation:</p><pre><code class="language-julia-repl">julia&gt; f = Fun(x-&gt;cospi(5x),-1..1);
+
+julia&gt; g = abs(f);
+
+julia&gt; space(f)
+Chebyshev(【-1.0,1.0】)
+
+julia&gt; space(g)
+Chebyshev(【-1.0,-0.9000000000000002】)⨄Chebyshev(【-0.9000000000000002,-0.6999999999999996】)⨄Chebyshev(【-0.6999999999999996,-0.5000000000000001】)⨄Chebyshev(【-0.5000000000000001,-0.30000000000000043】)⨄Chebyshev(【-0.30000000000000043,-0.09999999999999962】)⨄Chebyshev(【-0.09999999999999962,0.10000000000000053】)⨄Chebyshev(【0.10000000000000053,0.29999999999999966】)⨄Chebyshev(【0.29999999999999966,0.500000000000001】)⨄Chebyshev(【0.500000000000001,0.6999999999999998】)⨄Chebyshev(【0.6999999999999998,0.9000000000000006】)⨄Chebyshev(【0.9000000000000006,1.0】)</code></pre><h2><a class="nav-anchor" href="#Convenience-constructors-1" id="Convenience-constructors-1">Convenience constructors</a></h2><p>The default space is <code>Chebyshev</code>, which can represent non-periodic functions on intervals.  Each <code>Space</code> type has a default domain: for <code>Chebyshev</code> this is <code>-1..1</code>, for Fourier and Laurent this is <code>-π..π</code>.  Thus the following are equivalent:</p><pre><code class="language-julia">Fun(exp,Chebyshev(Interval(-1,1)))
+Fun(exp,Chebyshev(ChebyshevInterval()))
+Fun(exp,Chebyshev(-1..1))
+Fun(exp,Chebyshev())
+Fun(exp,-1..1)
+Fun(exp,ChebyshevInterval())
+Fun(exp,Interval(-1,1))
+Fun(exp)</code></pre><p>If a function is not specified, then it is taken to be <code>identity</code>.  Thus we have the following equivalent constructions:</p><pre><code class="language-julia">x = Fun(identity, -1..1)
+x = Fun(-1..1)
+x = Fun(identity)
+x = Fun()</code></pre><h2><a class="nav-anchor" href="#Specifying-coefficients-explicitly-1" id="Specifying-coefficients-explicitly-1">Specifying coefficients explicitly</a></h2><p>It is sometimes necessary to specify coefficients explicitly.  This is possible via specifying the space followed by a vector of coefficients:</p><pre><code class="language-julia-repl">julia&gt; f = Fun(Taylor(), [1,2,3]);  # represents 1 + 2z + 3z^2
+
+julia&gt; f(0.1)
+1.23
+
+julia&gt; 1 + 2*0.1 + 3*0.1^2
+1.23</code></pre><p>In higher dimensions, ApproxFun will sum products of the 1D basis functions. So if <span>$T_i(x)$</span> is the <span>$i$</span>th basis function, then a 2D function can be approximated as the following: <span>$f(x, \, y) = \sum_{i, j} c_{i,j} \, T_i(x) \, T_j(y).$</span></p><p>The products will be ordered lexicographically by the degree of the polynomial, i.e. in the order <span>$\{T_0(x) \, T_0(y), \, T_0(x) \, T_1(y),  \, T_1(x) \, T_0(y),  \, T_0(x) \, T_2(y),  \, T_1(x) \, T_1(y),  \, T_2(x) \, T_0(y),  \, ... \}$</span>. For example, if we are in the two dimensional CosSpace space and we have coefficients <span>$\{c_1, c_2, c_3\}$</span>, then $ f(x, y) = c<em>1 \cos(0 x) \cos(0 y) + c</em>2 \cos(0 x) \cos(1 y) + c_3 \cos(1 x) \cos(0 y). $</p><p>This is illustrated in the following code:</p><pre><code class="language-julia-repl">julia&gt; f = Fun(CosSpace()^2, [1,2,3])
+Fun(CosSpace(【0.0,6.283185307179586❫)⊗CosSpace(【0.0,6.283185307179586❫),[1.0,2.0,3.0])
+
+julia&gt; f(1,2)
+1.7886132445101346
+
+julia&gt; 1cos(0*1)*cos(0*2) + 2cos(0*1)*cos(1*2) + 3cos(1*1)*cos(0*2)
+1.7886132445101346</code></pre><h2><a class="nav-anchor" href="#Using-ApproxFun-for-“manual”-interpolation-1" id="Using-ApproxFun-for-“manual”-interpolation-1">Using ApproxFun for “manual” interpolation</a></h2><p>The ApproxFun package for Julia implements all of the necessary operations for Chebyshev interpolation and operations (like differentiation or integration) on Chebyshev interpolants.</p><p>Normally, you give it a function f and a domain d, and construct the Chebyshev interpolant by <code>fc = Fun(f, d)</code>. The ApproxFun package figures out the necessary number of Chebyshev points (i.e., the polynomial order) required to interpolate f to nearly machine precision, so that subsequent operations on fc can be viewed as "exact".</p><p>However, in cases where the function to be interpolated is extremely expensive, and possibly even is evaluated by an external program, it is convenient to be able to decide on the desired Chebyshev order in advance, evaluate the function at those points "manually", and then construct the Chebyshev interpolant. An example showing how to do this is given in the <a href="../../faq/">ApproxFun FAQ</a>.</p><footer><hr/><a class="previous" href="../spaces/"><span class="direction">Previous</span><span class="title">Spaces</span></a><a class="next" href="../operators/"><span class="direction">Next</span><span class="title">Operators</span></a></footer></article></body></HTML>

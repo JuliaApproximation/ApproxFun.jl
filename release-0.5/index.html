@@ -1,0 +1,43 @@
+<!DOCTYPE html><HTML lang="en"><head><meta charset="UTF-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>Home · ApproxFun.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/styles/default.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Ubuntu+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="assets/documenter.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script data-main="assets/documenter.js" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js"></script><script src="../versions.js"></script><script data-outdated-warner="">function maybeAddWarning () {
+    const head = document.getElementsByTagName('head')[0];
+
+    // Add a noindex meta tag (unless one exists) so that search engines don't index this version of the docs.
+    if (document.body.querySelector('meta[name="robots"]') === null) {
+        const meta = document.createElement('meta');
+        meta.name = 'robots';
+        meta.content = 'noindex';
+
+        head.appendChild(meta);
+    };
+
+    // Add a stylesheet to avoid inline styling
+    const style = document.createElement('style');
+    style.type = 'text/css';
+    style.appendChild(document.createTextNode('.outdated-warning-overlay {  position: fixed;  top: 0;  left: 0;  right: 0;  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);  z-index: 999;  background-color: #ffaba7;  color: rgba(0, 0, 0, 0.7);  border-bottom: 3px solid #da0b00;  padding: 10px 35px;  text-align: center;  font-size: 15px; }  .outdated-warning-overlay .outdated-warning-closer {    position: absolute;    top: calc(50% - 10px);    right: 18px;    cursor: pointer;    width: 12px; }  .outdated-warning-overlay a {    color: #2e63b8; }    .outdated-warning-overlay a:hover {      color: #363636; }'));
+    head.appendChild(style);
+
+    const div = document.createElement('div');
+    div.classList.add('outdated-warning-overlay');
+    const closer = document.createElement('div');
+    closer.classList.add('outdated-warning-closer');
+
+    // Icon by font-awesome (license: https://fontawesome.com/license, link: https://fontawesome.com/icons/times?style=solid)
+    closer.innerHTML = '<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="times" class="svg-inline--fa fa-times fa-w-11" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 352 512"><path fill="currentColor" d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"></path></svg>';
+    closer.addEventListener('click', function () {
+        document.body.removeChild(div);
+    });
+    let href = '/stable';
+    if (window.documenterBaseURL) {
+        href = window.documenterBaseURL + '/../stable';
+    }
+    div.innerHTML = 'This documentation is not for the latest version. <br> <a href="' + href + '">Go to the latest documentation</a>.';
+    div.appendChild(closer);
+    document.body.appendChild(div);
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', maybeAddWarning);
+} else {
+    maybeAddWarning();
+};
+</script></head><body><nav class="toc"><a href="index.html"><img alt="ApproxFun.jl logo" class="logo" src="assets/logo.png"/></a><h1>ApproxFun.jl</h1><form action="search.html" class="search"><select id="version-selector" onchange="window.location.href=this.value"><option disabled="disabled" selected="selected" value="#">Version</option></select><input id="search-query" name="q" placeholder="Search docs" type="text"/></form><ul><li class="current"><a class="toctext" href="index.html">Home</a><ul class="internal"></ul></li><li><span class="toctext">Usage</span><ul><li><a class="toctext" href="usage/domains.html">Domains</a></li><li><a class="toctext" href="usage/spaces.html">Spaces</a></li><li><a class="toctext" href="usage/constructors.html">Constructors</a></li><li><a class="toctext" href="usage/operators.html">Operators</a></li><li><a class="toctext" href="usage/equations.html">Linear Equations</a></li></ul></li><li><a class="toctext" href="faq.html">Frequently Asked Questions</a></li><li><a class="toctext" href="library.html">Library</a></li></ul></nav><article id="docs"><header><nav><ul><li><a href="index.html">Home</a></li></ul><a class="edit-page" href="https://github.com/JuliaApproximation/ApproxFun.jl/tree/a92bcac6445dcb5a28f4900de776101e46a3e398/docs/src/index.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/></header><h1><a class="nav-anchor" href="#ApproxFun.jl-Documentation-1" id="ApproxFun.jl-Documentation-1">ApproxFun.jl Documentation</a></h1><p>ApproxFun is a package for approximating and manipulating functions, and for solving differential and integral equations.  </p><ul><li><a href="usage/constructors.html#Constructors-1">Constructors</a></li><ul><li><a href="usage/constructors.html#Convenience-constructors-1">Convenience constructors</a></li><li><a href="usage/constructors.html#Specifying-coefficients-explicitly-1">Specifying coefficients explicitly</a></li><li><a href="usage/constructors.html#Using-ApproxFun-for-“manual”-interpolation-1">Using ApproxFun for “manual” interpolation</a></li></ul><li><a href="usage/domains.html#Domains-1">Domains</a></li><ul><li><a href="usage/domains.html#Relationship-with-spaces-1">Relationship with spaces</a></li><li><a href="usage/domains.html#Manipulating-domains-1">Manipulating domains</a></li></ul><li><a href="usage/spaces.html#Spaces-1">Spaces</a></li><ul><li><a href="usage/spaces.html#Chebyshev-space-1">Chebyshev space</a></li><li><a href="usage/spaces.html#Ultraspherical-spaces-1">Ultraspherical spaces</a></li><li><a href="usage/spaces.html#Fourier-and-Laurent-spaces-1">Fourier and Laurent spaces</a></li><li><a href="usage/spaces.html#Modifier-spaces-1">Modifier spaces</a></li><li><a href="usage/spaces.html#Unset-space-1">Unset space</a></li></ul><li><a href="usage/operators.html#Operators-1">Operators</a></li><ul><li><a href="usage/operators.html#Calculus-operators-1">Calculus operators</a></li><li><a href="usage/operators.html#Functionals-1">Functionals</a></li><li><a href="usage/operators.html#Algebraic-manipulation-of-operators-1">Algebraic manipulation of operators</a></li><li><a href="usage/operators.html#Operators-and-space-promotion-1">Operators and space promotion</a></li></ul><li><a href="usage/equations.html#Linear-equations-1">Linear equations</a></li><ul><li><a href="usage/equations.html#Boundary-conditions-1">Boundary conditions</a></li><li><a href="usage/equations.html#Systems-of-equations-1">Systems of equations</a></li><li><a href="usage/equations.html#QR-Factorization-1">QR Factorization</a></li><li><a href="usage/equations.html#Partial-differential-equations-1">Partial differential equations</a></li><li><a href="usage/equations.html#Nonlinear-equations-1">Nonlinear equations</a></li></ul><li><a href="faq.html#Frequently-Asked-Questions-1">Frequently Asked Questions</a></li><ul><li><a href="faq.html#Approximating-functions-1">Approximating functions</a></li></ul><li><a href="library.html#Library-1">Library</a></li><ul><li><a href="library.html#Constructing-a-Fun-1">Constructing a Fun</a></li><li><a href="library.html#Domains-1">Domains</a></li><li><a href="library.html#Accessing-information-about-a-spaces-1">Accessing information about a spaces</a></li><li><a href="library.html#Inbuilt-spaces-1">Inbuilt spaces</a></li><li><a href="library.html#Accessing-information-about-a-Fun-1">Accessing information about a Fun</a></li><li><a href="library.html#Modify-a-Fun-1">Modify a Fun</a></li><li><a href="library.html#Operators-1">Operators</a></li><li><a href="library.html#Inbuilt-operators-1">Inbuilt operators</a></li><li><a href="library.html#Bivariate-1">Bivariate</a></li></ul></ul><footer><hr/><a class="next" href="usage/domains.html"><span class="direction">Next</span><span class="title">Domains</span></a></footer></article></body></HTML>
