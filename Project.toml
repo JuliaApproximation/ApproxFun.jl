@@ -20,9 +20,11 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [weakdeps]
 DualNumbers = "fa6b7ba4-c1ee-5f82-b5fc-ecf0adba8f74"
+VectorInterface = "409d34a3-91d5-4945-b6ec-7529ddf182d8"
 
 [extensions]
 ApproxFunDualNumbersExt = "DualNumbers"
+ApproxFunVectorInterfaceExt = "VectorInterface"
 
 [compat]
 AbstractFFTs = "1.0"
@@ -48,6 +50,7 @@ Reexport = "1.0"
 SpecialFunctions = "1.1, 2"
 StaticArrays = "1"
 Test = "1"
+VectorInterface = "0.4, 0.5, 0.6"
 julia = "1.10"
 
 [extras]
@@ -61,6 +64,7 @@ IntervalSets = "8197267c-284f-5f27-9208-e0e47529a953"
 ParallelTestRunner = "d3525ed8-44d0-4b2c-a655-542cee43accc"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+VectorInterface = "409d34a3-91d5-4945-b6ec-7529ddf182d8"
 
 [targets]
-test = ["Aqua", "BandedMatrices", "BlockBandedMatrices", "Documenter", "DualNumbers", "FFTW", "ParallelTestRunner", "Random", "Test"]
+test = ["Aqua", "BandedMatrices", "BlockBandedMatrices", "Documenter", "DualNumbers", "FFTW", "ParallelTestRunner", "Random", "Test", "VectorInterface"]
